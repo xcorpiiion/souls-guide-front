@@ -1,3 +1,68 @@
-<section class="feature-page">
-  <h2>Jogos</h2>
+<section class="games">
+  <div class="games__header">
+    <div class="games__header-left">
+      <p class="games__eyebrow">Comunidade · {{ games.length }} jogos</p>
+      <h1 class="games__title">Jogos</h1>
+    </div>
+    <button class="games__btn-suggest" type="button">+ Sugerir jogo</button>
+  </div>
+
+  <div class="games__grid">
+    @for (game of games; track trackById($index, game)) {
+      <article class="game-card">
+        <div class="game-card__banner game-card__banner--{{ game.accentClass }}">
+          <span class="game-card__short">{{ game.shortName }}</span>
+          <span class="game-card__badge game-card__badge--{{ game.accentClass }}">{{
+            game.name
+          }}</span>
+        </div>
+
+        <div class="game-card__body">
+          <div class="game-card__stats">
+            <div class="game-card__stat">
+              <span class="game-card__stat-value">{{ game.questCount }}</span>
+              <span class="game-card__stat-label">quests</span>
+            </div>
+            <div class="game-card__stat">
+              <span class="game-card__stat-value">{{ game.loreCount }}</span>
+              <span class="game-card__stat-label">lore</span>
+            </div>
+            <div class="game-card__stat">
+              <span class="game-card__stat-value">{{ game.followersCount }}</span>
+              <span class="game-card__stat-label">seguindo</span>
+            </div>
+          </div>
+
+          <div class="game-card__divider"></div>
+
+          <div class="game-card__top-quest">
+            <span class="game-card__top-quest-label">Quest mais seguida</span>
+            @if (game.topQuestTitle) {
+              <span class="game-card__top-quest-title">{{ game.topQuestTitle }}</span>
+              <span class="game-card__top-quest-meta">
+                {{ game.topQuestSteps }} etapas · {{ game.topQuestFollowers }} seguindo
+              </span>
+            } @else {
+              <span class="game-card__top-quest-empty">Nenhuma quest ainda</span>
+              <span class="game-card__top-quest-meta">Seja o primeiro a contribuir</span>
+            }
+          </div>
+
+          <div class="game-card__actions">
+            <a class="game-card__btn game-card__btn--primary" [routerLink]="['/games', game.id]">
+              Ver comunidade
+            </a>
+            <button class="game-card__btn game-card__btn--secondary" type="button">
+              Fazer fork
+            </button>
+          </div>
+        </div>
+
+        <div class="game-card__footer">
+          <span class="game-card__footer-item">{{ game.lastActivityLabel }}</span>
+          <span class="game-card__footer-item">{{ game.contributorsCount }} contribuidores</span>
+        </div>
+      </article>
+    }
+  </div>
 </section>

@@ -1,5 +1,11 @@
-type Success<T> = { isSuccess: true; value: T };
-type Failure<E> = { isSuccess: false; error: E };
+interface Success<T> {
+  isSuccess: true;
+  value: T;
+}
+interface Failure<E> {
+  isSuccess: false;
+  error: E;
+}
 
 export type Result<T, E = Error> = Success<T> | Failure<E>;
 

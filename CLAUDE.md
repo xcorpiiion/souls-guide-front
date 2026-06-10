@@ -1,26 +1,25 @@
 # SoulGuide — CLAUDE.md
 
 Arquivo de instruções para o Claude Code. Leia antes de qualquer ação.
-Para contexto completo do produto, leia também o `CONTEXT.md`.
+Leia também `.claude/rules.md` para regras de código detalhadas.
 
 ---
 
 ## O projeto
 
 SoulGuide é um site colaborativo de guias para souls-likes (Elden Ring, Dark Souls III, Bloodborne, Lies of P, Lords of the Fallen).
-Projeto pessoal/portfólio, sem fins financeiros. Doação via Pix no rodapé.
+Projeto pessoal/portfólio, sem fins financeiros.
 
 ---
 
 ## Stack
 
-- **Frontend:** Angular 21, SCSS, Signals, Standalone Components, OnPush
-- **Backend:** Java 21, Spring Boot 3.x, PostgreSQL
-- **BPMN:** bpmn-js
-- **Auth:** Spring Security + JWT + Login social (Google/Discord)
-- **Infra:** Railway + Supabase + Vercel (~R$33/mês)
-- **CI/CD:** GitHub Actions
-- **Observabilidade:** Grafana Cloud + Sentry + UptimeRobot (free tier)
+- **Frontend:** Angular 21 (não 22), Zoneless, SCSS, Signals, Standalone, OnPush
+- **Testes:** Vitest
+- **BPMN:** bpmn-js@18 (editor e viewer de quests como grafo)
+- **Drag-drop:** @angular/cdk@21
+- **CI/CD:** GitHub Actions + SonarCloud (repo público, free)
+- **Backend:** ainda não existe — fase mock-first
 
 ---
 
@@ -57,27 +56,14 @@ src/
 
 ---
 
-## Regras de código — Angular
+## Regras de código
 
-- Sempre **standalone components** (padrão Angular 22)
-- Sempre **OnPush** change detection
-- **Signals** para estado local — evitar Subject/BehaviorSubject para estado local
-- **Lazy loading** em todas as rotas de features
-- Nunca usar `any` no TypeScript
-- Interfaces para todos os modelos em `shared/models/`
-- SCSS próprio por componente, nunca style inline
-- Importar variáveis SCSS via `@use 'styles/variables' as v`
-
----
-
-## Regras de código — Java
-
-- Pacotes organizados por **feature**, não por camada
-- **Records** do Java 21 para DTOs
-- Nunca expor entidades JPA diretamente — sempre DTOs
-- Validação com `@Valid` + Bean Validation
-- Respostas sempre com `ResponseEntity`
-- Nomenclatura: controllers em `/api/v1/`
+- Standalone components, OnPush, Signals — ver `.claude/rules.md` para detalhes
+- Componentes grandes → dividir. Limite: ~200 linhas de HTML, ~150 de SCSS, ~100 de TS
+- Todo componente e service criado deve ter arquivo `.spec.ts`
+- Mock-first: dados em `*.mocks.ts`, nunca inline no componente
+- SCSS via `@use 'styles/variables' as v` e `@use 'styles/mixins' as m`
+- Nunca `any`, nunca Zone.js, nunca style inline
 
 ---
 
@@ -153,33 +139,28 @@ interface UserProgress {
 ## O que NÃO fazer
 
 - Não adicionar SSR
-- Não criar seção/entidade de itens separada
+- Não criar seção/entidade de itens separada (itens são citações no lore)
 - Não usar localStorage para estado sensível
-- Não expor entidades JPA direto nas APIs
 - Não commitar chaves de API ou senhas
 - Não criar componente sem SCSS próprio
-- Não usar Zone.js — projeto usa Zoneless (Angular 22 padrão)
+- Não criar componente sem spec correspondente
+- Não usar Zone.js
+- Não usar `any`
 
 ---
 
-## Estado atual do projeto
+## Estado atual (junho 2025)
 
-- [x] Projeto Angular 22 criado com SCSS
-- [x] Estrutura de pastas definida
-- [x] CONTEXT.md e CLAUDE.md criados
-- [x] _variables.scss criado com tokens de design
-- [ ] Estrutura de pastas criada no projeto (rodar create-structure.bat)
-- [ ] angular.json configurado para SCSS global
-- [ ] Layout base criado (navbar + router-outlet)
-- [ ] Rotas lazy load configuradas
-- [ ] Backend Spring Boot iniciado
-
----
-
-## Próxima sessão — continuar aqui
-
-1. Rodar `create-structure.bat` para criar as pastas
-2. Configurar `angular.json` para importar `_variables.scss` globalmente
-3. Criar `_reset.scss` e `_typography.scss`
-4. Criar layout base com navbar e router-outlet
-5. Configurar rotas lazy load para cada feature
+- [x] Angular 21, zoneless, signals, OnPush, lazy routes
+- [x] Layout: navbar + router-outlet
+- [x] Styles: _variables.scss, _mixins.scss, _reset.scss, _typography.scss
+- [x] Shared: Button, Toast, SearchInput, EmptyState, TruncatePipe
+- [x] Services: LoadingService, ToastService
+- [x] Feature home: completa com mocks
+- [x] Feature games: completa com mocks
+- [x] CI/CD: GitHub Actions + SonarCloud
+- [ ] Feature games: GameCard como subcomponente + specs
+- [ ] Feature games/:id (detalhe do jogo)
+- [ ] Feature quests: lista + editor BPMN + viewer
+- [ ] Feature lore: lista + artigo
+- [ ] Feature profile: espaço pessoal

@@ -29,11 +29,15 @@ jobs:
       - name: Type check
         run: npx tsc --noEmit
 
-      # ── Etapa 3: Testes ──────────────────────────────────────────────────────
+      # ── Etapa 3: Lint ────────────────────────────────────────────────────────
+      - name: Lint
+        run: npm run lint
+
+      # ── Etapa 4: Testes com coverage ─────────────────────────────────────────
       - name: Run tests
         run: npx ng test --coverage --watch=false
 
-      # ── Etapa 4: Build ───────────────────────────────────────────────────────
+      # ── Etapa 5: Build ───────────────────────────────────────────────────────
       - name: Build
         run: npm run build
 

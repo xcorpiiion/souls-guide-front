@@ -22,8 +22,9 @@ export function isEmpty(value: unknown): boolean {
 }
 
 export function getAllAsNonNull<T extends Record<string, unknown>>(obj: T): Partial<T> {
-  return (Object.keys(obj) as Array<keyof T>).reduce<Partial<T>>((acc, key) => {
-    const val = typeof obj[key] === 'string' ? (obj[key] as string).trim() as T[keyof T] : obj[key];
+  return (Object.keys(obj) as (keyof T)[]).reduce<Partial<T>>((acc, key) => {
+    const val =
+      typeof obj[key] === 'string' ? ((obj[key] as string).trim() as T[keyof T]) : obj[key];
     if (!isEmpty(val)) acc[key] = val;
     return acc;
   }, {});
@@ -33,7 +34,10 @@ export function pluck<T, P extends keyof T>(array: T[], property: P): T[P][] {
   return array.map((item) => item[property]);
 }
 
-export function pick<T extends object, K extends keyof T>(source: T, ...properties: K[]): Pick<T, K> {
+export function pick<T extends object, K extends keyof T>(
+  source: T,
+  ...properties: K[]
+): Pick<T, K> {
   const result = {} as Pick<T, K>;
   for (const prop of properties) {
     if (prop in source) result[prop] = source[prop];
@@ -41,7 +45,10 @@ export function pick<T extends object, K extends keyof T>(source: T, ...properti
   return result;
 }
 
-export function debounce<T extends (...args: unknown[]) => unknown>(func: T, delay: number): (...args: Parameters<T>) => void {
+export function debounce<T extends (...args: unknown[]) => unknown>(
+  func: T,
+  delay: number,
+): (...args: Parameters<T>) => void {
   let timeoutId: ReturnType<typeof setTimeout>;
   return function (this: unknown, ...args: Parameters<T>) {
     clearTimeout(timeoutId);

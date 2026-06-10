@@ -1,7 +1,285 @@
+@use 'sass:list';
 @use 'styles/variables' as v;
+@use 'styles/mixins' as m;
 
-.feature-page {
+// ─── Cores por jogo ──────────────────────────────────────────────────────────
+$game-colors: (
+  'er': (
+    #2a1f0a,
+    #6b4c1a,
+    #c9a84c,
+    rgba(201, 168, 76, 0.18),
+  ),
+  'ds3': (
+    #1a0a0a,
+    #5c1a1a,
+    #e85050,
+    rgba(232, 80, 80, 0.18),
+  ),
+  'bb': (
+    #140a1a,
+    #4a1a5c,
+    #c870e8,
+    rgba(200, 112, 232, 0.18),
+  ),
+  'lop': (
+    #0a1a1a,
+    #1a5c5c,
+    #40c8c8,
+    rgba(64, 200, 200, 0.18),
+  ),
+  'lotf': (
+    #0a0f1a,
+    #1a2a5c,
+    #6090e8,
+    rgba(96, 144, 232, 0.18),
+  ),
+);
+
+// ─── Page ────────────────────────────────────────────────────────────────────
+.games {
   padding: v.$space-8;
   max-width: v.$content-max-width;
   margin: 0 auto;
+}
+
+.games__header {
+  @include m.flex-between;
+  margin-bottom: v.$space-8;
+  gap: v.$space-4;
+  flex-wrap: wrap;
+}
+
+.games__header-left {
+  display: flex;
+  flex-direction: column;
+  gap: v.$space-1;
+}
+
+.games__eyebrow {
+  font-size: v.$font-size-xs;
+  color: v.$color-text-muted;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.games__title {
+  font-size: v.$font-size-3xl;
+  font-weight: 500;
+  color: v.$color-text;
+  font-family: v.$font-display;
+}
+
+.games__btn-suggest {
+  display: flex;
+  align-items: center;
+  gap: v.$space-2;
+  padding: v.$space-2 v.$space-4;
+  background: transparent;
+  border: 1px solid v.$color-border;
+  border-radius: v.$radius-md;
+  color: v.$color-text-muted;
+  font-family: v.$font-body;
+  font-size: v.$font-size-sm;
+  cursor: pointer;
+  transition:
+    border-color v.$transition-fast,
+    color v.$transition-fast;
+
+  @include m.on-hover {
+    border-color: v.$color-gold;
+    color: v.$color-gold;
+  }
+}
+
+.games__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: v.$space-4;
+}
+
+// ─── Card ────────────────────────────────────────────────────────────────────
+.game-card {
+  display: flex;
+  flex-direction: column;
+  background-color: v.$color-bg-surface;
+  border: 1px solid v.$color-border;
+  border-radius: v.$radius-lg;
+  overflow: hidden;
+  transition:
+    border-color v.$transition-fast,
+    transform v.$transition-fast;
+
+  @include m.on-hover {
+    border-color: v.$color-border-focus;
+    transform: translateY(-2px);
+  }
+}
+
+// ─── Banner ──────────────────────────────────────────────────────────────────
+.game-card__banner {
+  height: 68px;
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  padding: v.$space-3 v.$space-4;
+
+  @each $key, $vals in $game-colors {
+    &--#{$key} {
+      background-color: list.nth($vals, 1);
+      border-bottom: 1px solid list.nth($vals, 2);
+    }
+  }
+}
+
+.game-card__short {
+  font-size: 2rem;
+  font-weight: 600;
+  color: #fff;
+  opacity: 0.15;
+  line-height: 1;
+  letter-spacing: -0.02em;
+  font-family: v.$font-display;
+}
+
+.game-card__badge {
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 3px v.$space-2;
+  border-radius: v.$radius-md;
+
+  @each $key, $vals in $game-colors {
+    &--#{$key} {
+      color: list.nth($vals, 3);
+      background-color: list.nth($vals, 4);
+      border: 1px solid rgba(list.nth($vals, 3), 0.35);
+    }
+  }
+}
+
+// ─── Body ────────────────────────────────────────────────────────────────────
+.game-card__body {
+  display: flex;
+  flex-direction: column;
+  gap: v.$space-4;
+  padding: v.$space-4;
+  flex: 1;
+}
+
+.game-card__stats {
+  display: flex;
+  gap: v.$space-6;
+}
+
+.game-card__stat {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.game-card__stat-value {
+  font-size: v.$font-size-xl;
+  font-weight: 500;
+  color: v.$color-text;
+  line-height: 1;
+}
+
+.game-card__stat-label {
+  font-size: v.$font-size-xs;
+  color: v.$color-text-muted;
+}
+
+.game-card__divider {
+  height: 1px;
+  background-color: v.$color-border;
+}
+
+// ─── Top quest ───────────────────────────────────────────────────────────────
+.game-card__top-quest {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.game-card__top-quest-label {
+  font-size: 10px;
+  color: v.$color-text-muted;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.game-card__top-quest-title {
+  font-size: v.$font-size-sm;
+  color: v.$color-text;
+}
+
+.game-card__top-quest-empty {
+  font-size: v.$font-size-sm;
+  color: v.$color-text-faint;
+  font-style: italic;
+}
+
+.game-card__top-quest-meta {
+  font-size: v.$font-size-xs;
+  color: v.$color-text-muted;
+}
+
+// ─── Actions ─────────────────────────────────────────────────────────────────
+.game-card__actions {
+  display: flex;
+  gap: v.$space-2;
+  margin-top: auto;
+}
+
+.game-card__btn {
+  flex: 1;
+  padding: v.$space-2 v.$space-3;
+  border-radius: v.$radius-md;
+  font-family: v.$font-body;
+  font-size: v.$font-size-xs;
+  cursor: pointer;
+  text-align: center;
+  text-decoration: none;
+  transition:
+    background-color v.$transition-fast,
+    color v.$transition-fast,
+    border-color v.$transition-fast;
+
+  &--primary {
+    background-color: v.$color-bg-elevated;
+    border: 1px solid v.$color-border;
+    color: v.$color-text;
+
+    @include m.on-hover {
+      border-color: v.$color-gold;
+      color: v.$color-gold;
+    }
+  }
+
+  &--secondary {
+    background-color: transparent;
+    border: 1px solid v.$color-border;
+    color: v.$color-text-muted;
+
+    @include m.on-hover {
+      border-color: v.$color-border;
+      color: v.$color-text;
+    }
+  }
+}
+
+// ─── Footer ──────────────────────────────────────────────────────────────────
+.game-card__footer {
+  display: flex;
+  justify-content: space-between;
+  padding: v.$space-2 v.$space-4;
+  border-top: 1px solid v.$color-border;
+  background-color: v.$color-bg;
+}
+
+.game-card__footer-item {
+  font-size: v.$font-size-xs;
+  color: v.$color-text-muted;
 }
