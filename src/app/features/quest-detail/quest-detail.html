@@ -1,0 +1,159 @@
+@if (quest) {
+  <div class="quest-detail">
+    <div class="quest-detail__hero">
+      <nav class="quest-detail__breadcrumb" aria-label="navegação">
+        <a class="quest-detail__breadcrumb-link" routerLink="/games">jogos</a>
+        <span class="quest-detail__breadcrumb-sep" aria-hidden="true">›</span>
+        <a class="quest-detail__breadcrumb-link" [routerLink]="['/games', gameId]">{{
+          quest.gameName
+        }}</a>
+        <span class="quest-detail__breadcrumb-sep" aria-hidden="true">›</span>
+        <a class="quest-detail__breadcrumb-link" [routerLink]="['/games', gameId]">quests</a>
+        <span class="quest-detail__breadcrumb-sep" aria-hidden="true">›</span>
+        <span>{{ quest.title }}</span>
+      </nav>
+
+      <div class="quest-detail__header">
+        <div class="quest-detail__title-block">
+          <div class="quest-detail__title-row">
+            <h1 class="quest-detail__title">{{ quest.title }}</h1>
+            <span
+              [class]="'quest-detail__status quest-detail__status--' + quest.status.toLowerCase()"
+            >
+              {{ quest.status.toLowerCase() }}
+            </span>
+          </div>
+          <p class="quest-detail__description">{{ quest.description }}</p>
+        </div>
+        <div class="quest-detail__actions">
+          <button class="quest-detail__btn quest-detail__btn--ghost" type="button">
+            seguir · {{ quest.followers }}
+          </button>
+          <button class="quest-detail__btn quest-detail__btn--ghost" type="button">
+            compartilhar
+          </button>
+          <button class="quest-detail__btn quest-detail__btn--accent" type="button">
+            + editar
+          </button>
+        </div>
+      </div>
+
+      <div class="quest-detail__stats">
+        <div class="quest-detail__stat">
+          <span class="quest-detail__stat-val">{{ quest.stepCount }}</span>
+          <span class="quest-detail__stat-label">nós</span>
+        </div>
+        <div class="quest-detail__stat">
+          <span class="quest-detail__stat-val">{{ quest.forkCount }}</span>
+          <span class="quest-detail__stat-label">bifurcações</span>
+        </div>
+        <div class="quest-detail__stat">
+          <span class="quest-detail__stat-val">{{ quest.endingCount }}</span>
+          <span class="quest-detail__stat-label">finais</span>
+        </div>
+        <div class="quest-detail__stat">
+          <span class="quest-detail__stat-val">{{ quest.followers }}</span>
+          <span class="quest-detail__stat-label">seguindo</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="quest-detail__body">
+      <div class="quest-detail__main">
+        <div class="quest-detail__graph-header">
+          <span class="quest-detail__graph-label">grafo da quest</span>
+          <div class="quest-detail__legend">
+            <span class="quest-detail__legend-item quest-detail__legend-item--task">tarefa</span>
+            <span class="quest-detail__legend-item quest-detail__legend-item--gateway"
+              >bifurcação</span
+            >
+            <span class="quest-detail__legend-item quest-detail__legend-item--ext"
+              >quest externa ↗</span
+            >
+            <span class="quest-detail__legend-item quest-detail__legend-item--end">final</span>
+          </div>
+        </div>
+
+        <app-quest-graph
+          [nodes]="quest.nodes"
+          [edges]="quest.edges"
+          [selectedNodeId]="selectedNodeId()"
+          (nodeSelect)="onNodeSelect($event)"
+        />
+      </div>
+
+      <aside class="quest-detail__side">
+        @if (selectedNode(); as node) {
+          <div class="quest-detail__panel-section">
+            <p class="quest-detail__panel-title">nó selecionado</p>
+            <div class="quest-detail__node-card">
+              @if (node.type === 'external-quest') {
+                <span class="quest-detail__node-type-badge">quest externa</span>
+              }
+              <p class="quest-detail__node-title">
+                {{ node.label }}
+                @if (node.sublabel) {
+                  — {{ node.sublabel }}
+                }
+              </p>
+              @if (node.description) {
+                <p class="quest-detail__node-desc">{{ node.description }}</p>
+              }
+              @if (node.location) {
+                <p class="quest-detail__node-location">📍 {{ node.location }}</p>
+              }
+              @if (node.tags && node.tags.length) {
+                <div class="quest-detail__node-tags">
+                  @for (tag of node.tags; track tag) {
+                    <span class="quest-detail__tag">{{ tag }}</span>
+                  }
+                </div>
+              }
+              @if (node.type === 'external-quest' && node.linkedQuestName) {
+                <a
+                  class="quest-detail__link-quest-btn"
+                  [routerLink]="['/games', gameId, 'quests', node.linkedQuestId]"
+                  >↗ ver {{ node.linkedQuestName }}</a
+                >
+              }
+            </div>
+          </div>
+        } @else {
+          <div class="quest-detail__panel-section quest-detail__panel-section--hint">
+            <p class="quest-detail__panel-hint">Clique em um nó do grafo para ver os detalhes.</p>
+          </div>
+        }
+
+        @if (quest.relatedQuests.length) {
+          <div class="quest-detail__panel-section">
+            <p class="quest-detail__panel-title">quests relacionadas</p>
+            <ul class="quest-detail__related-list">
+              @for (rel of quest.relatedQuests; track rel.questId) {
+                <li class="quest-detail__related-card">
+                  <div class="quest-detail__related-initials">{{ rel.npcInitials }}</div>
+                  <div class="quest-detail__related-info">
+                    <span class="quest-detail__related-name">{{ rel.questTitle }}</span>
+                    <span class="quest-detail__related-crossing"
+                      >cruzamento em: {{ rel.crossingNodeLabel }}</span
+                    >
+                  </div>
+                  <a
+                    class="quest-detail__related-arrow"
+                    [routerLink]="['/games', gameId, 'quests', rel.questId]"
+                    aria-label="ir para {{ rel.questTitle }}"
+                    >→</a
+                  >
+                </li>
+              }
+            </ul>
+          </div>
+        }
+      </aside>
+    </div>
+  </div>
+} @else {
+  <div class="quest-detail__not-found">
+    <p>Quest não encontrada.</p>
+    <a class="quest-detail__back-link" [routerLink]="['/games', gameId]">← voltar para o jogo</a>
+  </div>
+}

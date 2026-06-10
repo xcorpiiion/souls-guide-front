@@ -19,6 +19,10 @@ export const routes: Routes = [
     loadComponent: () => import('./features/game-detail/game-detail').then((m) => m.GameDetail),
   },
   {
+    path: 'games/:gameId/quests/:questId',
+    loadComponent: () => import('./features/quest-detail/quest-detail').then((m) => m.QuestDetail),
+  },
+  {
     path: 'quests',
     loadComponent: () => import('./features/quests/quests').then((m) => m.Quests),
   },

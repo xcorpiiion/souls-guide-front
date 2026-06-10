@@ -101,7 +101,11 @@
 
         <ul class="game-detail__quest-list">
           @for (quest of filteredQuests(); track trackById($index, quest)) {
-            <li class="game-detail__quest-card">
+            <li
+              class="game-detail__quest-card"
+              [routerLink]="['/games', game!.id, 'quests', quest.id]"
+              style="cursor: pointer"
+            >
               <div class="game-detail__quest-info">
                 <span class="game-detail__quest-title">{{ quest.title }}</span>
                 <div class="game-detail__quest-meta">

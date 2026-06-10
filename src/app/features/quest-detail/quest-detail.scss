@@ -1,0 +1,406 @@
+@use 'styles/variables' as v;
+@use 'styles/mixins' as m;
+
+// ─── Hero ────────────────────────────────────────────────────────────────────
+.quest-detail__hero {
+  padding: v.$space-6 v.$space-8 v.$space-5;
+  background-color: v.$color-bg-surface;
+  border-bottom: 1px solid v.$color-border;
+}
+
+.quest-detail__breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: v.$space-2;
+  font-size: v.$font-size-xs;
+  color: v.$color-text-muted;
+  margin-bottom: v.$space-5;
+}
+
+.quest-detail__breadcrumb-link {
+  color: v.$color-text-muted;
+  text-decoration: none;
+
+  @include m.on-hover {
+    color: v.$color-text;
+  }
+}
+
+.quest-detail__breadcrumb-sep {
+  color: v.$color-text-faint;
+}
+
+.quest-detail__header {
+  @include m.flex-between;
+  align-items: flex-start;
+  gap: v.$space-6;
+  margin-bottom: v.$space-5;
+}
+
+.quest-detail__title-block {
+  flex: 1;
+}
+
+.quest-detail__title-row {
+  display: flex;
+  align-items: center;
+  gap: v.$space-3;
+  margin-bottom: v.$space-2;
+}
+
+.quest-detail__title {
+  font-size: v.$font-size-xl;
+  font-weight: 500;
+  color: v.$color-text;
+  font-family: v.$font-display;
+}
+
+.quest-detail__description {
+  font-size: v.$font-size-sm;
+  color: v.$color-text-muted;
+  line-height: 1.6;
+  max-width: 600px;
+}
+
+.quest-detail__status {
+  font-size: 10px;
+  padding: 2px v.$space-2;
+  border-radius: v.$radius-full;
+  flex-shrink: 0;
+
+  &--canonico {
+    color: v.$color-canonico;
+    background-color: rgba(v.$color-canonico, 0.12);
+    border: 1px solid rgba(v.$color-canonico, 0.3);
+  }
+
+  &--consolidado {
+    color: v.$color-consolidado;
+    background-color: rgba(v.$color-consolidado, 0.12);
+    border: 1px solid rgba(v.$color-consolidado, 0.3);
+  }
+
+  &--teoria {
+    color: v.$color-teoria;
+    background-color: rgba(v.$color-teoria, 0.12);
+    border: 1px solid rgba(v.$color-teoria, 0.3);
+  }
+}
+
+.quest-detail__actions {
+  display: flex;
+  gap: v.$space-2;
+  flex-shrink: 0;
+}
+
+.quest-detail__btn {
+  display: inline-flex;
+  align-items: center;
+  gap: v.$space-2;
+  padding: v.$space-2 v.$space-3;
+  font-family: v.$font-body;
+  font-size: v.$font-size-xs;
+  border-radius: v.$radius-md;
+  cursor: pointer;
+  transition:
+    border-color v.$transition-fast,
+    color v.$transition-fast;
+
+  &--ghost {
+    background: transparent;
+    border: 1px solid v.$color-border;
+    color: v.$color-text-muted;
+
+    @include m.on-hover {
+      border-color: v.$color-border-focus;
+      color: v.$color-text;
+    }
+  }
+
+  &--accent {
+    background-color: rgba(v.$color-gold, 0.1);
+    border: 1px solid v.$color-gold;
+    color: v.$color-gold;
+  }
+}
+
+.quest-detail__stats {
+  display: flex;
+  gap: v.$space-6;
+  padding-top: v.$space-4;
+  border-top: 1px solid v.$color-border;
+}
+
+.quest-detail__stat {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.quest-detail__stat-val {
+  font-size: v.$font-size-xl;
+  font-weight: 500;
+  color: v.$color-text;
+  line-height: 1;
+}
+
+.quest-detail__stat-label {
+  font-size: v.$font-size-xs;
+  color: v.$color-text-muted;
+}
+
+// ─── Body layout ─────────────────────────────────────────────────────────────
+.quest-detail__body {
+  display: grid;
+  grid-template-columns: 1fr 280px;
+  min-height: calc(100vh - 200px);
+}
+
+.quest-detail__main {
+  padding: v.$space-6 v.$space-6 v.$space-8;
+  border-right: 1px solid v.$color-border;
+}
+
+// ─── Graph header ─────────────────────────────────────────────────────────────
+.quest-detail__graph-header {
+  @include m.flex-between;
+  margin-bottom: v.$space-4;
+}
+
+.quest-detail__graph-label {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: v.$color-text-muted;
+}
+
+.quest-detail__legend {
+  display: flex;
+  gap: v.$space-3;
+  flex-wrap: wrap;
+}
+
+.quest-detail__legend-item {
+  font-size: 10px;
+  padding: 2px v.$space-2;
+  border-radius: v.$radius-full;
+  border: 1px solid;
+
+  &--task {
+    color: v.$color-text-muted;
+    border-color: v.$color-border;
+    background: v.$color-bg-elevated;
+  }
+
+  &--gateway {
+    color: #378add;
+    border-color: rgba(55, 138, 221, 0.4);
+    background: rgba(55, 138, 221, 0.08);
+  }
+
+  &--ext {
+    color: rgba(200, 112, 232, 0.9);
+    border-color: rgba(200, 112, 232, 0.4);
+    background: rgba(200, 112, 232, 0.07);
+    border-style: dashed;
+  }
+
+  &--end {
+    color: v.$color-canonico;
+    border-color: rgba(v.$color-canonico, 0.4);
+    background: rgba(v.$color-canonico, 0.08);
+  }
+}
+
+// ─── Side panel ──────────────────────────────────────────────────────────────
+.quest-detail__side {
+  padding: v.$space-5 v.$space-5 v.$space-8;
+  background-color: v.$color-bg;
+}
+
+.quest-detail__panel-section {
+  margin-bottom: v.$space-6;
+
+  &--hint {
+    padding-top: v.$space-4;
+  }
+}
+
+.quest-detail__panel-title {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: v.$color-text-muted;
+  margin-bottom: v.$space-3;
+}
+
+.quest-detail__panel-hint {
+  font-size: v.$font-size-xs;
+  color: v.$color-text-faint;
+  font-style: italic;
+  text-align: center;
+  padding: v.$space-4;
+  border: 1px dashed v.$color-border;
+  border-radius: v.$radius-md;
+}
+
+// ─── Node detail card ─────────────────────────────────────────────────────────
+.quest-detail__node-card {
+  background-color: v.$color-bg-elevated;
+  border: 1px solid v.$color-border;
+  border-radius: v.$radius-lg;
+  padding: v.$space-4;
+  display: flex;
+  flex-direction: column;
+  gap: v.$space-3;
+}
+
+.quest-detail__node-type-badge {
+  display: inline-block;
+  align-self: flex-start;
+  font-size: 10px;
+  padding: 2px v.$space-2;
+  border-radius: v.$radius-full;
+  color: rgba(200, 112, 232, 0.9);
+  background: rgba(200, 112, 232, 0.1);
+  border: 1px solid rgba(200, 112, 232, 0.35);
+}
+
+.quest-detail__node-title {
+  font-size: v.$font-size-sm;
+  font-weight: 500;
+  color: v.$color-text;
+}
+
+.quest-detail__node-desc {
+  font-size: v.$font-size-xs;
+  color: v.$color-text-muted;
+  line-height: 1.6;
+}
+
+.quest-detail__node-location {
+  font-size: v.$font-size-xs;
+  color: v.$color-text-muted;
+}
+
+.quest-detail__node-tags {
+  display: flex;
+  gap: v.$space-2;
+  flex-wrap: wrap;
+}
+
+.quest-detail__tag {
+  font-size: 10px;
+  padding: 2px v.$space-2;
+  border-radius: v.$radius-full;
+  background-color: v.$color-bg-surface;
+  border: 1px solid v.$color-border;
+  color: v.$color-text-muted;
+}
+
+.quest-detail__link-quest-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: v.$space-2;
+  font-size: v.$font-size-xs;
+  padding: v.$space-2 v.$space-3;
+  border-radius: v.$radius-md;
+  color: rgba(200, 112, 232, 0.9);
+  border: 1px solid rgba(200, 112, 232, 0.35);
+  background: rgba(200, 112, 232, 0.08);
+  text-decoration: none;
+  align-self: flex-start;
+
+  @include m.on-hover {
+    opacity: 0.85;
+  }
+}
+
+// ─── Related quests ───────────────────────────────────────────────────────────
+.quest-detail__related-list {
+  list-style: none;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: v.$space-2;
+}
+
+.quest-detail__related-card {
+  display: flex;
+  align-items: center;
+  gap: v.$space-3;
+  padding: v.$space-3;
+  background-color: v.$color-bg-elevated;
+  border: 1px solid v.$color-border;
+  border-radius: v.$radius-md;
+  transition: border-color v.$transition-fast;
+
+  @include m.on-hover {
+    border-color: v.$color-border-focus;
+  }
+}
+
+.quest-detail__related-initials {
+  width: 32px;
+  height: 32px;
+  border-radius: v.$radius-md;
+  background-color: rgba(v.$color-gold, 0.1);
+  border: 1px solid rgba(v.$color-gold, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 500;
+  color: v.$color-gold;
+  flex-shrink: 0;
+}
+
+.quest-detail__related-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.quest-detail__related-name {
+  font-size: v.$font-size-xs;
+  font-weight: 500;
+  color: v.$color-text;
+  @include m.truncate-text;
+}
+
+.quest-detail__related-crossing {
+  font-size: 10px;
+  color: v.$color-text-muted;
+  @include m.truncate-text;
+}
+
+.quest-detail__related-arrow {
+  font-size: v.$font-size-sm;
+  color: v.$color-text-muted;
+  text-decoration: none;
+  flex-shrink: 0;
+
+  @include m.on-hover {
+    color: v.$color-gold;
+  }
+}
+
+// ─── Not found ────────────────────────────────────────────────────────────────
+.quest-detail__not-found {
+  @include m.flex-column-center;
+  gap: v.$space-4;
+  min-height: 300px;
+  color: v.$color-text-muted;
+}
+
+.quest-detail__back-link {
+  font-size: v.$font-size-sm;
+  color: v.$color-text-muted;
+  text-decoration: none;
+
+  @include m.on-hover {
+    color: v.$color-gold;
+  }
+}

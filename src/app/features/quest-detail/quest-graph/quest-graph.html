@@ -1,0 +1,111 @@
+<div class="quest-graph">
+  <div class="quest-graph__scroll">
+    <svg
+      class="quest-graph__svg"
+      [attr.width]="layout().width"
+      [attr.height]="layout().height"
+      [attr.viewBox]="'0 0 ' + layout().width + ' ' + layout().height"
+      role="img"
+      aria-label="Grafo da quest"
+    >
+      <defs>
+        <marker id="qg-arr" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+          <path d="M0,0 L0,6 L8,3 z" class="quest-graph__arrow-marker" />
+        </marker>
+        <marker id="qg-arr-ext" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+          <path
+            d="M0,0 L0,6 L8,3 z"
+            class="quest-graph__arrow-marker quest-graph__arrow-marker--ext"
+          />
+        </marker>
+      </defs>
+
+      <!-- edges (behind nodes) -->
+      @for (edge of layout().edges; track trackEdge($index, edge)) {
+        <path
+          [attr.d]="edge.path"
+          [attr.marker-end]="edge.isExternal ? 'url(#qg-arr-ext)' : 'url(#qg-arr)'"
+          [class]="'quest-graph__edge' + (edge.isExternal ? ' quest-graph__edge--ext' : '')"
+        />
+      }
+
+      <!-- nodes -->
+      @for (node of layout().nodes; track trackNode($index, node)) {
+        <g
+          [class]="
+            'quest-graph__node' +
+            (selectedNodeId() === node.id ? ' quest-graph__node--selected' : '')
+          "
+          (click)="onNodeClick(node.id)"
+          role="button"
+          [attr.aria-label]="node.label"
+          tabindex="0"
+          (keydown.enter)="onNodeClick(node.id)"
+        >
+          @if (node.type === 'start' || node.type === 'end') {
+            <circle
+              [attr.cx]="node.x + node.w / 2"
+              [attr.cy]="node.y + node.h / 2"
+              [attr.r]="node.w / 2 - 2"
+              [class]="'quest-graph__circle quest-graph__circle--' + (node.endingType ?? node.type)"
+            />
+            <text
+              [attr.x]="node.x + node.w / 2"
+              [attr.y]="node.y + node.h / 2 + 4"
+              class="quest-graph__text quest-graph__text--center quest-graph__text--small"
+            >
+              {{ node.label }}
+            </text>
+          }
+
+          @if (node.type === 'gateway') {
+            <polygon [attr.points]="diamondPoints(node)" class="quest-graph__diamond" />
+            <text
+              [attr.x]="node.x + node.w / 2"
+              [attr.y]="node.y + node.h / 2 + 4"
+              class="quest-graph__text quest-graph__text--center quest-graph__text--gateway"
+            >
+              X
+            </text>
+          }
+
+          @if (node.type === 'task' || node.type === 'external-quest') {
+            <rect
+              [attr.x]="node.x"
+              [attr.y]="node.y"
+              [attr.width]="node.w"
+              [attr.height]="node.h"
+              rx="7"
+              [class]="'quest-graph__rect quest-graph__rect--' + node.type"
+            />
+            <text
+              [attr.x]="node.x + node.w / 2"
+              [attr.y]="textY(node)"
+              class="quest-graph__text quest-graph__text--center"
+            >
+              {{ node.label }}
+            </text>
+            @if (node.sublabel) {
+              <text
+                [attr.x]="node.x + node.w / 2"
+                [attr.y]="node.y + 31"
+                class="quest-graph__text quest-graph__text--center quest-graph__text--sub"
+              >
+                {{ node.sublabel }}
+              </text>
+            }
+            @if (node.type === 'external-quest') {
+              <text
+                [attr.x]="node.x + node.w - 6"
+                [attr.y]="node.y + 13"
+                class="quest-graph__text quest-graph__text--ext-icon"
+              >
+                ↗
+              </text>
+            }
+          }
+        </g>
+      }
+    </svg>
+  </div>
+</div>

@@ -1,0 +1,148 @@
+@use 'styles/variables' as v;
+@use 'styles/mixins' as m;
+
+.quest-graph {
+  width: 100%;
+}
+
+.quest-graph__scroll {
+  overflow-x: auto;
+  overflow-y: hidden;
+  background-color: v.$color-bg;
+  border: 1px solid v.$color-border;
+  border-radius: v.$radius-lg;
+}
+
+.quest-graph__svg {
+  display: block;
+}
+
+// ─── Edges ───────────────────────────────────────────────────────────────────
+.quest-graph__edge {
+  fill: none;
+  stroke: #3a3630;
+  stroke-width: 1.5;
+
+  &--ext {
+    stroke: rgba(200, 112, 232, 0.6);
+    stroke-dasharray: 5, 3;
+  }
+}
+
+.quest-graph__arrow-marker {
+  fill: #3a3630;
+
+  &--ext {
+    fill: rgba(200, 112, 232, 0.8);
+  }
+}
+
+// ─── Node group ──────────────────────────────────────────────────────────────
+.quest-graph__node {
+  cursor: pointer;
+
+  &--selected {
+    .quest-graph__rect,
+    .quest-graph__circle,
+    .quest-graph__diamond {
+      filter: drop-shadow(0 0 6px rgba(v.$color-gold, 0.4));
+    }
+  }
+}
+
+// ─── Circles (start / end) ───────────────────────────────────────────────────
+.quest-graph__circle {
+  &--start {
+    fill: rgba(31, 170, 100, 0.15);
+    stroke: #1faa64;
+    stroke-width: 1.5;
+  }
+
+  &--end {
+    fill: rgba(v.$color-gold, 0.12);
+    stroke: v.$color-gold;
+    stroke-width: 1.5;
+  }
+
+  &--positive {
+    fill: rgba(31, 170, 100, 0.12);
+    stroke: #1faa64;
+    stroke-width: 1.5;
+  }
+
+  &--tragic {
+    fill: rgba(232, 80, 80, 0.12);
+    stroke: #e85050;
+    stroke-width: 1.5;
+  }
+
+  &--neutral {
+    fill: rgba(v.$color-gold, 0.12);
+    stroke: v.$color-gold;
+    stroke-width: 1.5;
+  }
+}
+
+// ─── Rects (task / external-quest) ───────────────────────────────────────────
+.quest-graph__rect {
+  &--task {
+    fill: v.$color-bg-surface;
+    stroke: v.$color-border;
+    stroke-width: 1;
+
+    .quest-graph__node--selected & {
+      stroke: v.$color-gold;
+      stroke-width: 1.5;
+      fill: v.$color-bg-elevated;
+    }
+  }
+
+  &--external-quest {
+    fill: rgba(200, 112, 232, 0.07);
+    stroke: rgba(200, 112, 232, 0.6);
+    stroke-width: 1.5;
+    stroke-dasharray: 5, 3;
+  }
+}
+
+// ─── Diamond (gateway) ───────────────────────────────────────────────────────
+.quest-graph__diamond {
+  fill: rgba(55, 138, 221, 0.1);
+  stroke: #378add;
+  stroke-width: 1.5;
+}
+
+// ─── Text ────────────────────────────────────────────────────────────────────
+.quest-graph__text {
+  font-family: v.$font-body;
+  font-size: 10px;
+  fill: v.$color-text;
+  pointer-events: none;
+  dominant-baseline: auto;
+
+  &--center {
+    text-anchor: middle;
+  }
+
+  &--small {
+    font-size: 9px;
+    fill: v.$color-text-muted;
+  }
+
+  &--sub {
+    font-size: 9px;
+    fill: v.$color-text-muted;
+  }
+
+  &--gateway {
+    fill: #378add;
+    font-size: 11px;
+    font-weight: 500;
+  }
+
+  &--ext-icon {
+    font-size: 9px;
+    fill: rgba(200, 112, 232, 0.8);
+    text-anchor: end;
+  }
+}
