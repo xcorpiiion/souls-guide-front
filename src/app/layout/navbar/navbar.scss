@@ -1,0 +1,64 @@
+@use 'styles/variables' as v;
+
+.navbar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: v.$navbar-height;
+  z-index: v.$z-navbar;
+  background-color: v.$color-bg-surface;
+  border-bottom: 1px solid v.$color-border;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 v.$space-8;
+  box-shadow: v.$shadow-md;
+
+  &__brand {
+    text-decoration: none;
+  }
+
+  &__brand-text {
+    font-family: v.$font-display;
+    font-size: v.$font-size-xl;
+    font-weight: 700;
+    color: v.$color-text;
+    letter-spacing: 0.05em;
+  }
+
+  &__brand-accent {
+    color: v.$color-gold;
+  }
+
+  &__links {
+    display: flex;
+    align-items: center;
+    gap: v.$space-6;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+
+  &__link {
+    font-family: v.$font-body;
+    font-size: v.$font-size-sm;
+    font-weight: 500;
+    color: v.$color-text-muted;
+    text-decoration: none;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    padding: v.$space-2 v.$space-3;
+    border-radius: v.$radius-sm;
+    transition: color v.$transition-fast, background-color v.$transition-fast;
+
+    &:hover {
+      color: v.$color-text;
+      background-color: v.$color-bg-elevated;
+    }
+
+    &--active {
+      color: v.$color-gold;
+    }
+  }
+}

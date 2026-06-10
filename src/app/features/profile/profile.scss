@@ -1,0 +1,7 @@
+@use 'styles/variables' as v;
+
+.feature-page {
+  padding: v.$space-8;
+  max-width: v.$content-max-width;
+  margin: 0 auto;
+}

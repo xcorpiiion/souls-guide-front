@@ -1,0 +1,72 @@
+@use 'styles/variables' as v;
+@use 'styles/mixins' as m;
+
+@mixin solid($bg, $text, $bg-hover) {
+  background-color: $bg;
+  color: $text;
+  border-color: transparent;
+  @include m.on-hover { background-color: $bg-hover; }
+}
+
+@mixin outline($color) {
+  background-color: transparent;
+  color: $color;
+  border-color: $color;
+  @include m.on-hover {
+    background-color: $color;
+    color: v.$color-bg;
+  }
+}
+
+@mixin ghost($color) {
+  background-color: transparent;
+  color: $color;
+  border-color: transparent;
+  @include m.on-hover { background-color: rgba($color, 0.1); }
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: v.$space-2;
+  border: 1px solid transparent;
+  border-radius: v.$radius-sm;
+  font-family: v.$font-body;
+  font-weight: 500;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background-color v.$transition-fast, color v.$transition-fast, border-color v.$transition-fast;
+
+  &:disabled { @include m.disabled-state; }
+
+  // ─── Tamanhos ────────────────────────────────────────────────────
+  &--sm  { padding: v.$space-1 v.$space-3;  font-size: v.$font-size-xs; }
+  &--md  { padding: v.$space-2 v.$space-5;  font-size: v.$font-size-sm; }
+  &--lg  { padding: v.$space-3 v.$space-8;  font-size: v.$font-size-base; }
+
+  // ─── Cores × Variantes ───────────────────────────────────────────
+  &--gold {
+    &.btn--solid   { @include solid(v.$color-gold, v.$color-bg, v.$color-gold-light); }
+    &.btn--outline { @include outline(v.$color-gold); }
+    &.btn--ghost   { @include ghost(v.$color-gold); }
+  }
+
+  &--ember {
+    &.btn--solid   { @include solid(v.$color-ember, #fff, v.$color-ember-light); }
+    &.btn--outline { @include outline(v.$color-ember-light); }
+    &.btn--ghost   { @include ghost(v.$color-ember-light); }
+  }
+
+  &--neutral {
+    &.btn--solid   { @include solid(v.$color-bg-elevated, v.$color-text, v.$color-border); }
+    &.btn--outline { @include outline(v.$color-border); }
+    &.btn--ghost   { @include ghost(v.$color-text-muted); }
+  }
+
+  &--danger {
+    &.btn--solid   { @include solid(#ef4444, #fff, #dc2626); }
+    &.btn--outline { @include outline(#ef4444); }
+    &.btn--ghost   { @include ghost(#ef4444); }
+  }
+}

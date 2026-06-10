@@ -1,3 +1,33 @@
 import { Routes } from '@angular/router';
 
-export const routes: Routes = [];
+export const routes: Routes = [
+  {
+    path: '',
+    redirectTo: 'home',
+    pathMatch: 'full',
+  },
+  {
+    path: 'home',
+    loadComponent: () => import('./features/home/home').then(m => m.Home),
+  },
+  {
+    path: 'games',
+    loadComponent: () => import('./features/games/games').then(m => m.Games),
+  },
+  {
+    path: 'quests',
+    loadComponent: () => import('./features/quests/quests').then(m => m.Quests),
+  },
+  {
+    path: 'lore',
+    loadComponent: () => import('./features/lore/lore').then(m => m.Lore),
+  },
+  {
+    path: 'profile',
+    loadComponent: () => import('./features/profile/profile').then(m => m.Profile),
+  },
+  {
+    path: '**',
+    redirectTo: 'home',
+  },
+];

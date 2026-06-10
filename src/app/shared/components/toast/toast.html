@@ -1,0 +1,12 @@
+<div class="toast-container" aria-live="polite">
+  @for (toast of toastService.toasts(); track trackById($index, toast)) {
+    <div class="toast toast--{{ toast.type }}" role="alert">
+      <span class="toast__icon">{{ icon(toast.type) }}</span>
+      <div class="toast__body">
+        <strong class="toast__title">{{ toast.title }}</strong>
+        <p class="toast__message">{{ toast.message }}</p>
+      </div>
+      <button class="toast__close" type="button" (click)="dismiss(toast)" aria-label="Fechar">✕</button>
+    </div>
+  }
+</div>

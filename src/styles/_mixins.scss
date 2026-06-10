@@ -1,0 +1,289 @@
+// GRIMÓRIO DE FEITIÇOS SCSS — SoulGuide
+// Adaptado do design system original.
+@use 'variables' as v;
+@use 'sass:list';
+@use 'sass:math';
+@use 'sass:meta';
+@use 'sass:map';
+
+// ==========================================================================
+// 1. FLEXBOX
+// ==========================================================================
+
+@mixin flexbox($justify: flex-start, $align: stretch, $direction: row, $gap: null) {
+  display: flex;
+  justify-content: $justify;
+  align-items: $align;
+  flex-direction: $direction;
+  @if $gap { gap: $gap; }
+}
+
+@mixin flex-center($direction: row) {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: $direction;
+}
+
+@mixin flex-between {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+@mixin flex-column-center {
+  @include flex-center(column);
+}
+
+@mixin flex-left($align: stretch, $direction: row) {
+  display: flex;
+  justify-content: flex-start;
+  align-items: $align;
+  flex-direction: $direction;
+}
+
+@mixin flex-right($align: stretch, $direction: row) {
+  display: flex;
+  justify-content: flex-end;
+  align-items: $align;
+  flex-direction: $direction;
+}
+
+@mixin flex-child($grow: 0, $shrink: 1, $basis: auto) {
+  flex: $grow $shrink $basis;
+}
+
+@mixin flex-push-right { margin-left: auto; }
+
+@mixin flex-circle($size) {
+  @include flex-center;
+  height: $size;
+  width: $size;
+  border-radius: 50%;
+}
+
+// ==========================================================================
+// 2. GRID
+// ==========================================================================
+
+@mixin responsive-grid($min-item-width: 150px, $gap: v.$space-4) {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax($min-item-width, 1fr));
+  gap: $gap;
+}
+
+@mixin grid-columns($count: 12, $gap: v.$space-4) {
+  display: grid;
+  grid-template-columns: repeat($count, 1fr);
+  gap: $gap;
+}
+
+@mixin grid-item-span($span, $type: column) {
+  grid-#{$type}: span $span;
+}
+
+@mixin define-grid-layout($columns, $rows, $areas, $gap: null) {
+  display: grid;
+  grid-template-columns: $columns;
+  grid-template-rows: $rows;
+  grid-template-areas: $areas;
+  @if $gap { gap: $gap; }
+}
+
+// ==========================================================================
+// 3. POSICIONAMENTO & CONTAINERS
+// ==========================================================================
+
+@mixin container($max-width: v.$content-max-width, $gutter: v.$space-6) {
+  width: 100%;
+  max-width: $max-width;
+  margin-left: auto;
+  margin-right: auto;
+  padding-left: $gutter;
+  padding-right: $gutter;
+}
+
+@mixin position($type: absolute, $coords: ()) {
+  position: $type;
+  @each $key, $value in $coords { #{$key}: $value; }
+}
+
+@mixin position-center($axis: 'both') {
+  position: absolute;
+  @if $axis == 'both' {
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+  } @else if $axis == 'horizontal' {
+    left: 50%;
+    transform: translateX(-50%);
+  } @else if $axis == 'vertical' {
+    top: 50%;
+    transform: translateY(-50%);
+  }
+}
+
+@mixin position-cover {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+}
+
+@mixin sticky-top($distance: 0) {
+  position: sticky;
+  top: $distance;
+  z-index: 10;
+}
+
+// ==========================================================================
+// 4. ESPAÇAMENTO (ALQUIMIA)
+// Números sem unidade são multiplicados por $space-base (8px).
+// Valores com unidade são usados como estão.
+// ==========================================================================
+
+@mixin margin($values...) {
+  $final: ();
+  @each $v in $values {
+    @if meta.type-of($v) == 'number' and math.is-unitless($v) {
+      $final: list.append($final, $v * v.$space-base);
+    } @else {
+      $final: list.append($final, $v);
+    }
+  }
+  margin: $final;
+}
+
+@mixin margin-x($value) {
+  $final: if(meta.type-of($value) == 'number' and math.is-unitless($value), $value * v.$space-base, $value);
+  margin-left: $final;
+  margin-right: $final;
+}
+
+@mixin margin-y($value) {
+  $final: if(meta.type-of($value) == 'number' and math.is-unitless($value), $value * v.$space-base, $value);
+  margin-top: $final;
+  margin-bottom: $final;
+}
+
+@mixin padding($values...) {
+  $final: ();
+  @each $v in $values {
+    @if meta.type-of($v) == 'number' and math.is-unitless($v) {
+      $final: list.append($final, $v * v.$space-base);
+    } @else {
+      $final: list.append($final, $v);
+    }
+  }
+  padding: $final;
+}
+
+@mixin padding-x($value) {
+  $final: if(meta.type-of($value) == 'number' and math.is-unitless($value), $value * v.$space-base, $value);
+  padding-left: $final;
+  padding-right: $final;
+}
+
+@mixin padding-y($value) {
+  $final: if(meta.type-of($value) == 'number' and math.is-unitless($value), $value * v.$space-base, $value);
+  padding-top: $final;
+  padding-bottom: $final;
+}
+
+// ==========================================================================
+// 5. BREAKPOINTS
+// ==========================================================================
+
+@mixin breakpoint-up($point) {
+  $value: map.get(v.$breakpoints, $point);
+  @if $value {
+    @media (min-width: $value) { @content; }
+  } @else {
+    @warn "Breakpoint '#{$point}' não encontrado.";
+  }
+}
+
+@mixin breakpoint-down($point) {
+  $value: map.get(v.$breakpoints, $point) - 1px;
+  @if $value {
+    @media (max-width: $value) { @content; }
+  } @else {
+    @warn "Breakpoint '#{$point}' não encontrado.";
+  }
+}
+
+@mixin breakpoint-between($min, $max) {
+  $min-val: map.get(v.$breakpoints, $min);
+  $max-val: map.get(v.$breakpoints, $max) - 1px;
+  @if $min-val and $max-val {
+    @media (min-width: $min-val) and (max-width: $max-val) { @content; }
+  }
+}
+
+// ==========================================================================
+// 6. ESTILIZAÇÃO & EFEITOS VISUAIS
+// ==========================================================================
+
+@mixin reset-button {
+  appearance: none;
+  background: none;
+  border: none;
+  padding: 0;
+  margin: 0;
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+  &:focus { outline: none; }
+}
+
+@mixin disabled-state {
+  opacity: 0.45;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+@mixin on-hover {
+  @media (hover: hover) and (pointer: fine) {
+    &:hover { @content; }
+  }
+}
+
+@mixin gradient-border($gradient, $inner-bg: v.$color-bg-surface, $width: 1px, $radius: v.$radius-md) {
+  border: $width solid transparent;
+  border-radius: $radius;
+  background-image: linear-gradient($inner-bg, $inner-bg), $gradient;
+  background-origin: border-box;
+  background-clip: padding-box, border-box;
+}
+
+@mixin truncate-text {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+@mixin visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+// ==========================================================================
+// 7. ANIMAÇÃO
+// ==========================================================================
+
+@mixin keyframes($name) {
+  @keyframes #{$name} { @content; }
+}
+
+@mixin animation($name, $duration: 1s, $timing-function: ease, $delay: 0s) {
+  animation: $name $duration $timing-function $delay forwards;
+  @content;
+}

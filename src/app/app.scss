@@ -1,0 +1,6 @@
+@use 'styles/variables' as v;
+
+.app-main {
+  padding-top: v.$navbar-height;
+  min-height: 100vh;
+}

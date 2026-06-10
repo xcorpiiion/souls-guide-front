@@ -1,0 +1,38 @@
+@use 'variables' as v;
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: v.$font-display;
+  font-weight: 600;
+  line-height: 1.2;
+  color: v.$color-text;
+}
+
+h1 { font-size: v.$font-size-4xl; }
+h2 { font-size: v.$font-size-3xl; }
+h3 { font-size: v.$font-size-2xl; }
+h4 { font-size: v.$font-size-xl; }
+h5 { font-size: v.$font-size-lg; }
+h6 { font-size: v.$font-size-base; }
+
+p {
+  line-height: 1.7;
+  color: v.$color-text;
+}
+
+.text-muted {
+  color: v.$color-text-muted;
+}
+
+.text-gold {
+  color: v.$color-gold;
+}
+
+.text-ember {
+  color: v.$color-ember-light;
+}
+
+code,
+pre {
+  font-family: v.$font-mono;
+  font-size: v.$font-size-sm;
+}

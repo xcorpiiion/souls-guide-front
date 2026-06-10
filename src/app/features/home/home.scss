@@ -1,0 +1,340 @@
+@use 'styles/variables' as v;
+@use 'styles/mixins' as m;
+
+.home {
+  display: flex;
+  flex-direction: column;
+  min-height: calc(100vh - v.$navbar-height);
+}
+
+// ─── Hero ─────────────────────────────────────────────────────────
+.hero {
+  @include m.flex-column-center;
+  padding: v.$space-16 v.$space-6 v.$space-12;
+  text-align: center;
+
+  &__eyebrow {
+    font-size: v.$font-size-xs;
+    color: v.$color-text-muted;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    margin: 0 0 v.$space-4;
+  }
+
+  &__headline {
+    font-family: v.$font-display;
+    font-size: v.$font-size-3xl;
+    font-weight: 600;
+    line-height: 1.25;
+    color: v.$color-text;
+    margin: 0 0 v.$space-4;
+
+    &--gold { color: v.$color-gold; }
+  }
+
+  &__sub {
+    font-size: v.$font-size-base;
+    color: v.$color-text-muted;
+    line-height: 1.7;
+    margin: 0 0 v.$space-8;
+  }
+
+  &__search {
+    display: flex;
+    gap: v.$space-2;
+    width: 100%;
+    max-width: 500px;
+    margin-bottom: v.$space-5;
+  }
+
+  &__search-input {
+    flex: 1;
+    padding: v.$space-3 v.$space-4;
+    background-color: v.$color-bg-elevated;
+    border: 1px solid v.$color-border;
+    border-radius: v.$radius-md;
+    color: v.$color-text;
+    font-family: v.$font-body;
+    font-size: v.$font-size-sm;
+    outline: none;
+    transition: border-color v.$transition-fast;
+
+    &::placeholder { color: v.$color-text-faint; }
+    &:focus { border-color: v.$color-gold; }
+    &::-webkit-search-cancel-button { display: none; }
+  }
+
+  &__search-btn {
+    padding: v.$space-3 v.$space-6;
+    background-color: v.$color-gold;
+    border: none;
+    border-radius: v.$radius-md;
+    color: v.$color-bg;
+    font-family: v.$font-body;
+    font-size: v.$font-size-sm;
+    font-weight: 600;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: background-color v.$transition-fast;
+
+    @include m.on-hover { background-color: v.$color-gold-light; }
+  }
+
+  &__games {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: v.$space-2;
+  }
+
+  &__game-pill {
+    padding: v.$space-1 v.$space-4;
+    background-color: transparent;
+    border: 1px solid v.$color-border;
+    border-radius: v.$radius-full;
+    color: v.$color-text-muted;
+    font-family: v.$font-body;
+    font-size: v.$font-size-xs;
+    cursor: pointer;
+    transition: border-color v.$transition-fast, color v.$transition-fast;
+
+    @include m.on-hover {
+      border-color: v.$color-gold;
+      color: v.$color-gold;
+    }
+
+    &--active {
+      border-color: v.$color-gold;
+      color: v.$color-gold;
+      background-color: rgba(#c9a84c, 0.08);
+    }
+  }
+}
+
+// ─── Divisor ──────────────────────────────────────────────────────
+.home__divider {
+  height: 1px;
+  background-color: v.$color-border;
+}
+
+// ─── Main grid ────────────────────────────────────────────────────
+.home__main {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  flex: 1;
+
+  @include m.breakpoint-down(md) {
+    grid-template-columns: 1fr;
+  }
+}
+
+.home__quests {
+  padding: v.$space-8 v.$space-8 v.$space-8 v.$space-8;
+  border-right: 1px solid v.$color-border;
+
+  @include m.breakpoint-down(md) {
+    border-right: none;
+    border-bottom: 1px solid v.$color-border;
+  }
+}
+
+.home__lore {
+  padding: v.$space-8;
+}
+
+// ─── Section header ───────────────────────────────────────────────
+.home__section-header {
+  @include m.flex-between;
+  margin-bottom: v.$space-5;
+}
+
+.home__section-title {
+  font-family: v.$font-body;
+  font-size: v.$font-size-xs;
+  font-weight: 600;
+  color: v.$color-text-muted;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  margin: 0;
+}
+
+.home__section-link {
+  font-size: v.$font-size-xs;
+  color: v.$color-gold;
+  text-decoration: none;
+  transition: color v.$transition-fast;
+
+  @include m.on-hover { color: v.$color-gold-light; }
+}
+
+.home__empty {
+  font-size: v.$font-size-sm;
+  color: v.$color-text-faint;
+  padding: v.$space-8 0;
+  text-align: center;
+}
+
+// ─── Quest list ───────────────────────────────────────────────────
+.quest-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.quest-item {
+  display: flex;
+  align-items: flex-start;
+  gap: v.$space-3;
+  padding: v.$space-3 0;
+  border-bottom: 1px solid v.$color-border;
+  cursor: pointer;
+  transition: background-color v.$transition-fast;
+
+  &:last-child { border-bottom: none; }
+
+  @include m.on-hover {
+    .quest-item__title { color: v.$color-gold; }
+  }
+
+  &__rank {
+    font-size: v.$font-size-sm;
+    color: v.$color-gold;
+    font-weight: 600;
+    min-width: 18px;
+    padding-top: 2px;
+    flex-shrink: 0;
+  }
+
+  &__body {
+    display: flex;
+    flex-direction: column;
+    gap: v.$space-1;
+    flex: 1;
+  }
+
+  &__title {
+    font-size: v.$font-size-base;
+    color: v.$color-text;
+    transition: color v.$transition-fast;
+  }
+
+  &__meta {
+    font-size: v.$font-size-xs;
+    color: v.$color-text-muted;
+  }
+
+  &__tag {
+    font-size: 10px;
+    padding: 2px v.$space-2;
+    border-radius: v.$radius-full;
+    background-color: v.$color-bg-elevated;
+    color: v.$color-text-muted;
+    white-space: nowrap;
+    flex-shrink: 0;
+    margin-top: 2px;
+    border: 1px solid v.$color-border;
+  }
+}
+
+// ─── Lore list ────────────────────────────────────────────────────
+.home__lore-intro {
+  font-size: v.$font-size-xs;
+  color: v.$color-text-muted;
+  line-height: 1.6;
+  padding: v.$space-3 v.$space-4;
+  border-left: 2px solid v.$color-gold;
+  background-color: v.$color-bg-elevated;
+  border-radius: 0 v.$radius-sm v.$radius-sm 0;
+  margin-bottom: v.$space-5;
+
+  strong { color: v.$color-text; font-weight: 600; }
+}
+
+.lore-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.lore-item {
+  display: flex;
+  flex-direction: column;
+  gap: v.$space-1;
+  padding: v.$space-3 0;
+  border-bottom: 1px solid v.$color-border;
+  cursor: pointer;
+
+  &:last-child { border-bottom: none; }
+
+  @include m.on-hover {
+    .lore-item__title { color: v.$color-gold; }
+  }
+
+  &__badge {
+    display: inline-block;
+    align-self: flex-start;
+    font-size: 10px;
+    padding: 2px v.$space-2;
+    border-radius: v.$radius-full;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+
+    &--canonico {
+      background-color: rgba(#c9a84c, 0.12);
+      color: v.$color-gold;
+      border: 1px solid v.$color-gold-dark;
+    }
+
+    &--consolidado {
+      background-color: v.$color-bg-elevated;
+      color: v.$color-text-muted;
+      border: 1px solid v.$color-border;
+    }
+
+    &--teoria {
+      background-color: v.$color-bg-elevated;
+      color: v.$color-text-faint;
+      border: 1px solid v.$color-border;
+    }
+  }
+
+  &__title {
+    font-size: v.$font-size-sm;
+    color: v.$color-text;
+    transition: color v.$transition-fast;
+  }
+
+  &__meta {
+    font-size: v.$font-size-xs;
+    color: v.$color-text-muted;
+  }
+}
+
+// ─── Footer CTA ───────────────────────────────────────────────────
+.home__cta {
+  @include m.flex-between;
+  padding: v.$space-4 v.$space-8;
+  border-top: 1px solid v.$color-border;
+  gap: v.$space-3;
+
+  @include m.breakpoint-down(md) {
+    flex-direction: column;
+    text-align: center;
+  }
+
+  &-text {
+    font-size: v.$font-size-sm;
+    color: v.$color-text-muted;
+  }
+
+  &-link {
+    font-size: v.$font-size-sm;
+    color: v.$color-gold;
+    text-decoration: none;
+    transition: color v.$transition-fast;
+
+    small { color: v.$color-text-muted; font-size: v.$font-size-xs; }
+
+    @include m.on-hover { color: v.$color-gold-light; }
+  }
+}

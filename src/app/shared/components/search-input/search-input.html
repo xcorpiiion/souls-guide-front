@@ -1,0 +1,14 @@
+<div class="search">
+  <span class="search__icon" aria-hidden="true">⚔</span>
+  <input
+    class="search__input"
+    type="search"
+    [formControl]="control"
+    [placeholder]="placeholder()"
+    autocomplete="off"
+    aria-label="Campo de busca"
+  />
+  @if (control.value) {
+    <button class="search__clear" type="button" (click)="clear()" aria-label="Limpar busca">✕</button>
+  }
+</div>

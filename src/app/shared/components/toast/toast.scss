@@ -1,0 +1,73 @@
+@use 'styles/variables' as v;
+@use 'styles/mixins' as m;
+
+.toast-container {
+  position: fixed;
+  top: v.$space-6;
+  right: v.$space-6;
+  z-index: v.$z-toast;
+  display: flex;
+  flex-direction: column;
+  gap: v.$space-3;
+  pointer-events: none;
+}
+
+.toast {
+  @include m.flexbox(flex-start, flex-start, $gap: v.$space-3);
+  pointer-events: all;
+  min-width: 320px;
+  max-width: 420px;
+  padding: v.$space-4 v.$space-5;
+  border-radius: v.$radius-md;
+  border-left: 4px solid currentColor;
+  background-color: v.$color-bg-elevated;
+  box-shadow: v.$shadow-lg;
+  animation: toast-in 300ms cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+
+  &--success { color: #5ee089; }
+  &--info    { color: v.$color-gold; }
+  &--warning { color: #f59e0b; }
+  &--error   { color: v.$color-ember-light; }
+}
+
+@keyframes toast-in {
+  from { opacity: 0; transform: translateX(24px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+.toast__icon {
+  font-size: v.$font-size-lg;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.toast__body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: v.$space-1;
+}
+
+.toast__title {
+  font-family: v.$font-body;
+  font-size: v.$font-size-sm;
+  font-weight: 600;
+  color: v.$color-text;
+}
+
+.toast__message {
+  font-size: v.$font-size-xs;
+  color: v.$color-text-muted;
+  margin: 0;
+}
+
+.toast__close {
+  @include m.reset-button;
+  color: v.$color-text-muted;
+  font-size: v.$font-size-base;
+  line-height: 1;
+  flex-shrink: 0;
+  transition: color v.$transition-fast;
+
+  &:hover { color: v.$color-text; }
+}

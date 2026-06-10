@@ -1,0 +1,111 @@
+<section class="home">
+
+  <!-- HERO -->
+  <div class="hero">
+    <p class="hero__eyebrow">Guias colaborativos · Souls-likes</p>
+    <h1 class="hero__headline">
+      Você vai morrer de qualquer jeito.<br>
+      <span class="hero__headline--gold">Mas não precisa ser perdido.</span>
+    </h1>
+    <p class="hero__sub">
+      Quests e lore documentados pela comunidade.<br>
+      Sem spoilers forçados — você controla até onde quer ver.
+    </p>
+
+    <div class="hero__search">
+      <input
+        class="hero__search-input"
+        type="search"
+        placeholder="Quest, NPC, localização, boss..."
+        [ngModel]="searchTerm()"
+        (ngModelChange)="onSearch($event)"
+        autocomplete="off"
+        aria-label="Buscar no SoulGuide"
+      />
+      <button class="hero__search-btn" type="button">Buscar</button>
+    </div>
+
+    <div class="hero__games" role="group" aria-label="Filtrar por jogo">
+      @for (game of games; track game.id) {
+        <button
+          class="hero__game-pill"
+          [class.hero__game-pill--active]="selectedGameId() === game.id"
+          type="button"
+          (click)="toggleGame(game.id)"
+        >
+          {{ game.name }}
+        </button>
+      }
+    </div>
+  </div>
+
+  <div class="home__divider" role="separator"></div>
+
+  <!-- CONTEÚDO PRINCIPAL -->
+  <div class="home__main">
+
+    <!-- QUESTS -->
+    <div class="home__quests">
+      <div class="home__section-header">
+        <h2 class="home__section-title">Quests mais seguidas</h2>
+        <a class="home__section-link" routerLink="/quests">ver todas →</a>
+      </div>
+
+      @if (filteredQuests().length === 0) {
+        <p class="home__empty">Nenhuma quest encontrada.</p>
+      } @else {
+        <ol class="quest-list">
+          @for (quest of filteredQuests(); track trackById($index, quest); let i = $index) {
+            <li class="quest-item">
+              <span class="quest-item__rank">{{ i + 1 }}</span>
+              <div class="quest-item__body">
+                <span class="quest-item__title">{{ quest.title }}</span>
+                <span class="quest-item__meta">
+                  {{ quest.gameName }} · {{ quest.stepCount }} etapas · {{ quest.followers }} seguindo
+                </span>
+              </div>
+              <span class="quest-item__tag">{{ quest.gameName }}</span>
+            </li>
+          }
+        </ol>
+      }
+    </div>
+
+    <!-- LORE -->
+    <div class="home__lore">
+      <div class="home__section-header">
+        <h2 class="home__section-title">Lore em destaque</h2>
+        <a class="home__section-link" routerLink="/lore">ver todos →</a>
+      </div>
+
+      <p class="home__lore-intro">
+        Artigos nascem como <strong>Teoria</strong>, sobem para <strong>Consolidado</strong> com upvotes
+        da comunidade, e o mais votado vira <strong>Canônico</strong>.
+      </p>
+
+      @if (filteredLore().length === 0) {
+        <p class="home__empty">Nenhum artigo encontrado.</p>
+      } @else {
+        <ul class="lore-list">
+          @for (article of filteredLore(); track trackById($index, article)) {
+            <li class="lore-item">
+              <span class="lore-item__badge lore-item__badge--{{ article.status | lowercase }}">
+                {{ loreBadgeLabel(article.status) }}
+              </span>
+              <span class="lore-item__title">{{ article.title }}</span>
+              <span class="lore-item__meta">{{ article.gameName }} · ↑ {{ article.votes }}</span>
+            </li>
+          }
+        </ul>
+      }
+    </div>
+
+  </div>
+
+  <!-- FOOTER CTA -->
+  <footer class="home__cta">
+    <span class="home__cta-text">Conhece um caminho melhor?</span>
+    <a class="home__cta-link" routerLink="/quests">Crie um guia → <small>(login necessário)</small></a>
+  </footer>
+
+</section>

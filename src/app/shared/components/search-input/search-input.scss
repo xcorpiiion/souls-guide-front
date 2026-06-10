@@ -1,0 +1,48 @@
+@use 'styles/variables' as v;
+@use 'styles/mixins' as m;
+
+.search {
+  position: relative;
+  display: flex;
+  align-items: center;
+
+  &__icon {
+    position: absolute;
+    left: v.$space-3;
+    font-size: v.$font-size-sm;
+    color: v.$color-text-faint;
+    pointer-events: none;
+    user-select: none;
+  }
+
+  &__input {
+    width: 100%;
+    padding: v.$space-2 v.$space-8 v.$space-2 v.$space-8;
+    background-color: v.$color-bg-elevated;
+    border: 1px solid v.$color-border;
+    border-radius: v.$radius-md;
+    color: v.$color-text;
+    font-family: v.$font-body;
+    font-size: v.$font-size-sm;
+    outline: none;
+    transition: border-color v.$transition-fast;
+
+    &::placeholder { color: v.$color-text-faint; }
+
+    &:focus { border-color: v.$color-border-focus; }
+
+    &::-webkit-search-cancel-button { display: none; }
+  }
+
+  &__clear {
+    @include m.reset-button;
+    position: absolute;
+    right: v.$space-3;
+    color: v.$color-text-muted;
+    font-size: v.$font-size-sm;
+    line-height: 1;
+    transition: color v.$transition-fast;
+
+    &:hover { color: v.$color-text; }
+  }
+}
