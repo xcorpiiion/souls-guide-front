@@ -16,9 +16,9 @@ describe('App', () => {
     expect(fixture.componentInstance).toBeTruthy();
   });
 
-  it('deve renderizar o router-outlet', async () => {
+  it('deve renderizar o router-outlet', () => {
     const fixture = TestBed.createComponent(App);
-    await fixture.whenStable();
+    fixture.detectChanges();
     const compiled: HTMLElement = fixture.nativeElement;
     expect(compiled.querySelector('router-outlet')).toBeTruthy();
   });
