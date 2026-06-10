@@ -1,4 +1,11 @@
-import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  HostListener,
+  computed,
+  inject,
+  signal,
+} from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import {
@@ -15,6 +22,12 @@ import { NodePosition, QuestEditorCanvas } from './quest-editor-canvas/quest-edi
 
 export type EditorTool = 'select' | 'connect';
 type SelectedItem = { kind: 'node'; id: string } | { kind: 'edge'; id: string } | null;
+
+interface HistoryEntry {
+  nodes: QuestNode[];
+  edges: QuestEdge[];
+  positions: Map<string, NodePosition>;
+}
 
 const NW: Record<QuestNodeType, number> = {
   start: 44,
@@ -113,9 +126,16 @@ export class QuestEditor {
   protected readonly edges = signal<QuestEdge[]>([]);
   protected readonly positions = signal<Map<string, NodePosition>>(new Map());
 
+  // ─── undo/redo ────────────────────────────────────────────────────────────
+  private readonly history = signal<HistoryEntry[]>([]);
+  private readonly historyIdx = signal(-1);
+  protected readonly canUndo = computed(() => this.historyIdx() > 0);
+  protected readonly canRedo = computed(() => this.historyIdx() < this.history().length - 1);
+
   // ─── editor state ────────────────────────────────────────────────────────
   protected readonly tool = signal<EditorTool>('select');
   protected readonly selected = signal<SelectedItem>(null);
+  protected readonly fitTrigger = signal(0);
 
   protected readonly selectedNode = computed((): QuestNode | null => {
     const s = this.selected();
@@ -147,9 +167,10 @@ export class QuestEditor {
       const startId = makeId('n');
       this.nodes.set([{ id: startId, type: 'start', label: 'início' }]);
       const pos = new Map<string, NodePosition>();
-      pos.set(startId, { x: 60, y: 200 });
+      pos.set(startId, { x: 60, y: 220 });
       this.positions.set(pos);
     }
+    this.pushHistory();
   }
 
   private loadQuest(q: QuestDetailData): void {
@@ -161,7 +182,72 @@ export class QuestEditor {
     this.positions.set(bfsPositions(q.nodes, q.edges));
   }
 
-  // ─── toolbar actions ─────────────────────────────────────────────────────
+  // ─── history ──────────────────────────────────────────────────────────────
+  private pushHistory(): void {
+    const snap: HistoryEntry = {
+      nodes: [...this.nodes()],
+      edges: [...this.edges()],
+      positions: new Map(this.positions()),
+    };
+    const stack = this.history().slice(0, this.historyIdx() + 1);
+    stack.push(snap);
+    if (stack.length > 60) stack.shift();
+    this.history.set(stack);
+    this.historyIdx.set(stack.length - 1);
+  }
+
+  protected undo(): void {
+    const idx = this.historyIdx();
+    if (idx <= 0) return;
+    const newIdx = idx - 1;
+    this.historyIdx.set(newIdx);
+    this.restoreHistory(newIdx);
+  }
+
+  protected redo(): void {
+    const idx = this.historyIdx();
+    const stack = this.history();
+    if (idx >= stack.length - 1) return;
+    const newIdx = idx + 1;
+    this.historyIdx.set(newIdx);
+    this.restoreHistory(newIdx);
+  }
+
+  private restoreHistory(idx: number): void {
+    const entry = this.history()[idx];
+    this.nodes.set([...entry.nodes]);
+    this.edges.set([...entry.edges]);
+    this.positions.set(new Map(entry.positions));
+    this.selected.set(null);
+  }
+
+  // ─── keyboard shortcuts ───────────────────────────────────────────────────
+  @HostListener('document:keydown', ['$event'])
+  onKeyDown(e: KeyboardEvent): void {
+    const tag = (e.target as HTMLElement)?.tagName ?? '';
+    const isTyping = ['INPUT', 'TEXTAREA', 'SELECT'].includes(tag);
+
+    if (e.ctrlKey && e.key === 'z') {
+      e.preventDefault();
+      this.undo();
+      return;
+    }
+    if (e.ctrlKey && (e.key === 'y' || e.key === 'Z')) {
+      e.preventDefault();
+      this.redo();
+      return;
+    }
+    if (isTyping) return;
+
+    if (e.key === 's' || e.key === 'S') this.tool.set('select');
+    if (e.key === 'c' || e.key === 'C') this.tool.set('connect');
+    if (e.key === '0') this.fitTrigger.update((n) => n + 1);
+    if ((e.key === 'Delete' || e.key === 'Backspace') && this.selected()) {
+      this.deleteSelected();
+    }
+  }
+
+  // ─── toolbar / palette actions ────────────────────────────────────────────
   protected setTool(t: EditorTool): void {
     this.tool.set(t);
   }
@@ -179,11 +265,12 @@ export class QuestEditor {
     this.nodes.update((ns) => [...ns, node]);
     const existing = this.positions();
     const count = existing.size;
-    const pos = new Map(existing);
-    pos.set(id, { x: 80 + (count % 6) * 140, y: 60 + Math.floor(count / 6) * 120 });
-    this.positions.set(pos);
+    const newPos = new Map(existing);
+    newPos.set(id, { x: 80 + (count % 5) * 150, y: 80 + Math.floor(count / 5) * 120 });
+    this.positions.set(newPos);
     this.selected.set({ kind: 'node', id });
     this.tool.set('select');
+    this.pushHistory();
   }
 
   protected deleteSelected(): void {
@@ -199,6 +286,7 @@ export class QuestEditor {
       this.edges.update((es) => es.filter((e) => e.id !== s.id));
     }
     this.selected.set(null);
+    this.pushHistory();
   }
 
   // ─── canvas events ────────────────────────────────────────────────────────
@@ -206,6 +294,10 @@ export class QuestEditor {
     const pos = new Map(this.positions());
     pos.set(ev.id, { x: ev.x, y: ev.y });
     this.positions.set(pos);
+  }
+
+  protected onNodeDragEnd(): void {
+    this.pushHistory();
   }
 
   protected onNodeSelect(id: string | null): void {
@@ -223,25 +315,22 @@ export class QuestEditor {
     const id = makeId('e');
     this.edges.update((es) => [...es, { id, from: ev.from, to: ev.to }]);
     this.tool.set('select');
+    this.pushHistory();
   }
 
   // ─── properties panel ────────────────────────────────────────────────────
   protected updateNodeLabel(value: string): void {
     this.updateNodeField('label', value);
   }
-
   protected updateNodeSublabel(value: string): void {
     this.updateNodeField('sublabel', value || null);
   }
-
   protected updateNodeDescription(value: string): void {
     this.updateNodeField('description', value || null);
   }
-
   protected updateNodeLocation(value: string): void {
     this.updateNodeField('location', value || null);
   }
-
   protected updateNodeTags(value: string): void {
     const tags = value
       .split(',')
@@ -249,15 +338,12 @@ export class QuestEditor {
       .filter(Boolean);
     this.updateNodeField('tags', tags.length ? tags : undefined);
   }
-
   protected updateNodeEndingType(value: string): void {
     this.updateNodeField('endingType', (value as QuestEndingType) || null);
   }
-
   protected updateNodeLinkedQuestId(value: string): void {
     this.updateNodeField('linkedQuestId', value || null);
   }
-
   protected updateNodeLinkedQuestName(value: string): void {
     this.updateNodeField('linkedQuestName', value || null);
   }
@@ -278,9 +364,6 @@ export class QuestEditor {
   protected saveQuest(): void {
     const nodes = this.nodes();
     const edges = this.edges();
-    const stepCount = nodes.filter((n) => n.type !== 'start').length;
-    const forkCount = nodes.filter((n) => n.type === 'gateway').length;
-    const endingCount = nodes.filter((n) => n.type === 'end').length;
     const game = GAMES_DETAIL.find((g) => g.id === this.gameId);
 
     if (this.isEdit && this.questId) {
@@ -293,9 +376,9 @@ export class QuestEditor {
           status: this.questStatus(),
           nodes,
           edges,
-          stepCount,
-          forkCount,
-          endingCount,
+          stepCount: nodes.filter((n) => n.type !== 'start').length,
+          forkCount: nodes.filter((n) => n.type === 'gateway').length,
+          endingCount: nodes.filter((n) => n.type === 'end').length,
         };
       }
       this.router.navigate(['/games', this.gameId, 'quests', this.questId]);
@@ -310,9 +393,9 @@ export class QuestEditor {
         status: this.questStatus(),
         followers: 0,
         author: null,
-        stepCount,
-        forkCount,
-        endingCount,
+        stepCount: nodes.filter((n) => n.type !== 'start').length,
+        forkCount: nodes.filter((n) => n.type === 'gateway').length,
+        endingCount: nodes.filter((n) => n.type === 'end').length,
         nodes,
         edges,
         relatedQuests: [],
@@ -330,12 +413,29 @@ export class QuestEditor {
     }
   }
 
-  // ─── constants for template ───────────────────────────────────────────────
-  protected readonly nodeTypes: { type: QuestNodeType; label: string; hint: string }[] = [
-    { type: 'task', label: '+ tarefa', hint: 'nó de ação ou diálogo' },
-    { type: 'gateway', label: '+ bifurcação', hint: 'divisão de caminho' },
-    { type: 'end', label: '+ final', hint: 'desfecho da quest' },
-    { type: 'external-quest', label: '+ externa ↗', hint: 'cruza com outra questline' },
+  // ─── template helpers ─────────────────────────────────────────────────────
+  protected nodeTagsString(node: QuestNode): string {
+    return node.tags?.join(', ') ?? '';
+  }
+
+  protected edgeFromLabel(edge: QuestEdge): string {
+    return this.nodes().find((n) => n.id === edge.from)?.label ?? edge.from;
+  }
+
+  protected edgeToLabel(edge: QuestEdge): string {
+    return this.nodes().find((n) => n.id === edge.to)?.label ?? edge.to;
+  }
+
+  protected readonly paletteNodes: {
+    type: QuestNodeType;
+    label: string;
+    desc: string;
+  }[] = [
+    { type: 'start', label: 'início', desc: 'ponto de partida' },
+    { type: 'task', label: 'tarefa', desc: 'ação / diálogo' },
+    { type: 'gateway', label: 'bifurcação', desc: 'divisão de caminho' },
+    { type: 'external-quest', label: 'quest externa', desc: 'cruza outra questline' },
+    { type: 'end', label: 'final', desc: 'desfecho da quest' },
   ];
 
   protected readonly statuses: { value: QuestStatus; label: string }[] = [
@@ -350,8 +450,4 @@ export class QuestEditor {
     { value: 'tragic', label: 'trágico' },
     { value: 'neutral', label: 'neutro' },
   ];
-
-  protected nodeTagsString(node: QuestNode): string {
-    return node.tags?.join(', ') ?? '';
-  }
 }

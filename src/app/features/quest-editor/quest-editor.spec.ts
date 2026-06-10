@@ -49,17 +49,17 @@ describe('QuestEditor', () => {
     expect(f.componentInstance['nodes']().length).toBe(quest.nodes.length);
   });
 
-  it('deve exibir badge "editando" em modo edição', () => {
+  it('deve exibir badge "edição" em modo edição', () => {
     const f = createFixture('elden-ring', 'er-q1');
-    const badge = f.nativeElement.querySelector('.qe__mode-badge--edit');
+    const badge = f.nativeElement.querySelector('.qe__status-badge');
     expect(badge).toBeTruthy();
-    expect(badge.textContent.trim()).toBe('editando');
+    expect(badge.textContent.trim()).toBe('edição');
   });
 
-  it('deve exibir badge "nova quest" em modo criação', () => {
+  it('deve exibir badge "criação" em modo criação', () => {
     const f = createFixture('elden-ring');
-    const badge = f.nativeElement.querySelector('.qe__mode-badge');
-    expect(badge?.textContent?.trim()).toBe('nova quest');
+    const badge = f.nativeElement.querySelector('.qe__status-badge');
+    expect(badge?.textContent?.trim()).toBe('criação');
   });
 
   it('deve adicionar nó tarefa ao clicar no botão', () => {
@@ -122,7 +122,9 @@ describe('QuestEditor', () => {
   it('deve mostrar painel de metadados quando nada selecionado', () => {
     const f = createFixture('elden-ring');
     f.detectChanges();
-    expect(f.nativeElement.querySelector('#meta-title')).toBeTruthy();
+    // props panel shows quest metadata (title input) when nothing is selected
+    const inputs = f.nativeElement.querySelectorAll('.qe__props .qe__input');
+    expect(inputs.length).toBeGreaterThan(0);
   });
 
   it('deve mostrar painel de nó quando nó selecionado', () => {
@@ -130,6 +132,8 @@ describe('QuestEditor', () => {
     const id = f.componentInstance['nodes']()[0].id;
     f.componentInstance['onNodeSelect'](id);
     f.detectChanges();
-    expect(f.nativeElement.querySelector('#node-label')).toBeTruthy();
+    // props panel header says "propriedades" when a node is selected
+    const header = f.nativeElement.querySelector('.qe__props-title');
+    expect(header?.textContent?.trim()).toBe('propriedades');
   });
 });

@@ -1,83 +1,158 @@
 <div class="qe">
-  <!-- ─── toolbar ─────────────────────────────────────────────────────────── -->
+  <!-- ══ toolbar ════════════════════════════════════════════════════════════ -->
   <header class="qe__toolbar">
-    <div class="qe__toolbar-left">
-      <a class="qe__back" (click)="cancel()" role="button" tabindex="0" (keydown.enter)="cancel()">
-        ← cancelar
-      </a>
-      <span class="qe__toolbar-sep">|</span>
-      <input
-        class="qe__title-input"
-        type="text"
-        placeholder="título da quest..."
-        [ngModel]="title()"
-        (ngModelChange)="title.set($event)"
-        aria-label="título da quest"
-      />
-    </div>
+    <button class="qe__tool-btn qe__tool-btn--back" type="button" title="voltar" (click)="cancel()">
+      <i class="ti ti-arrow-left"></i>
+    </button>
 
-    <div class="qe__toolbar-center">
-      <!-- tools -->
-      <div class="qe__tool-group" role="group" aria-label="ferramentas">
-        <button
-          class="qe__tool-btn"
-          [class.qe__tool-btn--active]="tool() === 'select'"
-          type="button"
-          title="selecionar / mover (S)"
-          (click)="setTool('select')"
-        >
-          ↖ mover
-        </button>
-        <button
-          class="qe__tool-btn"
-          [class.qe__tool-btn--active]="tool() === 'connect'"
-          type="button"
-          title="conectar nós (C)"
-          (click)="setTool('connect')"
-        >
-          → conectar
-        </button>
-      </div>
+    <input
+      class="qe__title-input"
+      type="text"
+      placeholder="título da quest…"
+      [value]="title()"
+      (input)="title.set($any($event.target).value)"
+    />
 
-      <span class="qe__toolbar-sep">|</span>
-
-      <!-- add nodes -->
-      <div class="qe__add-group" role="group" aria-label="adicionar nós">
-        @for (nt of nodeTypes; track nt.type) {
-          <button class="qe__add-btn" type="button" [title]="nt.hint" (click)="addNode(nt.type)">
-            {{ nt.label }}
-          </button>
-        }
-      </div>
-
-      <span class="qe__toolbar-sep">|</span>
-
-      <!-- delete -->
+    <div class="qe__toolbar-actions">
       <button
-        class="qe__del-btn"
+        class="qe__tool-btn"
         type="button"
-        title="excluir selecionado (Del)"
-        [disabled]="!selected()"
-        (click)="deleteSelected()"
+        title="selecionar (S)"
+        [class.qe__tool-btn--active]="tool() === 'select'"
+        (click)="setTool('select')"
       >
-        🗑 excluir
+        <i class="ti ti-pointer"></i>
       </button>
-    </div>
+      <button
+        class="qe__tool-btn"
+        type="button"
+        title="conectar (C)"
+        [class.qe__tool-btn--active]="tool() === 'connect'"
+        (click)="setTool('connect')"
+      >
+        <i class="ti ti-line"></i>
+      </button>
 
-    <div class="qe__toolbar-right">
-      <span class="qe__mode-badge" [class.qe__mode-badge--edit]="isEdit">
-        {{ isEdit ? 'editando' : 'nova quest' }}
+      <div class="qe__toolbar-sep"></div>
+
+      <button
+        class="qe__tool-btn"
+        type="button"
+        title="desfazer (Ctrl+Z)"
+        [disabled]="!canUndo()"
+        (click)="undo()"
+      >
+        <i class="ti ti-arrow-back-up"></i>
+      </button>
+      <button
+        class="qe__tool-btn"
+        type="button"
+        title="refazer (Ctrl+Y)"
+        [disabled]="!canRedo()"
+        (click)="redo()"
+      >
+        <i class="ti ti-arrow-forward-up"></i>
+      </button>
+
+      <div class="qe__toolbar-sep"></div>
+
+      <span class="qe__status-badge">
+        {{ isEdit ? 'edição' : 'criação' }}
       </span>
+
       <button class="qe__save-btn" type="button" (click)="saveQuest()">
-        {{ isEdit ? 'salvar alterações' : 'publicar quest' }}
+        <i class="ti ti-device-floppy"></i>
+        salvar
       </button>
     </div>
   </header>
 
-  <!-- ─── body ──────────────────────────────────────────────────────────────── -->
+  <!-- ══ body ══════════════════════════════════════════════════════════════ -->
   <div class="qe__body">
-    <!-- canvas -->
-    <div class="qe__canvas-wrap">
+    <!-- ── palette sidebar ─────────────────────────────────────────────── -->
+    <aside class="qe__palette">
+      <p class="qe__palette-title">nós</p>
+
+      @for (item of paletteNodes; track item.type) {
+        <button class="qe__palette-card" type="button" (click)="addNode(item.type)">
+          <span class="qe__palette-icon">
+            @if (item.type === 'start') {
+              <svg width="28" height="28" viewBox="0 0 28 28">
+                <circle
+                  cx="14"
+                  cy="14"
+                  r="11"
+                  fill="rgba(31,170,100,.15)"
+                  stroke="#1faa64"
+                  stroke-width="1.5"
+                />
+              </svg>
+            }
+            @if (item.type === 'end') {
+              <svg width="28" height="28" viewBox="0 0 28 28">
+                <circle
+                  cx="14"
+                  cy="14"
+                  r="11"
+                  fill="rgba(201,168,76,.15)"
+                  stroke="#c9a84c"
+                  stroke-width="1.5"
+                />
+                <circle cx="14" cy="14" r="6" fill="rgba(201,168,76,.25)" />
+              </svg>
+            }
+            @if (item.type === 'task') {
+              <svg width="36" height="24" viewBox="0 0 36 24">
+                <rect
+                  x="1"
+                  y="1"
+                  width="34"
+                  height="22"
+                  rx="5"
+                  fill="var(--color-bg-surface,#1c1a18)"
+                  stroke="var(--color-border,#2e2b28)"
+                  stroke-width="1"
+                />
+              </svg>
+            }
+            @if (item.type === 'gateway') {
+              <svg width="28" height="28" viewBox="0 0 28 28">
+                <polygon
+                  points="14,2 26,14 14,26 2,14"
+                  fill="rgba(55,138,221,.12)"
+                  stroke="#378add"
+                  stroke-width="1.5"
+                />
+                <text x="14" y="19" text-anchor="middle" font-size="10" fill="#378add">X</text>
+              </svg>
+            }
+            @if (item.type === 'external-quest') {
+              <svg width="36" height="24" viewBox="0 0 36 24">
+                <rect
+                  x="1"
+                  y="1"
+                  width="34"
+                  height="22"
+                  rx="5"
+                  fill="rgba(200,112,232,.07)"
+                  stroke="rgba(200,112,232,.6)"
+                  stroke-width="1.5"
+                  stroke-dasharray="4,2"
+                />
+              </svg>
+            }
+          </span>
+          <span class="qe__palette-info">
+            <span class="qe__palette-name">{{ item.label }}</span>
+            <span class="qe__palette-desc">{{ item.desc }}</span>
+          </span>
+          <i class="ti ti-plus qe__palette-plus"></i>
+        </button>
+      }
+    </aside>
+
+    <!-- ── canvas ───────────────────────────────────────────────────────── -->
+    <main class="qe__canvas-area">
       <app-quest-editor-canvas
         [nodes]="nodes()"
         [edges]="edges()"
@@ -85,215 +160,209 @@
         [selectedNodeId]="selectedNodeId()"
         [selectedEdgeId]="selectedEdgeId()"
         [tool]="tool()"
+        [fitTrigger]="fitTrigger()"
         (positionChange)="onPositionChange($event)"
+        (nodeDragEnd)="onNodeDragEnd()"
         (nodeSelect)="onNodeSelect($event)"
         (edgeSelect)="onEdgeSelect($event)"
         (connectNodes)="onConnect($event)"
       />
+    </main>
 
-      @if (tool() === 'connect') {
-        <div class="qe__connect-hint" role="status" aria-live="polite">
-          Clique no nó de <strong>origem</strong>, depois no nó de <strong>destino</strong>. Clique
-          no canvas para cancelar.
-        </div>
-      }
-    </div>
-
-    <!-- properties panel -->
-    <aside class="qe__panel">
-      @if (selectedNode(); as node) {
-        <!-- node properties -->
-        <div class="qe__panel-section">
-          <p class="qe__panel-title">nó selecionado</p>
-          <span [class]="'qe__type-badge qe__type-badge--' + node.type">{{ node.type }}</span>
-        </div>
-
-        <div class="qe__panel-section">
-          <label class="qe__label" for="node-label">rótulo</label>
-          <input
-            id="node-label"
-            class="qe__input"
-            type="text"
-            [ngModel]="node.label"
-            (ngModelChange)="updateNodeLabel($event)"
-          />
-        </div>
-
-        @if (node.type === 'task' || node.type === 'external-quest') {
-          <div class="qe__panel-section">
-            <label class="qe__label" for="node-sublabel">sub-rótulo</label>
-            <input
-              id="node-sublabel"
-              class="qe__input"
-              type="text"
-              placeholder="ex: nome do local"
-              [ngModel]="node.sublabel ?? ''"
-              (ngModelChange)="updateNodeSublabel($event)"
-            />
-          </div>
-
-          <div class="qe__panel-section">
-            <label class="qe__label" for="node-desc">descrição</label>
-            <textarea
-              id="node-desc"
-              class="qe__textarea"
-              rows="3"
-              placeholder="o que acontece neste passo?"
-              [ngModel]="node.description ?? ''"
-              (ngModelChange)="updateNodeDescription($event)"
-            ></textarea>
-          </div>
-
-          <div class="qe__panel-section">
-            <label class="qe__label" for="node-location">localização</label>
-            <input
-              id="node-location"
-              class="qe__input"
-              type="text"
-              placeholder="ex: Caria, Liurnia"
-              [ngModel]="node.location ?? ''"
-              (ngModelChange)="updateNodeLocation($event)"
-            />
-          </div>
-
-          <div class="qe__panel-section">
-            <label class="qe__label" for="node-tags">tags (separar por vírgula)</label>
-            <input
-              id="node-tags"
-              class="qe__input"
-              type="text"
-              placeholder="ex: NPC, boss, item"
-              [ngModel]="nodeTagsString(node)"
-              (ngModelChange)="updateNodeTags($event)"
-            />
-          </div>
-        }
-
-        @if (node.type === 'external-quest') {
-          <div class="qe__panel-section">
-            <label class="qe__label" for="node-linked-id">ID da quest linkada</label>
-            <input
-              id="node-linked-id"
-              class="qe__input"
-              type="text"
-              placeholder="ex: blaidd"
-              [ngModel]="node.linkedQuestId ?? ''"
-              (ngModelChange)="updateNodeLinkedQuestId($event)"
-            />
-          </div>
-          <div class="qe__panel-section">
-            <label class="qe__label" for="node-linked-name">nome da quest linkada</label>
-            <input
-              id="node-linked-name"
-              class="qe__input"
-              type="text"
-              placeholder="ex: Questline do Blaidd"
-              [ngModel]="node.linkedQuestName ?? ''"
-              (ngModelChange)="updateNodeLinkedQuestName($event)"
-            />
-          </div>
-        }
-
-        @if (node.type === 'end') {
-          <div class="qe__panel-section">
-            <label class="qe__label" for="node-ending">tipo de final</label>
-            <select
-              id="node-ending"
-              class="qe__select"
-              [ngModel]="node.endingType ?? ''"
-              (ngModelChange)="updateNodeEndingType($event)"
+    <!-- ── properties panel ─────────────────────────────────────────────── -->
+    @if (selectedNode() || selectedEdge()) {
+      <aside class="qe__props">
+        @if (selectedNode(); as node) {
+          <header class="qe__props-header">
+            <span class="qe__props-title">propriedades</span>
+            <button
+              class="qe__props-delete"
+              type="button"
+              title="excluir nó (Del)"
+              (click)="deleteSelected()"
             >
-              @for (et of endingTypes; track et.value) {
-                <option [value]="et.value">{{ et.label }}</option>
-              }
-            </select>
-          </div>
+              <i class="ti ti-trash"></i>
+            </button>
+          </header>
+
+          <label class="qe__field">
+            <span class="qe__label">nome</span>
+            <input
+              class="qe__input"
+              type="text"
+              [value]="node.label"
+              (input)="updateNodeLabel($any($event.target).value)"
+            />
+          </label>
+
+          @if (node.type === 'task' || node.type === 'external-quest') {
+            <label class="qe__field">
+              <span class="qe__label">subtítulo</span>
+              <input
+                class="qe__input"
+                type="text"
+                placeholder="opcional"
+                [value]="node.sublabel ?? ''"
+                (input)="updateNodeSublabel($any($event.target).value)"
+              />
+            </label>
+
+            <label class="qe__field">
+              <span class="qe__label">descrição</span>
+              <textarea
+                class="qe__input qe__input--textarea"
+                rows="3"
+                placeholder="opcional"
+                [value]="node.description ?? ''"
+                (input)="updateNodeDescription($any($event.target).value)"
+              ></textarea>
+            </label>
+
+            <label class="qe__field">
+              <span class="qe__label">local</span>
+              <input
+                class="qe__input"
+                type="text"
+                placeholder="opcional"
+                [value]="node.location ?? ''"
+                (input)="updateNodeLocation($any($event.target).value)"
+              />
+            </label>
+
+            <label class="qe__field">
+              <span class="qe__label">tags (vírgula)</span>
+              <input
+                class="qe__input"
+                type="text"
+                placeholder="ex: npc, boss"
+                [value]="nodeTagsString(node)"
+                (input)="updateNodeTags($any($event.target).value)"
+              />
+            </label>
+          }
+
+          @if (node.type === 'end') {
+            <label class="qe__field">
+              <span class="qe__label">tipo de final</span>
+              <select
+                class="qe__input qe__input--select"
+                [value]="node.endingType ?? ''"
+                (change)="updateNodeEndingType($any($event.target).value)"
+              >
+                @for (et of endingTypes; track et.value) {
+                  <option [value]="et.value">{{ et.label }}</option>
+                }
+              </select>
+            </label>
+          }
+
+          @if (node.type === 'external-quest') {
+            <label class="qe__field">
+              <span class="qe__label">id da quest</span>
+              <input
+                class="qe__input"
+                type="text"
+                placeholder="opcional"
+                [value]="node.linkedQuestId ?? ''"
+                (input)="updateNodeLinkedQuestId($any($event.target).value)"
+              />
+            </label>
+            <label class="qe__field">
+              <span class="qe__label">nome da quest</span>
+              <input
+                class="qe__input"
+                type="text"
+                placeholder="opcional"
+                [value]="node.linkedQuestName ?? ''"
+                (input)="updateNodeLinkedQuestName($any($event.target).value)"
+              />
+            </label>
+          }
         }
 
-        <div class="qe__panel-section">
-          <button class="qe__del-inline" type="button" (click)="deleteSelected()">
-            excluir nó
-          </button>
-        </div>
-      } @else if (selectedEdge(); as edge) {
-        <!-- edge properties -->
-        <div class="qe__panel-section">
-          <p class="qe__panel-title">aresta selecionada</p>
-          <p class="qe__panel-meta">{{ edge.from }} → {{ edge.to }}</p>
-        </div>
+        @if (selectedEdge(); as edge) {
+          <header class="qe__props-header">
+            <span class="qe__props-title">seta</span>
+            <button
+              class="qe__props-delete"
+              type="button"
+              title="excluir seta (Del)"
+              (click)="deleteSelected()"
+            >
+              <i class="ti ti-trash"></i>
+            </button>
+          </header>
 
-        <div class="qe__panel-section">
-          <label class="qe__label" for="edge-label">rótulo da aresta</label>
+          <div class="qe__edge-info">
+            <span class="qe__edge-route">{{ edgeFromLabel(edge) }} → {{ edgeToLabel(edge) }}</span>
+          </div>
+
+          <label class="qe__field">
+            <span class="qe__label">rótulo</span>
+            <input
+              class="qe__input"
+              type="text"
+              placeholder="ex: sim / não"
+              [value]="edge.label ?? ''"
+              (input)="updateEdgeLabel($any($event.target).value)"
+            />
+          </label>
+        }
+      </aside>
+    }
+
+    <!-- ── meta sidebar (no selection) ─────────────────────────────────── -->
+    @if (!selectedNode() && !selectedEdge()) {
+      <aside class="qe__props">
+        <header class="qe__props-header">
+          <span class="qe__props-title">quest</span>
+        </header>
+
+        <label class="qe__field">
+          <span class="qe__label">título</span>
           <input
-            id="edge-label"
-            class="qe__input"
-            type="text"
-            placeholder="ex: via Loretta"
-            [ngModel]="edge.label ?? ''"
-            (ngModelChange)="updateEdgeLabel($event)"
-          />
-        </div>
-
-        <div class="qe__panel-section">
-          <button class="qe__del-inline" type="button" (click)="deleteSelected()">
-            excluir aresta
-          </button>
-        </div>
-      } @else {
-        <!-- quest metadata -->
-        <div class="qe__panel-section">
-          <p class="qe__panel-title">metadados da quest</p>
-        </div>
-
-        <div class="qe__panel-section">
-          <label class="qe__label" for="meta-title">título</label>
-          <input
-            id="meta-title"
             class="qe__input"
             type="text"
             placeholder="título da quest"
-            [ngModel]="title()"
-            (ngModelChange)="title.set($event)"
+            [value]="title()"
+            (input)="title.set($any($event.target).value)"
           />
-        </div>
+        </label>
 
-        <div class="qe__panel-section">
-          <label class="qe__label" for="meta-desc">descrição</label>
+        <label class="qe__field">
+          <span class="qe__label">descrição</span>
           <textarea
-            id="meta-desc"
-            class="qe__textarea"
+            class="qe__input qe__input--textarea"
             rows="4"
-            placeholder="descreva a questline..."
-            [ngModel]="description()"
-            (ngModelChange)="description.set($event)"
+            placeholder="descreva a questline…"
+            [value]="description()"
+            (input)="description.set($any($event.target).value)"
           ></textarea>
-        </div>
+        </label>
 
-        <div class="qe__panel-section">
-          <label class="qe__label" for="meta-status">status</label>
+        <label class="qe__field">
+          <span class="qe__label">status</span>
           <select
-            id="meta-status"
-            class="qe__select"
-            [ngModel]="questStatus()"
-            (ngModelChange)="questStatus.set($event)"
+            class="qe__input qe__input--select"
+            [value]="questStatus()"
+            (change)="questStatus.set($any($event.target).value)"
           >
             @for (s of statuses; track s.value) {
               <option [value]="s.value">{{ s.label }}</option>
             }
           </select>
-        </div>
+        </label>
 
-        <div class="qe__panel-section qe__panel-section--hint">
-          <p class="qe__hint">Clique em um nó ou aresta para editar suas propriedades.</p>
+        <div class="qe__hints">
+          <p class="qe__hint"><kbd>S</kbd> selecionar</p>
+          <p class="qe__hint"><kbd>C</kbd> conectar</p>
+          <p class="qe__hint"><kbd>Del</kbd> excluir</p>
+          <p class="qe__hint"><kbd>Ctrl+Z</kbd> desfazer</p>
+          <p class="qe__hint"><kbd>Ctrl+Y</kbd> refazer</p>
+          <p class="qe__hint"><kbd>0</kbd> ajustar tela</p>
+          <p class="qe__hint"><kbd>scroll</kbd> zoom</p>
         </div>
-      }
-
-      <!-- stats footer -->
-      <div class="qe__panel-stats">
-        <span>{{ nodes().length }} nós</span>
-        <span>{{ edges().length }} arestas</span>
-        <span>{{ nodes().filter((n) => n.type === 'end').length }} finais</span>
-      </div>
-    </aside>
+      </aside>
+    }
   </div>
 </div>

@@ -8,124 +8,232 @@
     #svgEl
     class="qec__svg"
     [class.qec__svg--connect]="tool() === 'connect'"
-    [attr.width]="CANVAS_W"
-    [attr.height]="CANVAS_H"
-    [attr.viewBox]="'0 0 ' + CANVAS_W + ' ' + CANVAS_H"
+    [class.qec__svg--panning]="false"
+    (mousedown)="onSvgMouseDown($event)"
     (click)="onSvgClick($event)"
   >
     <defs>
+      <pattern
+        id="qec-grid"
+        width="24"
+        height="24"
+        patternUnits="userSpaceOnUse"
+        [attr.patternTransform]="gridPatternTransform()"
+      >
+        <circle cx="0" cy="0" r="0.8" class="qec__grid-dot" />
+      </pattern>
       <marker id="qec-arr" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
         <path d="M0,0 L0,6 L8,3 z" class="qec__marker" />
+      </marker>
+      <marker id="qec-arr-sel" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+        <path d="M0,0 L0,6 L8,3 z" class="qec__marker qec__marker--sel" />
       </marker>
       <marker id="qec-arr-ext" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
         <path d="M0,0 L0,6 L8,3 z" class="qec__marker qec__marker--ext" />
       </marker>
     </defs>
 
-    <!-- grid dots -->
-    <pattern id="qec-grid" width="32" height="32" patternUnits="userSpaceOnUse">
-      <circle cx="0" cy="0" r="1" class="qec__grid-dot" />
-    </pattern>
     <rect width="100%" height="100%" fill="url(#qec-grid)" class="qec__grid-bg" />
 
-    <!-- edges -->
-    @for (edge of canvasEdges(); track trackEdge($index, edge)) {
-      <g (click)="onEdgeClick($event, edge.id)">
-        <path [attr.d]="edge.path" class="qec__edge-hit" />
-        <path
-          [attr.d]="edge.path"
-          [attr.marker-end]="edge.isExternal ? 'url(#qec-arr-ext)' : 'url(#qec-arr)'"
+    <g [attr.transform]="contentTransform()">
+      <!-- edges -->
+      @for (edge of canvasEdges(); track trackEdge($index, edge)) {
+        <g [attr.data-edge-id]="edge.id" (click)="onEdgeClick($event, edge.id)">
+          <path [attr.d]="edge.path" class="qec__edge-hit" />
+          <path
+            [attr.d]="edge.path"
+            [attr.marker-end]="
+              selectedEdgeId() === edge.id
+                ? 'url(#qec-arr-sel)'
+                : edge.isExternal
+                  ? 'url(#qec-arr-ext)'
+                  : 'url(#qec-arr)'
+            "
+            [class]="
+              'qec__edge' +
+              (edge.isExternal ? ' qec__edge--ext' : '') +
+              (selectedEdgeId() === edge.id ? ' qec__edge--selected' : '')
+            "
+          />
+          @if (edge.label) {
+            <rect
+              [attr.x]="edge.mx - edge.label.length * 3 - 4"
+              [attr.y]="edge.my - 10"
+              [attr.width]="edge.label.length * 6 + 8"
+              height="14"
+              rx="3"
+              class="qec__edge-label-bg"
+            />
+            <text [attr.x]="edge.mx" [attr.y]="edge.my" class="qec__edge-label">
+              {{ edge.label }}
+            </text>
+          }
+        </g>
+      }
+
+      <!-- nodes -->
+      @for (node of nodes(); track trackNode($index, node)) {
+        <g
+          [attr.data-node-id]="node.id"
           [class]="
-            'qec__edge' +
-            (edge.isExternal ? ' qec__edge--ext' : '') +
-            (selectedEdgeId() === edge.id ? ' qec__edge--selected' : '')
+            'qec__node' +
+            (selectedNodeId() === node.id ? ' qec__node--selected' : '') +
+            (connectSource() === node.id ? ' qec__node--source' : '') +
+            (tool() === 'connect' && connectSource() && connectSource() !== node.id
+              ? ' qec__node--target-hint'
+              : '')
           "
-        />
-        @if (edge.label) {
-          <text [attr.x]="edge.mx" [attr.y]="edge.my" class="qec__edge-label">
-            {{ edge.label }}
-          </text>
-        }
-      </g>
-    }
-
-    <!-- nodes -->
-    @for (node of nodes(); track trackNode($index, node)) {
-      <g
-        [attr.data-node-id]="node.id"
-        [class]="
-          'qec__node' +
-          (selectedNodeId() === node.id ? ' qec__node--selected' : '') +
-          (connectSource() === node.id ? ' qec__node--source' : '') +
-          (tool() === 'connect' && connectSource() && connectSource() !== node.id
-            ? ' qec__node--target-hint'
-            : '')
-        "
-        (mousedown)="onNodeMouseDown($event, node.id)"
-      >
-        @if (node.type === 'start' || node.type === 'end') {
-          <circle
-            [attr.cx]="px(node.id) + nw(node.type) / 2"
-            [attr.cy]="py(node.id) + nh(node.type) / 2"
-            [attr.r]="nw(node.type) / 2 - 2"
-            [class]="'qec__circle qec__circle--' + (node.endingType ?? node.type)"
-          />
-          <text
-            [attr.x]="px(node.id) + nw(node.type) / 2"
-            [attr.y]="py(node.id) + nh(node.type) / 2 + 4"
-            class="qec__text qec__text--center qec__text--small"
-          >
-            {{ node.label }}
-          </text>
-        }
-
-        @if (node.type === 'gateway') {
-          <polygon [attr.points]="diamondPoints(node.id)" class="qec__diamond" />
-          <text
-            [attr.x]="px(node.id) + 22"
-            [attr.y]="py(node.id) + 26"
-            class="qec__text qec__text--center qec__text--gateway"
-          >
-            X
-          </text>
-        }
-
-        @if (node.type === 'task' || node.type === 'external-quest') {
-          <rect
-            [attr.x]="px(node.id)"
-            [attr.y]="py(node.id)"
-            [attr.width]="nw(node.type)"
-            [attr.height]="nh(node.type)"
-            rx="7"
-            [class]="'qec__rect qec__rect--' + node.type"
-          />
-          <text
-            [attr.x]="px(node.id) + nw(node.type) / 2"
-            [attr.y]="textY(node.id, node.type, !!node.sublabel)"
-            class="qec__text qec__text--center"
-          >
-            {{ node.label }}
-          </text>
-          @if (node.sublabel) {
+          (mousedown)="onNodeMouseDown($event, node.id)"
+        >
+          @if (node.type === 'start' || node.type === 'end') {
+            <circle
+              [attr.cx]="px(node.id) + nw(node.type) / 2"
+              [attr.cy]="py(node.id) + nh(node.type) / 2"
+              [attr.r]="nw(node.type) / 2 - 2"
+              [class]="'qec__circle qec__circle--' + (node.endingType ?? node.type)"
+            />
             <text
               [attr.x]="px(node.id) + nw(node.type) / 2"
-              [attr.y]="py(node.id) + 31"
-              class="qec__text qec__text--center qec__text--sub"
+              [attr.y]="py(node.id) + nh(node.type) / 2 + 4"
+              class="qec__text qec__text--center qec__text--small"
             >
-              {{ node.sublabel }}
+              {{ node.label }}
             </text>
           }
-          @if (node.type === 'external-quest') {
+
+          @if (node.type === 'gateway') {
+            <polygon [attr.points]="diamondPoints(node.id)" class="qec__diamond" />
             <text
-              [attr.x]="px(node.id) + nw(node.type) - 6"
-              [attr.y]="py(node.id) + 13"
-              class="qec__text qec__text--ext-icon"
+              [attr.x]="px(node.id) + 22"
+              [attr.y]="py(node.id) + 26"
+              class="qec__text qec__text--center qec__text--gateway"
             >
-              ↗
+              X
             </text>
+          }
+
+          @if (node.type === 'task' || node.type === 'external-quest') {
+            <rect
+              [attr.x]="px(node.id)"
+              [attr.y]="py(node.id)"
+              [attr.width]="nw(node.type)"
+              [attr.height]="nh(node.type)"
+              rx="7"
+              [class]="'qec__rect qec__rect--' + node.type"
+            />
+            <text
+              [attr.x]="px(node.id) + nw(node.type) / 2"
+              [attr.y]="textY(node.id, node.type, !!node.sublabel)"
+              class="qec__text qec__text--center"
+            >
+              {{ node.label }}
+            </text>
+            @if (node.sublabel) {
+              <text
+                [attr.x]="px(node.id) + nw(node.type) / 2"
+                [attr.y]="py(node.id) + 31"
+                class="qec__text qec__text--center qec__text--sub"
+              >
+                {{ node.sublabel }}
+              </text>
+            }
+            @if (node.type === 'external-quest') {
+              <text
+                [attr.x]="px(node.id) + nw(node.type) - 6"
+                [attr.y]="py(node.id) + 13"
+                class="qec__text qec__text--ext-icon"
+              >
+                ↗
+              </text>
+            }
+          }
+        </g>
+      }
+    </g>
+  </svg>
+
+  <!-- zoom controls -->
+  <div class="qec__zoom-bar" role="group" aria-label="controles de zoom">
+    <button
+      class="qec__zoom-btn"
+      type="button"
+      title="diminuir zoom (Ctrl+-)"
+      [disabled]="!canUnzoomMore()"
+      (click)="zoomStep(-1)"
+    >
+      <i class="ti ti-minus" aria-hidden="true"></i>
+    </button>
+    <span
+      class="qec__zoom-level"
+      role="button"
+      tabindex="0"
+      title="clique para 100%"
+      (click)="zoomReset()"
+      (keydown.enter)="zoomReset()"
+    >
+      {{ zoomPercent() }}%
+    </span>
+    <button
+      class="qec__zoom-btn"
+      type="button"
+      title="aumentar zoom (Ctrl++)"
+      [disabled]="!canZoomMore()"
+      (click)="zoomStep(1)"
+    >
+      <i class="ti ti-plus" aria-hidden="true"></i>
+    </button>
+    <div class="qec__zoom-sep"></div>
+    <button class="qec__zoom-fit" type="button" title="ajustar ao canvas (0)" (click)="fitAll()">
+      <i class="ti ti-frame" style="font-size: 12px" aria-hidden="true"></i> fit
+    </button>
+  </div>
+
+  <!-- mini-map -->
+  @if (minimapNodes().length) {
+    <div class="qec__minimap" role="img" aria-label="mini-mapa do canvas">
+      <svg [attr.width]="MM_W" [attr.height]="MM_H">
+        @for (n of minimapNodes(); track trackMm($index, n)) {
+          @if (n.type === 'start') {
+            <circle
+              [attr.cx]="n.x + n.w / 2"
+              [attr.cy]="n.y + n.h / 2"
+              [attr.r]="n.w / 2"
+              class="qec__mm-start"
+            />
+          }
+          @if (n.type === 'end') {
+            <circle
+              [attr.cx]="n.x + n.w / 2"
+              [attr.cy]="n.y + n.h / 2"
+              [attr.r]="n.w / 2"
+              class="qec__mm-end"
+            />
+          }
+          @if (n.type === 'task') {
+            <rect
+              [attr.x]="n.x"
+              [attr.y]="n.y"
+              [attr.width]="n.w"
+              [attr.height]="n.h"
+              rx="1"
+              class="qec__mm-task"
+            />
+          }
+          @if (n.type === 'gateway') {
+            <polygon [attr.points]="mmDiamond(n)" class="qec__mm-gateway" />
+          }
+          @if (n.type === 'external-quest') {
+            <rect
+              [attr.x]="n.x"
+              [attr.y]="n.y"
+              [attr.width]="n.w"
+              [attr.height]="n.h"
+              rx="1"
+              class="qec__mm-ext"
+            />
           }
         }
-      </g>
-    }
-  </svg>
+      </svg>
+    </div>
+  }
 </div>
