@@ -7,4 +7,5 @@ export interface LoreSummary {
   gameName: string;
   status: LoreStatus;
   votes: number;
+  excerpt: string;
 }

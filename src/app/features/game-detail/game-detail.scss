@@ -1,0 +1,483 @@
+@use 'sass:list';
+@use 'styles/variables' as v;
+@use 'styles/mixins' as m;
+
+$game-colors: (
+  'er': (
+    #2a1f0a,
+    #6b4c1a,
+    #c9a84c,
+    rgba(201, 168, 76, 0.18),
+    rgba(201, 168, 76, 0.35),
+  ),
+  'ds3': (
+    #1a0a0a,
+    #5c1a1a,
+    #e85050,
+    rgba(232, 80, 80, 0.18),
+    rgba(232, 80, 80, 0.35),
+  ),
+  'bb': (
+    #140a1a,
+    #4a1a5c,
+    #c870e8,
+    rgba(200, 112, 232, 0.18),
+    rgba(200, 112, 232, 0.35),
+  ),
+  'lop': (
+    #0a1a1a,
+    #1a5c5c,
+    #40c8c8,
+    rgba(64, 200, 200, 0.18),
+    rgba(64, 200, 200, 0.35),
+  ),
+  'lotf': (
+    #0a0f1a,
+    #1a2a5c,
+    #6090e8,
+    rgba(96, 144, 232, 0.18),
+    rgba(96, 144, 232, 0.35),
+  ),
+);
+
+// ─── CSS custom props por jogo ────────────────────────────────────────────────
+// Centraliza aqui, evita @each em cada elemento filho.
+.game-detail {
+  @each $key, $vals in $game-colors {
+    &[data-game='#{$key}'] {
+      --hero-bg: #{list.nth($vals, 1)};
+      --hero-border: #{list.nth($vals, 2)};
+      --accent: #{list.nth($vals, 3)};
+      --accent-bg: #{list.nth($vals, 4)};
+      --accent-border: #{list.nth($vals, 5)};
+    }
+  }
+}
+
+// ─── Hero ────────────────────────────────────────────────────────────────────
+.game-detail__hero {
+  padding: v.$space-8 v.$space-8 v.$space-6;
+  background-color: var(--hero-bg);
+  border-bottom: 1px solid var(--hero-border);
+}
+
+.game-detail__breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: v.$space-2;
+  font-size: v.$font-size-xs;
+  color: v.$color-text-muted;
+  margin-bottom: v.$space-6;
+}
+
+.game-detail__breadcrumb-link {
+  color: v.$color-text-muted;
+  text-decoration: none;
+
+  @include m.on-hover {
+    color: v.$color-text;
+  }
+}
+
+.game-detail__breadcrumb-sep {
+  color: v.$color-text-faint;
+}
+
+.game-detail__header {
+  @include m.flex-between;
+  align-items: flex-start;
+  gap: v.$space-4;
+  margin-bottom: v.$space-6;
+}
+
+.game-detail__badge {
+  width: 64px;
+  height: 64px;
+  border-radius: v.$radius-lg;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: v.$font-size-xl;
+  font-weight: 500;
+  font-family: v.$font-display;
+  flex-shrink: 0;
+  color: var(--accent);
+  background-color: var(--accent-bg);
+  border: 1px solid var(--accent-border);
+}
+
+.game-detail__title-block {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: v.$space-1;
+}
+
+.game-detail__name {
+  font-size: v.$font-size-2xl;
+  font-weight: 500;
+  color: v.$color-text;
+  font-family: v.$font-display;
+}
+
+.game-detail__subtitle {
+  font-size: v.$font-size-sm;
+  color: v.$color-text-muted;
+}
+
+.game-detail__tag {
+  display: inline-block;
+  align-self: flex-start;
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 2px v.$space-2;
+  border-radius: v.$radius-full;
+  margin-top: v.$space-1;
+  color: var(--accent);
+  background-color: var(--accent-bg);
+  border: 1px solid var(--accent-border);
+}
+
+.game-detail__actions {
+  display: flex;
+  gap: v.$space-2;
+  flex-shrink: 0;
+}
+
+.game-detail__btn {
+  display: inline-flex;
+  align-items: center;
+  gap: v.$space-2;
+  padding: v.$space-2 v.$space-4;
+  font-family: v.$font-body;
+  font-size: v.$font-size-sm;
+  border-radius: v.$radius-md;
+  cursor: pointer;
+  transition:
+    border-color v.$transition-fast,
+    color v.$transition-fast;
+
+  &--secondary {
+    background: transparent;
+    border: 1px solid v.$color-border;
+    color: v.$color-text-muted;
+
+    @include m.on-hover {
+      border-color: v.$color-border-focus;
+      color: v.$color-text;
+    }
+  }
+
+  &--primary {
+    background-color: var(--accent-bg);
+    border: 1px solid var(--accent);
+    color: var(--accent);
+  }
+}
+
+// ─── Stats ───────────────────────────────────────────────────────────────────
+.game-detail__stats {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: v.$space-3;
+}
+
+.game-detail__stat {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  background-color: v.$color-bg-elevated;
+  border: 1px solid v.$color-border;
+  border-radius: v.$radius-md;
+  padding: v.$space-3 v.$space-4;
+}
+
+.game-detail__stat-val {
+  font-size: v.$font-size-xl;
+  font-weight: 500;
+  color: v.$color-text;
+  line-height: 1;
+}
+
+.game-detail__stat-label {
+  font-size: v.$font-size-xs;
+  color: v.$color-text-muted;
+}
+
+// ─── Tabs ────────────────────────────────────────────────────────────────────
+.game-detail__tabs {
+  display: flex;
+  border-bottom: 1px solid v.$color-border;
+  background-color: v.$color-bg-surface;
+  padding: 0 v.$space-8;
+}
+
+.game-detail__tab {
+  @include m.reset-button;
+  display: flex;
+  align-items: center;
+  gap: v.$space-2;
+  padding: v.$space-3 v.$space-4;
+  font-size: v.$font-size-sm;
+  color: v.$color-text-muted;
+  border-bottom: 2px solid transparent;
+  transition:
+    color v.$transition-fast,
+    border-color v.$transition-fast;
+
+  @include m.on-hover {
+    color: v.$color-text;
+  }
+
+  &--active {
+    color: var(--accent);
+    border-bottom-color: var(--accent);
+  }
+}
+
+.game-detail__tab-count {
+  font-size: 10px;
+  padding: 1px v.$space-2;
+  border-radius: v.$radius-full;
+  background-color: v.$color-bg-elevated;
+  border: 1px solid v.$color-border;
+  color: v.$color-text-faint;
+}
+
+// ─── Content ─────────────────────────────────────────────────────────────────
+.game-detail__content {
+  padding: v.$space-6 v.$space-8;
+  max-width: v.$content-max-width;
+  margin: 0 auto;
+
+  &--empty {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 200px;
+  }
+}
+
+.game-detail__section-header {
+  @include m.flex-between;
+  margin-bottom: v.$space-4;
+}
+
+.game-detail__section-title {
+  font-size: 10px;
+  color: v.$color-text-muted;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.game-detail__section-link {
+  font-size: v.$font-size-xs;
+  color: v.$color-text-muted;
+  text-decoration: none;
+
+  @include m.on-hover {
+    color: v.$color-text;
+  }
+}
+
+// ─── Filters ─────────────────────────────────────────────────────────────────
+.game-detail__filters {
+  display: flex;
+  gap: v.$space-2;
+}
+
+.game-detail__filter-pill {
+  @include m.reset-button;
+  font-size: v.$font-size-xs;
+  padding: 3px v.$space-3;
+  border-radius: v.$radius-full;
+  border: 1px solid v.$color-border;
+  background-color: v.$color-bg-elevated;
+  color: v.$color-text-muted;
+  transition:
+    border-color v.$transition-fast,
+    color v.$transition-fast,
+    background-color v.$transition-fast;
+
+  @include m.on-hover {
+    border-color: v.$color-border-focus;
+    color: v.$color-text;
+  }
+
+  &--active {
+    background-color: var(--accent-bg);
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+}
+
+// ─── Quest list ──────────────────────────────────────────────────────────────
+.game-detail__quest-list {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 v.$space-3;
+  display: flex;
+  flex-direction: column;
+  gap: v.$space-2;
+}
+
+.game-detail__quest-card {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: v.$space-4;
+  padding: v.$space-4;
+  background-color: v.$color-bg-surface;
+  border: 1px solid v.$color-border;
+  border-radius: v.$radius-lg;
+  transition: border-color v.$transition-fast;
+
+  @include m.on-hover {
+    border-color: v.$color-border-focus;
+  }
+}
+
+.game-detail__quest-info {
+  display: flex;
+  flex-direction: column;
+  gap: v.$space-2;
+}
+
+.game-detail__quest-title {
+  font-size: v.$font-size-sm;
+  font-weight: 500;
+  color: v.$color-text;
+}
+
+.game-detail__quest-meta {
+  display: flex;
+  gap: v.$space-4;
+  font-size: v.$font-size-xs;
+  color: v.$color-text-muted;
+}
+
+.game-detail__quest-right {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: v.$space-2;
+  flex-shrink: 0;
+}
+
+.game-detail__quest-followers {
+  font-size: v.$font-size-xs;
+  color: v.$color-text-muted;
+}
+
+.game-detail__quest-empty,
+.game-detail__empty {
+  font-size: v.$font-size-sm;
+  color: v.$color-text-faint;
+  font-style: italic;
+  padding: v.$space-4 0;
+}
+
+.game-detail__add-card {
+  @include m.reset-button;
+  width: 100%;
+  padding: v.$space-4;
+  border: 1px dashed v.$color-border;
+  border-radius: v.$radius-lg;
+  font-size: v.$font-size-sm;
+  color: v.$color-text-faint;
+  text-align: center;
+  transition:
+    border-color v.$transition-fast,
+    color v.$transition-fast;
+
+  @include m.on-hover {
+    border-color: v.$color-border-focus;
+    color: v.$color-text-muted;
+  }
+}
+
+// ─── Status badges ───────────────────────────────────────────────────────────
+.game-detail__status {
+  font-size: 10px;
+  padding: 2px v.$space-2;
+  border-radius: v.$radius-full;
+
+  &--canonico {
+    color: v.$color-canonico;
+    background-color: rgba(v.$color-canonico, 0.12);
+    border: 1px solid rgba(v.$color-canonico, 0.3);
+  }
+
+  &--consolidado {
+    color: v.$color-consolidado;
+    background-color: rgba(v.$color-consolidado, 0.12);
+    border: 1px solid rgba(v.$color-consolidado, 0.3);
+  }
+
+  &--teoria {
+    color: v.$color-teoria;
+    background-color: rgba(v.$color-teoria, 0.12);
+    border: 1px solid rgba(v.$color-teoria, 0.3);
+  }
+}
+
+// ─── Lore grid ───────────────────────────────────────────────────────────────
+.game-detail__lore-grid {
+  @include m.responsive-grid(220px, v.$space-3);
+}
+
+.game-detail__lore-card {
+  display: flex;
+  flex-direction: column;
+  gap: v.$space-3;
+  padding: v.$space-4;
+  background-color: v.$color-bg-surface;
+  border: 1px solid v.$color-border;
+  border-radius: v.$radius-lg;
+  transition: border-color v.$transition-fast;
+
+  @include m.on-hover {
+    border-color: v.$color-border-focus;
+  }
+}
+
+.game-detail__lore-title {
+  font-size: v.$font-size-sm;
+  font-weight: 500;
+  color: v.$color-text;
+}
+
+.game-detail__lore-excerpt {
+  font-size: v.$font-size-xs;
+  color: v.$color-text-muted;
+  line-height: 1.6;
+  flex: 1;
+}
+
+.game-detail__lore-footer {
+  @include m.flex-between;
+}
+
+.game-detail__lore-votes {
+  font-size: v.$font-size-xs;
+  color: v.$color-text-muted;
+}
+
+// ─── Not found ───────────────────────────────────────────────────────────────
+.game-detail__not-found {
+  @include m.flex-column-center;
+  gap: v.$space-4;
+  min-height: 300px;
+  color: v.$color-text-muted;
+}
+
+.game-detail__back-link {
+  font-size: v.$font-size-sm;
+  color: v.$color-text-muted;
+  text-decoration: none;
+
+  @include m.on-hover {
+    color: v.$color-gold;
+  }
+}

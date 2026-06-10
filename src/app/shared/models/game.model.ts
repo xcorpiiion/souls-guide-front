@@ -1,3 +1,6 @@
+import { QuestSummary } from './quest.model';
+import { LoreSummary } from './lore-article.model';
+
 export interface Game {
   id: string;
   name: string;
@@ -14,4 +17,12 @@ export interface GameSummary extends Game {
   topQuestSteps: number | null;
   topQuestFollowers: number | null;
   lastActivityLabel: string;
+}
+
+export interface GameDetailData extends GameSummary {
+  developer: string;
+  releaseYear: number;
+  genre: string;
+  quests: QuestSummary[];
+  featuredLore: LoreSummary[];
 }
