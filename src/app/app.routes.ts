@@ -19,6 +19,14 @@ export const routes: Routes = [
     loadComponent: () => import('./features/game-detail/game-detail').then((m) => m.GameDetail),
   },
   {
+    path: 'games/:gameId/quests/new',
+    loadComponent: () => import('./features/quest-editor/quest-editor').then((m) => m.QuestEditor),
+  },
+  {
+    path: 'games/:gameId/quests/:questId/edit',
+    loadComponent: () => import('./features/quest-editor/quest-editor').then((m) => m.QuestEditor),
+  },
+  {
     path: 'games/:gameId/quests/:questId',
     loadComponent: () => import('./features/quest-detail/quest-detail').then((m) => m.QuestDetail),
   },

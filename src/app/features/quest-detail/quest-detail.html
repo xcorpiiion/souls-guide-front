@@ -32,9 +32,11 @@
           <button class="quest-detail__btn quest-detail__btn--ghost" type="button">
             compartilhar
           </button>
-          <button class="quest-detail__btn quest-detail__btn--accent" type="button">
-            + editar
-          </button>
+          <a
+            class="quest-detail__btn quest-detail__btn--accent"
+            [routerLink]="['/games', gameId, 'quests', quest.id, 'edit']"
+            >+ editar</a
+          >
         </div>
       </div>
 

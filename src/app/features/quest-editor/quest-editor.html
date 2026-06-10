@@ -1,0 +1,299 @@
+<div class="qe">
+  <!-- ─── toolbar ─────────────────────────────────────────────────────────── -->
+  <header class="qe__toolbar">
+    <div class="qe__toolbar-left">
+      <a class="qe__back" (click)="cancel()" role="button" tabindex="0" (keydown.enter)="cancel()">
+        ← cancelar
+      </a>
+      <span class="qe__toolbar-sep">|</span>
+      <input
+        class="qe__title-input"
+        type="text"
+        placeholder="título da quest..."
+        [ngModel]="title()"
+        (ngModelChange)="title.set($event)"
+        aria-label="título da quest"
+      />
+    </div>
+
+    <div class="qe__toolbar-center">
+      <!-- tools -->
+      <div class="qe__tool-group" role="group" aria-label="ferramentas">
+        <button
+          class="qe__tool-btn"
+          [class.qe__tool-btn--active]="tool() === 'select'"
+          type="button"
+          title="selecionar / mover (S)"
+          (click)="setTool('select')"
+        >
+          ↖ mover
+        </button>
+        <button
+          class="qe__tool-btn"
+          [class.qe__tool-btn--active]="tool() === 'connect'"
+          type="button"
+          title="conectar nós (C)"
+          (click)="setTool('connect')"
+        >
+          → conectar
+        </button>
+      </div>
+
+      <span class="qe__toolbar-sep">|</span>
+
+      <!-- add nodes -->
+      <div class="qe__add-group" role="group" aria-label="adicionar nós">
+        @for (nt of nodeTypes; track nt.type) {
+          <button class="qe__add-btn" type="button" [title]="nt.hint" (click)="addNode(nt.type)">
+            {{ nt.label }}
+          </button>
+        }
+      </div>
+
+      <span class="qe__toolbar-sep">|</span>
+
+      <!-- delete -->
+      <button
+        class="qe__del-btn"
+        type="button"
+        title="excluir selecionado (Del)"
+        [disabled]="!selected()"
+        (click)="deleteSelected()"
+      >
+        🗑 excluir
+      </button>
+    </div>
+
+    <div class="qe__toolbar-right">
+      <span class="qe__mode-badge" [class.qe__mode-badge--edit]="isEdit">
+        {{ isEdit ? 'editando' : 'nova quest' }}
+      </span>
+      <button class="qe__save-btn" type="button" (click)="saveQuest()">
+        {{ isEdit ? 'salvar alterações' : 'publicar quest' }}
+      </button>
+    </div>
+  </header>
+
+  <!-- ─── body ──────────────────────────────────────────────────────────────── -->
+  <div class="qe__body">
+    <!-- canvas -->
+    <div class="qe__canvas-wrap">
+      <app-quest-editor-canvas
+        [nodes]="nodes()"
+        [edges]="edges()"
+        [positions]="positions()"
+        [selectedNodeId]="selectedNodeId()"
+        [selectedEdgeId]="selectedEdgeId()"
+        [tool]="tool()"
+        (positionChange)="onPositionChange($event)"
+        (nodeSelect)="onNodeSelect($event)"
+        (edgeSelect)="onEdgeSelect($event)"
+        (connectNodes)="onConnect($event)"
+      />
+
+      @if (tool() === 'connect') {
+        <div class="qe__connect-hint" role="status" aria-live="polite">
+          Clique no nó de <strong>origem</strong>, depois no nó de <strong>destino</strong>. Clique
+          no canvas para cancelar.
+        </div>
+      }
+    </div>
+
+    <!-- properties panel -->
+    <aside class="qe__panel">
+      @if (selectedNode(); as node) {
+        <!-- node properties -->
+        <div class="qe__panel-section">
+          <p class="qe__panel-title">nó selecionado</p>
+          <span [class]="'qe__type-badge qe__type-badge--' + node.type">{{ node.type }}</span>
+        </div>
+
+        <div class="qe__panel-section">
+          <label class="qe__label" for="node-label">rótulo</label>
+          <input
+            id="node-label"
+            class="qe__input"
+            type="text"
+            [ngModel]="node.label"
+            (ngModelChange)="updateNodeLabel($event)"
+          />
+        </div>
+
+        @if (node.type === 'task' || node.type === 'external-quest') {
+          <div class="qe__panel-section">
+            <label class="qe__label" for="node-sublabel">sub-rótulo</label>
+            <input
+              id="node-sublabel"
+              class="qe__input"
+              type="text"
+              placeholder="ex: nome do local"
+              [ngModel]="node.sublabel ?? ''"
+              (ngModelChange)="updateNodeSublabel($event)"
+            />
+          </div>
+
+          <div class="qe__panel-section">
+            <label class="qe__label" for="node-desc">descrição</label>
+            <textarea
+              id="node-desc"
+              class="qe__textarea"
+              rows="3"
+              placeholder="o que acontece neste passo?"
+              [ngModel]="node.description ?? ''"
+              (ngModelChange)="updateNodeDescription($event)"
+            ></textarea>
+          </div>
+
+          <div class="qe__panel-section">
+            <label class="qe__label" for="node-location">localização</label>
+            <input
+              id="node-location"
+              class="qe__input"
+              type="text"
+              placeholder="ex: Caria, Liurnia"
+              [ngModel]="node.location ?? ''"
+              (ngModelChange)="updateNodeLocation($event)"
+            />
+          </div>
+
+          <div class="qe__panel-section">
+            <label class="qe__label" for="node-tags">tags (separar por vírgula)</label>
+            <input
+              id="node-tags"
+              class="qe__input"
+              type="text"
+              placeholder="ex: NPC, boss, item"
+              [ngModel]="nodeTagsString(node)"
+              (ngModelChange)="updateNodeTags($event)"
+            />
+          </div>
+        }
+
+        @if (node.type === 'external-quest') {
+          <div class="qe__panel-section">
+            <label class="qe__label" for="node-linked-id">ID da quest linkada</label>
+            <input
+              id="node-linked-id"
+              class="qe__input"
+              type="text"
+              placeholder="ex: blaidd"
+              [ngModel]="node.linkedQuestId ?? ''"
+              (ngModelChange)="updateNodeLinkedQuestId($event)"
+            />
+          </div>
+          <div class="qe__panel-section">
+            <label class="qe__label" for="node-linked-name">nome da quest linkada</label>
+            <input
+              id="node-linked-name"
+              class="qe__input"
+              type="text"
+              placeholder="ex: Questline do Blaidd"
+              [ngModel]="node.linkedQuestName ?? ''"
+              (ngModelChange)="updateNodeLinkedQuestName($event)"
+            />
+          </div>
+        }
+
+        @if (node.type === 'end') {
+          <div class="qe__panel-section">
+            <label class="qe__label" for="node-ending">tipo de final</label>
+            <select
+              id="node-ending"
+              class="qe__select"
+              [ngModel]="node.endingType ?? ''"
+              (ngModelChange)="updateNodeEndingType($event)"
+            >
+              @for (et of endingTypes; track et.value) {
+                <option [value]="et.value">{{ et.label }}</option>
+              }
+            </select>
+          </div>
+        }
+
+        <div class="qe__panel-section">
+          <button class="qe__del-inline" type="button" (click)="deleteSelected()">
+            excluir nó
+          </button>
+        </div>
+      } @else if (selectedEdge(); as edge) {
+        <!-- edge properties -->
+        <div class="qe__panel-section">
+          <p class="qe__panel-title">aresta selecionada</p>
+          <p class="qe__panel-meta">{{ edge.from }} → {{ edge.to }}</p>
+        </div>
+
+        <div class="qe__panel-section">
+          <label class="qe__label" for="edge-label">rótulo da aresta</label>
+          <input
+            id="edge-label"
+            class="qe__input"
+            type="text"
+            placeholder="ex: via Loretta"
+            [ngModel]="edge.label ?? ''"
+            (ngModelChange)="updateEdgeLabel($event)"
+          />
+        </div>
+
+        <div class="qe__panel-section">
+          <button class="qe__del-inline" type="button" (click)="deleteSelected()">
+            excluir aresta
+          </button>
+        </div>
+      } @else {
+        <!-- quest metadata -->
+        <div class="qe__panel-section">
+          <p class="qe__panel-title">metadados da quest</p>
+        </div>
+
+        <div class="qe__panel-section">
+          <label class="qe__label" for="meta-title">título</label>
+          <input
+            id="meta-title"
+            class="qe__input"
+            type="text"
+            placeholder="título da quest"
+            [ngModel]="title()"
+            (ngModelChange)="title.set($event)"
+          />
+        </div>
+
+        <div class="qe__panel-section">
+          <label class="qe__label" for="meta-desc">descrição</label>
+          <textarea
+            id="meta-desc"
+            class="qe__textarea"
+            rows="4"
+            placeholder="descreva a questline..."
+            [ngModel]="description()"
+            (ngModelChange)="description.set($event)"
+          ></textarea>
+        </div>
+
+        <div class="qe__panel-section">
+          <label class="qe__label" for="meta-status">status</label>
+          <select
+            id="meta-status"
+            class="qe__select"
+            [ngModel]="questStatus()"
+            (ngModelChange)="questStatus.set($event)"
+          >
+            @for (s of statuses; track s.value) {
+              <option [value]="s.value">{{ s.label }}</option>
+            }
+          </select>
+        </div>
+
+        <div class="qe__panel-section qe__panel-section--hint">
+          <p class="qe__hint">Clique em um nó ou aresta para editar suas propriedades.</p>
+        </div>
+      }
+
+      <!-- stats footer -->
+      <div class="qe__panel-stats">
+        <span>{{ nodes().length }} nós</span>
+        <span>{{ edges().length }} arestas</span>
+        <span>{{ nodes().filter((n) => n.type === 'end').length }} finais</span>
+      </div>
+    </aside>
+  </div>
+</div>

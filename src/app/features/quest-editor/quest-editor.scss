@@ -1,0 +1,359 @@
+@use 'styles/variables' as v;
+@use 'styles/mixins' as m;
+
+.qe {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  background-color: v.$color-bg;
+  color: v.$color-text;
+  overflow: hidden;
+}
+
+// ─── Toolbar ─────────────────────────────────────────────────────────────────
+.qe__toolbar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 0 16px;
+  height: 56px;
+  min-height: 56px;
+  background-color: v.$color-bg-surface;
+  border-bottom: 1px solid v.$color-border;
+  flex-shrink: 0;
+}
+
+.qe__toolbar-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+
+.qe__toolbar-center {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+  flex-wrap: nowrap;
+}
+
+.qe__toolbar-right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-left: auto;
+}
+
+.qe__back {
+  font-size: 12px;
+  color: v.$color-text-muted;
+  cursor: pointer;
+  white-space: nowrap;
+
+  &:hover {
+    color: v.$color-text;
+  }
+}
+
+.qe__toolbar-sep {
+  color: v.$color-border;
+  font-size: 16px;
+  user-select: none;
+}
+
+.qe__title-input {
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid v.$color-border;
+  color: v.$color-text;
+  font-family: v.$font-display;
+  font-size: 14px;
+  padding: 2px 4px;
+  width: 220px;
+  outline: none;
+
+  &::placeholder {
+    color: v.$color-text-muted;
+  }
+
+  &:focus {
+    border-bottom-color: v.$color-gold;
+  }
+}
+
+.qe__tool-group,
+.qe__add-group {
+  display: flex;
+  gap: 4px;
+}
+
+.qe__tool-btn {
+  padding: 4px 10px;
+  font-size: 11px;
+  background: v.$color-bg-elevated;
+  border: 1px solid v.$color-border;
+  border-radius: v.$radius-sm;
+  color: v.$color-text-muted;
+  cursor: pointer;
+
+  &:hover {
+    color: v.$color-text;
+    border-color: v.$color-border-focus;
+  }
+
+  &--active {
+    background: rgba(v.$color-gold, 0.12);
+    border-color: v.$color-gold;
+    color: v.$color-gold;
+  }
+}
+
+.qe__add-btn {
+  padding: 4px 10px;
+  font-size: 11px;
+  background: v.$color-bg-elevated;
+  border: 1px solid v.$color-border;
+  border-radius: v.$radius-sm;
+  color: v.$color-text-muted;
+  cursor: pointer;
+  white-space: nowrap;
+
+  &:hover {
+    border-color: v.$color-gold;
+    color: v.$color-gold;
+  }
+}
+
+.qe__del-btn {
+  padding: 4px 10px;
+  font-size: 11px;
+  background: transparent;
+  border: 1px solid v.$color-border;
+  border-radius: v.$radius-sm;
+  color: v.$color-text-muted;
+  cursor: pointer;
+  white-space: nowrap;
+
+  &:hover:not(:disabled) {
+    border-color: #e85050;
+    color: #e85050;
+  }
+
+  &:disabled {
+    opacity: 0.35;
+    cursor: default;
+  }
+}
+
+.qe__mode-badge {
+  font-size: 10px;
+  padding: 2px 8px;
+  border-radius: 99px;
+  background: v.$color-bg-elevated;
+  border: 1px solid v.$color-border;
+  color: v.$color-text-muted;
+  white-space: nowrap;
+
+  &--edit {
+    border-color: rgba(v.$color-gold, 0.4);
+    color: v.$color-gold;
+  }
+}
+
+.qe__save-btn {
+  padding: 6px 16px;
+  font-size: 12px;
+  font-weight: 500;
+  background: v.$color-gold;
+  border: none;
+  border-radius: v.$radius-sm;
+  color: v.$color-bg;
+  cursor: pointer;
+  white-space: nowrap;
+
+  &:hover {
+    background: lighten(v.$color-gold, 8%);
+  }
+}
+
+// ─── Body ─────────────────────────────────────────────────────────────────────
+.qe__body {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+}
+
+.qe__canvas-wrap {
+  flex: 1;
+  position: relative;
+  overflow: hidden;
+
+  app-quest-editor-canvas {
+    display: block;
+    height: 100%;
+  }
+}
+
+.qe__connect-hint {
+  position: absolute;
+  bottom: 16px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: v.$color-bg-elevated;
+  border: 1px solid rgba(55, 138, 221, 0.5);
+  border-radius: v.$radius-md;
+  padding: 8px 16px;
+  font-size: 12px;
+  color: v.$color-text-muted;
+  pointer-events: none;
+  white-space: nowrap;
+
+  strong {
+    color: #378add;
+  }
+}
+
+// ─── Properties Panel ─────────────────────────────────────────────────────────
+.qe__panel {
+  width: 260px;
+  min-width: 260px;
+  display: flex;
+  flex-direction: column;
+  border-left: 1px solid v.$color-border;
+  background: v.$color-bg-surface;
+  overflow-y: auto;
+}
+
+.qe__panel-section {
+  padding: 12px 14px;
+  border-bottom: 1px solid v.$color-border;
+
+  &--hint {
+    background: transparent;
+    border-bottom: none;
+  }
+}
+
+.qe__panel-title {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: v.$color-text-muted;
+  margin: 0 0 2px;
+}
+
+.qe__panel-meta {
+  font-size: 11px;
+  color: v.$color-text-muted;
+  font-family: v.$font-mono;
+  margin: 4px 0 0;
+}
+
+.qe__hint {
+  font-size: 11px;
+  color: v.$color-text-muted;
+  margin: 0;
+  line-height: 1.5;
+}
+
+.qe__label {
+  display: block;
+  font-size: 10px;
+  color: v.$color-text-muted;
+  margin-bottom: 4px;
+}
+
+.qe__input {
+  width: 100%;
+  background: v.$color-bg-elevated;
+  border: 1px solid v.$color-border;
+  border-radius: v.$radius-sm;
+  color: v.$color-text;
+  font-family: v.$font-body;
+  font-size: 12px;
+  padding: 5px 8px;
+  box-sizing: border-box;
+  outline: none;
+
+  &:focus {
+    border-color: v.$color-gold;
+  }
+
+  &::placeholder {
+    color: v.$color-text-muted;
+    opacity: 0.6;
+  }
+}
+
+.qe__textarea {
+  @extend .qe__input;
+  resize: vertical;
+  line-height: 1.4;
+}
+
+.qe__select {
+  @extend .qe__input;
+  cursor: pointer;
+}
+
+.qe__del-inline {
+  width: 100%;
+  padding: 6px;
+  font-size: 11px;
+  background: rgba(232, 80, 80, 0.08);
+  border: 1px solid rgba(232, 80, 80, 0.3);
+  border-radius: v.$radius-sm;
+  color: #e85050;
+  cursor: pointer;
+
+  &:hover {
+    background: rgba(232, 80, 80, 0.15);
+  }
+}
+
+.qe__type-badge {
+  display: inline-block;
+  margin-top: 4px;
+  padding: 2px 8px;
+  font-size: 10px;
+  border-radius: 99px;
+  border: 1px solid v.$color-border;
+  color: v.$color-text-muted;
+
+  &--task {
+    border-color: v.$color-border-focus;
+    color: v.$color-text;
+  }
+
+  &--gateway {
+    border-color: rgba(55, 138, 221, 0.5);
+    color: #378add;
+  }
+
+  &--external-quest {
+    border-color: rgba(200, 112, 232, 0.5);
+    color: rgba(200, 112, 232, 0.9);
+  }
+
+  &--start {
+    border-color: rgba(31, 170, 100, 0.5);
+    color: #1faa64;
+  }
+
+  &--end {
+    border-color: rgba(v.$color-gold, 0.5);
+    color: v.$color-gold;
+  }
+}
+
+.qe__panel-stats {
+  margin-top: auto;
+  display: flex;
+  justify-content: space-around;
+  padding: 10px 14px;
+  border-top: 1px solid v.$color-border;
+  font-size: 10px;
+  color: v.$color-text-muted;
+  flex-shrink: 0;
+}
