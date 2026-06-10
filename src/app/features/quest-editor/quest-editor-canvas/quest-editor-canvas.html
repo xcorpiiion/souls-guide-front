@@ -1,14 +1,14 @@
 <div
   class="qec"
   (mousemove)="onMouseMove($event)"
-  (mouseup)="onMouseUp()"
-  (mouseleave)="onMouseUp()"
+  (mouseup)="onMouseUp($event)"
+  (mouseleave)="onMouseUp($event)"
 >
   <svg
     #svgEl
     class="qec__svg"
     [class.qec__svg--connect]="tool() === 'connect'"
-    [class.qec__svg--panning]="false"
+    [class.qec__svg--drawing]="isDrawingEdge()"
     (mousedown)="onSvgMouseDown($event)"
     (click)="onSvgClick($event)"
   >
@@ -30,6 +30,16 @@
       </marker>
       <marker id="qec-arr-ext" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
         <path d="M0,0 L0,6 L8,3 z" class="qec__marker qec__marker--ext" />
+      </marker>
+      <marker
+        id="qec-arr-preview"
+        markerWidth="7"
+        markerHeight="5"
+        refX="6"
+        refY="2.5"
+        orient="auto"
+      >
+        <path d="M0,0 L0,5 L7,2.5 z" class="qec__marker qec__marker--preview" />
       </marker>
     </defs>
 
@@ -71,6 +81,18 @@
         </g>
       }
 
+      <!-- edge preview while drawing -->
+      @if (isDrawingEdge() && edgeDrawPos()) {
+        <line
+          [attr.x1]="handleX(connectSource()!)"
+          [attr.y1]="handleY(connectSource()!)"
+          [attr.x2]="edgeDrawPos()!.x"
+          [attr.y2]="edgeDrawPos()!.y"
+          marker-end="url(#qec-arr-preview)"
+          class="qec__edge-preview"
+        />
+      }
+
       <!-- nodes -->
       @for (node of nodes(); track trackNode($index, node)) {
         <g
@@ -79,11 +101,12 @@
             'qec__node' +
             (selectedNodeId() === node.id ? ' qec__node--selected' : '') +
             (connectSource() === node.id ? ' qec__node--source' : '') +
-            (tool() === 'connect' && connectSource() && connectSource() !== node.id
-              ? ' qec__node--target-hint'
-              : '')
+            (showTargetHint(node.id) ? ' qec__node--target-hint' : '')
           "
           (mousedown)="onNodeMouseDown($event, node.id)"
+          (mouseup)="onNodeMouseUp($event, node.id)"
+          (mouseenter)="hoveredNodeId.set(node.id)"
+          (mouseleave)="hoveredNodeId.set(null)"
         >
           @if (node.type === 'start' || node.type === 'end') {
             <circle
@@ -147,17 +170,48 @@
               </text>
             }
           }
+
+          <!-- connection handle (right edge) — appears on hover -->
+          @if (showHandle(node.id)) {
+            <circle
+              [attr.data-handle-for]="node.id"
+              [attr.cx]="handleX(node.id)"
+              [attr.cy]="handleY(node.id)"
+              r="6"
+              class="qec__handle"
+              (mousedown)="onHandleMouseDown($event, node.id)"
+            />
+          }
+
+          <!-- target ring when drawing an edge -->
+          @if (showTargetHint(node.id)) {
+            <circle
+              [attr.cx]="px(node.id) + nw(node.type) / 2"
+              [attr.cy]="py(node.id) + nh(node.type) / 2"
+              [attr.r]="Math.max(nw(node.type), nh(node.type)) / 2 + 6"
+              class="qec__target-ring"
+              pointer-events="none"
+            />
+          }
         </g>
       }
     </g>
   </svg>
+
+  <!-- hint banner while drawing edge -->
+  @if (isDrawingEdge()) {
+    <div class="qec__draw-hint">
+      <i class="ti ti-line"></i>
+      Solte sobre um nó para conectar
+    </div>
+  }
 
   <!-- zoom controls -->
   <div class="qec__zoom-bar" role="group" aria-label="controles de zoom">
     <button
       class="qec__zoom-btn"
       type="button"
-      title="diminuir zoom (Ctrl+-)"
+      title="diminuir zoom"
       [disabled]="!canUnzoomMore()"
       (click)="zoomStep(-1)"
     >
@@ -176,7 +230,7 @@
     <button
       class="qec__zoom-btn"
       type="button"
-      title="aumentar zoom (Ctrl++)"
+      title="aumentar zoom"
       [disabled]="!canZoomMore()"
       (click)="zoomStep(1)"
     >

@@ -18,6 +18,10 @@
   &--connect {
     cursor: crosshair;
   }
+
+  &--drawing {
+    cursor: crosshair;
+  }
 }
 
 // ─── Grid ─────────────────────────────────────────────────────────────────────
@@ -82,6 +86,72 @@
   &--ext {
     fill: rgba(200, 112, 232, 0.8);
   }
+
+  &--preview {
+    fill: #1faa64;
+  }
+}
+
+// ─── Edge preview line ────────────────────────────────────────────────────────
+.qec__edge-preview {
+  stroke: #1faa64;
+  stroke-width: 1.5;
+  stroke-dasharray: 5, 3;
+  pointer-events: none;
+  fill: none;
+}
+
+// ─── Connection handle ────────────────────────────────────────────────────────
+.qec__handle {
+  fill: #1faa64;
+  stroke: #fff;
+  stroke-width: 1.5;
+  cursor: crosshair;
+  opacity: 0.9;
+  transition: r 0.1s;
+
+  &:hover {
+    opacity: 1;
+    r: 7;
+  }
+}
+
+// ─── Target ring ──────────────────────────────────────────────────────────────
+.qec__target-ring {
+  fill: none;
+  stroke: #1faa64;
+  stroke-width: 1.5;
+  stroke-dasharray: 4, 3;
+  opacity: 0.6;
+  animation: qec-ring-pulse 1s ease-in-out infinite alternate;
+}
+
+@keyframes qec-ring-pulse {
+  from {
+    opacity: 0.4;
+  }
+  to {
+    opacity: 0.9;
+  }
+}
+
+// ─── Draw hint banner ─────────────────────────────────────────────────────────
+.qec__draw-hint {
+  position: absolute;
+  top: 12px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(31, 170, 100, 0.12);
+  border: 1px solid rgba(31, 170, 100, 0.4);
+  border-radius: 20px;
+  padding: 5px 16px;
+  font-size: 12px;
+  color: #1faa64;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  pointer-events: none;
+  white-space: nowrap;
 }
 
 // ─── Node group ───────────────────────────────────────────────────────────────

@@ -3,7 +3,7 @@
 .qe {
   display: flex;
   flex-direction: column;
-  height: 100vh;
+  height: calc(100vh - #{v.$navbar-height});
   background: v.$color-bg;
   overflow: hidden;
 }
@@ -241,7 +241,7 @@
 
 // ─── properties panel ──────────────────────────────────────────────────────────
 .qe__props {
-  width: 220px;
+  width: 256px;
   flex-shrink: 0;
   border-left: 1px solid v.$color-border;
   background: v.$color-bg-surface;
@@ -302,9 +302,9 @@
 }
 
 .qe__label {
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 600;
-  letter-spacing: 0.06em;
+  letter-spacing: 0.05em;
   text-transform: uppercase;
   color: v.$color-text-muted;
 }
@@ -315,8 +315,8 @@
   border-radius: v.$radius-sm;
   color: v.$color-text;
   font-family: v.$font-body;
-  font-size: 13px;
-  padding: 6px 10px;
+  font-size: 14px;
+  padding: 7px 10px;
   outline: none;
   width: 100%;
   box-sizing: border-box;
@@ -328,8 +328,8 @@
 
   &--textarea {
     resize: vertical;
-    min-height: 60px;
-    line-height: 1.5;
+    min-height: 90px;
+    line-height: 1.6;
   }
 
   &--select {
