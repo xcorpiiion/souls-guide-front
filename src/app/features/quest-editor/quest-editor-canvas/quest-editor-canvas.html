@@ -11,6 +11,10 @@
     [class.qec__svg--drawing]="isDrawingEdge()"
     (mousedown)="onSvgMouseDown($event)"
     (click)="onSvgClick($event)"
+    (keydown)="onSvgMouseDown($any($event))"
+    role="application"
+    tabindex="0"
+    aria-label="Canvas do editor de quest"
   >
     <defs>
       <pattern
