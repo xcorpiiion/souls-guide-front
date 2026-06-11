@@ -1,3 +1,369 @@
-<section class="feature-page">
-  <h2>Perfil</h2>
-</section>
+<div class="pf">
+  <!-- ══ hero ═══════════════════════════════════════════════════════════════ -->
+  <header class="pf__hero">
+    <div class="pf__hero-inner">
+      <div class="pf__avatar-row">
+        <div class="pf__avatar">{{ profile.name[0] }}</div>
+
+        <div class="pf__ident">
+          <h1 class="pf__name">{{ profile.name }}</h1>
+          <p class="pf__handle">@{{ profile.handle }} · membro desde {{ profile.joinedLabel }}</p>
+          <p class="pf__bio">{{ profile.bio }}</p>
+
+          <div class="pf__stats">
+            <div class="pf__stat">
+              <span class="pf__stat-n">{{ profile.questCount }}</span>
+              <span class="pf__stat-l">quests</span>
+            </div>
+            <div class="pf__stat">
+              <span class="pf__stat-n">{{ profile.gameCount }}</span>
+              <span class="pf__stat-l">jogos</span>
+            </div>
+            <div class="pf__stat">
+              <span class="pf__stat-n">{{ profile.followers }}</span>
+              <span class="pf__stat-l">seguidores</span>
+            </div>
+            <div class="pf__stat">
+              <span class="pf__stat-n">{{ profile.following }}</span>
+              <span class="pf__stat-l">seguindo</span>
+            </div>
+          </div>
+        </div>
+
+        <button class="pf__edit-btn" type="button">
+          <i class="ti ti-edit" aria-hidden="true"></i>
+          editar perfil
+        </button>
+      </div>
+
+      <!-- tabs -->
+      <nav class="pf__tabs" role="tablist">
+        <button
+          class="pf__tab"
+          [class.pf__tab--active]="activeTab() === 'quests'"
+          role="tab"
+          (click)="activeTab.set('quests')"
+        >
+          quests
+        </button>
+        <button
+          class="pf__tab"
+          [class.pf__tab--active]="activeTab() === 'seguindo'"
+          role="tab"
+          (click)="activeTab.set('seguindo')"
+        >
+          seguindo
+        </button>
+        <button
+          class="pf__tab"
+          [class.pf__tab--active]="activeTab() === 'favoritos'"
+          role="tab"
+          (click)="activeTab.set('favoritos')"
+        >
+          favoritos
+        </button>
+      </nav>
+    </div>
+  </header>
+
+  <!-- ══ body ═══════════════════════════════════════════════════════════════ -->
+  <div class="pf__body">
+    <main class="pf__main">
+      @if (activeTab() === 'quests') {
+        <!-- minhas quests -->
+        <p class="pf__section-title">minhas quests</p>
+
+        @for (quest of myQuests(); track quest.id) {
+          <a class="pf__quest-card" [routerLink]="['/games', quest.gameId, 'quests', quest.id]">
+            <!-- mini graph preview -->
+            <svg class="pf__mini-graph" viewBox="0 0 48 32" aria-hidden="true">
+              @for (edge of miniGraph(quest).edges; track $index) {
+                <line
+                  [attr.x1]="edge.x1"
+                  [attr.y1]="edge.y1"
+                  [attr.x2]="edge.x2"
+                  [attr.y2]="edge.y2"
+                  class="pf__mg-edge"
+                />
+              }
+              @for (node of miniGraph(quest).nodes; track node.id) {
+                @if (node.type === 'start') {
+                  <circle
+                    [attr.cx]="node.cx"
+                    [attr.cy]="node.cy"
+                    [attr.r]="node.w / 2"
+                    class="pf__mg-start"
+                  />
+                }
+                @if (node.type === 'end') {
+                  <circle
+                    [attr.cx]="node.cx"
+                    [attr.cy]="node.cy"
+                    [attr.r]="node.w / 2"
+                    class="pf__mg-end"
+                  />
+                }
+                @if (node.type === 'task') {
+                  <rect
+                    [attr.x]="node.x"
+                    [attr.y]="node.y"
+                    [attr.width]="node.w"
+                    [attr.height]="node.h"
+                    rx="1"
+                    class="pf__mg-task"
+                  />
+                }
+                @if (node.type === 'gateway') {
+                  <polygon
+                    [attr.points]="
+                      node.x +
+                      ',' +
+                      node.cy +
+                      ' ' +
+                      node.cx +
+                      ',' +
+                      node.y +
+                      ' ' +
+                      (node.x + node.w) +
+                      ',' +
+                      node.cy +
+                      ' ' +
+                      node.cx +
+                      ',' +
+                      (node.y + node.h)
+                    "
+                    class="pf__mg-gateway"
+                  />
+                }
+                @if (node.type === 'external-quest') {
+                  <rect
+                    [attr.x]="node.x"
+                    [attr.y]="node.y"
+                    [attr.width]="node.w"
+                    [attr.height]="node.h"
+                    rx="1"
+                    class="pf__mg-ext"
+                  />
+                }
+              }
+            </svg>
+
+            <div class="pf__quest-info">
+              <span class="pf__quest-title">{{ quest.title }}</span>
+              <span class="pf__quest-meta">
+                {{ quest.gameName }} · {{ quest.stepCount }} nós · {{ quest.endingCount }}
+                {{ quest.endingCount === 1 ? 'final' : 'finais' }}
+              </span>
+            </div>
+
+            <span class="pf__badge pf__badge--{{ quest.status | lowercase }}">
+              {{ statusLabel(quest.status) }}
+            </span>
+
+            <i class="ti ti-chevron-right pf__quest-arrow" aria-hidden="true"></i>
+          </a>
+        }
+
+        @if (!myQuests().length) {
+          <p class="pf__empty">Você ainda não criou nenhuma quest.</p>
+        }
+
+        <!-- quests seguidas -->
+        @if (followedQuests().length) {
+          <p class="pf__section-title pf__section-title--gap">quests seguidas</p>
+
+          @for (quest of followedQuests(); track quest.id) {
+            <a class="pf__quest-card" [routerLink]="['/games', quest.gameId, 'quests', quest.id]">
+              <svg class="pf__mini-graph" viewBox="0 0 48 32" aria-hidden="true">
+                @for (edge of miniGraph(quest).edges; track $index) {
+                  <line
+                    [attr.x1]="edge.x1"
+                    [attr.y1]="edge.y1"
+                    [attr.x2]="edge.x2"
+                    [attr.y2]="edge.y2"
+                    class="pf__mg-edge"
+                  />
+                }
+                @for (node of miniGraph(quest).nodes; track node.id) {
+                  @if (node.type === 'start') {
+                    <circle
+                      [attr.cx]="node.cx"
+                      [attr.cy]="node.cy"
+                      [attr.r]="node.w / 2"
+                      class="pf__mg-start"
+                    />
+                  }
+                  @if (node.type === 'end') {
+                    <circle
+                      [attr.cx]="node.cx"
+                      [attr.cy]="node.cy"
+                      [attr.r]="node.w / 2"
+                      class="pf__mg-end"
+                    />
+                  }
+                  @if (node.type === 'task') {
+                    <rect
+                      [attr.x]="node.x"
+                      [attr.y]="node.y"
+                      [attr.width]="node.w"
+                      [attr.height]="node.h"
+                      rx="1"
+                      class="pf__mg-task"
+                    />
+                  }
+                  @if (node.type === 'gateway') {
+                    <polygon
+                      [attr.points]="
+                        node.x +
+                        ',' +
+                        node.cy +
+                        ' ' +
+                        node.cx +
+                        ',' +
+                        node.y +
+                        ' ' +
+                        (node.x + node.w) +
+                        ',' +
+                        node.cy +
+                        ' ' +
+                        node.cx +
+                        ',' +
+                        (node.y + node.h)
+                      "
+                      class="pf__mg-gateway"
+                    />
+                  }
+                }
+              </svg>
+
+              <div class="pf__quest-info">
+                <span class="pf__quest-title">{{ quest.title }}</span>
+                <span class="pf__quest-meta">
+                  {{ quest.gameName }} · por {{ quest.author ?? '@comunidade' }}
+                </span>
+              </div>
+
+              <span class="pf__badge pf__badge--{{ quest.status | lowercase }}">
+                {{ statusLabel(quest.status) }}
+              </span>
+
+              <i class="ti ti-chevron-right pf__quest-arrow" aria-hidden="true"></i>
+            </a>
+          }
+        }
+      }
+
+      @if (activeTab() === 'seguindo') {
+        <p class="pf__section-title">quests seguidas</p>
+
+        @for (quest of followedQuests(); track quest.id) {
+          <a class="pf__quest-card" [routerLink]="['/games', quest.gameId, 'quests', quest.id]">
+            <svg class="pf__mini-graph" viewBox="0 0 48 32" aria-hidden="true">
+              @for (edge of miniGraph(quest).edges; track $index) {
+                <line
+                  [attr.x1]="edge.x1"
+                  [attr.y1]="edge.y1"
+                  [attr.x2]="edge.x2"
+                  [attr.y2]="edge.y2"
+                  class="pf__mg-edge"
+                />
+              }
+              @for (node of miniGraph(quest).nodes; track node.id) {
+                @if (node.type === 'start') {
+                  <circle
+                    [attr.cx]="node.cx"
+                    [attr.cy]="node.cy"
+                    [attr.r]="node.w / 2"
+                    class="pf__mg-start"
+                  />
+                }
+                @if (node.type === 'task') {
+                  <rect
+                    [attr.x]="node.x"
+                    [attr.y]="node.y"
+                    [attr.width]="node.w"
+                    [attr.height]="node.h"
+                    rx="1"
+                    class="pf__mg-task"
+                  />
+                }
+                @if (node.type === 'end') {
+                  <circle
+                    [attr.cx]="node.cx"
+                    [attr.cy]="node.cy"
+                    [attr.r]="node.w / 2"
+                    class="pf__mg-end"
+                  />
+                }
+              }
+            </svg>
+            <div class="pf__quest-info">
+              <span class="pf__quest-title">{{ quest.title }}</span>
+              <span class="pf__quest-meta">{{ quest.gameName }} · {{ quest.stepCount }} nós</span>
+            </div>
+            <span class="pf__badge pf__badge--{{ quest.status | lowercase }}">{{
+              statusLabel(quest.status)
+            }}</span>
+            <i class="ti ti-chevron-right pf__quest-arrow" aria-hidden="true"></i>
+          </a>
+        }
+
+        @if (!followedQuests().length) {
+          <p class="pf__empty">Você ainda não segue nenhuma quest.</p>
+        }
+      }
+
+      @if (activeTab() === 'favoritos') {
+        <p class="pf__section-title">jogos favoritos</p>
+
+        <div class="pf__games-grid">
+          @for (game of profile.favoriteGames; track game.id) {
+            <a class="pf__game-card" [routerLink]="['/games', game.id]">
+              <div class="pf__game-icon game-icon--{{ game.id }}">
+                <i [class]="'ti ' + game.icon" aria-hidden="true"></i>
+              </div>
+              <span class="pf__game-name">{{ game.name }}</span>
+              <span class="pf__game-count">{{ game.questCount }} quests</span>
+            </a>
+          }
+        </div>
+      }
+    </main>
+
+    <!-- ══ sidebar ══════════════════════════════════════════════════════════ -->
+    <aside class="pf__sidebar">
+      <!-- jogos favoritos -->
+      <div class="pf__sidebar-card">
+        <p class="pf__section-title">jogos favoritos</p>
+        @for (game of profile.favoriteGames; track game.id) {
+          <a class="pf__game-row" [routerLink]="['/games', game.id]">
+            <div class="pf__game-icon game-icon--{{ game.id }}">
+              <i [class]="'ti ' + game.icon" aria-hidden="true"></i>
+            </div>
+            <div class="pf__game-info">
+              <span class="pf__game-name">{{ game.name }}</span>
+              <span class="pf__game-count">{{ game.questCount }} quests mapeadas</span>
+            </div>
+          </a>
+        }
+      </div>
+
+      <!-- atividade recente -->
+      <div class="pf__sidebar-card">
+        <p class="pf__section-title">atividade recente</p>
+        @for (item of profile.activity; track $index) {
+          <div class="pf__activity-row">
+            <div class="pf__activity-dot {{ activityDot(item.type) }}"></div>
+            <div>
+              <p class="pf__activity-text">
+                {{ activityLabel(item.type) }}
+                <strong>{{ item.target }}</strong>
+              </p>
+              <p class="pf__activity-time">{{ daysLabel(item.daysAgo) }}</p>
+            </div>
+          </div>
+        }
+      </div>
+    </aside>
+  </div>
+</div>
