@@ -11,6 +11,12 @@
   background-color: v.$color-bg;
   border: 1px solid v.$color-border;
   border-radius: v.$radius-lg;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
 }
 
 .quest-graph__svg {
