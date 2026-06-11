@@ -168,7 +168,6 @@
   display: grid;
   grid-template-columns: 1fr 280px;
   min-height: calc(100vh - 200px);
-  overflow: hidden;
 
   @media (max-width: 768px) {
     grid-template-columns: 1fr;
@@ -178,6 +177,7 @@
 .quest-detail__main {
   padding: v.$space-6 v.$space-6 v.$space-8;
   border-right: 1px solid v.$color-border;
+  min-width: 0;
 
   @media (max-width: 768px) {
     border-right: none;
