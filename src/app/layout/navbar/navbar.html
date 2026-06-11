@@ -69,6 +69,7 @@
       class="navbar__search-box"
       (click)="$event.stopPropagation()"
       (keydown)="$event.stopPropagation()"
+      role="search"
     >
       <form (submit)="onSearchSubmit($event)">
         <i class="ti ti-search navbar__search-box-icon" aria-hidden="true"></i>
