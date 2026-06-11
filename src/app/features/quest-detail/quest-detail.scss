@@ -6,6 +6,10 @@
   padding: v.$space-6 v.$space-8 v.$space-5;
   background-color: v.$color-bg-surface;
   border-bottom: 1px solid v.$color-border;
+
+  @media (max-width: 600px) {
+    padding: v.$space-4 v.$space-4 v.$space-4;
+  }
 }
 
 .quest-detail__breadcrumb {
@@ -35,6 +39,11 @@
   align-items: flex-start;
   gap: v.$space-6;
   margin-bottom: v.$space-5;
+
+  @media (max-width: 600px) {
+    flex-direction: column;
+    gap: v.$space-3;
+  }
 }
 
 .quest-detail__title-block {
@@ -129,6 +138,11 @@
   gap: v.$space-6;
   padding-top: v.$space-4;
   border-top: 1px solid v.$color-border;
+  flex-wrap: wrap;
+
+  @media (max-width: 400px) {
+    gap: v.$space-4;
+  }
 }
 
 .quest-detail__stat {
@@ -154,11 +168,21 @@
   display: grid;
   grid-template-columns: 1fr 280px;
   min-height: calc(100vh - 200px);
+
+  @media (max-width: 768px) {
+    grid-template-columns: 1fr;
+  }
 }
 
 .quest-detail__main {
   padding: v.$space-6 v.$space-6 v.$space-8;
   border-right: 1px solid v.$color-border;
+
+  @media (max-width: 768px) {
+    border-right: none;
+    border-bottom: 1px solid v.$color-border;
+    padding: v.$space-4 v.$space-4 v.$space-6;
+  }
 }
 
 // ─── Graph header ─────────────────────────────────────────────────────────────
@@ -216,6 +240,10 @@
 .quest-detail__side {
   padding: v.$space-5 v.$space-5 v.$space-8;
   background-color: v.$color-bg;
+
+  @media (max-width: 768px) {
+    padding: v.$space-4;
+  }
 }
 
 .quest-detail__panel-section {

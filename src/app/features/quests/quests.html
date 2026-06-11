@@ -1,4 +1,189 @@
-<section class="feature-page">
-  <h2>Quests</h2>
-  <router-outlet />
-</section>
+<div class="qs">
+  <!-- ══ header ═══════════════════════════════════════════════════════════════ -->
+  <header class="qs__head">
+    <div class="qs__head-inner">
+      <div class="qs__head-top">
+        <h1 class="qs__title">quests</h1>
+        <span class="qs__count"
+          >{{ filtered().length }} resultado{{ filtered().length !== 1 ? 's' : '' }}</span
+        >
+      </div>
+
+      <div class="qs__search">
+        <i class="ti ti-search qs__search-icon" aria-hidden="true"></i>
+        <input
+          class="qs__search-input"
+          type="search"
+          placeholder="buscar questlines…"
+          [value]="search()"
+          (input)="search.set($any($event.target).value)"
+          aria-label="Buscar questlines"
+        />
+      </div>
+
+      <div class="qs__filter-row">
+        @for (f of gameFilters; track f.id) {
+          <button
+            class="qs__chip"
+            [class.qs__chip--active]="gameFilter() === f.id"
+            type="button"
+            (click)="gameFilter.set(f.id)"
+          >
+            {{ f.label }}
+          </button>
+        }
+      </div>
+
+      <div class="qs__filter-row">
+        @for (f of statusFilters; track f.id) {
+          <button
+            class="qs__chip"
+            [class.qs__chip--active]="statusFilter() === f.id"
+            type="button"
+            (click)="statusFilter.set(f.id)"
+          >
+            {{ f.label }}
+          </button>
+        }
+      </div>
+    </div>
+  </header>
+
+  <!-- ══ list ══════════════════════════════════════════════════════════════════ -->
+  <div class="qs__body">
+    @if (loading()) {
+      <div class="qs__list">
+        @for (_ of skeletonItems; track $index) {
+          <div class="qs__skel-card">
+            <div class="qs__skel-mg"></div>
+            <div class="qs__skel-info">
+              <div class="qs__skel-title"></div>
+              <div class="qs__skel-line"></div>
+              <div class="qs__skel-line qs__skel-line--short"></div>
+              <div class="qs__skel-stats">
+                <div class="qs__skel-stat"></div>
+                <div class="qs__skel-stat"></div>
+                <div class="qs__skel-stat"></div>
+              </div>
+            </div>
+          </div>
+        }
+      </div>
+    } @else if (filtered().length) {
+      <div class="qs__list">
+        @for (quest of filtered(); track quest.id) {
+          <a class="qs__card" [routerLink]="['/games', quest.gameId, 'quests', quest.id]">
+            <!-- mini-graph -->
+            <svg class="qs__mg" [attr.viewBox]="'0 0 64 40'" aria-hidden="true">
+              @for (edge of miniGraph(quest).edges; track $index) {
+                <line
+                  [attr.x1]="edge.x1"
+                  [attr.y1]="edge.y1"
+                  [attr.x2]="edge.x2"
+                  [attr.y2]="edge.y2"
+                  class="qs__mg-edge"
+                />
+              }
+              @for (node of miniGraph(quest).nodes; track node.id) {
+                @if (node.type === 'start') {
+                  <circle
+                    [attr.cx]="node.cx"
+                    [attr.cy]="node.cy"
+                    [attr.r]="node.w / 2"
+                    class="qs__mg-start"
+                  />
+                }
+                @if (node.type === 'end') {
+                  <circle
+                    [attr.cx]="node.cx"
+                    [attr.cy]="node.cy"
+                    [attr.r]="node.w / 2"
+                    class="qs__mg-end"
+                  />
+                }
+                @if (node.type === 'task') {
+                  <rect
+                    [attr.x]="node.x"
+                    [attr.y]="node.y"
+                    [attr.width]="node.w"
+                    [attr.height]="node.h"
+                    rx="1"
+                    class="qs__mg-task"
+                  />
+                }
+                @if (node.type === 'gateway') {
+                  <polygon
+                    [attr.points]="
+                      node.x +
+                      ',' +
+                      node.cy +
+                      ' ' +
+                      node.cx +
+                      ',' +
+                      node.y +
+                      ' ' +
+                      (node.x + node.w) +
+                      ',' +
+                      node.cy +
+                      ' ' +
+                      node.cx +
+                      ',' +
+                      (node.y + node.h)
+                    "
+                    class="qs__mg-gateway"
+                  />
+                }
+                @if (node.type === 'external-quest') {
+                  <rect
+                    [attr.x]="node.x"
+                    [attr.y]="node.y"
+                    [attr.width]="node.w"
+                    [attr.height]="node.h"
+                    rx="1"
+                    class="qs__mg-ext"
+                  />
+                }
+              }
+            </svg>
+
+            <!-- info -->
+            <div class="qs__card-info">
+              <div class="qs__card-top">
+                <span class="qs__card-title">{{ quest.title }}</span>
+                <span class="qs__badge qs__badge--{{ quest.status | lowercase }}">
+                  {{ statusLabel(quest.status) }}
+                </span>
+              </div>
+              <p class="qs__card-desc">{{ quest.description }}</p>
+              <div class="qs__card-stats">
+                <span class="qs__stat">
+                  <i class="ti ti-circle-dot" aria-hidden="true"></i>
+                  {{ quest.stepCount }} nós
+                </span>
+                <span class="qs__stat">
+                  <i class="ti ti-git-branch" aria-hidden="true"></i>
+                  {{ quest.forkCount }} bifurcações
+                </span>
+                <span class="qs__stat">
+                  <i class="ti ti-flag" aria-hidden="true"></i>
+                  {{ quest.endingCount === 1 ? '1 final' : quest.endingCount + ' finais' }}
+                </span>
+                <span class="qs__stat">
+                  <i class="ti ti-users" aria-hidden="true"></i>
+                  {{ followersLabel(quest.followers) }}
+                </span>
+                <span class="qs__game-chip qs__game-chip--{{ quest.gameId }}">{{
+                  quest.gameName
+                }}</span>
+              </div>
+            </div>
+
+            <i class="ti ti-chevron-right qs__card-arrow" aria-hidden="true"></i>
+          </a>
+        }
+      </div>
+    } @else {
+      <p class="qs__empty">Nenhuma quest encontrada.</p>
+    }
+  </div>
+</div>

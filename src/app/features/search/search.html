@@ -1,0 +1,114 @@
+<div class="sr">
+  <!-- ══ header ═══════════════════════════════════════════════════════════════ -->
+  <header class="sr__head">
+    <div class="sr__head-inner">
+      <div class="sr__search-wrap">
+        <i class="ti ti-search sr__search-icon" aria-hidden="true"></i>
+        <input
+          class="sr__search-input"
+          type="search"
+          placeholder="buscar quests, lore, NPCs…"
+          [value]="query()"
+          (input)="onSearch($event)"
+          aria-label="Busca global"
+          autofocus
+        />
+      </div>
+      @if (hasQuery()) {
+        <p class="sr__meta">
+          {{ totalResults() }} resultado{{ totalResults() !== 1 ? 's' : '' }} para
+          <strong>"{{ query() }}"</strong>
+        </p>
+      }
+    </div>
+  </header>
+
+  <!-- ══ results ═══════════════════════════════════════════════════════════════ -->
+  <div class="sr__body">
+    @if (!hasQuery()) {
+      <div class="sr__empty-state">
+        <i class="ti ti-search sr__empty-icon" aria-hidden="true"></i>
+        <p class="sr__empty-title">O que você procura?</p>
+        <p class="sr__empty-sub">Busque por quests, personagens, locações ou lore.</p>
+      </div>
+    } @else if (totalResults() === 0) {
+      <div class="sr__empty-state">
+        <i class="ti ti-mood-empty sr__empty-icon" aria-hidden="true"></i>
+        <p class="sr__empty-title">Nenhum resultado encontrado</p>
+        <p class="sr__empty-sub">Tente termos diferentes ou explore por jogo.</p>
+        <a class="sr__empty-link" routerLink="/games">
+          <i class="ti ti-layout-grid" aria-hidden="true"></i>
+          explorar jogos
+        </a>
+      </div>
+    } @else {
+      <!-- quests -->
+      @if (questResults().length) {
+        <section class="sr__section">
+          <h2 class="sr__section-title">
+            <i class="ti ti-map" aria-hidden="true"></i>
+            quests
+            <span class="sr__section-count">{{ questResults().length }}</span>
+          </h2>
+          @for (quest of questResults(); track quest.id) {
+            <a class="sr__card" [routerLink]="['/games', quest.gameId, 'quests', quest.id]">
+              <div class="sr__card-icon sr__card-icon--quest">
+                <i class="ti ti-map" aria-hidden="true"></i>
+              </div>
+              <div class="sr__card-body">
+                <span class="sr__card-title">{{ quest.title }}</span>
+                <span class="sr__card-meta">
+                  {{ quest.gameName }} · {{ quest.stepCount }} nós ·
+                  {{ quest.endingCount === 1 ? '1 final' : quest.endingCount + ' finais' }}
+                </span>
+              </div>
+              <div class="sr__card-badges">
+                <span class="sr__badge sr__badge--game sr__badge--{{ quest.gameId }}">{{
+                  quest.gameName
+                }}</span>
+                <span class="sr__badge sr__badge--{{ quest.status | lowercase }}">{{
+                  statusLabel(quest.status)
+                }}</span>
+              </div>
+              <i class="ti ti-chevron-right sr__card-arrow" aria-hidden="true"></i>
+            </a>
+          }
+        </section>
+      }
+
+      <!-- lore -->
+      @if (loreResults().length) {
+        <section class="sr__section">
+          <h2 class="sr__section-title">
+            <i class="ti ti-book" aria-hidden="true"></i>
+            lore
+            <span class="sr__section-count">{{ loreResults().length }}</span>
+          </h2>
+          @for (article of loreResults(); track article.id) {
+            <a class="sr__card" [routerLink]="['/lore', article.id]">
+              <div class="sr__card-icon sr__card-icon--lore">
+                <i class="ti ti-book" aria-hidden="true"></i>
+              </div>
+              <div class="sr__card-body">
+                <span class="sr__card-title">{{ article.title }}</span>
+                <span class="sr__card-meta"
+                  >{{ article.gameName }} · {{ article.readMinutes }} min ·
+                  {{ categoryLabel(article.category) }}</span
+                >
+              </div>
+              <div class="sr__card-badges">
+                <span class="sr__badge sr__badge--game sr__badge--{{ article.gameId }}">{{
+                  article.gameName
+                }}</span>
+                <span class="sr__badge sr__badge--{{ article.status | lowercase }}">{{
+                  statusLabel(article.status)
+                }}</span>
+              </div>
+              <i class="ti ti-chevron-right sr__card-arrow" aria-hidden="true"></i>
+            </a>
+          }
+        </section>
+      }
+    }
+  </div>
+</div>

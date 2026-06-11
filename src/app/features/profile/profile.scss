@@ -1,8 +1,10 @@
 @use 'styles/variables' as v;
+@use 'styles/animations' as a;
 
 .pf {
   min-height: calc(100vh - #{v.$navbar-height});
   background: v.$color-bg;
+  @include a.page-enter;
 }
 
 // ─── hero ──────────────────────────────────────────────────────────────────────
@@ -15,12 +17,17 @@
   max-width: 900px;
   margin: 0 auto;
   padding: 32px 28px 0;
+
+  @media (max-width: 700px) {
+    padding: 20px 16px 0;
+  }
 }
 
 .pf__avatar-row {
   display: flex;
   align-items: flex-start;
   gap: 20px;
+  flex-wrap: wrap;
 }
 
 .pf__avatar {
@@ -153,6 +160,11 @@
   grid-template-columns: 1fr 240px;
   gap: 24px;
   align-items: start;
+
+  @media (max-width: 700px) {
+    grid-template-columns: 1fr;
+    padding: 16px;
+  }
 }
 
 // ─── section title ─────────────────────────────────────────────────────────────

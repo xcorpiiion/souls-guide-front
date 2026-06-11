@@ -1,0 +1,335 @@
+@use 'styles/variables' as v;
+@use 'styles/animations' as a;
+
+// ─── shared badge styles (reused from lore listing) ───────────────────────────
+.lr__badge {
+  font-size: 10px;
+  padding: 2px 8px;
+  border-radius: 10px;
+  white-space: nowrap;
+
+  &--elden-ring {
+    background: rgba(v.$color-gold, 0.1);
+    color: darken(#c9a84c, 10%);
+    border: 1px solid rgba(v.$color-gold, 0.25);
+  }
+
+  &--bloodborne {
+    background: rgba(200, 112, 232, 0.08);
+    color: #a054b8;
+    border: 1px solid rgba(200, 112, 232, 0.25);
+  }
+
+  &--dark-souls-3 {
+    background: rgba(55, 138, 221, 0.08);
+    color: #2a6aab;
+    border: 1px solid rgba(55, 138, 221, 0.25);
+  }
+
+  &--lies-of-p {
+    background: rgba(200, 120, 50, 0.08);
+    color: #a05a18;
+    border: 1px solid rgba(200, 120, 50, 0.25);
+  }
+
+  &--cat {
+    background: v.$color-bg-elevated;
+    color: v.$color-text-muted;
+    border: 1px solid v.$color-border;
+  }
+
+  &--canonico {
+    background: rgba(v.$color-gold, 0.1);
+    color: v.$color-gold;
+    border: 1px solid rgba(v.$color-gold, 0.25);
+  }
+
+  &--consolidado {
+    background: rgba(122, 154, 90, 0.1);
+    color: #7a9a5a;
+    border: 1px solid rgba(122, 154, 90, 0.25);
+  }
+
+  &--teoria {
+    background: rgba(90, 122, 154, 0.1);
+    color: #5a7a9a;
+    border: 1px solid rgba(90, 122, 154, 0.25);
+  }
+}
+
+.ld {
+  min-height: calc(100vh - #{v.$navbar-height});
+  background: v.$color-bg;
+  @include a.page-enter;
+}
+
+// ─── topbar / breadcrumb ───────────────────────────────────────────────────────
+.ld__topbar {
+  background: v.$color-bg-surface;
+  border-bottom: 1px solid v.$color-border;
+  padding: 12px 0;
+}
+
+.ld__topbar-inner {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 0 28px;
+}
+
+.ld__crumb {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 13px;
+}
+
+.ld__crumb-link {
+  color: v.$color-text-muted;
+  text-decoration: none;
+  transition: color 0.12s;
+
+  &:hover {
+    color: v.$color-gold;
+  }
+}
+
+.ld__crumb-sep {
+  font-size: 12px;
+  color: v.$color-text-muted;
+  opacity: 0.5;
+}
+
+.ld__crumb-current {
+  color: v.$color-text-muted;
+}
+
+// ─── layout ────────────────────────────────────────────────────────────────────
+.ld__layout {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 32px 28px;
+  display: grid;
+  grid-template-columns: 1fr 220px;
+  gap: 32px;
+  align-items: start;
+
+  @media (max-width: 720px) {
+    grid-template-columns: 1fr;
+    padding: 20px 16px;
+    gap: 20px;
+  }
+}
+
+// ─── article ───────────────────────────────────────────────────────────────────
+.ld__article-head {
+  margin-bottom: 28px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid v.$color-border;
+}
+
+.ld__badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  margin-bottom: 14px;
+}
+
+.ld__title {
+  font-family: v.$font-display;
+  font-size: 26px;
+  font-weight: 500;
+  color: v.$color-text;
+  line-height: 1.3;
+  margin-bottom: 10px;
+}
+
+.ld__meta {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  color: v.$color-text-muted;
+}
+
+.ld__meta-item {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+
+  .ti {
+    font-size: 13px;
+  }
+}
+
+.ld__meta-sep {
+  opacity: 0.4;
+}
+
+// ─── content ───────────────────────────────────────────────────────────────────
+.ld__section-heading {
+  font-size: 15px;
+  font-weight: 500;
+  color: v.$color-text;
+  padding-left: 12px;
+  border-left: 2px solid v.$color-gold;
+  margin: 24px 0 10px;
+  line-height: 1.4;
+
+  &:first-child {
+    margin-top: 0;
+  }
+}
+
+.ld__paragraph {
+  font-size: 14px;
+  color: v.$color-text-muted;
+  line-height: 1.8;
+  margin-bottom: 14px;
+}
+
+.ld__quote {
+  background: v.$color-bg-surface;
+  border-left: 3px solid rgba(v.$color-gold, 0.5);
+  padding: 12px 16px;
+  border-radius: 0 v.$radius-md v.$radius-md 0;
+  margin: 16px 0;
+  font-size: 13px;
+  font-style: italic;
+  color: v.$color-text-muted;
+  line-height: 1.7;
+}
+
+// ─── footer / tags ─────────────────────────────────────────────────────────────
+.ld__article-foot {
+  margin-top: 32px;
+  padding-top: 20px;
+  border-top: 1px solid v.$color-border;
+}
+
+.ld__tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.ld__tag {
+  font-size: 11px;
+  padding: 3px 10px;
+  border-radius: 10px;
+  background: v.$color-bg-elevated;
+  border: 1px solid v.$color-border;
+  color: v.$color-text-muted;
+}
+
+// ─── sidebar ───────────────────────────────────────────────────────────────────
+.ld__sidebar-card {
+  background: v.$color-bg-surface;
+  border: 1px solid v.$color-border;
+  border-radius: v.$radius-lg;
+  padding: 16px;
+  margin-bottom: 14px;
+}
+
+.ld__sidebar-title {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: v.$color-text-muted;
+  margin-bottom: 10px;
+}
+
+.ld__toc-item {
+  display: block;
+  font-size: 12px;
+  color: v.$color-text-muted;
+  padding: 4px 0 4px 10px;
+  border-left: 2px solid v.$color-border;
+  cursor: pointer;
+  line-height: 1.4;
+  transition:
+    color 0.12s,
+    border-color 0.12s;
+
+  &--active {
+    border-left-color: v.$color-gold;
+    color: v.$color-text;
+  }
+
+  &:hover {
+    color: v.$color-text;
+  }
+}
+
+.ld__related-quest {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 0;
+  border-bottom: 1px solid v.$color-border;
+  text-decoration: none;
+  cursor: pointer;
+
+  &:last-child {
+    border-bottom: none;
+  }
+
+  &:hover .ld__rq-title {
+    color: v.$color-gold;
+  }
+}
+
+.ld__rq-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #1faa64;
+  flex-shrink: 0;
+}
+
+.ld__rq-title {
+  font-size: 12px;
+  color: v.$color-text;
+  line-height: 1.4;
+  transition: color 0.12s;
+}
+
+.ld__suggest-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  width: 100%;
+  padding: 9px;
+  font-family: v.$font-body;
+  font-size: 12px;
+  border: 1px solid v.$color-border;
+  border-radius: v.$radius-md;
+  background: transparent;
+  color: v.$color-text-muted;
+  text-decoration: none;
+  transition:
+    border-color 0.15s,
+    color 0.15s;
+
+  &:hover {
+    border-color: rgba(v.$color-gold, 0.4);
+    color: v.$color-text;
+  }
+}
+
+// ─── not found ─────────────────────────────────────────────────────────────────
+.ld__not-found {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 80px 28px;
+  font-size: 14px;
+  color: v.$color-text-muted;
+
+  a {
+    color: v.$color-gold;
+    text-decoration: none;
+  }
+}

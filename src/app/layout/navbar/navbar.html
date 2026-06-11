@@ -1,8 +1,10 @@
 <nav class="navbar">
-  <a class="navbar__brand" routerLink="/home">
+  <!-- brand -->
+  <a class="navbar__brand" routerLink="/home" (click)="closeMobile()">
     <span class="navbar__brand-text">Soul<span class="navbar__brand-accent">Guide</span></span>
   </a>
 
+  <!-- desktop links -->
   <ul class="navbar__links">
     @for (link of navLinks; track link.path) {
       <li>
@@ -11,10 +13,79 @@
           [routerLink]="link.path"
           routerLinkActive="navbar__link--active"
           [routerLinkActiveOptions]="{ exact: false }"
+          >{{ link.label }}</a
         >
-          {{ link.label }}
-        </a>
       </li>
     }
   </ul>
+
+  <!-- right actions -->
+  <div class="navbar__actions">
+    <!-- search trigger -->
+    <button class="navbar__icon-btn" type="button" (click)="openSearch()" aria-label="Buscar">
+      <i class="ti ti-search" aria-hidden="true"></i>
+    </button>
+
+    <!-- theme toggle -->
+    <button
+      class="navbar__icon-btn"
+      type="button"
+      (click)="themeService.toggle()"
+      [attr.aria-label]="themeService.theme() === 'dark' ? 'Tema claro' : 'Tema escuro'"
+    >
+      <i
+        [class]="themeService.theme() === 'dark' ? 'ti ti-sun' : 'ti ti-moon'"
+        aria-hidden="true"
+      ></i>
+    </button>
+
+    <!-- profile avatar -->
+    <a class="navbar__avatar" routerLink="/profile" aria-label="Perfil">V</a>
+
+    <!-- hamburger -->
+    <button
+      class="navbar__hamburger"
+      type="button"
+      (click)="toggleMobile()"
+      [attr.aria-expanded]="mobileOpen()"
+      aria-label="Menu"
+    >
+      <i [class]="mobileOpen() ? 'ti ti-x' : 'ti ti-menu-2'" aria-hidden="true"></i>
+    </button>
+  </div>
 </nav>
+
+<!-- search overlay -->
+@if (searchOpen()) {
+  <div class="navbar__search-overlay" (click)="closeSearch()">
+    <div class="navbar__search-box" (click)="$event.stopPropagation()">
+      <form (submit)="onSearchSubmit($event)">
+        <i class="ti ti-search navbar__search-box-icon" aria-hidden="true"></i>
+        <input
+          class="navbar__search-box-input"
+          type="search"
+          placeholder="buscar quests, lore, NPCs…"
+          autofocus
+          aria-label="Busca global"
+        />
+        <kbd class="navbar__search-kbd">Enter</kbd>
+      </form>
+    </div>
+  </div>
+}
+
+<!-- mobile menu -->
+@if (mobileOpen()) {
+  <div class="navbar__mobile">
+    @for (link of navLinks; track link.path) {
+      <a
+        class="navbar__mobile-link"
+        [routerLink]="link.path"
+        routerLinkActive="navbar__mobile-link--active"
+        [routerLinkActiveOptions]="{ exact: false }"
+        (click)="closeMobile()"
+        >{{ link.label }}</a
+      >
+    }
+  </div>
+}

@@ -1,10 +1,12 @@
 @use 'styles/variables' as v;
 @use 'styles/mixins' as m;
+@use 'styles/animations' as a;
 
 .home {
   display: flex;
   flex-direction: column;
   min-height: calc(100vh - v.$navbar-height);
+  @include a.page-enter;
 }
 
 // ─── Hero ─────────────────────────────────────────────────────────
@@ -12,6 +14,10 @@
   @include m.flex-column-center;
   padding: v.$space-16 v.$space-6 v.$space-12;
   text-align: center;
+
+  @media (max-width: 480px) {
+    padding: v.$space-8 v.$space-4 v.$space-8;
+  }
 
   &__eyebrow {
     font-size: v.$font-size-xs;
@@ -29,7 +35,13 @@
     color: v.$color-text;
     margin: 0 0 v.$space-4;
 
-    &--gold { color: v.$color-gold; }
+    @media (max-width: 400px) {
+      font-size: v.$font-size-2xl;
+    }
+
+    &--gold {
+      color: v.$color-gold;
+    }
   }
 
   &__sub {
@@ -59,9 +71,15 @@
     outline: none;
     transition: border-color v.$transition-fast;
 
-    &::placeholder { color: v.$color-text-faint; }
-    &:focus { border-color: v.$color-gold; }
-    &::-webkit-search-cancel-button { display: none; }
+    &::placeholder {
+      color: v.$color-text-faint;
+    }
+    &:focus {
+      border-color: v.$color-gold;
+    }
+    &::-webkit-search-cancel-button {
+      display: none;
+    }
   }
 
   &__search-btn {
@@ -77,7 +95,9 @@
     white-space: nowrap;
     transition: background-color v.$transition-fast;
 
-    @include m.on-hover { background-color: v.$color-gold-light; }
+    @include m.on-hover {
+      background-color: v.$color-gold-light;
+    }
   }
 
   &__games {
@@ -96,7 +116,9 @@
     font-family: v.$font-body;
     font-size: v.$font-size-xs;
     cursor: pointer;
-    transition: border-color v.$transition-fast, color v.$transition-fast;
+    transition:
+      border-color v.$transition-fast,
+      color v.$transition-fast;
 
     @include m.on-hover {
       border-color: v.$color-gold;
@@ -109,6 +131,45 @@
       background-color: rgba(#c9a84c, 0.08);
     }
   }
+}
+
+// ─── Stats bar ────────────────────────────────────────────────────
+.hero__stats {
+  display: flex;
+  gap: v.$space-8;
+  flex-wrap: wrap;
+  justify-content: center;
+  padding: v.$space-5 v.$space-6;
+  border-top: 1px solid v.$color-border;
+  width: 100%;
+  max-width: 500px;
+  margin-top: v.$space-5;
+
+  @media (max-width: 480px) {
+    gap: v.$space-5;
+  }
+}
+
+.hero__stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+
+.hero__stat-n {
+  font-family: v.$font-display;
+  font-size: v.$font-size-2xl;
+  font-weight: 600;
+  color: v.$color-gold;
+  line-height: 1;
+}
+
+.hero__stat-l {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: v.$color-text-muted;
 }
 
 // ─── Divisor ──────────────────────────────────────────────────────
@@ -136,10 +197,18 @@
     border-right: none;
     border-bottom: 1px solid v.$color-border;
   }
+
+  @media (max-width: 480px) {
+    padding: v.$space-5 v.$space-4;
+  }
 }
 
 .home__lore {
   padding: v.$space-8;
+
+  @media (max-width: 480px) {
+    padding: v.$space-5 v.$space-4;
+  }
 }
 
 // ─── Section header ───────────────────────────────────────────────
@@ -164,7 +233,9 @@
   text-decoration: none;
   transition: color v.$transition-fast;
 
-  @include m.on-hover { color: v.$color-gold-light; }
+  @include m.on-hover {
+    color: v.$color-gold-light;
+  }
 }
 
 .home__empty {
@@ -188,12 +259,17 @@
   padding: v.$space-3 0;
   border-bottom: 1px solid v.$color-border;
   cursor: pointer;
+  text-decoration: none;
   transition: background-color v.$transition-fast;
 
-  &:last-child { border-bottom: none; }
+  &:last-child {
+    border-bottom: none;
+  }
 
   @include m.on-hover {
-    .quest-item__title { color: v.$color-gold; }
+    .quest-item__title {
+      color: v.$color-gold;
+    }
   }
 
   &__rank {
@@ -247,7 +323,10 @@
   border-radius: 0 v.$radius-sm v.$radius-sm 0;
   margin-bottom: v.$space-5;
 
-  strong { color: v.$color-text; font-weight: 600; }
+  strong {
+    color: v.$color-text;
+    font-weight: 600;
+  }
 }
 
 .lore-list {
@@ -263,11 +342,16 @@
   padding: v.$space-3 0;
   border-bottom: 1px solid v.$color-border;
   cursor: pointer;
+  text-decoration: none;
 
-  &:last-child { border-bottom: none; }
+  &:last-child {
+    border-bottom: none;
+  }
 
   @include m.on-hover {
-    .lore-item__title { color: v.$color-gold; }
+    .lore-item__title {
+      color: v.$color-gold;
+    }
   }
 
   &__badge {
@@ -322,6 +406,10 @@
     text-align: center;
   }
 
+  @media (max-width: 480px) {
+    padding: v.$space-4;
+  }
+
   &-text {
     font-size: v.$font-size-sm;
     color: v.$color-text-muted;
@@ -333,8 +421,13 @@
     text-decoration: none;
     transition: color v.$transition-fast;
 
-    small { color: v.$color-text-muted; font-size: v.$font-size-xs; }
+    small {
+      color: v.$color-text-muted;
+      font-size: v.$font-size-xs;
+    }
 
-    @include m.on-hover { color: v.$color-gold-light; }
+    @include m.on-hover {
+      color: v.$color-gold-light;
+    }
   }
 }

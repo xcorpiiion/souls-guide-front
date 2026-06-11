@@ -41,6 +41,10 @@ $game-colors: (
   padding: v.$space-8;
   max-width: v.$content-max-width;
   margin: 0 auto;
+
+  @media (max-width: 600px) {
+    padding: v.$space-5 v.$space-4;
+  }
 }
 
 .games__header {
@@ -68,6 +72,10 @@ $game-colors: (
   font-weight: 500;
   color: v.$color-text;
   font-family: v.$font-display;
+
+  @media (max-width: 480px) {
+    font-size: v.$font-size-2xl;
+  }
 }
 
 .games__btn-suggest {
@@ -96,6 +104,10 @@ $game-colors: (
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
   gap: v.$space-4;
+
+  @media (max-width: 360px) {
+    grid-template-columns: 1fr;
+  }
 }
 
 // ─── Card ────────────────────────────────────────────────────────────────────

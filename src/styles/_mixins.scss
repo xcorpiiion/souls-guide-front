@@ -15,7 +15,9 @@
   justify-content: $justify;
   align-items: $align;
   flex-direction: $direction;
-  @if $gap { gap: $gap; }
+  @if $gap {
+    gap: $gap;
+  }
 }
 
 @mixin flex-center($direction: row) {
@@ -53,7 +55,9 @@
   flex: $grow $shrink $basis;
 }
 
-@mixin flex-push-right { margin-left: auto; }
+@mixin flex-push-right {
+  margin-left: auto;
+}
 
 @mixin flex-circle($size) {
   @include flex-center;
@@ -87,7 +91,9 @@
   grid-template-columns: $columns;
   grid-template-rows: $rows;
   grid-template-areas: $areas;
-  @if $gap { gap: $gap; }
+  @if $gap {
+    gap: $gap;
+  }
 }
 
 // ==========================================================================
@@ -105,7 +111,9 @@
 
 @mixin position($type: absolute, $coords: ()) {
   position: $type;
-  @each $key, $value in $coords { #{$key}: $value; }
+  @each $key, $value in $coords {
+    #{$key}: $value;
+  }
 }
 
 @mixin position-center($axis: 'both') {
@@ -156,13 +164,21 @@
 }
 
 @mixin margin-x($value) {
-  $final: if(meta.type-of($value) == 'number' and math.is-unitless($value), $value * v.$space-base, $value);
+  $final: if(
+    meta.type-of($value) == 'number' and math.is-unitless($value),
+    $value * v.$space-base,
+    $value
+  );
   margin-left: $final;
   margin-right: $final;
 }
 
 @mixin margin-y($value) {
-  $final: if(meta.type-of($value) == 'number' and math.is-unitless($value), $value * v.$space-base, $value);
+  $final: if(
+    meta.type-of($value) == 'number' and math.is-unitless($value),
+    $value * v.$space-base,
+    $value
+  );
   margin-top: $final;
   margin-bottom: $final;
 }
@@ -180,13 +196,21 @@
 }
 
 @mixin padding-x($value) {
-  $final: if(meta.type-of($value) == 'number' and math.is-unitless($value), $value * v.$space-base, $value);
+  $final: if(
+    meta.type-of($value) == 'number' and math.is-unitless($value),
+    $value * v.$space-base,
+    $value
+  );
   padding-left: $final;
   padding-right: $final;
 }
 
 @mixin padding-y($value) {
-  $final: if(meta.type-of($value) == 'number' and math.is-unitless($value), $value * v.$space-base, $value);
+  $final: if(
+    meta.type-of($value) == 'number' and math.is-unitless($value),
+    $value * v.$space-base,
+    $value
+  );
   padding-top: $final;
   padding-bottom: $final;
 }
@@ -198,7 +222,9 @@
 @mixin breakpoint-up($point) {
   $value: map.get(v.$breakpoints, $point);
   @if $value {
-    @media (min-width: $value) { @content; }
+    @media (min-width: $value) {
+      @content;
+    }
   } @else {
     @warn "Breakpoint '#{$point}' não encontrado.";
   }
@@ -207,7 +233,9 @@
 @mixin breakpoint-down($point) {
   $value: map.get(v.$breakpoints, $point) - 1px;
   @if $value {
-    @media (max-width: $value) { @content; }
+    @media (max-width: $value) {
+      @content;
+    }
   } @else {
     @warn "Breakpoint '#{$point}' não encontrado.";
   }
@@ -217,7 +245,9 @@
   $min-val: map.get(v.$breakpoints, $min);
   $max-val: map.get(v.$breakpoints, $max) - 1px;
   @if $min-val and $max-val {
-    @media (min-width: $min-val) and (max-width: $max-val) { @content; }
+    @media (min-width: $min-val) and (max-width: $max-val) {
+      @content;
+    }
   }
 }
 
@@ -234,7 +264,9 @@
   font: inherit;
   color: inherit;
   cursor: pointer;
-  &:focus { outline: none; }
+  &:focus {
+    outline: none;
+  }
 }
 
 @mixin disabled-state {
@@ -245,11 +277,18 @@
 
 @mixin on-hover {
   @media (hover: hover) and (pointer: fine) {
-    &:hover { @content; }
+    &:hover {
+      @content;
+    }
   }
 }
 
-@mixin gradient-border($gradient, $inner-bg: v.$color-bg-surface, $width: 1px, $radius: v.$radius-md) {
+@mixin gradient-border(
+  $gradient,
+  $inner-bg: v.$color-bg-surface,
+  $width: 1px,
+  $radius: v.$radius-md
+) {
   border: $width solid transparent;
   border-radius: $radius;
   background-image: linear-gradient($inner-bg, $inner-bg), $gradient;
@@ -276,11 +315,35 @@
 }
 
 // ==========================================================================
-// 7. ANIMAÇÃO
+// 7. SKELETON LOADERS
+// ==========================================================================
+
+@mixin skeleton-base {
+  background: linear-gradient(
+    90deg,
+    v.$color-bg-elevated 25%,
+    v.$color-bg-surface 50%,
+    v.$color-bg-elevated 75%
+  );
+  background-size: 200% 100%;
+  animation: sg-shimmer 1.4s ease infinite;
+  border-radius: v.$radius-sm;
+}
+
+@mixin skeleton-line($height: 14px, $width: 100%) {
+  @include skeleton-base;
+  height: $height;
+  width: $width;
+}
+
+// ==========================================================================
+// 8. ANIMAÇÃO
 // ==========================================================================
 
 @mixin keyframes($name) {
-  @keyframes #{$name} { @content; }
+  @keyframes #{$name} {
+    @content;
+  }
 }
 
 @mixin animation($name, $duration: 1s, $timing-function: ease, $delay: 0s) {

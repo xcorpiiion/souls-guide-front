@@ -1,7 +1,302 @@
 @use 'styles/variables' as v;
+@use 'styles/animations' as a;
+@use 'styles/mixins' as m;
 
-.feature-page {
-  padding: v.$space-8;
-  max-width: v.$content-max-width;
+.lr {
+  min-height: calc(100vh - #{v.$navbar-height});
+  background: v.$color-bg;
+  @include a.page-enter;
+}
+
+// ─── header ────────────────────────────────────────────────────────────────────
+.lr__head {
+  background: v.$color-bg-surface;
+  border-bottom: 1px solid v.$color-border;
+  padding: 28px 0 20px;
+}
+
+.lr__head-inner {
+  max-width: 960px;
   margin: 0 auto;
+  padding: 0 28px;
+
+  @media (max-width: 600px) {
+    padding: 0 16px;
+  }
+}
+
+.lr__title {
+  font-family: v.$font-display;
+  font-size: 26px;
+  font-weight: 500;
+  color: v.$color-text;
+  margin-bottom: 16px;
+}
+
+.lr__search {
+  position: relative;
+  margin-bottom: 14px;
+}
+
+.lr__search-icon {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 15px;
+  color: v.$color-text-muted;
+  pointer-events: none;
+}
+
+.lr__search-input {
+  width: 100%;
+  padding: 9px 14px 9px 36px;
+  background: v.$color-bg;
+  border: 1px solid v.$color-border;
+  border-radius: v.$radius-md;
+  font-family: v.$font-body;
+  font-size: 14px;
+  color: v.$color-text;
+  outline: none;
+  transition: border-color 0.15s;
+
+  &::placeholder {
+    color: v.$color-text-muted;
+  }
+
+  &:focus {
+    border-color: rgba(v.$color-gold, 0.5);
+  }
+}
+
+// ─── filter chips ──────────────────────────────────────────────────────────────
+.lr__filter-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 8px;
+}
+
+.lr__chip {
+  padding: 4px 14px;
+  border-radius: 20px;
+  font-family: v.$font-body;
+  font-size: 12px;
+  border: 1px solid v.$color-border;
+  background: v.$color-bg;
+  color: v.$color-text-muted;
+  cursor: pointer;
+  transition:
+    border-color 0.12s,
+    color 0.12s,
+    background 0.12s;
+
+  &:hover {
+    border-color: rgba(v.$color-gold, 0.4);
+    color: v.$color-text;
+  }
+
+  &--active {
+    background: rgba(v.$color-gold, 0.1);
+    border-color: rgba(v.$color-gold, 0.4);
+    color: v.$color-gold;
+  }
+}
+
+// ─── body / grid ───────────────────────────────────────────────────────────────
+.lr__body {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 28px;
+
+  @media (max-width: 600px) {
+    padding: 16px;
+  }
+}
+
+.lr__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 14px;
+}
+
+// ─── card ──────────────────────────────────────────────────────────────────────
+.lr__grid .lr__card {
+  animation: sg-card-enter 0.25s ease both;
+  @include a.stagger-children(0.05s, 8);
+}
+
+.lr__card {
+  display: flex;
+  flex-direction: column;
+  padding: 18px;
+  background: v.$color-bg-surface;
+  border: 1px solid v.$color-border;
+  border-radius: v.$radius-lg;
+  text-decoration: none;
+  transition:
+    border-color 0.15s,
+    background 0.15s;
+
+  &:hover {
+    border-color: rgba(v.$color-gold, 0.35);
+    background: v.$color-bg-elevated;
+  }
+}
+
+.lr__card-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  margin-bottom: 10px;
+}
+
+.lr__badge {
+  font-size: 10px;
+  padding: 2px 8px;
+  border-radius: 10px;
+  white-space: nowrap;
+
+  // game variants
+  &--elden-ring {
+    background: rgba(v.$color-gold, 0.1);
+    color: darken(#c9a84c, 10%);
+    border: 1px solid rgba(v.$color-gold, 0.25);
+  }
+
+  &--bloodborne {
+    background: rgba(200, 112, 232, 0.08);
+    color: #a054b8;
+    border: 1px solid rgba(200, 112, 232, 0.25);
+  }
+
+  &--dark-souls-3 {
+    background: rgba(55, 138, 221, 0.08);
+    color: #2a6aab;
+    border: 1px solid rgba(55, 138, 221, 0.25);
+  }
+
+  &--lies-of-p {
+    background: rgba(200, 120, 50, 0.08);
+    color: #a05a18;
+    border: 1px solid rgba(200, 120, 50, 0.25);
+  }
+
+  // category
+  &--cat {
+    background: v.$color-bg-elevated;
+    color: v.$color-text-muted;
+    border: 1px solid v.$color-border;
+  }
+
+  // status
+  &--canonico {
+    background: rgba(v.$color-gold, 0.1);
+    color: v.$color-gold;
+    border: 1px solid rgba(v.$color-gold, 0.25);
+  }
+
+  &--consolidado {
+    background: rgba(122, 154, 90, 0.1);
+    color: #7a9a5a;
+    border: 1px solid rgba(122, 154, 90, 0.25);
+  }
+
+  &--teoria {
+    background: rgba(90, 122, 154, 0.1);
+    color: #5a7a9a;
+    border: 1px solid rgba(90, 122, 154, 0.25);
+  }
+}
+
+.lr__card-title {
+  font-size: 14px;
+  font-weight: 500;
+  color: v.$color-text;
+  margin-bottom: 6px;
+  line-height: 1.4;
+}
+
+.lr__card-excerpt {
+  font-size: 13px;
+  color: v.$color-text-muted;
+  line-height: 1.6;
+  flex: 1;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.lr__card-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 12px;
+  padding-top: 10px;
+  border-top: 1px solid v.$color-border;
+  font-size: 11px;
+  color: v.$color-text-muted;
+}
+
+.lr__card-read {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+// ─── empty ─────────────────────────────────────────────────────────────────────
+.lr__empty {
+  font-size: 14px;
+  color: v.$color-text-muted;
+  text-align: center;
+  padding: 48px 0;
+}
+
+// ─── skeleton ──────────────────────────────────────────────────────────────────
+.lr__skel-card {
+  background: v.$color-bg-surface;
+  border: 1px solid v.$color-border;
+  border-radius: 10px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.lr__skel-badges {
+  display: flex;
+  gap: 6px;
+}
+
+.lr__skel-badge {
+  @include m.skeleton-line(18px, 64px);
+  border-radius: 10px;
+  &--sm {
+    width: 44px;
+  }
+}
+
+.lr__skel-title {
+  @include m.skeleton-line(16px, 85%);
+}
+
+.lr__skel-line {
+  @include m.skeleton-line(12px, 100%);
+  &--short {
+    width: 65%;
+  }
+}
+
+.lr__skel-foot {
+  display: flex;
+  gap: 8px;
+  margin-top: 4px;
+  padding-top: 10px;
+  border-top: 1px solid v.$color-border;
+}
+
+.lr__skel-tag {
+  @include m.skeleton-line(11px, 52px);
+  border-radius: 10px;
 }

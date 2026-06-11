@@ -1,14 +1,13 @@
 <section class="home">
-
   <!-- HERO -->
   <div class="hero">
     <p class="hero__eyebrow">Guias colaborativos · Souls-likes</p>
     <h1 class="hero__headline">
-      Você vai morrer de qualquer jeito.<br>
+      Você vai morrer de qualquer jeito.<br />
       <span class="hero__headline--gold">Mas não precisa ser perdido.</span>
     </h1>
     <p class="hero__sub">
-      Quests e lore documentados pela comunidade.<br>
+      Quests e lore documentados pela comunidade.<br />
       Sem spoilers forçados — você controla até onde quer ver.
     </p>
 
@@ -19,10 +18,11 @@
         placeholder="Quest, NPC, localização, boss..."
         [ngModel]="searchTerm()"
         (ngModelChange)="onSearch($event)"
+        (keydown.enter)="submitSearch()"
         autocomplete="off"
         aria-label="Buscar no SoulGuide"
       />
-      <button class="hero__search-btn" type="button">Buscar</button>
+      <button class="hero__search-btn" type="button" (click)="submitSearch()">Buscar</button>
     </div>
 
     <div class="hero__games" role="group" aria-label="Filtrar por jogo">
@@ -39,11 +39,20 @@
     </div>
   </div>
 
+  <!-- STATS -->
+  <div class="hero__stats">
+    @for (stat of stats; track stat.label) {
+      <div class="hero__stat">
+        <span class="hero__stat-n">{{ stat.value }}</span>
+        <span class="hero__stat-l">{{ stat.label }}</span>
+      </div>
+    }
+  </div>
+
   <div class="home__divider" role="separator"></div>
 
   <!-- CONTEÚDO PRINCIPAL -->
   <div class="home__main">
-
     <!-- QUESTS -->
     <div class="home__quests">
       <div class="home__section-header">
@@ -56,15 +65,18 @@
       } @else {
         <ol class="quest-list">
           @for (quest of filteredQuests(); track trackById($index, quest); let i = $index) {
-            <li class="quest-item">
-              <span class="quest-item__rank">{{ i + 1 }}</span>
-              <div class="quest-item__body">
-                <span class="quest-item__title">{{ quest.title }}</span>
-                <span class="quest-item__meta">
-                  {{ quest.gameName }} · {{ quest.stepCount }} etapas · {{ quest.followers }} seguindo
-                </span>
-              </div>
-              <span class="quest-item__tag">{{ quest.gameName }}</span>
+            <li>
+              <a class="quest-item" [routerLink]="['/games', quest.gameId, 'quests', quest.id]">
+                <span class="quest-item__rank">{{ i + 1 }}</span>
+                <div class="quest-item__body">
+                  <span class="quest-item__title">{{ quest.title }}</span>
+                  <span class="quest-item__meta">
+                    {{ quest.gameName }} · {{ quest.stepCount }} etapas ·
+                    {{ quest.followers }} seguindo
+                  </span>
+                </div>
+                <span class="quest-item__tag">{{ quest.gameName }}</span>
+              </a>
             </li>
           }
         </ol>
@@ -79,8 +91,8 @@
       </div>
 
       <p class="home__lore-intro">
-        Artigos nascem como <strong>Teoria</strong>, sobem para <strong>Consolidado</strong> com upvotes
-        da comunidade, e o mais votado vira <strong>Canônico</strong>.
+        Artigos nascem como <strong>Teoria</strong>, sobem para <strong>Consolidado</strong> com
+        upvotes da comunidade, e o mais votado vira <strong>Canônico</strong>.
       </p>
 
       @if (filteredLore().length === 0) {
@@ -88,24 +100,26 @@
       } @else {
         <ul class="lore-list">
           @for (article of filteredLore(); track trackById($index, article)) {
-            <li class="lore-item">
-              <span class="lore-item__badge lore-item__badge--{{ article.status | lowercase }}">
-                {{ loreBadgeLabel(article.status) }}
-              </span>
-              <span class="lore-item__title">{{ article.title }}</span>
-              <span class="lore-item__meta">{{ article.gameName }} · ↑ {{ article.votes }}</span>
+            <li>
+              <a class="lore-item" [routerLink]="['/lore', article.id]">
+                <span class="lore-item__badge lore-item__badge--{{ article.status | lowercase }}">
+                  {{ loreBadgeLabel(article.status) }}
+                </span>
+                <span class="lore-item__title">{{ article.title }}</span>
+                <span class="lore-item__meta">{{ article.gameName }} · ↑ {{ article.votes }}</span>
+              </a>
             </li>
           }
         </ul>
       }
     </div>
-
   </div>
 
   <!-- FOOTER CTA -->
   <footer class="home__cta">
     <span class="home__cta-text">Conhece um caminho melhor?</span>
-    <a class="home__cta-link" routerLink="/quests">Crie um guia → <small>(login necessário)</small></a>
+    <a class="home__cta-link" routerLink="/quests"
+      >Crie um guia → <small>(login necessário)</small></a
+    >
   </footer>
-
 </section>

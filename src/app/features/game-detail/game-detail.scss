@@ -59,6 +59,10 @@ $game-colors: (
   padding: v.$space-8 v.$space-8 v.$space-6;
   background-color: var(--hero-bg);
   border-bottom: 1px solid var(--hero-border);
+
+  @media (max-width: 600px) {
+    padding: v.$space-5 v.$space-4 v.$space-4;
+  }
 }
 
 .game-detail__breadcrumb {
@@ -88,6 +92,10 @@ $game-colors: (
   align-items: flex-start;
   gap: v.$space-4;
   margin-bottom: v.$space-6;
+
+  @media (max-width: 500px) {
+    flex-wrap: wrap;
+  }
 }
 
 .game-detail__badge {
@@ -181,6 +189,10 @@ $game-colors: (
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   gap: v.$space-3;
+
+  @media (max-width: 480px) {
+    grid-template-columns: repeat(2, 1fr);
+  }
 }
 
 .game-detail__stat {
@@ -211,6 +223,16 @@ $game-colors: (
   border-bottom: 1px solid v.$color-border;
   background-color: v.$color-bg-surface;
   padding: 0 v.$space-8;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  &::-webkit-scrollbar {
+    display: none;
+  }
+
+  @media (max-width: 600px) {
+    padding: 0 v.$space-4;
+  }
 }
 
 .game-detail__tab {
@@ -250,6 +272,10 @@ $game-colors: (
   padding: v.$space-6 v.$space-8;
   max-width: v.$content-max-width;
   margin: 0 auto;
+
+  @media (max-width: 600px) {
+    padding: v.$space-4;
+  }
 
   &--empty {
     display: flex;
@@ -355,6 +381,7 @@ $game-colors: (
   gap: v.$space-4;
   font-size: v.$font-size-xs;
   color: v.$color-text-muted;
+  flex-wrap: wrap;
 }
 
 .game-detail__quest-right {

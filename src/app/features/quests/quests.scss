@@ -1,7 +1,375 @@
 @use 'styles/variables' as v;
+@use 'styles/animations' as a;
+@use 'styles/mixins' as m;
 
-.feature-page {
-  padding: v.$space-8;
-  max-width: v.$content-max-width;
+.qs {
+  min-height: calc(100vh - #{v.$navbar-height});
+  background: v.$color-bg;
+  @include a.page-enter;
+}
+
+// ─── header ────────────────────────────────────────────────────────────────────
+.qs__head {
+  background: v.$color-bg-surface;
+  border-bottom: 1px solid v.$color-border;
+  padding: 28px 0 20px;
+}
+
+.qs__head-inner {
+  max-width: 860px;
   margin: 0 auto;
+  padding: 0 28px;
+
+  @media (max-width: 600px) {
+    padding: 0 16px;
+  }
+}
+
+.qs__head-top {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.qs__title {
+  font-family: v.$font-display;
+  font-size: 26px;
+  font-weight: 500;
+  color: v.$color-text;
+}
+
+.qs__count {
+  font-size: 13px;
+  color: v.$color-text-muted;
+}
+
+.qs__search {
+  position: relative;
+  margin-bottom: 14px;
+}
+
+.qs__search-icon {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 15px;
+  color: v.$color-text-muted;
+  pointer-events: none;
+}
+
+.qs__search-input {
+  width: 100%;
+  padding: 9px 14px 9px 36px;
+  background: v.$color-bg;
+  border: 1px solid v.$color-border;
+  border-radius: v.$radius-md;
+  font-family: v.$font-body;
+  font-size: 14px;
+  color: v.$color-text;
+  outline: none;
+  transition: border-color 0.15s;
+
+  &::placeholder {
+    color: v.$color-text-muted;
+  }
+  &:focus {
+    border-color: rgba(v.$color-gold, 0.5);
+  }
+}
+
+// ─── filter chips ──────────────────────────────────────────────────────────────
+.qs__filter-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 8px;
+}
+
+.qs__chip {
+  padding: 4px 14px;
+  border-radius: 20px;
+  font-family: v.$font-body;
+  font-size: 12px;
+  border: 1px solid v.$color-border;
+  background: v.$color-bg;
+  color: v.$color-text-muted;
+  cursor: pointer;
+  transition:
+    border-color 0.12s,
+    color 0.12s,
+    background 0.12s;
+
+  &:hover {
+    border-color: rgba(v.$color-gold, 0.4);
+    color: v.$color-text;
+  }
+
+  &--active {
+    background: rgba(v.$color-gold, 0.1);
+    border-color: rgba(v.$color-gold, 0.4);
+    color: v.$color-gold;
+  }
+}
+
+// ─── body / list ───────────────────────────────────────────────────────────────
+.qs__body {
+  max-width: 860px;
+  margin: 0 auto;
+  padding: 28px;
+
+  @media (max-width: 600px) {
+    padding: 16px;
+  }
+}
+
+.qs__list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+@media (max-width: 500px) {
+  .qs__mg {
+    display: none;
+  }
+  .qs__card {
+    padding: 12px 14px;
+  }
+  .qs__game-chip {
+    margin-left: 0;
+  }
+}
+
+// ─── card ──────────────────────────────────────────────────────────────────────
+.qs__list .qs__card {
+  animation: sg-card-enter 0.25s ease both;
+  @include a.stagger-children(0.05s, 10);
+}
+
+.qs__card {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 16px 18px;
+  background: v.$color-bg-surface;
+  border: 1px solid v.$color-border;
+  border-radius: v.$radius-lg;
+  text-decoration: none;
+  transition:
+    border-color 0.15s,
+    background 0.15s;
+
+  &:hover {
+    border-color: rgba(v.$color-gold, 0.35);
+    background: v.$color-bg-elevated;
+  }
+}
+
+// ─── mini-graph ────────────────────────────────────────────────────────────────
+.qs__mg {
+  width: 72px;
+  height: 46px;
+  flex-shrink: 0;
+}
+
+.qs__mg-edge {
+  stroke: v.$color-border;
+  stroke-width: 0.8;
+}
+.qs__mg-start {
+  fill: rgba(31, 170, 100, 0.2);
+  stroke: #1faa64;
+  stroke-width: 0.7;
+}
+.qs__mg-end {
+  fill: rgba(201, 168, 76, 0.15);
+  stroke: v.$color-gold;
+  stroke-width: 0.7;
+}
+.qs__mg-task {
+  fill: v.$color-bg-elevated;
+  stroke: v.$color-border;
+  stroke-width: 0.7;
+}
+.qs__mg-gateway {
+  fill: rgba(55, 138, 221, 0.15);
+  stroke: #378add;
+  stroke-width: 0.7;
+}
+.qs__mg-ext {
+  fill: rgba(200, 112, 232, 0.1);
+  stroke: rgba(200, 112, 232, 0.5);
+  stroke-width: 0.7;
+  stroke-dasharray: 2 1;
+}
+
+// ─── card info ─────────────────────────────────────────────────────────────────
+.qs__card-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.qs__card-top {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 4px;
+  flex-wrap: wrap;
+}
+
+.qs__card-title {
+  font-size: 15px;
+  font-weight: 500;
+  color: v.$color-text;
+  flex: 1;
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.qs__card-desc {
+  font-size: 13px;
+  color: v.$color-text-muted;
+  line-height: 1.5;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  margin-bottom: 8px;
+}
+
+.qs__card-stats {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.qs__stat {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  color: v.$color-text-muted;
+
+  .ti {
+    font-size: 12px;
+  }
+}
+
+// ─── badges ────────────────────────────────────────────────────────────────────
+.qs__badge {
+  font-size: 10px;
+  padding: 2px 8px;
+  border-radius: 10px;
+  white-space: nowrap;
+  flex-shrink: 0;
+
+  &--canonico {
+    background: rgba(v.$color-gold, 0.1);
+    color: v.$color-gold;
+    border: 1px solid rgba(v.$color-gold, 0.25);
+  }
+  &--consolidado {
+    background: rgba(122, 154, 90, 0.1);
+    color: #7a9a5a;
+    border: 1px solid rgba(122, 154, 90, 0.25);
+  }
+  &--teoria {
+    background: rgba(90, 122, 154, 0.1);
+    color: #5a7a9a;
+    border: 1px solid rgba(90, 122, 154, 0.25);
+  }
+}
+
+.qs__game-chip {
+  font-size: 10px;
+  padding: 2px 8px;
+  border-radius: 10px;
+  white-space: nowrap;
+  margin-left: auto;
+
+  &--elden-ring {
+    background: rgba(v.$color-gold, 0.1);
+    color: darken(#c9a84c, 10%);
+    border: 1px solid rgba(v.$color-gold, 0.25);
+  }
+  &--bloodborne {
+    background: rgba(200, 112, 232, 0.08);
+    color: #a054b8;
+    border: 1px solid rgba(200, 112, 232, 0.25);
+  }
+  &--dark-souls-3 {
+    background: rgba(55, 138, 221, 0.08);
+    color: #2a6aab;
+    border: 1px solid rgba(55, 138, 221, 0.25);
+  }
+  &--lies-of-p {
+    background: rgba(200, 120, 50, 0.08);
+    color: #a05a18;
+    border: 1px solid rgba(200, 120, 50, 0.25);
+  }
+}
+
+// ─── arrow / empty ─────────────────────────────────────────────────────────────
+.qs__card-arrow {
+  font-size: 14px;
+  color: v.$color-text-muted;
+  flex-shrink: 0;
+  opacity: 0.4;
+}
+
+.qs__empty {
+  font-size: 14px;
+  color: v.$color-text-muted;
+  text-align: center;
+  padding: 48px 0;
+}
+
+// ─── skeleton ──────────────────────────────────────────────────────────────────
+.qs__skel-card {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 14px 20px;
+  border-bottom: 1px solid v.$color-border;
+}
+
+.qs__skel-mg {
+  @include m.skeleton-base;
+  width: 64px;
+  height: 40px;
+  flex-shrink: 0;
+  border-radius: v.$radius-sm;
+}
+
+.qs__skel-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.qs__skel-title {
+  @include m.skeleton-line(15px, 60%);
+}
+
+.qs__skel-line {
+  @include m.skeleton-line(12px, 90%);
+  &--short {
+    width: 50%;
+  }
+}
+
+.qs__skel-stats {
+  display: flex;
+  gap: 10px;
+}
+
+.qs__skel-stat {
+  @include m.skeleton-line(11px, 52px);
+  border-radius: 10px;
 }

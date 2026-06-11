@@ -1,3 +1,98 @@
-<section class="feature-page">
-  <h2>Lore</h2>
-</section>
+<div class="lr">
+  <!-- ══ header ═══════════════════════════════════════════════════════════════ -->
+  <header class="lr__head">
+    <div class="lr__head-inner">
+      <h1 class="lr__title">lore</h1>
+
+      <div class="lr__search">
+        <i class="ti ti-search lr__search-icon" aria-hidden="true"></i>
+        <input
+          class="lr__search-input"
+          type="search"
+          placeholder="buscar artigos de lore…"
+          [value]="search()"
+          (input)="search.set($any($event.target).value)"
+          aria-label="Buscar artigos de lore"
+        />
+      </div>
+
+      <div class="lr__filter-row">
+        @for (f of gameFilters; track f.id) {
+          <button
+            class="lr__chip"
+            [class.lr__chip--active]="gameFilter() === f.id"
+            type="button"
+            (click)="gameFilter.set(f.id)"
+          >
+            {{ f.label }}
+          </button>
+        }
+      </div>
+
+      <div class="lr__filter-row">
+        @for (f of categoryFilters; track f.id) {
+          <button
+            class="lr__chip"
+            [class.lr__chip--active]="categoryFilter() === f.id"
+            type="button"
+            (click)="categoryFilter.set(f.id)"
+          >
+            {{ f.label }}
+          </button>
+        }
+      </div>
+    </div>
+  </header>
+
+  <!-- ══ grid ═════════════════════════════════════════════════════════════════ -->
+  <div class="lr__body">
+    @if (loading()) {
+      <div class="lr__grid">
+        @for (_ of skeletonItems; track $index) {
+          <div class="lr__skel-card">
+            <div class="lr__skel-badges">
+              <div class="lr__skel-badge"></div>
+              <div class="lr__skel-badge lr__skel-badge--sm"></div>
+            </div>
+            <div class="lr__skel-title"></div>
+            <div class="lr__skel-line"></div>
+            <div class="lr__skel-line lr__skel-line--short"></div>
+            <div class="lr__skel-foot">
+              <div class="lr__skel-tag"></div>
+              <div class="lr__skel-tag"></div>
+            </div>
+          </div>
+        }
+      </div>
+    } @else if (filtered().length) {
+      <div class="lr__grid">
+        @for (article of filtered(); track article.id) {
+          <a class="lr__card" [routerLink]="['/lore', article.id]">
+            <div class="lr__card-badges">
+              <span class="lr__badge lr__badge--game lr__badge--{{ article.gameId }}">
+                {{ article.gameName }}
+              </span>
+              <span class="lr__badge lr__badge--cat">{{ categoryLabel(article.category) }}</span>
+              <span class="lr__badge lr__badge--{{ article.status | lowercase }}">
+                {{ statusLabel(article.status) }}
+              </span>
+            </div>
+
+            <h2 class="lr__card-title">{{ article.title }}</h2>
+            <p class="lr__card-excerpt">{{ article.excerpt }}</p>
+
+            <div class="lr__card-foot">
+              <span class="lr__card-read">
+                <i class="ti ti-clock" aria-hidden="true"></i>
+                {{ article.readMinutes }} min
+              </span>
+              <span class="lr__card-author">@{{ article.author }}</span>
+            </div>
+          </a>
+        }
+      </div>
+    } @else {
+      <p class="lr__empty">Nenhum artigo encontrado.</p>
+    }
+  </div>
+</div>

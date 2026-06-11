@@ -1,0 +1,293 @@
+@use 'styles/variables' as v;
+@use 'styles/animations' as a;
+
+.sr {
+  min-height: calc(100vh - #{v.$navbar-height});
+  background: v.$color-bg;
+  @include a.page-enter;
+}
+
+// ─── header ────────────────────────────────────────────────────────────────────
+.sr__head {
+  background: v.$color-bg-surface;
+  border-bottom: 1px solid v.$color-border;
+  padding: 28px 0 20px;
+}
+
+.sr__head-inner {
+  max-width: 760px;
+  margin: 0 auto;
+  padding: 0 28px;
+
+  @media (max-width: 600px) {
+    padding: 0 16px;
+  }
+}
+
+.sr__search-wrap {
+  position: relative;
+  margin-bottom: 10px;
+}
+
+.sr__search-icon {
+  position: absolute;
+  left: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 18px;
+  color: v.$color-text-muted;
+  pointer-events: none;
+}
+
+.sr__search-input {
+  width: 100%;
+  padding: 12px 16px 12px 44px;
+  background: v.$color-bg;
+  border: 1px solid v.$color-border;
+  border-radius: v.$radius-md;
+  font-family: v.$font-body;
+  font-size: 16px;
+  color: v.$color-text;
+  outline: none;
+  transition: border-color 0.15s;
+
+  &::placeholder {
+    color: v.$color-text-muted;
+  }
+  &:focus {
+    border-color: rgba(v.$color-gold, 0.5);
+  }
+}
+
+.sr__meta {
+  font-size: 13px;
+  color: v.$color-text-muted;
+
+  strong {
+    color: v.$color-text;
+    font-weight: 500;
+  }
+}
+
+// ─── body ──────────────────────────────────────────────────────────────────────
+.sr__body {
+  max-width: 760px;
+  margin: 0 auto;
+  padding: 28px;
+
+  @media (max-width: 600px) {
+    padding: 16px;
+  }
+}
+
+// ─── empty states ──────────────────────────────────────────────────────────────
+.sr__empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  padding: 72px 0;
+  text-align: center;
+}
+
+.sr__empty-icon {
+  font-size: 40px;
+  color: v.$color-text-faint;
+  margin-bottom: 4px;
+}
+
+.sr__empty-title {
+  font-size: 18px;
+  font-weight: 500;
+  color: v.$color-text;
+}
+
+.sr__empty-sub {
+  font-size: 14px;
+  color: v.$color-text-muted;
+}
+
+.sr__empty-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 8px;
+  padding: 9px 18px;
+  border-radius: v.$radius-md;
+  border: 1px solid rgba(v.$color-gold, 0.35);
+  background: rgba(v.$color-gold, 0.08);
+  color: v.$color-gold;
+  font-size: 13px;
+  text-decoration: none;
+  transition: background 0.15s;
+
+  &:hover {
+    background: rgba(v.$color-gold, 0.15);
+  }
+}
+
+// ─── sections ──────────────────────────────────────────────────────────────────
+.sr__section {
+  margin-bottom: 32px;
+}
+
+.sr__section-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: v.$color-text-muted;
+  margin-bottom: 10px;
+
+  .ti {
+    font-size: 14px;
+  }
+}
+
+.sr__section-count {
+  margin-left: auto;
+  font-size: 11px;
+  color: v.$color-text-faint;
+  font-weight: 400;
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+// ─── result card ───────────────────────────────────────────────────────────────
+.sr__section .sr__card {
+  animation: sg-card-enter 0.25s ease both;
+  @include a.stagger-children(0.04s, 10);
+}
+
+.sr__card {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 16px;
+  background: v.$color-bg-surface;
+  border: 1px solid v.$color-border;
+  border-radius: v.$radius-lg;
+  text-decoration: none;
+  margin-bottom: 8px;
+  transition:
+    border-color 0.15s,
+    background 0.15s;
+
+  &:hover {
+    border-color: rgba(v.$color-gold, 0.35);
+    background: v.$color-bg-elevated;
+  }
+}
+
+.sr__card-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: v.$radius-md;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  flex-shrink: 0;
+
+  &--quest {
+    background: rgba(31, 170, 100, 0.1);
+    color: #1faa64;
+  }
+
+  &--lore {
+    background: rgba(v.$color-gold, 0.1);
+    color: v.$color-gold;
+  }
+}
+
+.sr__card-body {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.sr__card-title {
+  font-size: 14px;
+  font-weight: 500;
+  color: v.$color-text;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.sr__card-meta {
+  font-size: 12px;
+  color: v.$color-text-muted;
+}
+
+.sr__card-badges {
+  display: flex;
+  gap: 5px;
+  flex-shrink: 0;
+}
+
+.sr__badge {
+  font-size: 10px;
+  padding: 2px 8px;
+  border-radius: 10px;
+  white-space: nowrap;
+
+  &--game {
+    display: none;
+  } // shown only on wider screens via media query
+
+  &--canonico {
+    background: rgba(v.$color-gold, 0.1);
+    color: v.$color-gold;
+    border: 1px solid rgba(v.$color-gold, 0.25);
+  }
+  &--consolidado {
+    background: rgba(122, 154, 90, 0.1);
+    color: #7a9a5a;
+    border: 1px solid rgba(122, 154, 90, 0.25);
+  }
+  &--teoria {
+    background: rgba(90, 122, 154, 0.1);
+    color: #5a7a9a;
+    border: 1px solid rgba(90, 122, 154, 0.25);
+  }
+
+  &--elden-ring {
+    background: rgba(v.$color-gold, 0.1);
+    color: darken(#c9a84c, 10%);
+    border: 1px solid rgba(v.$color-gold, 0.25);
+  }
+  &--bloodborne {
+    background: rgba(200, 112, 232, 0.08);
+    color: #a054b8;
+    border: 1px solid rgba(200, 112, 232, 0.25);
+  }
+  &--dark-souls-3 {
+    background: rgba(55, 138, 221, 0.08);
+    color: #2a6aab;
+    border: 1px solid rgba(55, 138, 221, 0.25);
+  }
+  &--lies-of-p {
+    background: rgba(200, 120, 50, 0.08);
+    color: #a05a18;
+    border: 1px solid rgba(200, 120, 50, 0.25);
+  }
+}
+
+.sr__card-arrow {
+  font-size: 14px;
+  color: v.$color-text-muted;
+  flex-shrink: 0;
+  opacity: 0.4;
+}
+
+@media (min-width: 600px) {
+  .sr__badge--game {
+    display: inline;
+  }
+}

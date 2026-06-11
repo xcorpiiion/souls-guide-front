@@ -39,11 +39,20 @@ export const routes: Routes = [
     loadComponent: () => import('./features/lore/lore').then((m) => m.Lore),
   },
   {
+    path: 'lore/:id',
+    loadComponent: () =>
+      import('./features/lore/lore-detail/lore-detail').then((m) => m.LoreDetail),
+  },
+  {
     path: 'profile',
     loadComponent: () => import('./features/profile/profile').then((m) => m.Profile),
   },
   {
+    path: 'search',
+    loadComponent: () => import('./features/search/search').then((m) => m.Search),
+  },
+  {
     path: '**',
-    redirectTo: 'home',
+    loadComponent: () => import('./features/not-found/not-found').then((m) => m.NotFound),
   },
 ];

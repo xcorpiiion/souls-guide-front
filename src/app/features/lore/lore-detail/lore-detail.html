@@ -1,0 +1,104 @@
+@if (article(); as a) {
+  <div class="ld">
+    <!-- ══ top bar ════════════════════════════════════════════════════════════ -->
+    <div class="ld__topbar">
+      <div class="ld__topbar-inner">
+        <nav class="ld__crumb" aria-label="Navegação">
+          <a class="ld__crumb-link" routerLink="/lore">lore</a>
+          <i class="ti ti-chevron-right ld__crumb-sep" aria-hidden="true"></i>
+          <span class="ld__crumb-link">{{ a.gameName }}</span>
+          <i class="ti ti-chevron-right ld__crumb-sep" aria-hidden="true"></i>
+          <span class="ld__crumb-current">{{ categoryLabel(a.category) }}</span>
+        </nav>
+      </div>
+    </div>
+
+    <!-- ══ layout ════════════════════════════════════════════════════════════ -->
+    <div class="ld__layout">
+      <!-- ── article body ── -->
+      <article class="ld__article">
+        <header class="ld__article-head">
+          <div class="ld__badges">
+            <span class="lr__badge lr__badge--{{ a.gameId }}">{{ a.gameName }}</span>
+            <span class="lr__badge lr__badge--cat">{{ categoryLabel(a.category) }}</span>
+            <span class="lr__badge lr__badge--{{ a.status | lowercase }}">
+              {{ statusLabel(a.status) }}
+            </span>
+          </div>
+
+          <h1 class="ld__title">{{ a.title }}</h1>
+
+          <div class="ld__meta">
+            <span class="ld__meta-item">
+              <i class="ti ti-user" aria-hidden="true"></i>
+              @{{ a.author }}
+            </span>
+            <span class="ld__meta-sep">·</span>
+            <span class="ld__meta-item">
+              <i class="ti ti-clock" aria-hidden="true"></i>
+              {{ a.readMinutes }} min de leitura
+            </span>
+          </div>
+        </header>
+
+        <div class="ld__content">
+          @for (section of a.sections; track section.heading) {
+            <h2 class="ld__section-heading">{{ section.heading }}</h2>
+            <p class="ld__paragraph">{{ section.body }}</p>
+            @if (section.quote) {
+              <blockquote class="ld__quote">{{ section.quote }}</blockquote>
+            }
+          }
+        </div>
+
+        <footer class="ld__article-foot">
+          <div class="ld__tags">
+            @for (tag of a.tags; track tag) {
+              <span class="ld__tag">{{ tag }}</span>
+            }
+          </div>
+        </footer>
+      </article>
+
+      <!-- ── sidebar ── -->
+      <aside class="ld__sidebar">
+        <!-- table of contents -->
+        <div class="ld__sidebar-card">
+          <p class="ld__sidebar-title">neste artigo</p>
+          @for (section of a.sections; track section.heading; let first = $first) {
+            <span class="ld__toc-item" [class.ld__toc-item--active]="first">
+              {{ section.heading }}
+            </span>
+          }
+        </div>
+
+        <!-- related quests -->
+        @if (a.relatedQuests.length) {
+          <div class="ld__sidebar-card">
+            <p class="ld__sidebar-title">quests relacionadas</p>
+            @for (rq of a.relatedQuests; track rq.questId) {
+              <a
+                class="ld__related-quest"
+                [routerLink]="['/games', rq.gameId, 'quests', rq.questId]"
+              >
+                <span class="ld__rq-dot"></span>
+                <span class="ld__rq-title">{{ rq.title }}</span>
+              </a>
+            }
+          </div>
+        }
+
+        <!-- suggest edit -->
+        <a class="ld__suggest-btn" routerLink="/lore">
+          <i class="ti ti-arrow-left" aria-hidden="true"></i>
+          voltar ao lore
+        </a>
+      </aside>
+    </div>
+  </div>
+} @else {
+  <div class="ld__not-found">
+    <p>Artigo não encontrado.</p>
+    <a routerLink="/lore">← voltar ao lore</a>
+  </div>
+}

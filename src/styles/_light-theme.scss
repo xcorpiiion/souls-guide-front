@@ -1,0 +1,525 @@
+// Light theme overrides — applied when [data-theme="light"] is on <html>
+// Dark mode is the default; this file only defines what changes.
+
+[data-theme='light'] {
+  // ── canvas / base ────────────────────────────────────────────────
+  background-color: #f2ede5;
+  color: #1a1410;
+
+  // ── page roots ───────────────────────────────────────────────────
+  .home,
+  .lr,
+  .qs,
+  .sr,
+  .pf,
+  .ld,
+  .nf {
+    background: #f2ede5;
+  }
+
+  // ── navbar ───────────────────────────────────────────────────────
+  .navbar {
+    background-color: #ffffff;
+    border-bottom-color: #d8d0c6;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+
+    &__brand-text {
+      color: #1a1410;
+    }
+    &__link {
+      color: #6b6054;
+      &--active {
+        color: #9a7a35;
+      }
+      &:hover {
+        color: #1a1410;
+        background: #ede8e0;
+      }
+    }
+    &__icon-btn {
+      border-color: #d8d0c6;
+      color: #6b6054;
+      &:hover {
+        border-color: rgba(154, 122, 53, 0.5);
+        color: #1a1410;
+      }
+    }
+    &__avatar {
+      background: rgba(154, 122, 53, 0.15);
+      border-color: rgba(154, 122, 53, 0.4);
+      color: #9a7a35;
+    }
+    &__hamburger {
+      border-color: #d8d0c6;
+      color: #6b6054;
+    }
+    &__mobile {
+      background: #ffffff;
+      border-bottom-color: #d8d0c6;
+    }
+    &__mobile-link {
+      color: #6b6054;
+      &--active {
+        color: #9a7a35;
+      }
+      &:hover {
+        color: #1a1410;
+        background: #ede8e0;
+      }
+    }
+    &__search-box {
+      background: #ffffff;
+      border-color: rgba(154, 122, 53, 0.3);
+    }
+    &__search-box-input {
+      color: #1a1410;
+      &::placeholder {
+        color: #a09080;
+      }
+    }
+    &__search-kbd {
+      background: #ede8e0;
+      border-color: #d8d0c6;
+      color: #6b6054;
+    }
+  }
+
+  // ── hero ─────────────────────────────────────────────────────────
+  .hero {
+    &__eyebrow {
+      color: #8a8278;
+    }
+    &__headline {
+      color: #1a1410;
+      &--gold {
+        color: #9a7a35;
+      }
+    }
+    &__sub {
+      color: #6b6054;
+    }
+    &__search-input {
+      background: #ffffff;
+      border-color: #d8d0c6;
+      color: #1a1410;
+      &::placeholder {
+        color: #a09080;
+      }
+      &:focus {
+        border-color: #9a7a35;
+      }
+    }
+    &__search-btn {
+      background: #9a7a35;
+      &:hover {
+        background: #b8923e;
+      }
+    }
+    &__game-pill {
+      border-color: #d8d0c6;
+      color: #6b6054;
+      &--active {
+        border-color: #9a7a35;
+        color: #9a7a35;
+        background: rgba(154, 122, 53, 0.08);
+      }
+      &:hover {
+        border-color: #9a7a35;
+        color: #9a7a35;
+      }
+    }
+    &__stats {
+      border-top-color: #d8d0c6;
+    }
+    &__stat-n {
+      color: #9a7a35;
+    }
+    &__stat-l {
+      color: #8a8278;
+    }
+  }
+
+  .home__divider {
+    background: #d8d0c6;
+  }
+
+  .home__section-title {
+    color: #8a8278;
+  }
+  .home__section-link {
+    color: #9a7a35;
+  }
+  .home__lore-intro {
+    background: #ede8e0;
+    border-left-color: #9a7a35;
+    strong {
+      color: #1a1410;
+    }
+  }
+
+  // ── quest list (home) ────────────────────────────────────────────
+  .quest-item {
+    border-bottom-color: #d8d0c6;
+    &__rank {
+      color: #9a7a35;
+    }
+    &__title {
+      color: #1a1410;
+    }
+    &__meta {
+      color: #6b6054;
+    }
+    &__tag {
+      background: #ede8e0;
+      border-color: #d8d0c6;
+      color: #6b6054;
+    }
+    &:hover .quest-item__title {
+      color: #9a7a35;
+    }
+  }
+
+  .lore-item {
+    border-bottom-color: #d8d0c6;
+    &__title {
+      color: #1a1410;
+    }
+    &__meta {
+      color: #6b6054;
+    }
+    &:hover .lore-item__title {
+      color: #9a7a35;
+    }
+  }
+
+  .home__cta {
+    border-top-color: #d8d0c6;
+    &-text {
+      color: #6b6054;
+    }
+    &-link {
+      color: #9a7a35;
+    }
+  }
+
+  // ── section headers ──────────────────────────────────────────────
+  .lr__head,
+  .qs__head,
+  .sr__head,
+  .pf__hero,
+  .ld__topbar {
+    background: #ffffff;
+    border-bottom-color: #d8d0c6;
+  }
+
+  // ── search / filter inputs ───────────────────────────────────────
+  .lr__search-input,
+  .qs__search-input,
+  .sr__search-input {
+    background: #f2ede5;
+    border-color: #d8d0c6;
+    color: #1a1410;
+    &::placeholder {
+      color: #a09080;
+    }
+    &:focus {
+      border-color: rgba(154, 122, 53, 0.5);
+    }
+  }
+
+  .lr__search-icon,
+  .qs__search-icon,
+  .sr__search-icon {
+    color: #a09080;
+  }
+
+  // ── chips ────────────────────────────────────────────────────────
+  .lr__chip,
+  .qs__chip {
+    background: #f2ede5;
+    border-color: #d8d0c6;
+    color: #6b6054;
+    &--active {
+      background: rgba(154, 122, 53, 0.1);
+      border-color: rgba(154, 122, 53, 0.4);
+      color: #9a7a35;
+    }
+    &:hover {
+      border-color: rgba(154, 122, 53, 0.4);
+      color: #1a1410;
+    }
+  }
+
+  // ── titles ───────────────────────────────────────────────────────
+  .lr__title,
+  .qs__title {
+    color: #1a1410;
+  }
+  .qs__count,
+  .sr__meta {
+    color: #8a8278;
+  }
+
+  // ── cards ────────────────────────────────────────────────────────
+  .lr__card,
+  .qs__card,
+  .sr__card {
+    background: #ffffff;
+    border-color: #d8d0c6;
+    &:hover {
+      background: #ede8e0;
+      border-color: rgba(154, 122, 53, 0.35);
+    }
+  }
+
+  .lr__card-title,
+  .qs__card-title,
+  .sr__card-title {
+    color: #1a1410;
+  }
+  .lr__card-excerpt,
+  .qs__card-desc,
+  .sr__card-meta {
+    color: #6b6054;
+  }
+  .lr__card-foot {
+    border-top-color: #d8d0c6;
+    color: #8a8278;
+  }
+  .qs__card-stats .qs__stat {
+    color: #8a8278;
+  }
+  .qs__card-arrow,
+  .sr__card-arrow {
+    color: #a09080;
+  }
+
+  // ── mini-graph edges ─────────────────────────────────────────────
+  .qs__mg-edge,
+  .pf__mg-edge {
+    stroke: #d8d0c6;
+  }
+  .qs__mg-task,
+  .pf__mg-task {
+    fill: #f2ede5;
+    stroke: #d8d0c6;
+  }
+
+  // ── search empty ─────────────────────────────────────────────────
+  .sr__empty-icon {
+    color: #c8c0b8;
+  }
+  .sr__empty-title {
+    color: #1a1410;
+  }
+  .sr__empty-sub {
+    color: #6b6054;
+  }
+  .sr__section-title {
+    color: #8a8278;
+  }
+  .sr__section-count {
+    color: #c8c0b8;
+  }
+  .sr__empty-link {
+    background: rgba(154, 122, 53, 0.08);
+    border-color: rgba(154, 122, 53, 0.35);
+    color: #9a7a35;
+    &:hover {
+      background: rgba(154, 122, 53, 0.15);
+    }
+  }
+
+  // ── profile ──────────────────────────────────────────────────────
+  .pf__avatar {
+    background: #ede8e0;
+    color: #9a7a35;
+  }
+  .pf__name {
+    color: #1a1410;
+  }
+  .pf__handle,
+  .pf__bio {
+    color: #6b6054;
+  }
+  .pf__stats {
+    border-top-color: #d8d0c6;
+  }
+  .pf__stat-n {
+    color: #1a1410;
+  }
+  .pf__stat-l {
+    color: #8a8278;
+  }
+  .pf__edit-btn {
+    border-color: #d8d0c6;
+    color: #6b6054;
+    &:hover {
+      border-color: rgba(154, 122, 53, 0.4);
+      color: #1a1410;
+    }
+  }
+  .pf__tab {
+    color: #6b6054;
+    &--active {
+      color: #9a7a35;
+      border-bottom-color: #9a7a35;
+    }
+    &:hover {
+      color: #1a1410;
+    }
+  }
+  .pf__section-title {
+    color: #8a8278;
+  }
+  .pf__quest-card {
+    background: #ffffff;
+    border-color: #d8d0c6;
+    &:hover {
+      background: #ede8e0;
+      border-color: rgba(154, 122, 53, 0.3);
+    }
+  }
+  .pf__quest-title {
+    color: #1a1410;
+  }
+  .pf__quest-meta {
+    color: #6b6054;
+  }
+  .pf__sidebar-card {
+    background: #ffffff;
+    border-color: #d8d0c6;
+  }
+  .pf__game-row {
+    border-bottom-color: #d8d0c6;
+    &:hover .pf__game-name {
+      color: #9a7a35;
+    }
+  }
+  .pf__game-name {
+    color: #1a1410;
+  }
+  .pf__game-count {
+    color: #8a8278;
+  }
+  .pf__activity-row {
+    border-bottom-color: #d8d0c6;
+  }
+  .pf__activity-text {
+    color: #6b6054;
+    strong {
+      color: #1a1410;
+    }
+  }
+  .pf__activity-time {
+    color: #8a8278;
+  }
+  .pf__game-card {
+    background: #ffffff;
+    border-color: #d8d0c6;
+    &:hover {
+      border-color: rgba(154, 122, 53, 0.3);
+    }
+  }
+  .pf__empty {
+    color: #8a8278;
+  }
+
+  // ── lore detail ──────────────────────────────────────────────────
+  .ld__crumb-link {
+    color: #8a8278;
+    &:hover {
+      color: #9a7a35;
+    }
+  }
+  .ld__crumb-current,
+  .ld__crumb-sep {
+    color: #a09080;
+  }
+  .ld__title {
+    color: #1a1410;
+  }
+  .ld__meta-item,
+  .ld__meta {
+    color: #6b6054;
+  }
+  .ld__section-heading {
+    color: #1a1410;
+    border-left-color: #9a7a35;
+  }
+  .ld__paragraph {
+    color: #5a5048;
+  }
+  .ld__quote {
+    background: #ede8e0;
+    border-left-color: rgba(154, 122, 53, 0.5);
+    color: #6b6054;
+  }
+  .ld__article-foot {
+    border-top-color: #d8d0c6;
+  }
+  .ld__tag {
+    background: #ede8e0;
+    border-color: #d8d0c6;
+    color: #6b6054;
+  }
+  .ld__sidebar-card {
+    background: #ffffff;
+    border-color: #d8d0c6;
+  }
+  .ld__sidebar-title {
+    color: #8a8278;
+  }
+  .ld__toc-item {
+    color: #6b6054;
+    border-left-color: #d8d0c6;
+    &--active {
+      border-left-color: #9a7a35;
+      color: #1a1410;
+    }
+    &:hover {
+      color: #1a1410;
+    }
+  }
+  .ld__related-quest {
+    border-bottom-color: #d8d0c6;
+    &:hover .ld__rq-title {
+      color: #9a7a35;
+    }
+  }
+  .ld__rq-title {
+    color: #1a1410;
+  }
+  .ld__suggest-btn {
+    border-color: #d8d0c6;
+    color: #6b6054;
+    &:hover {
+      border-color: rgba(154, 122, 53, 0.4);
+      color: #1a1410;
+    }
+  }
+
+  // ── 404 ──────────────────────────────────────────────────────────
+  .nf__code {
+    color: #ede8e0;
+  }
+  .nf__sub {
+    color: #6b6054;
+  }
+  .nf__btn {
+    border-color: #d8d0c6;
+    color: #6b6054;
+    &:hover {
+      border-color: rgba(154, 122, 53, 0.4);
+      color: #1a1410;
+    }
+    &--primary {
+      background: rgba(154, 122, 53, 0.1);
+      border-color: rgba(154, 122, 53, 0.35);
+      color: #9a7a35;
+      &:hover {
+        background: rgba(154, 122, 53, 0.18);
+      }
+    }
+  }
+}
