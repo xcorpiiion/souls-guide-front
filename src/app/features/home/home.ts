@@ -72,8 +72,4 @@ export class Home {
   protected trackById(_: number, item: { id: string }): string {
     return item.id;
   }
-
-  protected throwTestError(): void {
-    throw new Error('Sentry Test — pode ignorar este erro');
-  }
 }
