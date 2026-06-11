@@ -1,9 +1,9 @@
-name: Deploy to Firebase Hosting — PROD
+name: Deploy to Firebase Hosting — DEV
 
 on:
   push:
     branches:
-      - main
+      - develop
 
 jobs:
   build_and_deploy:
@@ -29,10 +29,10 @@ jobs:
       - name: Build
         run: npm run build
 
-      - name: Deploy to PROD (live channel)
+      - name: Deploy to DEV channel
         uses: FirebaseExtended/action-hosting-deploy@v0
         with:
           repoToken: ${{ secrets.GITHUB_TOKEN }}
           firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_SOULSGUIDE_F2B59 }}
-          channelId: live
+          channelId: dev
           projectId: soulsguide-f2b59
