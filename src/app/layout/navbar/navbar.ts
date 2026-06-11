@@ -1,6 +1,5 @@
 import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
 import { Router, RouterLink, RouterLinkActive } from '@angular/router';
-import { ThemeService } from '../../core/services/theme.service';
 
 @Component({
   selector: 'app-navbar',
@@ -11,7 +10,6 @@ import { ThemeService } from '../../core/services/theme.service';
 })
 export class Navbar {
   private readonly router = inject(Router);
-  protected readonly themeService = inject(ThemeService);
 
   readonly navLinks = [
     { path: '/home', label: 'Início' },

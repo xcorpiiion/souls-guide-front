@@ -26,19 +26,6 @@
       <i class="ti ti-search" aria-hidden="true"></i>
     </button>
 
-    <!-- theme toggle -->
-    <button
-      class="navbar__icon-btn"
-      type="button"
-      (click)="themeService.toggle()"
-      [attr.aria-label]="themeService.theme() === 'dark' ? 'Tema claro' : 'Tema escuro'"
-    >
-      <i
-        [class]="themeService.theme() === 'dark' ? 'ti ti-sun' : 'ti ti-moon'"
-        aria-hidden="true"
-      ></i>
-    </button>
-
     <!-- profile avatar -->
     <a class="navbar__avatar" routerLink="/profile" aria-label="Perfil">V</a>
 
