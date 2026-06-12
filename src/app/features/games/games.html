@@ -1,14 +1,14 @@
 <section class="games">
   <div class="games__header">
     <div class="games__header-left">
-      <p class="games__eyebrow">Comunidade · {{ games.length }} jogos</p>
+      <p class="games__eyebrow">Comunidade · {{ games().length }} jogos</p>
       <h1 class="games__title">Jogos</h1>
     </div>
     <button class="games__btn-suggest" type="button">+ Sugerir jogo</button>
   </div>
 
   <div class="games__grid">
-    @for (game of games; track trackById($index, game)) {
+    @for (game of games(); track trackById($index, game)) {
       <article class="game-card">
         <div class="game-card__banner game-card__banner--{{ game.accentClass }}">
           <span class="game-card__short">{{ game.shortName }}</span>

@@ -1,25 +1,31 @@
-@if (game) {
-  <div class="game-detail" [attr.data-game]="game.accentClass">
-    <div class="game-detail__hero game-detail__hero--{{ game.accentClass }}">
+@if (loading()) {
+  <div class="game-detail__not-found">
+    <p>Carregando…</p>
+  </div>
+} @else if (error()) {
+  <div class="game-detail__not-found">
+    <p>{{ error() }}</p>
+    <a class="game-detail__back-link" routerLink="/games">← voltar para jogos</a>
+  </div>
+} @else if (game(); as g) {
+  <div class="game-detail" [attr.data-game]="g.accentClass">
+    <div class="game-detail__hero game-detail__hero--{{ g.accentClass }}">
       <nav class="game-detail__breadcrumb" aria-label="navegação">
         <a class="game-detail__breadcrumb-link" routerLink="/games">jogos</a>
         <span class="game-detail__breadcrumb-sep" aria-hidden="true">›</span>
-        <span>{{ game.name }}</span>
+        <span>{{ g.name }}</span>
       </nav>
 
       <div class="game-detail__header">
-        <div
-          class="game-detail__badge game-detail__badge--{{ game.accentClass }}"
-          aria-hidden="true"
-        >
-          {{ game.shortName }}
+        <div class="game-detail__badge game-detail__badge--{{ g.accentClass }}" aria-hidden="true">
+          {{ g.shortName }}
         </div>
         <div class="game-detail__title-block">
-          <h1 class="game-detail__name">{{ game.name }}</h1>
-          <p class="game-detail__subtitle">
-            {{ game.developer }} · {{ game.releaseYear }} · {{ game.genre }}
-          </p>
-          <span class="game-detail__tag game-detail__tag--{{ game.accentClass }}">comunidade</span>
+          <h1 class="game-detail__name">{{ g.name }}</h1>
+          @if (g.description) {
+            <p class="game-detail__subtitle">{{ g.description }}</p>
+          }
+          <span class="game-detail__tag game-detail__tag--{{ g.accentClass }}">comunidade</span>
         </div>
         <div class="game-detail__actions">
           <button class="game-detail__btn game-detail__btn--secondary" type="button">seguir</button>
@@ -31,19 +37,19 @@
 
       <div class="game-detail__stats">
         <div class="game-detail__stat">
-          <span class="game-detail__stat-val">{{ game.questCount }}</span>
+          <span class="game-detail__stat-val">{{ quests().length }}</span>
           <span class="game-detail__stat-label">quests</span>
         </div>
         <div class="game-detail__stat">
-          <span class="game-detail__stat-val">{{ game.loreCount }}</span>
+          <span class="game-detail__stat-val">{{ loreArticles().length }}</span>
           <span class="game-detail__stat-label">lore</span>
         </div>
         <div class="game-detail__stat">
-          <span class="game-detail__stat-val">{{ game.followersCount }}</span>
+          <span class="game-detail__stat-val">{{ g.followersCount }}</span>
           <span class="game-detail__stat-label">seguidores</span>
         </div>
         <div class="game-detail__stat">
-          <span class="game-detail__stat-val">{{ game.contributorsCount }}</span>
+          <span class="game-detail__stat-val">{{ g.contributorsCount }}</span>
           <span class="game-detail__stat-label">contribuidores</span>
         </div>
       </div>
@@ -58,7 +64,7 @@
         (click)="setTab('quests')"
       >
         quests
-        <span class="game-detail__tab-count">{{ game.questCount }}</span>
+        <span class="game-detail__tab-count">{{ quests().length }}</span>
       </button>
       <button
         class="game-detail__tab"
@@ -68,7 +74,7 @@
         (click)="setTab('lore')"
       >
         lore
-        <span class="game-detail__tab-count">{{ game.loreCount }}</span>
+        <span class="game-detail__tab-count">{{ loreArticles().length }}</span>
       </button>
       <button
         class="game-detail__tab"
@@ -103,7 +109,7 @@
           @for (quest of filteredQuests(); track trackById($index, quest)) {
             <li
               class="game-detail__quest-card"
-              [routerLink]="['/games', game!.id, 'quests', quest.id]"
+              [routerLink]="['/games', g.id, 'quests', quest.id]"
               style="cursor: pointer"
             >
               <div class="game-detail__quest-info">
@@ -132,7 +138,7 @@
           }
         </ul>
 
-        <a class="game-detail__add-card" [routerLink]="['/games', game!.id, 'quests', 'new']"
+        <a class="game-detail__add-card" [routerLink]="['/games', g.id, 'quests', 'new']"
           >+ adicionar quest</a
         >
       </div>
@@ -145,9 +151,9 @@
           <a class="game-detail__section-link" routerLink="lore">ver todos →</a>
         </div>
 
-        @if (game.featuredLore.length > 0) {
+        @if (loreArticles().length > 0) {
           <div class="game-detail__lore-grid">
-            @for (lore of game.featuredLore; track trackById($index, lore)) {
+            @for (lore of loreArticles(); track trackById($index, lore)) {
               <article class="game-detail__lore-card">
                 <h2 class="game-detail__lore-title">{{ lore.title }}</h2>
                 <p class="game-detail__lore-excerpt">{{ lore.excerpt }}</p>
@@ -175,10 +181,5 @@
         <p class="game-detail__empty">Lista de contribuidores em breve.</p>
       </div>
     }
-  </div>
-} @else {
-  <div class="game-detail__not-found">
-    <p>Jogo não encontrado.</p>
-    <a class="game-detail__back-link" routerLink="/games">← voltar para jogos</a>
   </div>
 }

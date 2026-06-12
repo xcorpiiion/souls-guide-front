@@ -29,7 +29,7 @@ export class Search {
     return QUESTS_DETAIL.filter(
       (quest) =>
         quest.title.toLowerCase().includes(q) ||
-        quest.description.toLowerCase().includes(q) ||
+        (quest.description ?? '').toLowerCase().includes(q) ||
         quest.gameName.toLowerCase().includes(q),
     );
   });

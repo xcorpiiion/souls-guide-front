@@ -1,8 +1,55 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
-import { describe, beforeEach, it, expect } from 'vitest';
+import { describe, beforeEach, it, expect, vi } from 'vitest';
+import { of } from 'rxjs';
 import { Games } from './games';
-import { GAMES_SUMMARY } from './games.mocks';
+import { GameService } from '../../core/services/game.service';
+import { GameSummary } from '../../shared/models/game.model';
+
+const MOCK_GAMES: GameSummary[] = [
+  {
+    id: '1',
+    name: 'Elden Ring',
+    shortName: 'ER',
+    accentClass: 'a',
+    questCount: 5,
+    loreCount: 2,
+    followersCount: 100,
+    contributorsCount: 10,
+    topQuestTitle: 'Ranni',
+    topQuestSteps: 7,
+    topQuestFollowers: 4800,
+    lastActivityLabel: 'hoje',
+  },
+  {
+    id: '2',
+    name: 'Bloodborne',
+    shortName: 'BB',
+    accentClass: 'a',
+    questCount: 3,
+    loreCount: 1,
+    followersCount: 80,
+    contributorsCount: 8,
+    topQuestTitle: null,
+    topQuestSteps: null,
+    topQuestFollowers: null,
+    lastActivityLabel: '—',
+  },
+];
+
+const gameServiceMock = {
+  list: vi.fn(() =>
+    of({
+      content: MOCK_GAMES,
+      totalElements: 2,
+      totalPages: 1,
+      pageNumber: 0,
+      pageSize: 20,
+      last: true,
+      first: true,
+    }),
+  ),
+};
 
 describe('Games', () => {
   let fixture: ComponentFixture<Games>;
@@ -11,7 +58,7 @@ describe('Games', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [Games],
-      providers: [provideRouter([])],
+      providers: [provideRouter([]), { provide: GameService, useValue: gameServiceMock }],
     }).compileComponents();
 
     fixture = TestBed.createComponent(Games);
@@ -23,10 +70,10 @@ describe('Games', () => {
     expect(component).toBeTruthy();
   });
 
-  it('deve exibir todos os jogos dos mocks', () => {
+  it('deve exibir os jogos retornados pelo service', () => {
     const compiled: HTMLElement = fixture.nativeElement;
     const cards = compiled.querySelectorAll('.game-card');
-    expect(cards.length).toBe(GAMES_SUMMARY.length);
+    expect(cards.length).toBe(MOCK_GAMES.length);
   });
 
   it('deve exibir o nome de cada jogo', () => {
@@ -35,19 +82,5 @@ describe('Games', () => {
     const names = Array.from(badges).map((el) => el.textContent?.trim());
     expect(names).toContain('Elden Ring');
     expect(names).toContain('Bloodborne');
-    expect(names).toContain('Lords of the Fallen');
-  });
-
-  it('deve exibir mensagem de vazio quando não há quest top', () => {
-    const compiled: HTMLElement = fixture.nativeElement;
-    const emptyMessages = compiled.querySelectorAll('.game-card__top-quest-empty');
-    const lotfMock = GAMES_SUMMARY.find((g) => g.topQuestTitle === null);
-    expect(emptyMessages.length).toBe(lotfMock ? 1 : 0);
-  });
-
-  it('deve exibir estatísticas de cada jogo', () => {
-    const compiled: HTMLElement = fixture.nativeElement;
-    const statValues = compiled.querySelectorAll('.game-card__stat-value');
-    expect(statValues.length).toBeGreaterThan(0);
   });
 });

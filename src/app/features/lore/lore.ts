@@ -1,8 +1,15 @@
 import { LowerCasePipe } from '@angular/common';
-import { ChangeDetectionStrategy, Component, computed, signal } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  computed,
+  inject,
+  OnInit,
+  signal,
+} from '@angular/core';
 import { RouterLink } from '@angular/router';
-import { LoreCategory } from '../../shared/models/lore-article.model';
-import { LORE_ARTICLES } from './lore.mocks';
+import { LoreCategory, LoreSummary } from '../../shared/models/lore-article.model';
+import { LoreService } from '../../core/services/lore.service';
 
 const GAME_FILTERS = [
   { id: '', label: 'todos' },
@@ -28,26 +35,39 @@ const CATEGORY_FILTERS: { id: LoreCategory | ''; label: string }[] = [
   styleUrl: './lore.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class Lore {
+export class Lore implements OnInit {
+  private readonly loreService = inject(LoreService);
+
   protected readonly gameFilters = GAME_FILTERS;
   protected readonly categoryFilters = CATEGORY_FILTERS;
 
   protected readonly loading = signal(true);
   protected readonly skeletonItems = Array.from({ length: 6 });
+  protected readonly error = signal<string | null>(null);
 
+  protected readonly articles = signal<LoreSummary[]>([]);
   protected readonly search = signal('');
   protected readonly gameFilter = signal('');
   protected readonly categoryFilter = signal<LoreCategory | ''>('');
 
-  constructor() {
-    setTimeout(() => this.loading.set(false), 600);
+  ngOnInit(): void {
+    this.loreService.list(0, 50).subscribe({
+      next: (page) => {
+        this.articles.set(page.content);
+        this.loading.set(false);
+      },
+      error: () => {
+        this.error.set('Não foi possível carregar o lore.');
+        this.loading.set(false);
+      },
+    });
   }
 
   protected readonly filtered = computed(() => {
     const q = this.search().toLowerCase().trim();
     const game = this.gameFilter();
     const cat = this.categoryFilter();
-    return LORE_ARTICLES.filter(
+    return this.articles().filter(
       (a) =>
         (!game || a.gameId === game) &&
         (!cat || a.category === cat) &&

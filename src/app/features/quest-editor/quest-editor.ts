@@ -175,7 +175,7 @@ export class QuestEditor {
 
   private loadQuest(q: QuestDetailData): void {
     this.title.set(q.title);
-    this.description.set(q.description);
+    this.description.set(q.description ?? '');
     this.questStatus.set(q.status);
     this.nodes.set([...q.nodes]);
     this.edges.set([...q.edges]);

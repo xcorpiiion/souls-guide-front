@@ -1,13 +1,64 @@
-import { Game } from '../../shared/models/game.model';
+import { GameSummary } from '../../shared/models/game.model';
 import { LoreSummary } from '../../shared/models/lore-article.model';
 import { QuestSummary } from '../../shared/models/quest.model';
 
-export const GAMES: Game[] = [
-  { id: 'elden-ring', name: 'Elden Ring', shortName: 'ER' },
-  { id: 'dark-souls-3', name: 'Dark Souls III', shortName: 'DS3' },
-  { id: 'bloodborne', name: 'Bloodborne', shortName: 'BB' },
-  { id: 'lies-of-p', name: 'Lies of P', shortName: 'LoP' },
-  { id: 'lords-of-the-fallen', name: 'Lords of the Fallen', shortName: 'LotF' },
+export const GAMES: GameSummary[] = [
+  {
+    id: '1',
+    name: 'Elden Ring',
+    shortName: 'ER',
+    accentClass: 'accent-default',
+    questCount: 0,
+    loreCount: 0,
+    followersCount: 0,
+    contributorsCount: 0,
+    topQuestTitle: null,
+    topQuestSteps: null,
+    topQuestFollowers: null,
+    lastActivityLabel: '—',
+  },
+  {
+    id: '2',
+    name: 'Dark Souls III',
+    shortName: 'DS3',
+    accentClass: 'accent-default',
+    questCount: 0,
+    loreCount: 0,
+    followersCount: 0,
+    contributorsCount: 0,
+    topQuestTitle: null,
+    topQuestSteps: null,
+    topQuestFollowers: null,
+    lastActivityLabel: '—',
+  },
+  {
+    id: '3',
+    name: 'Bloodborne',
+    shortName: 'BB',
+    accentClass: 'accent-default',
+    questCount: 0,
+    loreCount: 0,
+    followersCount: 0,
+    contributorsCount: 0,
+    topQuestTitle: null,
+    topQuestSteps: null,
+    topQuestFollowers: null,
+    lastActivityLabel: '—',
+  },
+  {
+    id: '4',
+    name: 'Lies of P',
+    shortName: 'LoP',
+    accentClass: 'accent-default',
+    questCount: 0,
+    loreCount: 0,
+    followersCount: 0,
+    contributorsCount: 0,
+    topQuestTitle: null,
+    topQuestSteps: null,
+    topQuestFollowers: null,
+    lastActivityLabel: '—',
+  },
 ];
 
 export const QUESTS: QuestSummary[] = [

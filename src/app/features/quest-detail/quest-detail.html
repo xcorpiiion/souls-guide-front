@@ -1,40 +1,47 @@
-@if (quest) {
+@if (loading()) {
+  <div class="quest-detail__not-found">
+    <p>Carregando…</p>
+  </div>
+} @else if (error()) {
+  <div class="quest-detail__not-found">
+    <p>{{ error() }}</p>
+    <a class="quest-detail__back-link" [routerLink]="['/games', gameId]">← voltar para o jogo</a>
+  </div>
+} @else if (quest(); as q) {
   <div class="quest-detail">
     <div class="quest-detail__hero">
       <nav class="quest-detail__breadcrumb" aria-label="navegação">
         <a class="quest-detail__breadcrumb-link" routerLink="/games">jogos</a>
         <span class="quest-detail__breadcrumb-sep" aria-hidden="true">›</span>
         <a class="quest-detail__breadcrumb-link" [routerLink]="['/games', gameId]">{{
-          quest.gameName
+          q.gameName
         }}</a>
         <span class="quest-detail__breadcrumb-sep" aria-hidden="true">›</span>
         <a class="quest-detail__breadcrumb-link" [routerLink]="['/games', gameId]">quests</a>
         <span class="quest-detail__breadcrumb-sep" aria-hidden="true">›</span>
-        <span>{{ quest.title }}</span>
+        <span>{{ q.title }}</span>
       </nav>
 
       <div class="quest-detail__header">
         <div class="quest-detail__title-block">
           <div class="quest-detail__title-row">
-            <h1 class="quest-detail__title">{{ quest.title }}</h1>
-            <span
-              [class]="'quest-detail__status quest-detail__status--' + quest.status.toLowerCase()"
-            >
-              {{ quest.status.toLowerCase() }}
+            <h1 class="quest-detail__title">{{ q.title }}</h1>
+            <span [class]="'quest-detail__status quest-detail__status--' + q.status.toLowerCase()">
+              {{ q.status.toLowerCase() }}
             </span>
           </div>
-          <p class="quest-detail__description">{{ quest.description }}</p>
+          <p class="quest-detail__description">{{ q.description }}</p>
         </div>
         <div class="quest-detail__actions">
           <button class="quest-detail__btn quest-detail__btn--ghost" type="button">
-            seguir · {{ quest.followers }}
+            seguir · {{ q.followers }}
           </button>
           <button class="quest-detail__btn quest-detail__btn--ghost" type="button">
             compartilhar
           </button>
           <a
             class="quest-detail__btn quest-detail__btn--accent"
-            [routerLink]="['/games', gameId, 'quests', quest.id, 'edit']"
+            [routerLink]="['/games', gameId, 'quests', q.id, 'edit']"
             >+ editar</a
           >
         </div>
@@ -42,19 +49,19 @@
 
       <div class="quest-detail__stats">
         <div class="quest-detail__stat">
-          <span class="quest-detail__stat-val">{{ quest.stepCount }}</span>
+          <span class="quest-detail__stat-val">{{ q.stepCount }}</span>
           <span class="quest-detail__stat-label">nós</span>
         </div>
         <div class="quest-detail__stat">
-          <span class="quest-detail__stat-val">{{ quest.forkCount }}</span>
+          <span class="quest-detail__stat-val">{{ q.forkCount }}</span>
           <span class="quest-detail__stat-label">bifurcações</span>
         </div>
         <div class="quest-detail__stat">
-          <span class="quest-detail__stat-val">{{ quest.endingCount }}</span>
+          <span class="quest-detail__stat-val">{{ q.endingCount }}</span>
           <span class="quest-detail__stat-label">finais</span>
         </div>
         <div class="quest-detail__stat">
-          <span class="quest-detail__stat-val">{{ quest.followers }}</span>
+          <span class="quest-detail__stat-val">{{ q.followers }}</span>
           <span class="quest-detail__stat-label">seguindo</span>
         </div>
       </div>
@@ -77,8 +84,8 @@
         </div>
 
         <app-quest-graph
-          [nodes]="quest.nodes"
-          [edges]="quest.edges"
+          [nodes]="q.nodes"
+          [edges]="q.edges"
           [selectedNodeId]="selectedNodeId()"
           (nodeSelect)="onNodeSelect($event)"
         />
@@ -126,11 +133,11 @@
           </div>
         }
 
-        @if (quest.relatedQuests.length) {
+        @if (q.relatedQuests.length) {
           <div class="quest-detail__panel-section">
             <p class="quest-detail__panel-title">quests relacionadas</p>
             <ul class="quest-detail__related-list">
-              @for (rel of quest.relatedQuests; track rel.questId) {
+              @for (rel of q.relatedQuests; track rel.questId) {
                 <li class="quest-detail__related-card">
                   <div class="quest-detail__related-initials">{{ rel.npcInitials }}</div>
                   <div class="quest-detail__related-info">
@@ -152,10 +159,5 @@
         }
       </aside>
     </div>
-  </div>
-} @else {
-  <div class="quest-detail__not-found">
-    <p>Quest não encontrada.</p>
-    <a class="quest-detail__back-link" [routerLink]="['/games', gameId]">← voltar para o jogo</a>
   </div>
 }

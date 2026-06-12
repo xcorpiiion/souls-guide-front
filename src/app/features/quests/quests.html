@@ -75,7 +75,7 @@
           <a class="qs__card" [routerLink]="['/games', quest.gameId, 'quests', quest.id]">
             <!-- mini-graph -->
             <svg class="qs__mg" [attr.viewBox]="'0 0 64 40'" aria-hidden="true">
-              @for (edge of miniGraph(quest).edges; track $index) {
+              @for (edge of miniGraph().edges; track $index) {
                 <line
                   [attr.x1]="edge.x1"
                   [attr.y1]="edge.y1"
@@ -84,7 +84,7 @@
                   class="qs__mg-edge"
                 />
               }
-              @for (node of miniGraph(quest).nodes; track node.id) {
+              @for (node of miniGraph().nodes; track node.id) {
                 @if (node.type === 'start') {
                   <circle
                     [attr.cx]="node.cx"
@@ -154,7 +154,7 @@
                   {{ statusLabel(quest.status) }}
                 </span>
               </div>
-              <p class="qs__card-desc">{{ quest.description }}</p>
+              <p class="qs__card-desc">{{ quest.description ?? '' }}</p>
               <div class="qs__card-stats">
                 <span class="qs__stat">
                   <i class="ti ti-circle-dot" aria-hidden="true"></i>

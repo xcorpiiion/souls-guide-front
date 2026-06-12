@@ -2,6 +2,16 @@ export type QuestStatus = 'TEORIA' | 'CONSOLIDADO' | 'CANONICO';
 export type QuestNodeType = 'start' | 'end' | 'task' | 'gateway' | 'external-quest';
 export type QuestEndingType = 'positive' | 'tragic' | 'neutral';
 
+// Shape retornado pela API
+export interface QuestApi {
+  id: number;
+  title: string;
+  description: string;
+  userId: string;
+  gameId: number;
+  gameName: string;
+}
+
 export interface QuestSummary {
   id: string;
   title: string;
@@ -13,6 +23,23 @@ export interface QuestSummary {
   status: QuestStatus;
   followers: number;
   author: string | null;
+  description?: string | null;
+}
+
+export function questApiToSummary(q: QuestApi): QuestSummary {
+  return {
+    id: String(q.id),
+    title: q.title,
+    description: q.description,
+    gameId: String(q.gameId),
+    gameName: q.gameName,
+    stepCount: 0,
+    forkCount: 0,
+    endingCount: 0,
+    status: 'TEORIA',
+    followers: 0,
+    author: q.userId ?? null,
+  };
 }
 
 export interface QuestNode {
@@ -44,7 +71,6 @@ export interface QuestRelatedLink {
 }
 
 export interface QuestDetailData extends QuestSummary {
-  description: string;
   nodes: QuestNode[];
   edges: QuestEdge[];
   relatedQuests: QuestRelatedLink[];
