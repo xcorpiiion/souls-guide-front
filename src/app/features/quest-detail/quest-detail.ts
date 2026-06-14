@@ -46,6 +46,9 @@ export class QuestDetail implements OnInit {
   protected readonly userIsFollowing = signal(false);
   protected readonly following = signal(false);
 
+  protected readonly showSharePopover = signal(false);
+  protected readonly copied = signal(false);
+
   protected readonly selectedNode = (): QuestNode | null => {
     const id = this.selectedNodeId();
     const q = this.quest();
@@ -125,6 +128,17 @@ export class QuestDetail implements OnInit {
         this.following.set(false);
       },
     });
+  }
+
+  protected toggleSharePopover(): void {
+    this.showSharePopover.update((v) => !v);
+    this.copied.set(false);
+  }
+
+  protected async copyLink(): Promise<void> {
+    await navigator.clipboard.writeText(window.location.href);
+    this.copied.set(true);
+    setTimeout(() => this.copied.set(false), 2000);
   }
 
   protected toggleLike(): void {

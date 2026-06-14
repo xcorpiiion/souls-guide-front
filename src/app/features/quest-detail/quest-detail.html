@@ -53,9 +53,32 @@
             <i class="ti ti-bell" aria-hidden="true"></i>
             {{ userIsFollowing() ? 'seguindo' : 'seguir' }} · {{ followerCount() }}
           </button>
-          <button class="quest-detail__btn quest-detail__btn--ghost" type="button">
-            compartilhar
-          </button>
+          <div class="quest-detail__share-wrap">
+            <button
+              class="quest-detail__btn quest-detail__btn--ghost"
+              type="button"
+              (click)="toggleSharePopover()"
+              [attr.aria-expanded]="showSharePopover()"
+            >
+              <i class="ti ti-share" aria-hidden="true"></i> compartilhar
+            </button>
+
+            @if (showSharePopover()) {
+              <div class="quest-detail__share-popover" role="dialog" aria-label="Compartilhar">
+                <p class="quest-detail__share-label">link da quest</p>
+                <div class="quest-detail__share-row">
+                  <span class="quest-detail__share-url">{{ quest()?.title }}</span>
+                  <button class="quest-detail__share-copy" type="button" (click)="copyLink()">
+                    @if (copied()) {
+                      <i class="ti ti-check" aria-hidden="true"></i> copiado!
+                    } @else {
+                      <i class="ti ti-copy" aria-hidden="true"></i> copiar
+                    }
+                  </button>
+                </div>
+              </div>
+            }
+          </div>
           <a
             class="quest-detail__btn quest-detail__btn--ghost"
             [routerLink]="['/games', gameId, 'quests', q.id, 'history']"

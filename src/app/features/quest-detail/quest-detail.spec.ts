@@ -311,4 +311,31 @@ describe('QuestDetail', () => {
       expect(svcMock.follow).not.toHaveBeenCalled();
     });
   });
+
+  describe('share', () => {
+    it('toggleSharePopover alterna o popover e reseta copied', () => {
+      const fixture = createFixture('elden-ring', 'er-q1');
+      const comp = fixture.componentInstance as any;
+      expect(comp.showSharePopover()).toBe(false);
+      comp.toggleSharePopover();
+      expect(comp.showSharePopover()).toBe(true);
+      comp['copied'].set(true);
+      comp.toggleSharePopover();
+      expect(comp.showSharePopover()).toBe(false);
+      expect(comp.copied()).toBe(false);
+    });
+
+    it('copyLink() chama navigator.clipboard.writeText com a URL atual', async () => {
+      const fixture = createFixture('elden-ring', 'er-q1');
+      const comp = fixture.componentInstance as any;
+      const writeSpy = vi.fn(() => Promise.resolve());
+      Object.defineProperty(navigator, 'clipboard', {
+        value: { writeText: writeSpy },
+        configurable: true,
+      });
+      await comp.copyLink();
+      expect(writeSpy).toHaveBeenCalledWith(window.location.href);
+      expect(comp.copied()).toBe(true);
+    });
+  });
 });

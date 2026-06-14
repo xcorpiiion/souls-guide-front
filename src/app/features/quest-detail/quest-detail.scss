@@ -106,30 +106,38 @@
   display: inline-flex;
   align-items: center;
   gap: v.$space-2;
-  padding: v.$space-2 v.$space-3;
+  padding: 9px 16px;
   font-family: v.$font-body;
-  font-size: v.$font-size-xs;
+  font-size: v.$font-size-sm;
   border-radius: v.$radius-md;
   cursor: pointer;
+  text-decoration: none;
+  white-space: nowrap;
   transition:
+    background v.$transition-fast,
     border-color v.$transition-fast,
     color v.$transition-fast;
 
   &--ghost {
     background: transparent;
-    border: 1px solid v.$color-border;
-    color: v.$color-text-muted;
+    border: 0.5px solid v.$color-border-focus;
+    color: v.$color-text;
 
     @include m.on-hover {
-      border-color: v.$color-border-focus;
-      color: v.$color-text;
+      background: rgba(255, 255, 255, 0.06);
+      border-color: v.$color-gold;
     }
   }
 
   &--accent {
-    background-color: rgba(v.$color-gold, 0.1);
-    border: 1px solid v.$color-gold;
-    color: v.$color-gold;
+    background: v.$color-gold;
+    border: none;
+    color: #0f0d0b;
+    font-weight: 500;
+
+    @include m.on-hover {
+      background: v.$color-gold-light;
+    }
   }
 }
 
@@ -413,6 +421,71 @@
 
   @include m.on-hover {
     color: v.$color-gold;
+  }
+}
+
+// ─── Share popover ────────────────────────────────────────────────────────────
+.quest-detail__share-wrap {
+  position: relative;
+}
+
+.quest-detail__share-popover {
+  position: absolute;
+  top: calc(100% + v.$space-2);
+  right: 0;
+  z-index: 200;
+  min-width: 260px;
+  background: v.$color-bg-surface;
+  border: 0.5px solid v.$color-border-focus;
+  border-radius: v.$radius-md;
+  padding: v.$space-3 v.$space-4;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+}
+
+.quest-detail__share-label {
+  font-size: v.$font-size-xs;
+  color: v.$color-text-muted;
+  margin-bottom: v.$space-2;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.quest-detail__share-row {
+  display: flex;
+  align-items: center;
+  gap: v.$space-2;
+  background: v.$color-bg-elevated;
+  border: 0.5px solid v.$color-border;
+  border-radius: v.$radius-sm;
+  padding: v.$space-1 v.$space-2;
+}
+
+.quest-detail__share-url {
+  flex: 1;
+  font-size: v.$font-size-sm;
+  color: v.$color-text-muted;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.quest-detail__share-copy {
+  display: inline-flex;
+  align-items: center;
+  gap: v.$space-1;
+  padding: 4px 10px;
+  font-size: v.$font-size-xs;
+  font-family: v.$font-body;
+  background: v.$color-gold;
+  color: #0f0d0b;
+  border: none;
+  border-radius: v.$radius-sm;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background v.$transition-fast;
+
+  @include m.on-hover {
+    background: v.$color-gold-light;
   }
 }
 
