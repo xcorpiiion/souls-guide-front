@@ -3,367 +3,475 @@
   <header class="pf__hero">
     <div class="pf__hero-inner">
       <div class="pf__avatar-row">
-        <div class="pf__avatar">{{ profile.name[0] }}</div>
+        <div class="pf__avatar">{{ profile().name[0] }}</div>
 
         <div class="pf__ident">
-          <h1 class="pf__name">{{ profile.name }}</h1>
-          <p class="pf__handle">@{{ profile.handle }} · membro desde {{ profile.joinedLabel }}</p>
-          <p class="pf__bio">{{ profile.bio }}</p>
+          <h1 class="pf__name">{{ profile().name }}</h1>
+          <p class="pf__handle">
+            @{{ profile().handle }} · membro desde {{ profile().joinedLabel }}
+          </p>
+          <p class="pf__bio">{{ profile().bio }}</p>
 
           <div class="pf__stats">
             <div class="pf__stat">
-              <span class="pf__stat-n">{{ profile.questCount }}</span>
+              <span class="pf__stat-n">{{ profile().questCount }}</span>
               <span class="pf__stat-l">quests</span>
             </div>
             <div class="pf__stat">
-              <span class="pf__stat-n">{{ profile.gameCount }}</span>
+              <span class="pf__stat-n">{{ profile().gameCount }}</span>
               <span class="pf__stat-l">jogos</span>
             </div>
             <div class="pf__stat">
-              <span class="pf__stat-n">{{ profile.followers }}</span>
+              <span class="pf__stat-n">{{ profile().followers }}</span>
               <span class="pf__stat-l">seguidores</span>
             </div>
             <div class="pf__stat">
-              <span class="pf__stat-n">{{ profile.following }}</span>
+              <span class="pf__stat-n">{{ profile().following }}</span>
               <span class="pf__stat-l">seguindo</span>
             </div>
           </div>
         </div>
 
-        <button class="pf__edit-btn" type="button">
-          <i class="ti ti-edit" aria-hidden="true"></i>
-          editar perfil
-        </button>
+        @if (!editing()) {
+          <button class="pf__edit-btn" type="button" (click)="startEditing()">
+            <i class="ti ti-edit" aria-hidden="true"></i>
+            editar perfil
+          </button>
+        }
       </div>
 
       <!-- tabs -->
       <nav class="pf__tabs" role="tablist">
-        <button
-          class="pf__tab"
-          [class.pf__tab--active]="activeTab() === 'quests'"
-          role="tab"
-          (click)="activeTab.set('quests')"
-        >
-          quests
-        </button>
-        <button
-          class="pf__tab"
-          [class.pf__tab--active]="activeTab() === 'seguindo'"
-          role="tab"
-          (click)="activeTab.set('seguindo')"
-        >
-          seguindo
-        </button>
-        <button
-          class="pf__tab"
-          [class.pf__tab--active]="activeTab() === 'favoritos'"
-          role="tab"
-          (click)="activeTab.set('favoritos')"
-        >
-          favoritos
-        </button>
+        @if (editing()) {
+          <span class="pf__tab pf__tab--active">editando perfil</span>
+        } @else {
+          <button
+            class="pf__tab"
+            [class.pf__tab--active]="activeTab() === 'quests'"
+            role="tab"
+            (click)="setTab('quests')"
+          >
+            quests
+          </button>
+          <button
+            class="pf__tab"
+            [class.pf__tab--active]="activeTab() === 'lore'"
+            role="tab"
+            (click)="setTab('lore')"
+          >
+            lore
+          </button>
+          <button
+            class="pf__tab"
+            [class.pf__tab--active]="activeTab() === 'seguindo'"
+            role="tab"
+            (click)="setTab('seguindo')"
+          >
+            seguindo
+          </button>
+          <button
+            class="pf__tab"
+            [class.pf__tab--active]="activeTab() === 'favoritos'"
+            role="tab"
+            (click)="setTab('favoritos')"
+          >
+            favoritos
+          </button>
+        }
       </nav>
     </div>
   </header>
 
   <!-- ══ body ═══════════════════════════════════════════════════════════════ -->
   <div class="pf__body">
-    <main class="pf__main">
-      @if (activeTab() === 'quests') {
-        <!-- minhas quests -->
-        <p class="pf__section-title">minhas quests</p>
-
-        @for (quest of myQuests(); track quest.id) {
-          <a class="pf__quest-card" [routerLink]="['/games', quest.gameId, 'quests', quest.id]">
-            <!-- mini graph preview -->
-            <svg class="pf__mini-graph" viewBox="0 0 48 32" aria-hidden="true">
-              @for (edge of miniGraph(quest).edges; track $index) {
-                <line
-                  [attr.x1]="edge.x1"
-                  [attr.y1]="edge.y1"
-                  [attr.x2]="edge.x2"
-                  [attr.y2]="edge.y2"
-                  class="pf__mg-edge"
-                />
-              }
-              @for (node of miniGraph(quest).nodes; track node.id) {
-                @if (node.type === 'start') {
-                  <circle
-                    [attr.cx]="node.cx"
-                    [attr.cy]="node.cy"
-                    [attr.r]="node.w / 2"
-                    class="pf__mg-start"
-                  />
-                }
-                @if (node.type === 'end') {
-                  <circle
-                    [attr.cx]="node.cx"
-                    [attr.cy]="node.cy"
-                    [attr.r]="node.w / 2"
-                    class="pf__mg-end"
-                  />
-                }
-                @if (node.type === 'task') {
-                  <rect
-                    [attr.x]="node.x"
-                    [attr.y]="node.y"
-                    [attr.width]="node.w"
-                    [attr.height]="node.h"
-                    rx="1"
-                    class="pf__mg-task"
-                  />
-                }
-                @if (node.type === 'gateway') {
-                  <polygon
-                    [attr.points]="
-                      node.x +
-                      ',' +
-                      node.cy +
-                      ' ' +
-                      node.cx +
-                      ',' +
-                      node.y +
-                      ' ' +
-                      (node.x + node.w) +
-                      ',' +
-                      node.cy +
-                      ' ' +
-                      node.cx +
-                      ',' +
-                      (node.y + node.h)
-                    "
-                    class="pf__mg-gateway"
-                  />
-                }
-                @if (node.type === 'external-quest') {
-                  <rect
-                    [attr.x]="node.x"
-                    [attr.y]="node.y"
-                    [attr.width]="node.w"
-                    [attr.height]="node.h"
-                    rx="1"
-                    class="pf__mg-ext"
-                  />
-                }
-              }
-            </svg>
-
-            <div class="pf__quest-info">
-              <span class="pf__quest-title">{{ quest.title }}</span>
-              <span class="pf__quest-meta">
-                {{ quest.gameName }} · {{ quest.stepCount }} nós · {{ quest.endingCount }}
-                {{ quest.endingCount === 1 ? 'final' : 'finais' }}
-              </span>
-            </div>
-
-            <span class="pf__badge pf__badge--{{ quest.status | lowercase }}">
-              {{ statusLabel(quest.status) }}
-            </span>
-
-            <i class="ti ti-chevron-right pf__quest-arrow" aria-hidden="true"></i>
-          </a>
+    @if (editing()) {
+      <!-- ══ edit form ══════════════════════════════════════════════════════ -->
+      <main class="pf__main">
+        <!-- success / error -->
+        @if (successMsg()) {
+          <div class="pf__alert pf__alert--success" role="status">
+            <i class="ti ti-check" aria-hidden="true"></i> {{ successMsg() }}
+          </div>
+        }
+        @if (errorMsg()) {
+          <div class="pf__alert pf__alert--error" role="alert">{{ errorMsg() }}</div>
         }
 
-        @if (!myQuests().length) {
-          <p class="pf__empty">Você ainda não criou nenhuma quest.</p>
-        }
-
-        <!-- quests seguidas -->
-        @if (followedQuests().length) {
-          <p class="pf__section-title pf__section-title--gap">quests seguidas</p>
-
-          @for (quest of followedQuests(); track quest.id) {
-            <a class="pf__quest-card" [routerLink]="['/games', quest.gameId, 'quests', quest.id]">
-              <svg class="pf__mini-graph" viewBox="0 0 48 32" aria-hidden="true">
-                @for (edge of miniGraph(quest).edges; track $index) {
-                  <line
-                    [attr.x1]="edge.x1"
-                    [attr.y1]="edge.y1"
-                    [attr.x2]="edge.x2"
-                    [attr.y2]="edge.y2"
-                    class="pf__mg-edge"
-                  />
-                }
-                @for (node of miniGraph(quest).nodes; track node.id) {
-                  @if (node.type === 'start') {
-                    <circle
-                      [attr.cx]="node.cx"
-                      [attr.cy]="node.cy"
-                      [attr.r]="node.w / 2"
-                      class="pf__mg-start"
-                    />
-                  }
-                  @if (node.type === 'end') {
-                    <circle
-                      [attr.cx]="node.cx"
-                      [attr.cy]="node.cy"
-                      [attr.r]="node.w / 2"
-                      class="pf__mg-end"
-                    />
-                  }
-                  @if (node.type === 'task') {
-                    <rect
-                      [attr.x]="node.x"
-                      [attr.y]="node.y"
-                      [attr.width]="node.w"
-                      [attr.height]="node.h"
-                      rx="1"
-                      class="pf__mg-task"
-                    />
-                  }
-                  @if (node.type === 'gateway') {
-                    <polygon
-                      [attr.points]="
-                        node.x +
-                        ',' +
-                        node.cy +
-                        ' ' +
-                        node.cx +
-                        ',' +
-                        node.y +
-                        ' ' +
-                        (node.x + node.w) +
-                        ',' +
-                        node.cy +
-                        ' ' +
-                        node.cx +
-                        ',' +
-                        (node.y + node.h)
-                      "
-                      class="pf__mg-gateway"
-                    />
-                  }
-                }
-              </svg>
-
-              <div class="pf__quest-info">
-                <span class="pf__quest-title">{{ quest.title }}</span>
-                <span class="pf__quest-meta">
-                  {{ quest.gameName }} · por {{ quest.author ?? '@comunidade' }}
-                </span>
+        <div class="pf__edit-card">
+          <p class="pf__edit-section-title">informações pessoais</p>
+          <form class="pf__edit-form" [formGroup]="infoForm" (ngSubmit)="saveProfile()">
+            <div class="pf__edit-grid">
+              <div class="pf__edit-field">
+                <label class="pf__edit-label" for="pf-name">nome</label>
+                <input id="pf-name" class="pf__edit-input" type="text" formControlName="name" />
               </div>
+              <div class="pf__edit-field">
+                <label class="pf__edit-label" for="pf-nick">nickname</label>
+                <input id="pf-nick" class="pf__edit-input" type="text" formControlName="nickname" />
+              </div>
+              <div class="pf__edit-field pf__edit-field--full">
+                <label class="pf__edit-label" for="pf-bio">bio</label>
+                <textarea
+                  id="pf-bio"
+                  class="pf__edit-input pf__edit-input--textarea"
+                  rows="3"
+                  placeholder="Conte um pouco sobre você…"
+                  formControlName="bio"
+                ></textarea>
+              </div>
+              <div class="pf__edit-field">
+                <label class="pf__edit-label" for="pf-loc">localização</label>
+                <input
+                  id="pf-loc"
+                  class="pf__edit-input"
+                  type="text"
+                  placeholder="ex: Curitiba, PR"
+                  formControlName="location"
+                />
+              </div>
+              <div class="pf__edit-field">
+                <label class="pf__edit-label" for="pf-site">site / link</label>
+                <input
+                  id="pf-site"
+                  class="pf__edit-input"
+                  type="url"
+                  placeholder="https://"
+                  formControlName="website"
+                />
+              </div>
+            </div>
+            <div class="pf__edit-actions">
+              <button class="pf__edit-cancel" type="button" (click)="cancelEditing()">
+                cancelar
+              </button>
+              <button class="pf__edit-save" type="submit" [disabled]="infoForm.invalid || saving()">
+                <i class="ti ti-device-floppy" aria-hidden="true"></i>
+                {{ saving() ? 'salvando…' : 'salvar alterações' }}
+              </button>
+            </div>
+          </form>
+        </div>
 
-              <span class="pf__badge pf__badge--{{ quest.status | lowercase }}">
-                {{ statusLabel(quest.status) }}
-              </span>
+        <!-- danger zone -->
+        <div class="pf__danger-card">
+          <p class="pf__danger-title">zona de perigo</p>
+          <div class="pf__danger-row">
+            <span class="pf__danger-desc"
+              >Excluir conta permanentemente. Esta ação não pode ser desfeita.</span
+            >
+            <button class="pf__danger-btn" type="button">excluir conta</button>
+          </div>
+        </div>
+      </main>
 
-              <i class="ti ti-chevron-right pf__quest-arrow" aria-hidden="true"></i>
+      <!-- sidebar: alterar senha -->
+      @if (!isGoogleUser()) {
+        <aside class="pf__sidebar">
+          <div class="pf__sidebar-card">
+            <p class="pf__section-title">alterar senha</p>
+
+            @if (passwordSuccess()) {
+              <div class="pf__alert pf__alert--success pf__alert--sm" role="status">
+                <i class="ti ti-check" aria-hidden="true"></i> {{ passwordSuccess() }}
+              </div>
+            }
+            @if (passwordError()) {
+              <div class="pf__alert pf__alert--error pf__alert--sm" role="alert">
+                {{ passwordError() }}
+              </div>
+            }
+
+            <form class="pf__pw-form" [formGroup]="passwordForm" (ngSubmit)="savePassword()">
+              <div class="pf__edit-field">
+                <label class="pf__edit-label" for="pf-pw-cur">senha atual</label>
+                <input
+                  id="pf-pw-cur"
+                  class="pf__edit-input"
+                  type="password"
+                  placeholder="••••••••"
+                  formControlName="currentPassword"
+                />
+              </div>
+              <div class="pf__edit-field">
+                <label class="pf__edit-label" for="pf-pw-new">nova senha</label>
+                <input
+                  id="pf-pw-new"
+                  class="pf__edit-input"
+                  type="password"
+                  placeholder="mín. 6 caracteres"
+                  formControlName="newPassword"
+                />
+              </div>
+              <div class="pf__edit-field">
+                <label class="pf__edit-label" for="pf-pw-conf">confirmar nova senha</label>
+                <input
+                  id="pf-pw-conf"
+                  class="pf__edit-input"
+                  type="password"
+                  placeholder="repita a senha"
+                  formControlName="confirmPassword"
+                />
+              </div>
+              <button
+                class="pf__pw-btn"
+                type="submit"
+                [disabled]="passwordForm.invalid || savingPassword()"
+              >
+                {{ savingPassword() ? 'atualizando…' : 'atualizar senha' }}
+              </button>
+            </form>
+          </div>
+        </aside>
+      }
+    } @else {
+      <main class="pf__main">
+        @if (activeTab() === 'quests') {
+          <div class="pf__content-header">
+            <p class="pf__section-title">minhas quests</p>
+            <a class="pf__content-create-btn" routerLink="/quests">
+              <i class="ti ti-plus" aria-hidden="true"></i> nova quest
             </a>
+          </div>
+
+          @if (loadingContent()) {
+            <p class="pf__empty">Carregando…</p>
+          } @else if (personalQuests().length) {
+            @for (quest of personalQuests(); track quest.id) {
+              <div class="pf__personal-card">
+                <div class="pf__personal-card-main">
+                  <div class="pf__personal-card-info">
+                    <span class="pf__quest-title">{{ quest.title }}</span>
+                    <span class="pf__quest-meta">
+                      {{ quest.gameName }}
+                      @if (quest.likeCount) {
+                        · <i class="ti ti-heart-filled pf__like-icon"></i> {{ quest.likeCount }}
+                      }
+                    </span>
+                  </div>
+                  <div class="pf__personal-card-badges">
+                    @if (!quest.isPublic) {
+                      <span class="pf__visibility-badge pf__visibility-badge--private">
+                        <i class="ti ti-lock" aria-hidden="true"></i> privado
+                      </span>
+                    }
+                    @if (quest.allowCopy) {
+                      <span class="pf__visibility-badge pf__visibility-badge--copy">
+                        <i class="ti ti-copy" aria-hidden="true"></i> copiável
+                      </span>
+                    }
+                    <span class="pf__badge pf__badge--{{ quest.status | lowercase }}">
+                      {{ statusLabel(quest.status) }}
+                    </span>
+                  </div>
+                </div>
+                <div class="pf__personal-card-actions">
+                  <button
+                    class="pf__personal-action pf__personal-action--danger"
+                    type="button"
+                    [disabled]="deletingQuestId() === quest.id"
+                    (click)="deletePersonalQuest(quest.id)"
+                  >
+                    @if (deletingQuestId() === quest.id) {
+                      <i class="ti ti-loader-2 pf__spin"></i>
+                    } @else {
+                      <i class="ti ti-trash" aria-hidden="true"></i>
+                    }
+                  </button>
+                </div>
+              </div>
+            }
+          } @else {
+            <p class="pf__empty">Você ainda não criou nenhuma quest de perfil.</p>
           }
         }
-      }
 
-      @if (activeTab() === 'seguindo') {
-        <p class="pf__section-title">quests seguidas</p>
+        @if (activeTab() === 'lore') {
+          <div class="pf__content-header">
+            <p class="pf__section-title">meu lore</p>
+            <a class="pf__content-create-btn" routerLink="/lore/new">
+              <i class="ti ti-plus" aria-hidden="true"></i> novo artigo
+            </a>
+          </div>
 
-        @for (quest of followedQuests(); track quest.id) {
-          <a class="pf__quest-card" [routerLink]="['/games', quest.gameId, 'quests', quest.id]">
-            <svg class="pf__mini-graph" viewBox="0 0 48 32" aria-hidden="true">
-              @for (edge of miniGraph(quest).edges; track $index) {
-                <line
-                  [attr.x1]="edge.x1"
-                  [attr.y1]="edge.y1"
-                  [attr.x2]="edge.x2"
-                  [attr.y2]="edge.y2"
-                  class="pf__mg-edge"
-                />
-              }
-              @for (node of miniGraph(quest).nodes; track node.id) {
-                @if (node.type === 'start') {
-                  <circle
-                    [attr.cx]="node.cx"
-                    [attr.cy]="node.cy"
-                    [attr.r]="node.w / 2"
-                    class="pf__mg-start"
-                  />
-                }
-                @if (node.type === 'task') {
-                  <rect
-                    [attr.x]="node.x"
-                    [attr.y]="node.y"
-                    [attr.width]="node.w"
-                    [attr.height]="node.h"
-                    rx="1"
-                    class="pf__mg-task"
-                  />
-                }
-                @if (node.type === 'end') {
-                  <circle
-                    [attr.cx]="node.cx"
-                    [attr.cy]="node.cy"
-                    [attr.r]="node.w / 2"
-                    class="pf__mg-end"
-                  />
-                }
-              }
-            </svg>
-            <div class="pf__quest-info">
-              <span class="pf__quest-title">{{ quest.title }}</span>
-              <span class="pf__quest-meta">{{ quest.gameName }} · {{ quest.stepCount }} nós</span>
-            </div>
-            <span class="pf__badge pf__badge--{{ quest.status | lowercase }}">{{
-              statusLabel(quest.status)
-            }}</span>
-            <i class="ti ti-chevron-right pf__quest-arrow" aria-hidden="true"></i>
-          </a>
+          @if (loadingContent()) {
+            <p class="pf__empty">Carregando…</p>
+          } @else if (personalLore().length) {
+            @for (article of personalLore(); track article.id) {
+              <div class="pf__personal-card">
+                <div class="pf__personal-card-main">
+                  <div class="pf__personal-card-info">
+                    <span class="pf__quest-title">{{ article.title }}</span>
+                    <span class="pf__quest-meta">
+                      {{ article.gameName }}
+                      @if (article.likeCount) {
+                        · <i class="ti ti-heart-filled pf__like-icon"></i> {{ article.likeCount }}
+                      }
+                    </span>
+                  </div>
+                  <div class="pf__personal-card-badges">
+                    @if (!article.isPublic) {
+                      <span class="pf__visibility-badge pf__visibility-badge--private">
+                        <i class="ti ti-lock" aria-hidden="true"></i> privado
+                      </span>
+                    }
+                    @if (article.allowCopy) {
+                      <span class="pf__visibility-badge pf__visibility-badge--copy">
+                        <i class="ti ti-copy" aria-hidden="true"></i> copiável
+                      </span>
+                    }
+                    <span class="pf__badge pf__badge--{{ article.status | lowercase }}">
+                      {{ statusLabel(article.status) }}
+                    </span>
+                  </div>
+                </div>
+                <div class="pf__personal-card-actions">
+                  <button
+                    class="pf__personal-action pf__personal-action--danger"
+                    type="button"
+                    [disabled]="deletingLoreId() === article.id"
+                    (click)="deletePersonalLore(article.id)"
+                  >
+                    @if (deletingLoreId() === article.id) {
+                      <i class="ti ti-loader-2 pf__spin"></i>
+                    } @else {
+                      <i class="ti ti-trash" aria-hidden="true"></i>
+                    }
+                  </button>
+                </div>
+              </div>
+            }
+          } @else {
+            <p class="pf__empty">Você ainda não criou nenhum artigo de lore.</p>
+          }
         }
 
-        @if (!followedQuests().length) {
-          <p class="pf__empty">Você ainda não segue nenhuma quest.</p>
+        @if (activeTab() === 'seguindo') {
+          @if (loadingFollowed()) {
+            <p class="pf__empty">Carregando…</p>
+          } @else {
+            <p class="pf__section-title">quests seguidas</p>
+
+            @for (quest of followedQuests(); track quest.id) {
+              <a class="pf__quest-card" [routerLink]="['/games', quest.gameId, 'quests', quest.id]">
+                <div class="pf__quest-info">
+                  <span class="pf__quest-title">{{ quest.title }}</span>
+                  <span class="pf__quest-meta">{{ quest.gameName }}</span>
+                </div>
+                <span class="pf__badge pf__badge--{{ quest.status | lowercase }}">{{
+                  statusLabel(quest.status)
+                }}</span>
+                <i class="ti ti-chevron-right pf__quest-arrow" aria-hidden="true"></i>
+              </a>
+            }
+            @if (!followedQuests().length) {
+              <p class="pf__empty">Você ainda não segue nenhuma quest.</p>
+            }
+
+            <p class="pf__section-title pf__section-title--mt">lore seguido</p>
+
+            @for (article of followedLore(); track article.id) {
+              <a class="pf__quest-card" [routerLink]="['/lore', article.id]">
+                <div class="pf__quest-info">
+                  <span class="pf__quest-title">{{ article.title }}</span>
+                  <span class="pf__quest-meta">{{ article.gameName }}</span>
+                </div>
+                <span class="pf__badge pf__badge--{{ article.status | lowercase }}">{{
+                  statusLabel(article.status)
+                }}</span>
+                <i class="ti ti-chevron-right pf__quest-arrow" aria-hidden="true"></i>
+              </a>
+            }
+            @if (!followedLore().length) {
+              <p class="pf__empty">Você ainda não segue nenhum artigo de lore.</p>
+            }
+          }
         }
-      }
 
-      @if (activeTab() === 'favoritos') {
-        <p class="pf__section-title">jogos favoritos</p>
+        @if (activeTab() === 'favoritos') {
+          @if (loadingFavorites()) {
+            <p class="pf__empty">Carregando…</p>
+          } @else {
+            <p class="pf__section-title">quests curtidas</p>
 
-        <div class="pf__games-grid">
-          @for (game of profile.favoriteGames; track game.id) {
-            <a class="pf__game-card" [routerLink]="['/games', game.id]">
+            @for (quest of likedQuests(); track quest.id) {
+              <a class="pf__quest-card" [routerLink]="['/games', quest.gameId, 'quests', quest.id]">
+                <div class="pf__quest-info">
+                  <span class="pf__quest-title">{{ quest.title }}</span>
+                  <span class="pf__quest-meta"
+                    >{{ quest.gameName }} · <i class="ti ti-heart-filled pf__like-icon"></i>
+                    {{ quest.likeCount }}</span
+                  >
+                </div>
+                <span class="pf__badge pf__badge--{{ quest.status | lowercase }}">{{
+                  statusLabel(quest.status)
+                }}</span>
+                <i class="ti ti-chevron-right pf__quest-arrow" aria-hidden="true"></i>
+              </a>
+            }
+            @if (!likedQuests().length) {
+              <p class="pf__empty">Você ainda não curtiu nenhuma quest.</p>
+            }
+
+            <p class="pf__section-title pf__section-title--mt">lore curtido</p>
+
+            @for (article of likedLore(); track article.id) {
+              <a class="pf__quest-card" [routerLink]="['/lore', article.id]">
+                <div class="pf__quest-info">
+                  <span class="pf__quest-title">{{ article.title }}</span>
+                  <span class="pf__quest-meta"
+                    >{{ article.gameName }} · <i class="ti ti-heart-filled pf__like-icon"></i>
+                    {{ article.likeCount }}</span
+                  >
+                </div>
+                <span class="pf__badge pf__badge--{{ article.status | lowercase }}">{{
+                  statusLabel(article.status)
+                }}</span>
+                <i class="ti ti-chevron-right pf__quest-arrow" aria-hidden="true"></i>
+              </a>
+            }
+            @if (!likedLore().length) {
+              <p class="pf__empty">Você ainda não curtiu nenhum artigo de lore.</p>
+            }
+          }
+        }
+      </main>
+
+      <!-- ══ sidebar ══════════════════════════════════════════════════════════ -->
+      <aside class="pf__sidebar">
+        <!-- jogos favoritos -->
+        <div class="pf__sidebar-card">
+          <p class="pf__section-title">jogos favoritos</p>
+          @for (game of profile().favoriteGames; track game.id) {
+            <a class="pf__game-row" [routerLink]="['/games', game.id]">
               <div class="pf__game-icon game-icon--{{ game.id }}">
                 <i [class]="'ti ' + game.icon" aria-hidden="true"></i>
               </div>
-              <span class="pf__game-name">{{ game.name }}</span>
-              <span class="pf__game-count">{{ game.questCount }} quests</span>
+              <div class="pf__game-info">
+                <span class="pf__game-name">{{ game.name }}</span>
+                <span class="pf__game-count">{{ game.questCount }} quests mapeadas</span>
+              </div>
             </a>
           }
         </div>
-      }
-    </main>
 
-    <!-- ══ sidebar ══════════════════════════════════════════════════════════ -->
-    <aside class="pf__sidebar">
-      <!-- jogos favoritos -->
-      <div class="pf__sidebar-card">
-        <p class="pf__section-title">jogos favoritos</p>
-        @for (game of profile.favoriteGames; track game.id) {
-          <a class="pf__game-row" [routerLink]="['/games', game.id]">
-            <div class="pf__game-icon game-icon--{{ game.id }}">
-              <i [class]="'ti ' + game.icon" aria-hidden="true"></i>
+        <!-- atividade recente -->
+        <div class="pf__sidebar-card">
+          <p class="pf__section-title">atividade recente</p>
+          @for (item of profile().activity; track $index) {
+            <div class="pf__activity-row">
+              <div class="pf__activity-dot {{ activityDot(item.type) }}"></div>
+              <div>
+                <p class="pf__activity-text">
+                  {{ activityLabel(item.type) }}
+                  <strong>{{ item.target }}</strong>
+                </p>
+                <p class="pf__activity-time">{{ daysLabel(item.daysAgo) }}</p>
+              </div>
             </div>
-            <div class="pf__game-info">
-              <span class="pf__game-name">{{ game.name }}</span>
-              <span class="pf__game-count">{{ game.questCount }} quests mapeadas</span>
-            </div>
-          </a>
-        }
-      </div>
-
-      <!-- atividade recente -->
-      <div class="pf__sidebar-card">
-        <p class="pf__section-title">atividade recente</p>
-        @for (item of profile.activity; track $index) {
-          <div class="pf__activity-row">
-            <div class="pf__activity-dot {{ activityDot(item.type) }}"></div>
-            <div>
-              <p class="pf__activity-text">
-                {{ activityLabel(item.type) }}
-                <strong>{{ item.target }}</strong>
-              </p>
-              <p class="pf__activity-time">{{ daysLabel(item.daysAgo) }}</p>
-            </div>
-          </div>
-        }
-      </div>
-    </aside>
+          }
+        </div>
+      </aside>
+    }
+    <!-- end @else editing -->
   </div>
 </div>
