@@ -93,6 +93,18 @@ export const routes: Routes = [
     loadComponent: () => import('./features/profile/profile').then((m) => m.Profile),
   },
   {
+    path: 'kanban',
+    loadComponent: () =>
+      import('./features/kanban/kanban-list/kanban-list').then((m) => m.KanbanList),
+    canActivate: [authGuard],
+  },
+  {
+    path: 'kanban/:id',
+    loadComponent: () =>
+      import('./features/kanban/kanban-board/kanban-board').then((m) => m.KanbanBoard),
+    canActivate: [authGuard],
+  },
+  {
     path: 'search',
     loadComponent: () => import('./features/search/search').then((m) => m.Search),
   },

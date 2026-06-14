@@ -1,0 +1,194 @@
+@if (notFound()) {
+  <div class="kb__not-found">
+    <i class="ti ti-layout-kanban" aria-hidden="true"></i>
+    <p>board não encontrado.</p>
+    <a class="kb__back-link" routerLink="/kanban">← meus kanbans</a>
+  </div>
+} @else if (board(); as b) {
+  <div class="kb">
+    <header class="kb__header">
+      <nav class="kb__breadcrumb" aria-label="navegação">
+        <a class="kb__crumb-link" routerLink="/kanban">meus kanbans</a>
+        <span class="kb__crumb-sep" aria-hidden="true">›</span>
+        <span class="kb__crumb-link">{{ b.gameName }}</span>
+        <span class="kb__crumb-sep" aria-hidden="true">›</span>
+        <span>{{ b.characterName }}</span>
+      </nav>
+      <div class="kb__header-row">
+        <div>
+          <h1 class="kb__title">
+            <i class="ti ti-layout-kanban" aria-hidden="true"></i>
+            {{ b.characterName }}
+          </h1>
+          <p class="kb__game-label">
+            <i class="ti ti-device-gamepad-2" aria-hidden="true"></i>
+            {{ b.gameName }} · personagem
+          </p>
+        </div>
+        <div class="kb__header-actions">
+          <button class="kb__btn kb__btn--dim" type="button">
+            <i class="ti ti-git-branch" aria-hidden="true"></i> importar da quest
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <div class="kb__board">
+      @for (col of columns(); track col.id) {
+        <div
+          class="kb__col"
+          [class.kb__col--dragover]="dragOverColId() === col.id"
+          (dragover)="onDragOver($event, col.id)"
+          (dragleave)="onDragLeave()"
+          (drop)="onDrop($event, col.id)"
+        >
+          <div class="kb__col-head">
+            <div class="kb__col-title">
+              <div class="kb__col-dot kb__col-dot--{{ col.color }}"></div>
+              {{ col.title }}
+            </div>
+            <div class="kb__col-head-right">
+              <span class="kb__col-count">{{ col.cards.length }}</span>
+              <button
+                class="kb__col-delete"
+                type="button"
+                aria-label="excluir coluna"
+                (click)="deleteColumn(col)"
+              >
+                <i class="ti ti-x" aria-hidden="true"></i>
+              </button>
+            </div>
+          </div>
+
+          <div class="kb__progress-bar">
+            <div
+              class="kb__progress-fill kb__progress-fill--{{ col.color }}"
+              [style.width.%]="colProgress(col)"
+            ></div>
+          </div>
+
+          <div class="kb__col-body">
+            @for (card of col.cards; track card.id) {
+              <div
+                class="kb__card"
+                [class.kb__card--done]="card.done"
+                [class.kb__card--blocking]="card.priority === 'blocking'"
+                draggable="true"
+                role="button"
+                tabindex="0"
+                (dragstart)="onDragStart(card, col.id)"
+                (click)="openCard(card)"
+                (keydown.enter)="openCard(card)"
+                (keydown.space)="openCard(card)"
+              >
+                <div class="kb__card-title" [class.kb__card-title--done]="card.done">
+                  {{ card.title }}
+                </div>
+
+                @if (card.tags.length) {
+                  <div class="kb__card-tags">
+                    @for (tag of card.tags; track tag) {
+                      <span
+                        class="kb__card-tag"
+                        [class.kb__card-tag--quest]="tag === 'quest' || tag === 'boss'"
+                      >
+                        {{ tag }}
+                      </span>
+                    }
+                  </div>
+                }
+
+                <div class="kb__card-meta">
+                  <div
+                    class="kb__prio kb__prio--{{ card.priority }}"
+                    [attr.aria-label]="card.priority"
+                  ></div>
+                  @if (checklistLabel(card); as cl) {
+                    <span class="kb__card-pill">
+                      <i class="ti ti-subtask" aria-hidden="true"></i> {{ cl }}
+                    </span>
+                  }
+                  @if (card.notes) {
+                    <span class="kb__card-pill">
+                      <i class="ti ti-notes" aria-hidden="true"></i> nota
+                    </span>
+                  }
+                  @if (card.refs.length) {
+                    <span class="kb__card-pill">
+                      <i class="ti ti-link" aria-hidden="true"></i> ref.
+                    </span>
+                  }
+                </div>
+              </div>
+            }
+
+            @if (addingCardInColumn() === col.id) {
+              <div class="kb__card-input-wrap">
+                <input
+                  class="kb__card-input"
+                  type="text"
+                  placeholder="título do card..."
+                  [value]="newCardTitle()"
+                  (input)="newCardTitle.set($any($event.target).value)"
+                  (keydown)="onAddCardKeydown($event, col.id)"
+                />
+                <div class="kb__card-input-actions">
+                  <button
+                    class="kb__card-input-confirm"
+                    type="button"
+                    (click)="confirmAddCard(col.id)"
+                  >
+                    <i class="ti ti-check" aria-hidden="true"></i>
+                  </button>
+                  <button class="kb__card-input-cancel" type="button" (click)="cancelAddCard()">
+                    <i class="ti ti-x" aria-hidden="true"></i>
+                  </button>
+                </div>
+              </div>
+            } @else {
+              <button class="kb__card-add" type="button" (click)="startAddCard(col.id)">
+                <i class="ti ti-plus" aria-hidden="true"></i> adicionar card
+              </button>
+            }
+          </div>
+        </div>
+      }
+
+      @if (showAddColumn()) {
+        <div class="kb__col kb__col--new-input">
+          <input
+            class="kb__col-title-input"
+            type="text"
+            placeholder="nome da coluna..."
+            [value]="addingColumnTitle()"
+            (input)="addingColumnTitle.set($any($event.target).value)"
+          />
+          <div class="kb__col-new-actions">
+            <button class="kb__col-confirm" type="button" (click)="confirmAddColumn()">
+              <i class="ti ti-check" aria-hidden="true"></i> criar
+            </button>
+            <button class="kb__col-cancel" type="button" (click)="showAddColumn.set(false)">
+              <i class="ti ti-x" aria-hidden="true"></i>
+            </button>
+          </div>
+        </div>
+      } @else {
+        <button class="kb__col-add" type="button" (click)="openAddColumn()">
+          <i class="ti ti-plus" aria-hidden="true"></i>
+          nova coluna
+        </button>
+      }
+    </div>
+  </div>
+
+  @if (selectedCard(); as card) {
+    <app-kanban-card-modal
+      [card]="card"
+      [columns]="columns()"
+      (save)="onCardSave($event)"
+      (delete)="onCardDelete($event)"
+      (move)="onCardMove($event)"
+      (dismiss)="closeModal()"
+    />
+  }
+}

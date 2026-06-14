@@ -1,0 +1,442 @@
+@use '../../../../styles/variables' as v;
+@use '../../../../styles/mixins' as m;
+
+.kl {
+  max-width: v.$content-max-width;
+  margin: 0 auto;
+  padding: 0 v.$space-6 v.$space-16;
+}
+
+.kl__head {
+  border-bottom: 1px solid v.$color-border;
+  margin-bottom: v.$space-8;
+  padding: v.$space-8 0 v.$space-6;
+}
+
+.kl__head-inner {
+  max-width: v.$content-max-width;
+}
+
+.kl__head-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: v.$space-4;
+}
+
+.kl__title {
+  font-family: v.$font-display;
+  font-size: v.$font-size-2xl;
+  color: v.$color-text;
+  font-weight: 500;
+  letter-spacing: 0.03em;
+
+  i {
+    color: v.$color-gold;
+    font-size: v.$font-size-xl;
+    vertical-align: -2px;
+    margin-right: v.$space-2;
+  }
+}
+
+.kl__subtitle {
+  font-size: v.$font-size-sm;
+  color: v.$color-text-muted;
+  margin-top: v.$space-1;
+}
+
+.kl__btn-new {
+  display: inline-flex;
+  align-items: center;
+  gap: v.$space-2;
+  padding: 9px 18px;
+  background: v.$color-gold;
+  color: #0f0d0b;
+  border: none;
+  border-radius: v.$radius-md;
+  font-size: v.$font-size-sm;
+  font-family: v.$font-body;
+  font-weight: 500;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background v.$transition-fast;
+
+  @include m.on-hover {
+    background: v.$color-gold-light;
+  }
+}
+
+// ─── New form ────────────────────────────────────────────────────────────────
+.kl__new-form {
+  background: v.$color-bg-surface;
+  border: 0.5px solid v.$color-border-focus;
+  border-radius: v.$radius-lg;
+  padding: v.$space-6;
+  margin-bottom: v.$space-8;
+  display: flex;
+  flex-direction: column;
+  gap: v.$space-4;
+  max-width: 480px;
+}
+
+.kl__new-title {
+  font-size: v.$font-size-sm;
+  color: v.$color-text;
+  font-weight: 500;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.kl__field {
+  display: flex;
+  flex-direction: column;
+  gap: v.$space-2;
+}
+
+.kl__label {
+  font-size: v.$font-size-xs;
+  color: v.$color-text-muted;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.kl__input {
+  background: v.$color-bg-elevated;
+  border: 0.5px solid v.$color-border;
+  border-radius: v.$radius-md;
+  padding: 9px v.$space-3;
+  font-size: v.$font-size-sm;
+  font-family: v.$font-body;
+  color: v.$color-text;
+  width: 100%;
+  transition: border-color v.$transition-fast;
+
+  &:focus {
+    outline: none;
+    border-color: v.$color-border-focus;
+  }
+
+  &::placeholder {
+    color: v.$color-text-faint;
+  }
+}
+
+.kl__game-wrap {
+  position: relative;
+}
+
+.kl__game-search {
+  display: flex;
+  align-items: center;
+  gap: v.$space-2;
+  background: v.$color-bg-elevated;
+  border: 0.5px solid v.$color-border;
+  border-radius: v.$radius-md;
+  padding: 0 v.$space-3;
+  transition: border-color v.$transition-fast;
+
+  &:focus-within {
+    border-color: v.$color-border-focus;
+  }
+}
+
+.kl__game-icon {
+  font-size: v.$font-size-base;
+  color: v.$color-text-muted;
+  flex-shrink: 0;
+}
+
+.kl__game-input {
+  flex: 1;
+  background: transparent;
+  border: none;
+  padding: 9px 0;
+  font-size: v.$font-size-sm;
+  font-family: v.$font-body;
+  color: v.$color-text;
+
+  &:focus {
+    outline: none;
+  }
+
+  &::placeholder {
+    color: v.$color-text-faint;
+  }
+}
+
+.kl__spin {
+  font-size: v.$font-size-base;
+  color: v.$color-text-muted;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.kl__game-drop {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  z-index: v.$z-dropdown;
+  background: v.$color-bg-surface;
+  border: 0.5px solid v.$color-border;
+  border-radius: v.$radius-md;
+  overflow: hidden;
+  list-style: none;
+}
+
+.kl__game-opt {
+  width: 100%;
+  text-align: left;
+  padding: v.$space-2 v.$space-3;
+  font-size: v.$font-size-sm;
+  font-family: v.$font-body;
+  color: v.$color-text;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: v.$space-2;
+  transition: background v.$transition-fast;
+
+  @include m.on-hover {
+    background: v.$color-bg-elevated;
+  }
+}
+
+.kl__new-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: v.$space-3;
+  margin-top: v.$space-2;
+}
+
+.kl__btn-cancel {
+  padding: 8px 16px;
+  font-size: v.$font-size-sm;
+  font-family: v.$font-body;
+  background: transparent;
+  border: 0.5px solid v.$color-border;
+  border-radius: v.$radius-md;
+  color: v.$color-text-muted;
+  cursor: pointer;
+  transition: border-color v.$transition-fast;
+
+  @include m.on-hover {
+    border-color: v.$color-text-muted;
+  }
+}
+
+.kl__btn-create {
+  padding: 8px 18px;
+  font-size: v.$font-size-sm;
+  font-family: v.$font-body;
+  font-weight: 500;
+  background: v.$color-gold;
+  border: none;
+  border-radius: v.$radius-md;
+  color: #0f0d0b;
+  cursor: pointer;
+  transition: background v.$transition-fast;
+
+  @include m.on-hover {
+    background: v.$color-gold-light;
+  }
+
+  &:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+  }
+}
+
+// ─── Body ─────────────────────────────────────────────────────────────────────
+.kl__body {
+  display: flex;
+  flex-direction: column;
+  gap: v.$space-10;
+}
+
+.kl__group-title {
+  font-family: v.$font-display;
+  font-size: v.$font-size-lg;
+  color: v.$color-text-muted;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  margin-bottom: v.$space-4;
+  display: flex;
+  align-items: center;
+  gap: v.$space-2;
+
+  i {
+    font-size: v.$font-size-base;
+  }
+}
+
+.kl__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: v.$space-4;
+}
+
+// ─── Board card ───────────────────────────────────────────────────────────────
+.kl__card {
+  background: v.$color-bg-surface;
+  border: 0.5px solid v.$color-border;
+  border-radius: v.$radius-lg;
+  padding: v.$space-5;
+  text-decoration: none;
+  display: flex;
+  flex-direction: column;
+  gap: v.$space-4;
+  transition: border-color v.$transition-fast;
+
+  @include m.on-hover {
+    border-color: v.$color-gold;
+  }
+}
+
+.kl__card-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: v.$space-2;
+}
+
+.kl__card-char {
+  font-family: v.$font-display;
+  font-size: v.$font-size-base;
+  color: v.$color-text;
+  font-weight: 500;
+  letter-spacing: 0.03em;
+}
+
+.kl__card-delete {
+  background: transparent;
+  border: none;
+  color: v.$color-text-faint;
+  cursor: pointer;
+  padding: 2px;
+  font-size: v.$font-size-base;
+  line-height: 1;
+  flex-shrink: 0;
+  transition: color v.$transition-fast;
+
+  @include m.on-hover {
+    color: v.$color-ember;
+  }
+}
+
+.kl__card-stats {
+  display: flex;
+  gap: v.$space-4;
+}
+
+.kl__card-stat {
+  font-size: v.$font-size-xs;
+  color: v.$color-text-muted;
+  display: flex;
+  align-items: center;
+  gap: v.$space-1;
+
+  i {
+    font-size: 13px;
+  }
+}
+
+.kl__progress-wrap {
+  display: flex;
+  align-items: center;
+  gap: v.$space-2;
+}
+
+.kl__progress-bar {
+  flex: 1;
+  height: 3px;
+  background: v.$color-border;
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.kl__progress-fill {
+  height: 100%;
+  background: v.$color-gold;
+  border-radius: 2px;
+  transition: width v.$transition-base;
+}
+
+.kl__progress-label {
+  font-size: v.$font-size-xs;
+  color: v.$color-text-muted;
+  min-width: 28px;
+  text-align: right;
+}
+
+.kl__card-cols {
+  display: flex;
+  flex-wrap: wrap;
+  gap: v.$space-1;
+}
+
+.kl__col-chip {
+  font-size: 10px;
+  padding: 2px 8px;
+  border-radius: v.$radius-full;
+  border: 0.5px solid v.$color-border;
+  color: v.$color-text-muted;
+
+  &--todo {
+    border-color: #4a453f;
+    color: #8a8278;
+  }
+  &--doing {
+    border-color: rgba(v.$color-gold, 0.4);
+    color: v.$color-gold;
+  }
+  &--done {
+    border-color: rgba(#7a9a5a, 0.4);
+    color: #7a9a5a;
+  }
+  &--stuck {
+    border-color: rgba(v.$color-ember, 0.4);
+    color: v.$color-ember;
+  }
+  &--custom {
+    border-color: v.$color-border;
+    color: v.$color-text-muted;
+  }
+}
+
+.kl__card-date {
+  font-size: v.$font-size-xs;
+  color: v.$color-text-faint;
+  display: flex;
+  align-items: center;
+  gap: v.$space-1;
+
+  i {
+    font-size: 12px;
+  }
+}
+
+// ─── Empty ────────────────────────────────────────────────────────────────────
+.kl__empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: v.$space-4;
+  padding: v.$space-16 0;
+  color: v.$color-text-muted;
+
+  i {
+    font-size: 48px;
+    opacity: 0.3;
+  }
+  p {
+    font-size: v.$font-size-sm;
+  }
+}

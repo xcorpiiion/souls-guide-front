@@ -1,0 +1,147 @@
+<div class="kl">
+  <header class="kl__head">
+    <div class="kl__head-inner">
+      <div class="kl__head-top">
+        <div>
+          <h1 class="kl__title">
+            <i class="ti ti-layout-kanban" aria-hidden="true"></i> meus kanbans
+          </h1>
+          <p class="kl__subtitle">boards privados por personagem</p>
+        </div>
+        <button class="kl__btn-new" type="button" (click)="openNewForm()">
+          <i class="ti ti-plus"></i> novo board
+        </button>
+      </div>
+    </div>
+  </header>
+
+  @if (showNewForm()) {
+    <div class="kl__new-form">
+      <p class="kl__new-title">novo board</p>
+
+      <div class="kl__field">
+        <label class="kl__label" for="kl-game-input">jogo</label>
+        <div class="kl__game-wrap">
+          <div class="kl__game-search">
+            <i class="ti ti-search kl__game-icon" aria-hidden="true"></i>
+            <input
+              id="kl-game-input"
+              class="kl__game-input"
+              type="text"
+              placeholder="buscar jogo..."
+              [value]="gameQuery()"
+              (input)="onGameInput($any($event.target).value)"
+              autocomplete="off"
+            />
+            @if (gameSearching()) {
+              <i class="ti ti-loader-2 kl__spin" aria-hidden="true"></i>
+            }
+          </div>
+          @if (showGameDrop()) {
+            <ul class="kl__game-drop">
+              @for (g of gameResults(); track g.id) {
+                <li>
+                  <button type="button" class="kl__game-opt" (click)="selectGame(g)">
+                    <i class="ti ti-device-gamepad-2" aria-hidden="true"></i> {{ g.name }}
+                  </button>
+                </li>
+              }
+            </ul>
+          }
+        </div>
+      </div>
+
+      <div class="kl__field">
+        <label class="kl__label" for="kl-char-input">nome do personagem / run</label>
+        <input
+          id="kl-char-input"
+          class="kl__input"
+          type="text"
+          placeholder="ex: Ranni Run, Mage NG+..."
+          [value]="newCharName()"
+          (input)="newCharName.set($any($event.target).value)"
+          maxlength="60"
+        />
+      </div>
+
+      <div class="kl__new-actions">
+        <button class="kl__btn-cancel" type="button" (click)="cancelNew()">cancelar</button>
+        <button
+          class="kl__btn-create"
+          type="button"
+          [disabled]="!selectedGame() || !newCharName().trim()"
+          (click)="createBoard()"
+        >
+          criar board
+        </button>
+      </div>
+    </div>
+  }
+
+  <div class="kl__body">
+    @for (group of boardsByGame(); track group.gameId) {
+      <section class="kl__group">
+        <h2 class="kl__group-title">
+          <i class="ti ti-device-gamepad-2" aria-hidden="true"></i>
+          {{ group.gameName }}
+        </h2>
+        <div class="kl__grid">
+          @for (board of group.boards; track board.id) {
+            <a class="kl__card" [routerLink]="['/kanban', board.id]">
+              <div class="kl__card-head">
+                <div class="kl__card-char">{{ board.characterName }}</div>
+                <button
+                  class="kl__card-delete"
+                  type="button"
+                  aria-label="excluir board"
+                  (click)="deleteBoard(board.id, $event)"
+                >
+                  <i class="ti ti-trash" aria-hidden="true"></i>
+                </button>
+              </div>
+
+              <div class="kl__card-stats">
+                <span class="kl__card-stat">
+                  <i class="ti ti-cards" aria-hidden="true"></i>
+                  {{ cardCount(board.id) }} cards
+                </span>
+                <span class="kl__card-stat">
+                  <i class="ti ti-check" aria-hidden="true"></i>
+                  {{ doneCount(board.id) }} concluídos
+                </span>
+              </div>
+
+              <div class="kl__progress-wrap">
+                <div class="kl__progress-bar">
+                  <div class="kl__progress-fill" [style.width.%]="progressPercent(board.id)"></div>
+                </div>
+                <span class="kl__progress-label">{{ progressPercent(board.id) }}%</span>
+              </div>
+
+              <div class="kl__card-cols">
+                @for (col of board.columns; track col.id) {
+                  <span class="kl__col-chip kl__col-chip--{{ col.color }}">
+                    {{ col.title }}
+                  </span>
+                }
+              </div>
+
+              <div class="kl__card-date">
+                <i class="ti ti-calendar" aria-hidden="true"></i>
+                criado em {{ formatDate(board.createdAt) }}
+              </div>
+            </a>
+          }
+        </div>
+      </section>
+    } @empty {
+      <div class="kl__empty">
+        <i class="ti ti-layout-kanban" aria-hidden="true"></i>
+        <p>nenhum board ainda.</p>
+        <button class="kl__btn-new" type="button" (click)="openNewForm()">
+          <i class="ti ti-plus"></i> criar meu primeiro board
+        </button>
+      </div>
+    }
+  </div>
+</div>
