@@ -10,6 +10,7 @@ import {
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { Subject, debounceTime, distinctUntilChanged, switchMap, takeUntil } from 'rxjs';
+import { HttpErrorResponse } from '@angular/common/http';
 import { LoreService } from '../../core/services/lore.service';
 import { GameService } from '../../core/services/game.service';
 import { GameSummary } from '../../shared/models/game.model';
@@ -181,8 +182,12 @@ export class LoreEditor implements OnInit, OnDestroy, HasUnsavedChanges {
           this.form.markAsPristine();
           this.router.navigate(['/lore', this.loreId]);
         },
-        error: () => {
-          this.errorMsg.set('Não foi possível salvar as alterações. Tente novamente.');
+        error: (err: HttpErrorResponse) => {
+          this.errorMsg.set(
+            err.status === 403
+              ? 'Você não tem permissão para editar este artigo.'
+              : 'Não foi possível salvar as alterações. Tente novamente.',
+          );
           this.saving.set(false);
         },
       });

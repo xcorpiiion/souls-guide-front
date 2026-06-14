@@ -2,6 +2,7 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ActivatedRoute, convertToParamMap, provideRouter } from '@angular/router';
 import { describe, beforeEach, it, expect, vi } from 'vitest';
 import { of, throwError } from 'rxjs';
+import { HttpErrorResponse } from '@angular/common/http';
 import { LoreEditor } from './lore-editor';
 import { LoreService } from '../../core/services/lore.service';
 import { GameService } from '../../core/services/game.service';
@@ -130,15 +131,27 @@ describe('LoreEditor', () => {
     );
   });
 
-  it('exibe mensagem de erro quando update() falha', () => {
+  it('exibe mensagem genérica quando update() falha com erro 500', () => {
     const svcMock = {
       get: vi.fn(() => of(MOCK_LORE_API)),
-      update: vi.fn(() => throwError(() => ({ status: 500 }))),
+      update: vi.fn(() => throwError(() => new HttpErrorResponse({ status: 500 }))),
     };
     const fixture = createFixture('7', svcMock);
     const comp = fixture.componentInstance as any;
     comp.submit();
-    expect(comp.errorMsg()).toBeTruthy();
+    expect(comp.errorMsg()).toContain('Não foi possível salvar');
+    expect(comp.saving()).toBe(false);
+  });
+
+  it('exibe mensagem de permissão quando update() retorna 403', () => {
+    const svcMock = {
+      get: vi.fn(() => of(MOCK_LORE_API)),
+      update: vi.fn(() => throwError(() => new HttpErrorResponse({ status: 403 }))),
+    };
+    const fixture = createFixture('7', svcMock);
+    const comp = fixture.componentInstance as any;
+    comp.submit();
+    expect(comp.errorMsg()).toContain('permissão');
     expect(comp.saving()).toBe(false);
   });
 
