@@ -1,4 +1,6 @@
 import { Routes } from '@angular/router';
+import { unsavedChangesGuard } from './core/guards/unsaved-changes.guard';
+import { authGuard } from './core/guards/auth.guard';
 
 export const routes: Routes = [
   {
@@ -15,20 +17,38 @@ export const routes: Routes = [
     loadComponent: () => import('./features/games/games').then((m) => m.Games),
   },
   {
+    path: 'games/new',
+    loadComponent: () => import('./features/game-create/game-create').then((m) => m.GameCreate),
+    canActivate: [authGuard],
+  },
+  {
     path: 'games/:id',
     loadComponent: () => import('./features/game-detail/game-detail').then((m) => m.GameDetail),
   },
   {
+    path: 'login',
+    loadComponent: () => import('./features/login/login').then((m) => m.Login),
+  },
+  {
     path: 'games/:gameId/quests/new',
     loadComponent: () => import('./features/quest-editor/quest-editor').then((m) => m.QuestEditor),
+    canActivate: [authGuard],
+    canDeactivate: [unsavedChangesGuard],
   },
   {
     path: 'games/:gameId/quests/:questId/edit',
     loadComponent: () => import('./features/quest-editor/quest-editor').then((m) => m.QuestEditor),
+    canActivate: [authGuard],
+    canDeactivate: [unsavedChangesGuard],
   },
   {
     path: 'games/:gameId/quests/:questId',
     loadComponent: () => import('./features/quest-detail/quest-detail').then((m) => m.QuestDetail),
+  },
+  {
+    path: 'games/:gameId/quests/:questId/history',
+    loadComponent: () =>
+      import('./features/quest-history/quest-history').then((m) => m.QuestHistory),
   },
   {
     path: 'quests',
@@ -39,9 +59,34 @@ export const routes: Routes = [
     loadComponent: () => import('./features/lore/lore').then((m) => m.Lore),
   },
   {
+    path: 'lore/new',
+    loadComponent: () => import('./features/lore-create/lore-create').then((m) => m.LoreCreate),
+    canActivate: [authGuard],
+  },
+  {
+    path: 'lore/:id/edit',
+    loadComponent: () => import('./features/lore-editor/lore-editor').then((m) => m.LoreEditor),
+    canActivate: [authGuard],
+    canDeactivate: [unsavedChangesGuard],
+  },
+  {
     path: 'lore/:id',
     loadComponent: () =>
       import('./features/lore/lore-detail/lore-detail').then((m) => m.LoreDetail),
+  },
+  {
+    path: 'lore/:loreId/history',
+    loadComponent: () => import('./features/lore-history/lore-history').then((m) => m.LoreHistory),
+  },
+  {
+    path: 'forgot-password',
+    loadComponent: () =>
+      import('./features/forgot-password/forgot-password').then((m) => m.ForgotPassword),
+  },
+  {
+    path: 'reset-password',
+    loadComponent: () =>
+      import('./features/reset-password/reset-password').then((m) => m.ResetPassword),
   },
   {
     path: 'profile',
