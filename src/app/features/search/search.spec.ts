@@ -2,10 +2,39 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 import { ActivatedRoute } from '@angular/router';
 import { of } from 'rxjs';
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi, afterEach } from 'vitest';
 import { Search } from './search';
-import { QUESTS_DETAIL } from '../quest-detail/quest-detail.mocks';
-import { LORE_ARTICLES } from '../lore/lore.mocks';
+import { QuestService } from '../../core/services/quest.service';
+import { LoreService } from '../../core/services/lore.service';
+import { QuestSummary } from '../../shared/models/quest.model';
+import { LoreSummary } from '../../shared/models/lore-article.model';
+
+const QUEST_RANNI: QuestSummary = {
+  id: '1',
+  title: 'Questline de Ranni',
+  gameId: '1',
+  gameName: 'Elden Ring',
+  stepCount: 7,
+  forkCount: 1,
+  endingCount: 2,
+  status: 'CANONICO',
+  followers: 0,
+  author: null,
+};
+
+const LORE_GEHRMAN: LoreSummary = {
+  id: '1',
+  title: 'Gehrman, o Primeiro Caçador',
+  gameId: '2',
+  gameName: 'Bloodborne',
+  category: 'CHARACTER',
+  status: 'CANONICO',
+  excerpt: '...',
+  votes: 0,
+  author: 'u',
+  readMinutes: 3,
+  tags: [],
+};
 
 function makeRoute(q: string) {
   return {
@@ -15,22 +44,36 @@ function makeRoute(q: string) {
 
 interface SearchComp {
   query: () => string;
-  questResults: () => typeof QUESTS_DETAIL;
-  loreResults: () => typeof LORE_ARTICLES;
+  questResults: () => QuestSummary[];
+  loreResults: () => LoreSummary[];
 }
 
 describe('Search', () => {
   let fixture: ComponentFixture<Search>;
   let comp: SearchComp;
 
-  async function setup(q: string) {
+  afterEach(() => vi.useRealTimers());
+
+  async function setup(
+    q: string,
+    questResults: QuestSummary[] = [],
+    loreResults: LoreSummary[] = [],
+  ) {
+    vi.useFakeTimers();
     await TestBed.configureTestingModule({
       imports: [Search],
-      providers: [provideRouter([]), { provide: ActivatedRoute, useValue: makeRoute(q) }],
+      providers: [
+        provideRouter([]),
+        { provide: ActivatedRoute, useValue: makeRoute(q) },
+        { provide: QuestService, useValue: { search: vi.fn(() => of(questResults)) } },
+        { provide: LoreService, useValue: { search: vi.fn(() => of(loreResults)) } },
+      ],
     }).compileComponents();
 
     fixture = TestBed.createComponent(Search);
     comp = fixture.componentInstance as unknown as SearchComp;
+    fixture.detectChanges();
+    vi.advanceTimersByTime(350);
     fixture.detectChanges();
   }
 
@@ -51,7 +94,7 @@ describe('Search', () => {
   });
 
   it('filtra quests pelo título', async () => {
-    await setup('ranni');
+    await setup('ranni', [QUEST_RANNI]);
     expect(comp.questResults().length).toBeGreaterThan(0);
     expect(
       comp
@@ -59,13 +102,13 @@ describe('Search', () => {
         .every(
           (q) =>
             q.title.toLowerCase().includes('ranni') ||
-            q.description.toLowerCase().includes('ranni'),
+            (q.description ?? '').toLowerCase().includes('ranni'),
         ),
     ).toBe(true);
   });
 
   it('filtra artigos de lore pelo título', async () => {
-    await setup('gehrman');
+    await setup('gehrman', [], [LORE_GEHRMAN]);
     expect(comp.loreResults().length).toBeGreaterThan(0);
   });
 
@@ -76,7 +119,7 @@ describe('Search', () => {
   });
 
   it('busca é case-insensitive', async () => {
-    await setup('RANNI');
+    await setup('RANNI', [QUEST_RANNI]);
     expect(comp.questResults().length).toBeGreaterThan(0);
   });
 });

@@ -1,10 +1,40 @@
 import { TestBed } from '@angular/core/testing';
 import { ActivatedRoute, convertToParamMap, provideRouter } from '@angular/router';
-import { describe, beforeEach, it, expect } from 'vitest';
+import { describe, beforeEach, it, expect, vi } from 'vitest';
+import { of } from 'rxjs';
 import { QuestEditor } from './quest-editor';
 import { QUESTS_DETAIL } from '../quest-detail/quest-detail.mocks';
+import { QuestService } from '../../core/services/quest.service';
+import { QuestApi } from '../../shared/models/quest.model';
+
+const MOCK_QUEST = QUESTS_DETAIL.find((q) => q.id === 'er-q1')!;
+const MOCK_QUEST_API: QuestApi = {
+  id: 1,
+  title: MOCK_QUEST.title,
+  description: MOCK_QUEST.description ?? '',
+  status: MOCK_QUEST.status,
+  userId: 'user-1',
+  gameId: 1,
+  gameName: MOCK_QUEST.gameName,
+  nodes: MOCK_QUEST.nodes,
+  edges: MOCK_QUEST.edges,
+  relatedQuests: MOCK_QUEST.relatedQuests,
+  isPersonal: false,
+  ownerId: null,
+  isPublic: true,
+  allowCopy: false,
+  likeCount: 0,
+  userHasLiked: false,
+  followerCount: 0,
+  userIsFollowing: false,
+};
 
 function createFixture(gameId: string, questId?: string) {
+  const questServiceMock = {
+    get: vi.fn(() => of(MOCK_QUEST_API)),
+    create: vi.fn(),
+    update: vi.fn(),
+  };
   TestBed.configureTestingModule({
     imports: [QuestEditor],
     providers: [
@@ -17,6 +47,7 @@ function createFixture(gameId: string, questId?: string) {
           },
         },
       },
+      { provide: QuestService, useValue: questServiceMock },
     ],
   });
   const f = TestBed.createComponent(QuestEditor);
