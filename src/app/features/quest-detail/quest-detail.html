@@ -33,12 +33,44 @@
           <p class="quest-detail__description">{{ q.description }}</p>
         </div>
         <div class="quest-detail__actions">
-          <button class="quest-detail__btn quest-detail__btn--ghost" type="button">
-            seguir · {{ q.followers }}
+          <button
+            class="quest-detail__btn quest-detail__btn--ghost"
+            [class.quest-detail__btn--liked]="userHasLiked()"
+            type="button"
+            [disabled]="!auth.isLoggedIn() || liking()"
+            (click)="toggleLike()"
+          >
+            <i class="ti ti-heart" aria-hidden="true"></i>
+            {{ likeCount() }}
+          </button>
+          <button
+            class="quest-detail__btn quest-detail__btn--ghost"
+            [class.quest-detail__btn--following]="userIsFollowing()"
+            type="button"
+            [disabled]="!auth.isLoggedIn() || following()"
+            (click)="toggleFollow()"
+          >
+            <i class="ti ti-bell" aria-hidden="true"></i>
+            {{ userIsFollowing() ? 'seguindo' : 'seguir' }} · {{ followerCount() }}
           </button>
           <button class="quest-detail__btn quest-detail__btn--ghost" type="button">
             compartilhar
           </button>
+          <a
+            class="quest-detail__btn quest-detail__btn--ghost"
+            [routerLink]="['/games', gameId, 'quests', q.id, 'history']"
+          >
+            <i class="ti ti-history" aria-hidden="true"></i> histórico
+          </a>
+          @if (auth.isLoggedIn()) {
+            <button
+              class="quest-detail__btn quest-detail__btn--ghost"
+              type="button"
+              (click)="openCopyModal()"
+            >
+              <i class="ti ti-copy" aria-hidden="true"></i> copiar
+            </button>
+          }
           <a
             class="quest-detail__btn quest-detail__btn--accent"
             [routerLink]="['/games', gameId, 'quests', q.id, 'edit']"
@@ -139,7 +171,7 @@
             <ul class="quest-detail__related-list">
               @for (rel of q.relatedQuests; track rel.questId) {
                 <li class="quest-detail__related-card">
-                  <div class="quest-detail__related-initials">{{ rel.npcInitials }}</div>
+                  <div class="quest-detail__related-initials">{{ rel.npcInitials ?? '?' }}</div>
                   <div class="quest-detail__related-info">
                     <span class="quest-detail__related-name">{{ rel.questTitle }}</span>
                     <span class="quest-detail__related-crossing"
@@ -160,4 +192,15 @@
       </aside>
     </div>
   </div>
+
+  @if (showCopyModal()) {
+    <app-copy-to-profile-modal
+      contentType="quest"
+      [hasConflict]="copyConflictId() !== undefined"
+      [conflictId]="copyConflictId()"
+      [saving]="copying()"
+      (confirm)="onCopyConfirm($event)"
+      (dismissed)="showCopyModal.set(false)"
+    />
+  }
 }

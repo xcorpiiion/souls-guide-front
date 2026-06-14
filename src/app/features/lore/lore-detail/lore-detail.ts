@@ -1,34 +1,72 @@
 import { LowerCasePipe } from '@angular/common';
-import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, OnInit, inject, signal } from '@angular/core';
 import { ActivatedRoute, RouterLink } from '@angular/router';
-import { toSignal } from '@angular/core/rxjs-interop';
-import { map } from 'rxjs';
-import { LoreCategory } from '../../../shared/models/lore-article.model';
-import { LORE_ARTICLES } from '../lore.mocks';
+import { HttpErrorResponse } from '@angular/common/http';
+import { LoreApi, LoreCategory } from '../../../shared/models/lore-article.model';
+import { LoreService } from '../../../core/services/lore.service';
+import { PersonalLoreService } from '../../../core/services/personal-lore.service';
+import { AuthService } from '../../../core/services/auth.service';
+import {
+  CopyToProfileModal,
+  CopyConfirmEvent,
+} from '../../../shared/components/copy-to-profile-modal/copy-to-profile-modal';
+import { ToastService } from '../../../shared/components/toast/toast.service';
 
 @Component({
   selector: 'app-lore-detail',
-  imports: [RouterLink, LowerCasePipe],
+  imports: [RouterLink, LowerCasePipe, CopyToProfileModal],
   templateUrl: './lore-detail.html',
   styleUrl: './lore-detail.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class LoreDetail {
+export class LoreDetail implements OnInit {
   private readonly route = inject(ActivatedRoute);
+  private readonly loreService = inject(LoreService);
+  private readonly personalLoreService = inject(PersonalLoreService);
+  protected readonly auth = inject(AuthService);
+  private readonly toast = inject(ToastService);
 
-  private readonly id = toSignal(this.route.paramMap.pipe(map((p) => p.get('id') ?? '')));
+  protected readonly loading = signal(true);
+  protected readonly error = signal<string | null>(null);
+  protected readonly article = signal<LoreApi | null>(null);
 
-  protected readonly article = computed(() => LORE_ARTICLES.find((a) => a.id === this.id()));
+  protected readonly showCopyModal = signal(false);
+  protected readonly copyConflictId = signal<number | undefined>(undefined);
+  protected readonly copying = signal(false);
+
+  protected readonly likeCount = signal(0);
+  protected readonly userHasLiked = signal(false);
+  protected readonly liking = signal(false);
+
+  protected readonly followerCount = signal(0);
+  protected readonly userIsFollowing = signal(false);
+  protected readonly following = signal(false);
+  private loreId = '';
+
+  ngOnInit(): void {
+    this.loreId = this.route.snapshot.paramMap.get('id') ?? '';
+    this.loreService.get(this.loreId).subscribe({
+      next: (data) => {
+        this.article.set(data);
+        this.likeCount.set(data.likeCount ?? 0);
+        this.userHasLiked.set(data.userHasLiked ?? false);
+        this.followerCount.set(data.followerCount ?? 0);
+        this.userIsFollowing.set(data.userIsFollowing ?? false);
+        this.loading.set(false);
+      },
+      error: (err: HttpErrorResponse) => {
+        this.error.set(err.status === 403 ? 'Este conteúdo é privado.' : 'Artigo não encontrado.');
+        this.loading.set(false);
+      },
+    });
+  }
 
   protected categoryLabel(cat: LoreCategory): string {
     const map: Record<LoreCategory, string> = {
-      NPC: 'NPC',
-      LOCACAO: 'locação',
-      ITEM: 'item',
-      EVENTO: 'evento',
-      TEORIA: 'teoria',
+      WORLD: 'mundo',
+      CHARACTER: 'personagem',
     };
-    return map[cat];
+    return map[cat] ?? cat;
   }
 
   protected statusLabel(s: string): string {
@@ -38,5 +76,79 @@ export class LoreDetail {
       CANONICO: 'canônico',
     };
     return map[s];
+  }
+
+  protected contentParagraphs(content: string): string[] {
+    return content.split(/\n{2,}/).filter((p) => p.trim().length > 0);
+  }
+
+  protected openCopyModal(): void {
+    this.copyConflictId.set(undefined);
+    this.showCopyModal.set(true);
+  }
+
+  protected toggleFollow(): void {
+    if (this.following()) return;
+    this.following.set(true);
+    const following = this.userIsFollowing();
+    const action = following
+      ? this.loreService.unfollow(this.loreId)
+      : this.loreService.follow(this.loreId);
+    action.subscribe({
+      next: (res) => {
+        this.followerCount.set(res.followerCount);
+        this.userIsFollowing.set(res.userIsFollowing);
+        this.following.set(false);
+      },
+      error: (err: HttpErrorResponse) => {
+        if (err.status === 409) this.userIsFollowing.set(true);
+        this.following.set(false);
+      },
+    });
+  }
+
+  protected toggleLike(): void {
+    if (this.liking()) return;
+    this.liking.set(true);
+    const liked = this.userHasLiked();
+    const action = liked
+      ? this.loreService.unlike(this.loreId)
+      : this.loreService.like(this.loreId);
+    action.subscribe({
+      next: (res) => {
+        this.likeCount.set(res.likeCount);
+        this.userHasLiked.set(res.userHasLiked);
+        this.liking.set(false);
+      },
+      error: (err: HttpErrorResponse) => {
+        if (err.status === 409) this.userHasLiked.set(true);
+        this.liking.set(false);
+      },
+    });
+  }
+
+  protected onCopyConfirm(event: CopyConfirmEvent): void {
+    this.copying.set(true);
+    this.personalLoreService
+      .copyToProfile(this.loreId, event.filterType ?? 'all', event.replaceExistingId)
+      .subscribe({
+        next: () => {
+          this.copying.set(false);
+          this.showCopyModal.set(false);
+          this.toast.success('Lore copiado!', 'O artigo foi adicionado ao seu perfil.');
+        },
+        error: (err: HttpErrorResponse) => {
+          this.copying.set(false);
+          if (err.status === 409) {
+            this.copyConflictId.set(err.error?.conflictingId);
+          } else if (err.status === 403) {
+            this.showCopyModal.set(false);
+            this.toast.error('Sem permissão', 'Este conteúdo não permite cópias.');
+          } else {
+            this.showCopyModal.set(false);
+            this.toast.error('Erro', 'Erro ao copiar lore. Tente novamente.');
+          }
+        },
+      });
   }
 }

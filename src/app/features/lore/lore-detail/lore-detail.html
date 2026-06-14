@@ -1,4 +1,11 @@
-@if (article(); as a) {
+@if (loading()) {
+  <div class="ld__not-found"><p>Carregando…</p></div>
+} @else if (error()) {
+  <div class="ld__not-found">
+    <p>{{ error() }}</p>
+    <a routerLink="/lore">← voltar ao lore</a>
+  </div>
+} @else if (article(); as a) {
   <div class="ld">
     <!-- ══ top bar ════════════════════════════════════════════════════════════ -->
     <div class="ld__topbar">
@@ -8,7 +15,9 @@
           <i class="ti ti-chevron-right ld__crumb-sep" aria-hidden="true"></i>
           <span class="ld__crumb-link">{{ a.gameName }}</span>
           <i class="ti ti-chevron-right ld__crumb-sep" aria-hidden="true"></i>
-          <span class="ld__crumb-current">{{ categoryLabel(a.category) }}</span>
+          <span class="ld__crumb-current">{{
+            a.type === 'CHARACTER' ? 'personagem' : 'mundo'
+          }}</span>
         </nav>
       </div>
     </div>
@@ -20,7 +29,9 @@
         <header class="ld__article-head">
           <div class="ld__badges">
             <span class="lr__badge lr__badge--{{ a.gameId }}">{{ a.gameName }}</span>
-            <span class="lr__badge lr__badge--cat">{{ categoryLabel(a.category) }}</span>
+            <span class="lr__badge lr__badge--cat">{{
+              a.type === 'CHARACTER' ? 'personagem' : 'mundo'
+            }}</span>
             <span class="lr__badge lr__badge--{{ a.status | lowercase }}">
               {{ statusLabel(a.status) }}
             </span>
@@ -28,25 +39,65 @@
 
           <h1 class="ld__title">{{ a.title }}</h1>
 
+          @if (a.characterName) {
+            <p class="ld__character-name">
+              <i class="ti ti-user-circle" aria-hidden="true"></i> {{ a.characterName }}
+            </p>
+          }
+
           <div class="ld__meta">
             <span class="ld__meta-item">
               <i class="ti ti-user" aria-hidden="true"></i>
-              @{{ a.author }}
+              @{{ a.userId }}
             </span>
             <span class="ld__meta-sep">·</span>
-            <span class="ld__meta-item">
-              <i class="ti ti-clock" aria-hidden="true"></i>
-              {{ a.readMinutes }} min de leitura
-            </span>
+            <button
+              class="ld__like-btn"
+              [class.ld__like-btn--liked]="userHasLiked()"
+              type="button"
+              [disabled]="!auth.isLoggedIn() || liking()"
+              (click)="toggleLike()"
+            >
+              <i class="ti ti-heart" aria-hidden="true"></i> {{ likeCount() }}
+            </button>
+            <span class="ld__meta-sep">·</span>
+            <button
+              class="ld__follow-btn"
+              [class.ld__follow-btn--following]="userIsFollowing()"
+              type="button"
+              [disabled]="!auth.isLoggedIn() || following()"
+              (click)="toggleFollow()"
+            >
+              <i class="ti ti-bell" aria-hidden="true"></i>
+              {{ userIsFollowing() ? 'seguindo' : 'seguir' }} · {{ followerCount() }}
+            </button>
+            <span class="ld__meta-sep">·</span>
+            <a class="ld__history-link" [routerLink]="['/lore', a.id, 'history']">
+              <i class="ti ti-git-branch" aria-hidden="true"></i> histórico
+            </a>
+            @if (auth.isLoggedIn() && a.allowCopy) {
+              <span class="ld__meta-sep">·</span>
+              <button class="ld__copy-btn" type="button" (click)="openCopyModal()">
+                <i class="ti ti-copy" aria-hidden="true"></i> copiar
+              </button>
+            }
+            @if (auth.isLoggedIn()) {
+              <span class="ld__meta-sep">·</span>
+              <a class="ld__history-link" [routerLink]="['/lore', a.id, 'edit']">
+                <i class="ti ti-pencil" aria-hidden="true"></i> editar
+              </a>
+            }
           </div>
         </header>
 
         <div class="ld__content">
-          @for (section of a.sections; track section.heading) {
-            <h2 class="ld__section-heading">{{ section.heading }}</h2>
-            <p class="ld__paragraph">{{ section.body }}</p>
-            @if (section.quote) {
-              <blockquote class="ld__quote">{{ section.quote }}</blockquote>
+          @for (paragraph of contentParagraphs(a.content); track $index) {
+            @if (paragraph.startsWith('## ')) {
+              <h2 class="ld__section-heading">{{ paragraph.slice(3) }}</h2>
+            } @else if (paragraph.startsWith('> ')) {
+              <blockquote class="ld__quote">{{ paragraph.slice(2) }}</blockquote>
+            } @else {
+              <p class="ld__paragraph">{{ paragraph }}</p>
             }
           }
         </div>
@@ -62,33 +113,15 @@
 
       <!-- ── sidebar ── -->
       <aside class="ld__sidebar">
-        <!-- table of contents -->
-        <div class="ld__sidebar-card">
-          <p class="ld__sidebar-title">neste artigo</p>
-          @for (section of a.sections; track section.heading; let first = $first) {
-            <span class="ld__toc-item" [class.ld__toc-item--active]="first">
-              {{ section.heading }}
-            </span>
-          }
-        </div>
-
-        <!-- related quests -->
-        @if (a.relatedQuests.length) {
+        @if (a.items.length) {
           <div class="ld__sidebar-card">
-            <p class="ld__sidebar-title">quests relacionadas</p>
-            @for (rq of a.relatedQuests; track rq.questId) {
-              <a
-                class="ld__related-quest"
-                [routerLink]="['/games', rq.gameId, 'quests', rq.questId]"
-              >
-                <span class="ld__rq-dot"></span>
-                <span class="ld__rq-title">{{ rq.title }}</span>
-              </a>
+            <p class="ld__sidebar-title">itens relacionados</p>
+            @for (item of a.items; track item.id) {
+              <div class="ld__toc-item">{{ item.name }}</div>
             }
           </div>
         }
 
-        <!-- suggest edit -->
         <a class="ld__suggest-btn" routerLink="/lore">
           <i class="ti ti-arrow-left" aria-hidden="true"></i>
           voltar ao lore
@@ -96,9 +129,15 @@
       </aside>
     </div>
   </div>
-} @else {
-  <div class="ld__not-found">
-    <p>Artigo não encontrado.</p>
-    <a routerLink="/lore">← voltar ao lore</a>
-  </div>
+
+  @if (showCopyModal()) {
+    <app-copy-to-profile-modal
+      contentType="lore"
+      [hasConflict]="copyConflictId() !== undefined"
+      [conflictId]="copyConflictId()"
+      [saving]="copying()"
+      (confirm)="onCopyConfirm($event)"
+      (dismissed)="showCopyModal.set(false)"
+    />
+  }
 }
