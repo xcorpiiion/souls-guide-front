@@ -453,3 +453,442 @@
   color: v.$color-text-muted;
   margin-top: 2px;
 }
+
+// ─── edit form ─────────────────────────────────────────────────────────────────
+.pf__edit-card {
+  background: v.$color-bg-surface;
+  border: 0.5px solid v.$color-border;
+  border-radius: v.$radius-lg;
+  padding: 24px;
+  margin-bottom: 16px;
+}
+
+.pf__edit-section-title {
+  font-size: 13px;
+  font-weight: 500;
+  color: v.$color-text;
+  margin: 0 0 20px;
+}
+
+.pf__edit-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+
+  @media (max-width: 600px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+.pf__edit-field {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+
+  &--full {
+    grid-column: 1 / -1;
+  }
+}
+
+.pf__edit-label {
+  font-size: 11px;
+  color: v.$color-text-muted;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.pf__edit-input {
+  padding: 9px 12px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 0.5px solid v.$color-border;
+  border-radius: v.$radius-md;
+  color: v.$color-text;
+  font-size: 13px;
+  font-family: v.$font-body;
+  box-sizing: border-box;
+  width: 100%;
+  outline: none;
+  transition: border-color 0.15s;
+
+  &::placeholder {
+    color: v.$color-text-muted;
+    opacity: 0.5;
+  }
+
+  &:focus {
+    border-color: v.$color-gold-dark;
+  }
+
+  &--textarea {
+    resize: vertical;
+    min-height: 80px;
+    line-height: 1.5;
+  }
+}
+
+.pf__edit-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 20px;
+  padding-top: 16px;
+  border-top: 0.5px solid v.$color-border;
+}
+
+.pf__edit-cancel {
+  padding: 9px 18px;
+  background: transparent;
+  border: 0.5px solid v.$color-border;
+  border-radius: v.$radius-md;
+  color: v.$color-text-muted;
+  font-size: 13px;
+  font-family: v.$font-body;
+  cursor: pointer;
+  transition:
+    border-color 0.15s,
+    color 0.15s;
+
+  &:hover {
+    border-color: rgba(v.$color-gold, 0.3);
+    color: v.$color-text;
+  }
+}
+
+.pf__edit-save {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 9px 18px;
+  background: v.$color-gold;
+  border: none;
+  border-radius: v.$radius-md;
+  color: #0f0d0b;
+  font-size: 13px;
+  font-weight: 500;
+  font-family: v.$font-body;
+  cursor: pointer;
+  transition: background 0.15s;
+
+  i {
+    font-size: 15px;
+  }
+
+  &:hover:not(:disabled) {
+    background: v.$color-gold-light;
+  }
+
+  &:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+  }
+}
+
+// ─── danger zone ───────────────────────────────────────────────────────────────
+.pf__danger-card {
+  background: v.$color-bg-surface;
+  border: 0.5px solid rgba(232, 80, 80, 0.2);
+  border-radius: v.$radius-lg;
+  padding: 20px 24px;
+  margin-bottom: 16px;
+}
+
+.pf__danger-title {
+  font-size: 12px;
+  color: #f87171;
+  margin: 0 0 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.pf__danger-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.pf__danger-desc {
+  font-size: 12px;
+  color: v.$color-text-muted;
+}
+
+.pf__danger-btn {
+  padding: 7px 14px;
+  background: rgba(232, 80, 80, 0.1);
+  border: 0.5px solid rgba(232, 80, 80, 0.3);
+  border-radius: v.$radius-md;
+  color: #f87171;
+  font-size: 12px;
+  font-family: v.$font-body;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.15s;
+
+  &:hover {
+    background: rgba(232, 80, 80, 0.18);
+  }
+}
+
+// ─── password sidebar ──────────────────────────────────────────────────────────
+.pf__pw-form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.pf__pw-btn {
+  width: 100%;
+  padding: 9px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 0.5px solid v.$color-border;
+  border-radius: v.$radius-md;
+  color: v.$color-text-muted;
+  font-size: 13px;
+  font-family: v.$font-body;
+  cursor: pointer;
+  margin-top: 4px;
+  transition:
+    background 0.15s,
+    color 0.15s;
+
+  &:hover:not(:disabled) {
+    background: rgba(255, 255, 255, 0.09);
+    color: v.$color-text;
+  }
+
+  &:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+  }
+}
+
+.pf__pw-note {
+  font-size: 11px;
+  color: v.$color-text-muted;
+  opacity: 0.5;
+  margin: 0;
+  line-height: 1.5;
+}
+
+// ─── alerts ────────────────────────────────────────────────────────────────────
+.pf__alert {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  border-radius: v.$radius-md;
+  font-size: 13px;
+  margin-bottom: 16px;
+
+  &--success {
+    background: rgba(31, 170, 100, 0.1);
+    border: 0.5px solid rgba(31, 170, 100, 0.3);
+    color: #1faa64;
+  }
+
+  &--error {
+    background: rgba(232, 80, 80, 0.1);
+    border: 0.5px solid rgba(232, 80, 80, 0.3);
+    color: #f87171;
+  }
+
+  &--sm {
+    font-size: 12px;
+    padding: 8px 12px;
+    margin-bottom: 12px;
+  }
+}
+
+// ─── conteúdo de perfil ────────────────────────────────────────────────────────
+.pf__content-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: v.$space-4;
+}
+
+.pf__content-create-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: v.$space-2;
+  padding: 7px 14px;
+  border-radius: v.$radius-md;
+  background: transparent;
+  border: 0.5px solid v.$color-gold;
+  color: v.$color-gold;
+  font-size: v.$font-size-sm;
+  font-family: v.$font-body;
+  text-decoration: none;
+  transition: background v.$transition-fast;
+
+  &:hover {
+    background: rgba(v.$color-gold, 0.07);
+  }
+}
+
+.pf__personal-card {
+  display: flex;
+  align-items: center;
+  gap: v.$space-3;
+  padding: v.$space-4;
+  background: v.$color-bg-elevated;
+  border: 0.5px solid v.$color-border;
+  border-radius: v.$radius-md;
+  margin-bottom: v.$space-3;
+  transition: border-color v.$transition-fast;
+
+  &:hover {
+    border-color: v.$color-border-focus;
+  }
+}
+
+.pf__personal-card-main {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: v.$space-4;
+  min-width: 0;
+}
+
+.pf__personal-card-info {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.pf__personal-card-badges {
+  display: flex;
+  align-items: center;
+  gap: v.$space-2;
+  flex-shrink: 0;
+}
+
+.pf__personal-card-actions {
+  display: flex;
+  gap: v.$space-2;
+  flex-shrink: 0;
+}
+
+.pf__personal-action {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: v.$radius-md;
+  background: transparent;
+  border: 0.5px solid v.$color-border;
+  color: v.$color-text-muted;
+  cursor: pointer;
+  transition:
+    background v.$transition-fast,
+    border-color v.$transition-fast,
+    color v.$transition-fast;
+
+  &:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+  }
+
+  &--danger:hover:not(:disabled) {
+    background: rgba(248, 113, 113, 0.08);
+    border-color: rgba(248, 113, 113, 0.3);
+    color: #f87171;
+  }
+}
+
+.pf__visibility-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  padding: 2px 8px;
+  border-radius: 10px;
+
+  .ti {
+    font-size: 11px;
+  }
+
+  &--private {
+    background: rgba(100, 116, 139, 0.1);
+    color: #94a3b8;
+    border: 0.5px solid rgba(100, 116, 139, 0.2);
+  }
+
+  &--copy {
+    background: rgba(v.$color-gold, 0.07);
+    color: v.$color-gold;
+    border: 0.5px solid rgba(v.$color-gold, 0.2);
+  }
+}
+
+.pf__like-icon {
+  font-size: 11px;
+  color: #f87171;
+  vertical-align: middle;
+}
+
+@keyframes pf-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+.pf__spin {
+  animation: pf-spin 0.7s linear infinite;
+  display: inline-block;
+}
+
+// ─── Kanban promo ─────────────────────────────────────────────────────────────
+.pf__kanban-promo {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: v.$space-3;
+  padding: v.$space-10 v.$space-6;
+  border: 0.5px dashed v.$color-border;
+  border-radius: v.$radius-lg;
+  margin-top: v.$space-2;
+}
+
+.pf__kanban-promo-icon {
+  font-size: 2.5rem;
+  color: v.$color-gold;
+  opacity: 0.7;
+}
+
+.pf__kanban-promo-title {
+  font-family: v.$font-display;
+  font-size: v.$font-size-lg;
+  color: v.$color-text;
+  font-weight: 500;
+  letter-spacing: 0.03em;
+}
+
+.pf__kanban-promo-desc {
+  font-size: v.$font-size-sm;
+  color: v.$color-text-muted;
+  max-width: 380px;
+  line-height: 1.6;
+}
+
+.pf__kanban-promo-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: v.$space-2;
+  padding: 10px 22px;
+  background: v.$color-gold;
+  color: #0f0d0b;
+  border-radius: v.$radius-md;
+  font-size: v.$font-size-sm;
+  font-weight: 500;
+  text-decoration: none;
+  margin-top: v.$space-2;
+  transition: background v.$transition-fast;
+
+  &:hover {
+    background: v.$color-gold-light;
+  }
+}

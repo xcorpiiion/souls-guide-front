@@ -77,6 +77,14 @@
           >
             favoritos
           </button>
+          <button
+            class="pf__tab"
+            [class.pf__tab--active]="activeTab() === 'kanban'"
+            role="tab"
+            (click)="setTab('kanban')"
+          >
+            <i class="ti ti-layout-kanban" aria-hidden="true"></i> kanban
+          </button>
         }
       </nav>
     </div>
@@ -385,6 +393,26 @@
               <p class="pf__empty">Você ainda não segue nenhum artigo de lore.</p>
             }
           }
+        }
+
+        @if (activeTab() === 'kanban') {
+          <div class="pf__content-header">
+            <p class="pf__section-title">meus kanbans</p>
+            <a class="pf__content-create-btn" routerLink="/kanban">
+              <i class="ti ti-layout-kanban" aria-hidden="true"></i> ver todos
+            </a>
+          </div>
+          <div class="pf__kanban-promo">
+            <i class="ti ti-layout-kanban pf__kanban-promo-icon" aria-hidden="true"></i>
+            <p class="pf__kanban-promo-title">boards por personagem</p>
+            <p class="pf__kanban-promo-desc">
+              Organize sua jornada em colunas, acompanhe o progresso das suas quests e anote tudo
+              que importa — um board para cada build.
+            </p>
+            <a class="pf__kanban-promo-btn" routerLink="/kanban">
+              <i class="ti ti-arrow-right" aria-hidden="true"></i> acessar kanbans
+            </a>
+          </div>
         }
 
         @if (activeTab() === 'favoritos') {

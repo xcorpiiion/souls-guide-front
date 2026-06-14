@@ -13,7 +13,7 @@ import { LoreService } from '../../core/services/lore.service';
 import { ToastService } from '../../shared/components/toast/toast.service';
 import { MY_PROFILE, UserProfile } from './profile.mocks';
 
-type ProfileTab = 'quests' | 'lore' | 'seguindo' | 'favoritos';
+type ProfileTab = 'quests' | 'lore' | 'seguindo' | 'favoritos' | 'kanban';
 
 @Component({
   selector: 'app-profile',
