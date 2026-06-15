@@ -1,5 +1,6 @@
 @use 'styles/variables' as v;
 @use 'styles/animations' as a;
+@use 'sass:color';
 
 // ─── shared badge styles (reused from lore listing) ───────────────────────────
 .lr__badge {
@@ -10,7 +11,7 @@
 
   &--elden-ring {
     background: rgba(v.$color-gold, 0.1);
-    color: darken(#c9a84c, 10%);
+    color: color.adjust(#c9a84c, $lightness: -10%);
     border: 1px solid rgba(v.$color-gold, 0.25);
   }
 
@@ -163,6 +164,44 @@
 
 .ld__meta-sep {
   opacity: 0.4;
+}
+
+.ld__history-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: v.$font-size-xs;
+  color: v.$color-text-muted;
+  text-decoration: none;
+
+  .ti {
+    font-size: 13px;
+  }
+
+  &:hover {
+    color: v.$color-gold;
+  }
+}
+
+.ld__copy-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: v.$font-size-xs;
+  color: v.$color-text-muted;
+  background: transparent;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  font-family: v.$font-body;
+
+  .ti {
+    font-size: 13px;
+  }
+
+  &:hover {
+    color: v.$color-gold;
+  }
 }
 
 // ─── content ───────────────────────────────────────────────────────────────────

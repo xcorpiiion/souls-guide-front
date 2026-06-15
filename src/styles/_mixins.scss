@@ -164,21 +164,19 @@
 }
 
 @mixin margin-x($value) {
-  $final: if(
-    meta.type-of($value) == 'number' and math.is-unitless($value),
-    $value * v.$space-base,
-    $value
-  );
+  $final: $value;
+  @if meta.type-of($value) == 'number' and math.is-unitless($value) {
+    $final: $value * v.$space-base;
+  }
   margin-left: $final;
   margin-right: $final;
 }
 
 @mixin margin-y($value) {
-  $final: if(
-    meta.type-of($value) == 'number' and math.is-unitless($value),
-    $value * v.$space-base,
-    $value
-  );
+  $final: $value;
+  @if meta.type-of($value) == 'number' and math.is-unitless($value) {
+    $final: $value * v.$space-base;
+  }
   margin-top: $final;
   margin-bottom: $final;
 }
@@ -196,21 +194,19 @@
 }
 
 @mixin padding-x($value) {
-  $final: if(
-    meta.type-of($value) == 'number' and math.is-unitless($value),
-    $value * v.$space-base,
-    $value
-  );
+  $final: $value;
+  @if meta.type-of($value) == 'number' and math.is-unitless($value) {
+    $final: $value * v.$space-base;
+  }
   padding-left: $final;
   padding-right: $final;
 }
 
 @mixin padding-y($value) {
-  $final: if(
-    meta.type-of($value) == 'number' and math.is-unitless($value),
-    $value * v.$space-base,
-    $value
-  );
+  $final: $value;
+  @if meta.type-of($value) == 'number' and math.is-unitless($value) {
+    $final: $value * v.$space-base;
+  }
   padding-top: $final;
   padding-bottom: $final;
 }

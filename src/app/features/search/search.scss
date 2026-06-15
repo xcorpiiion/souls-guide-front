@@ -1,5 +1,6 @@
 @use 'styles/variables' as v;
 @use 'styles/animations' as a;
+@use 'sass:color';
 
 .sr {
   min-height: calc(100vh - #{v.$navbar-height});
@@ -259,7 +260,7 @@
 
   &--elden-ring {
     background: rgba(v.$color-gold, 0.1);
-    color: darken(#c9a84c, 10%);
+    color: color.adjust(#c9a84c, $lightness: -10%);
     border: 1px solid rgba(v.$color-gold, 0.25);
   }
   &--bloodborne {

@@ -1,6 +1,7 @@
 @use 'styles/variables' as v;
 @use 'styles/animations' as a;
 @use 'styles/mixins' as m;
+@use 'sass:color';
 
 .lr {
   min-height: calc(100vh - #{v.$navbar-height});
@@ -25,12 +26,39 @@
   }
 }
 
+.lr__head-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+
 .lr__title {
   font-family: v.$font-display;
   font-size: 26px;
   font-weight: 500;
   color: v.$color-text;
-  margin-bottom: 16px;
+}
+
+.lr__btn-new {
+  display: inline-flex;
+  align-items: center;
+  gap: v.$space-2;
+  padding: 9px 18px;
+  background: v.$color-gold;
+  border: none;
+  border-radius: v.$radius-md;
+  color: #0f0d0b;
+  font-family: v.$font-body;
+  font-size: v.$font-size-sm;
+  font-weight: 500;
+  text-decoration: none;
+  cursor: pointer;
+  transition: background v.$transition-fast;
+
+  @include m.on-hover {
+    background: v.$color-gold-light;
+  }
 }
 
 .lr__search {
@@ -160,7 +188,7 @@
   // game variants
   &--elden-ring {
     background: rgba(v.$color-gold, 0.1);
-    color: darken(#c9a84c, 10%);
+    color: color.adjust(#c9a84c, $lightness: -10%);
     border: 1px solid rgba(v.$color-gold, 0.25);
   }
 
@@ -299,4 +327,59 @@
 .lr__skel-tag {
   @include m.skeleton-line(11px, 52px);
   border-radius: 10px;
+}
+
+// ─── Pagination ──────────────────────────────────────────────────────────────
+.lr__pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: v.$space-2;
+  margin: v.$space-8 0;
+  flex-wrap: wrap;
+}
+
+.lr__page-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 36px;
+  height: 36px;
+  padding: 0 v.$space-2;
+  background: v.$color-bg-surface;
+  border: 1px solid v.$color-border;
+  border-radius: v.$radius-sm;
+  color: v.$color-text-muted;
+  font-family: v.$font-body;
+  font-size: v.$font-size-sm;
+  cursor: pointer;
+  transition:
+    border-color v.$transition-fast,
+    color v.$transition-fast,
+    background v.$transition-fast;
+
+  &:hover:not(:disabled) {
+    border-color: v.$color-border-focus;
+    color: v.$color-text;
+  }
+
+  &--active {
+    background: v.$color-gold;
+    border-color: v.$color-gold;
+    color: #0f0d0b;
+    font-weight: 600;
+    cursor: default;
+  }
+
+  &:disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+  }
+}
+
+.lr__page-ellipsis {
+  color: v.$color-text-muted;
+  font-size: v.$font-size-sm;
+  padding: 0 v.$space-1;
+  user-select: none;
 }
