@@ -1,6 +1,8 @@
 import { TestBed, ComponentFixture } from '@angular/core/testing';
 import { ActivatedRoute, convertToParamMap, provideRouter } from '@angular/router';
 import { describe, beforeEach, it, expect, vi } from 'vitest';
+import { of } from 'rxjs';
+import { signal } from '@angular/core';
 import { KanbanBoard } from './kanban-board';
 import { KanbanService } from '../../../core/services/kanban.service';
 import { KanbanBoard as KanbanBoardModel, KanbanCard } from '../../../shared/models/kanban.model';
@@ -43,13 +45,24 @@ const MOCK_BOARD: KanbanBoardModel = {
 
 function makeKanbanSvc(board: KanbanBoardModel | null = MOCK_BOARD) {
   return {
+    loaded: signal(true),
+    loadBoards: vi.fn(() => of(board ? [board] : [])),
     getBoard: vi.fn(() => board),
-    addColumn: vi.fn(),
-    deleteColumn: vi.fn(),
-    addCard: vi.fn(() => ({ ...MOCK_CARD, id: 'new-card', title: 'Novo card' })),
-    updateCard: vi.fn(),
-    deleteCard: vi.fn(),
-    moveCard: vi.fn(),
+    addColumn: vi.fn(() =>
+      of({
+        id: 'col-new',
+        boardId: 'board-1',
+        title: 'nova',
+        color: 'custom' as const,
+        position: 2,
+        cards: [],
+      }),
+    ),
+    deleteColumn: vi.fn(() => of(undefined)),
+    addCard: vi.fn(() => of({ ...MOCK_CARD, id: 'new-card', title: 'Novo card' })),
+    updateCard: vi.fn(() => of({ ...MOCK_CARD })),
+    deleteCard: vi.fn(() => of(undefined)),
+    moveCard: vi.fn(() => of(MOCK_BOARD)),
   };
 }
 

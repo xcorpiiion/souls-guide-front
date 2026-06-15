@@ -1,174 +1,233 @@
 import { TestBed } from '@angular/core/testing';
-import { describe, beforeEach, it, expect } from 'vitest';
+import { provideHttpClient } from '@angular/common/http';
+import { provideHttpClientTesting, HttpTestingController } from '@angular/common/http/testing';
+import { describe, beforeEach, afterEach, it, expect } from 'vitest';
 import { KanbanService } from './kanban.service';
+import { KanbanBoard, KanbanCard, KanbanColumn } from '../../shared/models/kanban.model';
+
+const BASE = 'http://localhost:8765/souls-guide-api/kanban';
+
+const MOCK_CARD: KanbanCard = {
+  id: 'card-1',
+  columnId: 'col-1',
+  title: 'Derrotar Margit',
+  tags: ['boss'],
+  priority: 'urgent',
+  notes: '',
+  checklist: [],
+  refs: [],
+  position: 0,
+  done: false,
+};
+
+const MOCK_COL: KanbanColumn = {
+  id: 'col-1',
+  boardId: 'board-1',
+  title: 'a fazer',
+  color: 'todo',
+  position: 0,
+  cards: [MOCK_CARD],
+};
+
+const MOCK_BOARD: KanbanBoard = {
+  id: 'board-1',
+  userId: 'u1',
+  gameId: '1',
+  gameName: 'Elden Ring',
+  characterName: 'Ranni Run',
+  createdAt: new Date().toISOString(),
+  columns: [MOCK_COL],
+};
 
 describe('KanbanService', () => {
   let svc: KanbanService;
+  let http: HttpTestingController;
 
   beforeEach(() => {
-    TestBed.configureTestingModule({});
+    TestBed.configureTestingModule({
+      providers: [provideHttpClient(), provideHttpClientTesting()],
+    });
     svc = TestBed.inject(KanbanService);
+    http = TestBed.inject(HttpTestingController);
   });
+
+  afterEach(() => http.verify());
 
   it('deve criar o serviço', () => {
     expect(svc).toBeTruthy();
   });
 
-  it('boards() retorna os boards mockados iniciais', () => {
-    expect(svc.boards().length).toBeGreaterThan(0);
+  it('boards() começa vazio, loaded() começa false', () => {
+    expect(svc.boards()).toHaveLength(0);
+    expect(svc.loaded()).toBe(false);
   });
 
-  it('boardsByGame() agrupa boards por jogo', () => {
-    const groups = svc.boardsByGame();
-    expect(groups.length).toBeGreaterThan(0);
-    const eldenRing = groups.find((g) => g.gameName === 'Elden Ring');
-    expect(eldenRing).toBeTruthy();
-    expect(eldenRing!.boards.length).toBeGreaterThanOrEqual(2);
+  it('getBoard() retorna null quando nenhum board carregado', () => {
+    expect(svc.getBoard('board-1')).toBeNull();
   });
 
-  it('getBoard() retorna o board pelo id', () => {
-    const board = svc.getBoard('board-1');
-    expect(board).not.toBeNull();
-    expect(board!.characterName).toBe('Ranni Run');
-  });
+  describe('loadBoards()', () => {
+    it('popula o signal boards e seta loaded=true', () => {
+      svc.loadBoards().subscribe();
+      http.expectOne(`${BASE}/boards`).flush([MOCK_BOARD]);
+      expect(svc.boards()).toHaveLength(1);
+      expect(svc.boards()[0].id).toBe('board-1');
+      expect(svc.loaded()).toBe(true);
+    });
 
-  it('getBoard() retorna null para id inexistente', () => {
-    expect(svc.getBoard('nao-existe')).toBeNull();
+    it('getBoard() retorna o board após carregamento', () => {
+      svc.loadBoards().subscribe();
+      http.expectOne(`${BASE}/boards`).flush([MOCK_BOARD]);
+      expect(svc.getBoard('board-1')).not.toBeNull();
+      expect(svc.getBoard('nao-existe')).toBeNull();
+    });
+
+    it('boardsByGame() agrupa por jogo', () => {
+      svc.loadBoards().subscribe();
+      http.expectOne(`${BASE}/boards`).flush([MOCK_BOARD]);
+      const groups = svc.boardsByGame();
+      expect(groups.length).toBe(1);
+      expect(groups[0].gameName).toBe('Elden Ring');
+      expect(groups[0].boards).toHaveLength(1);
+    });
   });
 
   describe('createBoard()', () => {
-    it('cria um novo board com colunas padrão', () => {
-      const before = svc.boards().length;
-      const board = svc.createBoard('99', 'Bloodborne', 'Hunter Run');
-      expect(svc.boards().length).toBe(before + 1);
-      expect(board.characterName).toBe('Hunter Run');
-      expect(board.gameName).toBe('Bloodborne');
-      expect(board.columns.length).toBe(3);
-    });
+    it('faz POST e adiciona o board ao signal', () => {
+      const newBoard = { ...MOCK_BOARD, id: 'board-new', characterName: 'Hunter Run' };
+      svc.loadBoards().subscribe();
+      http.expectOne(`${BASE}/boards`).flush([MOCK_BOARD]);
 
-    it('as colunas do board criado têm boardId correto', () => {
-      const board = svc.createBoard('99', 'Bloodborne', 'Hunter Run');
-      for (const col of board.columns) {
-        expect(col.boardId).toBe(board.id);
-      }
+      svc.createBoard('1', 'Elden Ring', 'Hunter Run').subscribe();
+      http.expectOne((r) => r.method === 'POST' && r.url === `${BASE}/boards`).flush(newBoard);
+
+      expect(svc.boards()).toHaveLength(2);
+      expect(svc.boards()[1].characterName).toBe('Hunter Run');
     });
   });
 
   describe('deleteBoard()', () => {
-    it('remove o board pelo id', () => {
-      const board = svc.createBoard('99', 'Bloodborne', 'Hunter Run');
-      const before = svc.boards().length;
-      svc.deleteBoard(board.id);
-      expect(svc.boards().length).toBe(before - 1);
-      expect(svc.getBoard(board.id)).toBeNull();
+    it('faz DELETE e remove o board do signal', () => {
+      svc.loadBoards().subscribe();
+      http.expectOne(`${BASE}/boards`).flush([MOCK_BOARD]);
+
+      svc.deleteBoard('board-1').subscribe();
+      http
+        .expectOne(`${BASE}/boards/board-1`)
+        .flush(null, { status: 204, statusText: 'No Content' });
+
+      expect(svc.boards()).toHaveLength(0);
     });
   });
 
   describe('addColumn()', () => {
-    it('adiciona uma coluna ao board', () => {
+    it('faz POST e adiciona coluna ao board no signal', () => {
+      svc.loadBoards().subscribe();
+      http.expectOne(`${BASE}/boards`).flush([MOCK_BOARD]);
+
+      const newCol: KanbanColumn = {
+        id: 'col-2',
+        boardId: 'board-1',
+        title: 'em andamento',
+        color: 'doing',
+        position: 1,
+        cards: [],
+      };
+      svc.addColumn('board-1', 'em andamento').subscribe();
+      http.expectOne(`${BASE}/boards/board-1/columns`).flush(newCol);
+
       const board = svc.getBoard('board-1')!;
-      const before = board.columns.length;
-      svc.addColumn('board-1', 'revisão');
-      const updated = svc.getBoard('board-1')!;
-      expect(updated.columns.length).toBe(before + 1);
-      expect(updated.columns.at(-1)!.title).toBe('revisão');
+      expect(board.columns).toHaveLength(2);
+      expect(board.columns[1].title).toBe('em andamento');
     });
   });
 
   describe('deleteColumn()', () => {
-    it('remove uma coluna do board', () => {
-      svc.addColumn('board-1', 'temp');
-      const board = svc.getBoard('board-1')!;
-      const col = board.columns.find((c) => c.title === 'temp')!;
-      const before = board.columns.length;
-      svc.deleteColumn('board-1', col.id);
-      expect(svc.getBoard('board-1')!.columns.length).toBe(before - 1);
+    it('faz DELETE e remove a coluna do signal', () => {
+      svc.loadBoards().subscribe();
+      http.expectOne(`${BASE}/boards`).flush([MOCK_BOARD]);
+
+      svc.deleteColumn('board-1', 'col-1').subscribe();
+      http
+        .expectOne(`${BASE}/boards/board-1/columns/col-1`)
+        .flush(null, { status: 204, statusText: 'No Content' });
+
+      expect(svc.getBoard('board-1')!.columns).toHaveLength(0);
     });
   });
 
   describe('addCard()', () => {
-    it('adiciona um card na coluna correta', () => {
-      const card = svc.addCard('board-1', 'col-1', 'Novo card de teste');
-      const col = svc.getBoard('board-1')!.columns.find((c) => c.id === 'col-1')!;
-      expect(col.cards.some((c) => c.id === card.id)).toBe(true);
-      expect(card.title).toBe('Novo card de teste');
-    });
+    it('faz POST e adiciona card à coluna no signal', () => {
+      svc.loadBoards().subscribe();
+      http.expectOne(`${BASE}/boards`).flush([MOCK_BOARD]);
 
-    it('card criado tem prioridade normal e listas vazias', () => {
-      const card = svc.addCard('board-1', 'col-1', 'Card vazio');
-      expect(card.priority).toBe('normal');
-      expect(card.checklist).toHaveLength(0);
-      expect(card.tags).toHaveLength(0);
+      const newCard: KanbanCard = { ...MOCK_CARD, id: 'card-new', title: 'Novo card' };
+      svc.addCard('board-1', 'col-1', 'Novo card').subscribe();
+      http.expectOne(`${BASE}/boards/board-1/columns/col-1/cards`).flush(newCard);
+
+      const col = svc.getBoard('board-1')!.columns[0];
+      expect(col.cards).toHaveLength(2);
+      expect(col.cards[1].title).toBe('Novo card');
     });
   });
 
   describe('updateCard()', () => {
-    it('atualiza um card existente', () => {
-      const board = svc.getBoard('board-1')!;
-      const original = board.columns[0].cards[0];
-      const updated = { ...original, title: 'Título atualizado', notes: 'nota nova' };
-      svc.updateCard('board-1', updated);
-      const col = svc.getBoard('board-1')!.columns[0];
-      const found = col.cards.find((c) => c.id === original.id)!;
-      expect(found.title).toBe('Título atualizado');
-      expect(found.notes).toBe('nota nova');
+    it('faz PUT e atualiza o card no signal', () => {
+      svc.loadBoards().subscribe();
+      http.expectOne(`${BASE}/boards`).flush([MOCK_BOARD]);
+
+      const updated = { ...MOCK_CARD, title: 'Título atualizado', notes: 'nota nova' };
+      svc.updateCard('board-1', updated).subscribe();
+      http.expectOne(`${BASE}/boards/board-1/cards/card-1`).flush(updated);
+
+      const card = svc.getBoard('board-1')!.columns[0].cards[0];
+      expect(card.title).toBe('Título atualizado');
+      expect(card.notes).toBe('nota nova');
     });
   });
 
   describe('deleteCard()', () => {
-    it('remove um card do board', () => {
-      const card = svc.addCard('board-1', 'col-1', 'Para deletar');
-      svc.deleteCard('board-1', card.id);
-      const col = svc.getBoard('board-1')!.columns.find((c) => c.id === 'col-1')!;
-      expect(col.cards.some((c) => c.id === card.id)).toBe(false);
+    it('faz DELETE e remove o card do signal', () => {
+      svc.loadBoards().subscribe();
+      http.expectOne(`${BASE}/boards`).flush([MOCK_BOARD]);
+
+      svc.deleteCard('board-1', 'card-1').subscribe();
+      http
+        .expectOne(`${BASE}/boards/board-1/cards/card-1`)
+        .flush(null, { status: 204, statusText: 'No Content' });
+
+      expect(svc.getBoard('board-1')!.columns[0].cards).toHaveLength(0);
     });
   });
 
   describe('moveCard()', () => {
-    it('move um card de uma coluna para outra', () => {
-      const board = svc.getBoard('board-1')!;
-      const sourceCard = board.columns[0].cards[0];
-      const targetColId = 'col-2';
-      svc.moveCard('board-1', sourceCard.id, targetColId, 0);
+    it('faz POST /move e substitui o board no signal pela resposta', () => {
+      const col2: KanbanColumn = {
+        id: 'col-2',
+        boardId: 'board-1',
+        title: 'concluído',
+        color: 'done',
+        position: 1,
+        cards: [],
+      };
+      const boardWith2Cols = { ...MOCK_BOARD, columns: [MOCK_COL, col2] };
+      svc.loadBoards().subscribe();
+      http.expectOne(`${BASE}/boards`).flush([boardWith2Cols]);
+
+      const boardAfterMove: KanbanBoard = {
+        ...boardWith2Cols,
+        columns: [
+          { ...MOCK_COL, cards: [] },
+          { ...col2, cards: [{ ...MOCK_CARD, columnId: 'col-2' }] },
+        ],
+      };
+      svc.moveCard('board-1', 'card-1', 'col-2', 0).subscribe();
+      http.expectOne(`${BASE}/boards/board-1/cards/card-1/move`).flush(boardAfterMove);
+
       const updated = svc.getBoard('board-1')!;
-      const sourceCol = updated.columns.find((c) => c.id === 'col-1')!;
-      const targetCol = updated.columns.find((c) => c.id === 'col-2')!;
-      expect(sourceCol.cards.some((c) => c.id === sourceCard.id)).toBe(false);
-      expect(targetCol.cards.some((c) => c.id === sourceCard.id)).toBe(true);
-    });
-
-    it('card movido tem o columnId atualizado', () => {
-      const board = svc.getBoard('board-1')!;
-      const sourceCard = board.columns[0].cards[0];
-      svc.moveCard('board-1', sourceCard.id, 'col-2', 0);
-      const targetCol = svc.getBoard('board-1')!.columns.find((c) => c.id === 'col-2')!;
-      const moved = targetCol.cards.find((c) => c.id === sourceCard.id)!;
-      expect(moved.columnId).toBe('col-2');
-    });
-  });
-
-  describe('toggleChecklist()', () => {
-    it('alterna o estado done do item do checklist', () => {
-      const board = svc.getBoard('board-1')!;
-      const card = board.columns[0].cards[0];
-      const item = card.checklist[0];
-      const before = item.done;
-      svc.toggleChecklist('board-1', card, item.id);
-      const updated = svc.getBoard('board-1')!.columns[0].cards.find((c) => c.id === card.id)!;
-      expect(updated.checklist[0].done).toBe(!before);
-    });
-  });
-
-  describe('addChecklist()', () => {
-    it('adiciona um item ao checklist do card', () => {
-      const board = svc.getBoard('board-1')!;
-      const card = board.columns[0].cards[0];
-      const before = card.checklist.length;
-      svc.addChecklist('board-1', card, 'Novo item do checklist');
-      const updated = svc.getBoard('board-1')!.columns[0].cards.find((c) => c.id === card.id)!;
-      expect(updated.checklist.length).toBe(before + 1);
-      expect(updated.checklist.at(-1)!.label).toBe('Novo item do checklist');
-      expect(updated.checklist.at(-1)!.done).toBe(false);
+      expect(updated.columns[0].cards).toHaveLength(0);
+      expect(updated.columns[1].cards).toHaveLength(1);
+      expect(updated.columns[1].cards[0].columnId).toBe('col-2');
     });
   });
 });

@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, OnInit, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { KanbanService } from '../../../core/services/kanban.service';
 import { GameService } from '../../../core/services/game.service';
@@ -13,7 +13,7 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
   styleUrl: './kanban-list.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class KanbanList {
+export class KanbanList implements OnInit {
   protected readonly kanbanService = inject(KanbanService);
   private readonly gameService = inject(GameService);
 
@@ -55,6 +55,10 @@ export class KanbanList {
       });
   }
 
+  ngOnInit(): void {
+    this.kanbanService.loadBoards().subscribe();
+  }
+
   protected openNewForm(): void {
     this.showNewForm.set(true);
     this.newCharName.set('');
@@ -87,15 +91,18 @@ export class KanbanList {
     const game = this.selectedGame();
     const char = this.newCharName().trim();
     if (!game || !char) return;
-    const board = this.kanbanService.createBoard(game.id, game.name, char);
-    this.showNewForm.set(false);
-    window.location.href = `/kanban/${board.id}`;
+    this.kanbanService.createBoard(game.id, game.name, char).subscribe({
+      next: (board) => {
+        this.showNewForm.set(false);
+        window.location.href = `/kanban/${board.id}`;
+      },
+    });
   }
 
   protected deleteBoard(id: string, event: Event): void {
     event.preventDefault();
     event.stopPropagation();
-    this.kanbanService.deleteBoard(id);
+    this.kanbanService.deleteBoard(id).subscribe();
   }
 
   protected cardCount(boardId: string): number {

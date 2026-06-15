@@ -47,10 +47,12 @@ function makeKanbanSvc() {
   const _boards = signal(MOCK_BOARDS);
   return {
     boards: _boards.asReadonly(),
+    loaded: signal(false),
     boardsByGame: computed(() => [{ gameId: '1', gameName: 'Elden Ring', boards: MOCK_BOARDS }]),
+    loadBoards: vi.fn(() => of(MOCK_BOARDS)),
     getBoard: vi.fn((id: string) => MOCK_BOARDS.find((b) => b.id === id) ?? null),
-    createBoard: vi.fn(() => ({ ...MOCK_BOARDS[0], id: 'new-board' })),
-    deleteBoard: vi.fn(),
+    createBoard: vi.fn(() => of({ ...MOCK_BOARDS[0], id: 'new-board' })),
+    deleteBoard: vi.fn(() => of(undefined)),
   };
 }
 

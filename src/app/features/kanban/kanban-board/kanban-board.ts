@@ -54,6 +54,17 @@ export class KanbanBoard implements OnInit {
   });
 
   ngOnInit(): void {
+    if (this.kanbanService.loaded()) {
+      this.initBoard();
+    } else {
+      this.kanbanService.loadBoards().subscribe({
+        next: () => this.initBoard(),
+        error: () => this.notFound.set(true),
+      });
+    }
+  }
+
+  private initBoard(): void {
     const board = this.kanbanService.getBoard(this.boardId);
     if (!board) {
       this.notFound.set(true);
@@ -75,14 +86,18 @@ export class KanbanBoard implements OnInit {
   protected confirmAddColumn(): void {
     const title = this.addingColumnTitle().trim();
     if (!title) return;
-    this.kanbanService.addColumn(this.boardId, title);
-    this.showAddColumn.set(false);
-    this.refresh();
+    this.kanbanService.addColumn(this.boardId, title).subscribe({
+      next: () => {
+        this.showAddColumn.set(false);
+        this.refresh();
+      },
+    });
   }
 
   protected deleteColumn(col: KanbanColumn): void {
-    this.kanbanService.deleteColumn(this.boardId, col.id);
-    this.refresh();
+    this.kanbanService.deleteColumn(this.boardId, col.id).subscribe({
+      next: () => this.refresh(),
+    });
   }
 
   // ─── Card add ──────────────────────────────────────────────────────────────
@@ -97,9 +112,12 @@ export class KanbanBoard implements OnInit {
       this.addingCardInColumn.set(null);
       return;
     }
-    this.kanbanService.addCard(this.boardId, colId, title);
-    this.addingCardInColumn.set(null);
-    this.refresh();
+    this.kanbanService.addCard(this.boardId, colId, title).subscribe({
+      next: () => {
+        this.addingCardInColumn.set(null);
+        this.refresh();
+      },
+    });
   }
 
   protected cancelAddCard(): void {
@@ -117,15 +135,21 @@ export class KanbanBoard implements OnInit {
   }
 
   protected onCardSave(updated: KanbanCard): void {
-    this.kanbanService.updateCard(this.boardId, updated);
-    this.selectedCard.set(null);
-    this.refresh();
+    this.kanbanService.updateCard(this.boardId, updated).subscribe({
+      next: () => {
+        this.selectedCard.set(null);
+        this.refresh();
+      },
+    });
   }
 
   protected onCardDelete(cardId: string): void {
-    this.kanbanService.deleteCard(this.boardId, cardId);
-    this.selectedCard.set(null);
-    this.refresh();
+    this.kanbanService.deleteCard(this.boardId, cardId).subscribe({
+      next: () => {
+        this.selectedCard.set(null);
+        this.refresh();
+      },
+    });
   }
 
   protected onCardMove(event: { card: KanbanCard; targetColumnId: string }): void {
@@ -133,14 +157,14 @@ export class KanbanBoard implements OnInit {
     if (!board) return;
     const col = board.columns.find((c) => c.id === event.targetColumnId);
     if (!col) return;
-    this.kanbanService.moveCard(
-      this.boardId,
-      event.card.id,
-      event.targetColumnId,
-      col.cards.length,
-    );
-    this.selectedCard.set(null);
-    this.refresh();
+    this.kanbanService
+      .moveCard(this.boardId, event.card.id, event.targetColumnId, col.cards.length)
+      .subscribe({
+        next: () => {
+          this.selectedCard.set(null);
+          this.refresh();
+        },
+      });
   }
 
   protected closeModal(): void {
@@ -170,10 +194,12 @@ export class KanbanBoard implements OnInit {
     if (!board) return;
     const col = board.columns.find((c) => c.id === colId);
     if (!col) return;
-    this.kanbanService.moveCard(this.boardId, this.dragCardId, colId, col.cards.length);
+    const cardId = this.dragCardId;
     this.dragCardId = '';
     this.dragFromColId = '';
-    this.refresh();
+    this.kanbanService.moveCard(this.boardId, cardId, colId, col.cards.length).subscribe({
+      next: () => this.refresh(),
+    });
   }
 
   // ─── Helpers ───────────────────────────────────────────────────────────────
