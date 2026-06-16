@@ -1,11 +1,21 @@
 import { LowerCasePipe } from '@angular/common';
-import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  OnInit,
+  inject,
+  signal,
+  computed,
+} from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
-import { LoreStatus } from '../../shared/models/lore-article.model';
-import { LORE_ARTICLES } from '../lore/lore.mocks';
-import { QUESTS_DETAIL } from '../quest-detail/quest-detail.mocks';
-import { GAMES, LORE, QUESTS } from './home.mocks';
+import { forkJoin } from 'rxjs';
+import { LoreSummary, LoreStatus } from '../../shared/models/lore-article.model';
+import { QuestSummary } from '../../shared/models/quest.model';
+import { FeaturedGame } from '../../shared/models/game.model';
+import { GameService } from '../../core/services/game.service';
+import { QuestService } from '../../core/services/quest.service';
+import { LoreService } from '../../core/services/lore.service';
 
 @Component({
   selector: 'app-home',
@@ -14,26 +24,34 @@ import { GAMES, LORE, QUESTS } from './home.mocks';
   styleUrl: './home.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class Home {
+export class Home implements OnInit {
   private readonly router = inject(Router);
+  private readonly gameService = inject(GameService);
+  private readonly questService = inject(QuestService);
+  private readonly loreService = inject(LoreService);
 
-  protected readonly games = GAMES;
+  protected readonly games = signal<FeaturedGame[]>([]);
+  protected readonly quests = signal<QuestSummary[]>([]);
+  protected readonly lore = signal<LoreSummary[]>([]);
 
-  protected readonly stats = [
-    { value: QUESTS_DETAIL.length, label: 'questlines' },
-    { value: LORE_ARTICLES.length, label: 'artigos de lore' },
-    { value: GAMES.length, label: 'jogos' },
-    { value: 420, label: 'colaboradores' },
-  ];
+  protected readonly totalQuests = signal(0);
+  protected readonly totalLore = signal(0);
+  protected readonly totalGames = signal(0);
 
-  protected readonly selectedGameId = signal<string | null>(null);
+  protected readonly stats = computed(() => [
+    { value: this.totalQuests(), label: 'questlines' },
+    { value: this.totalLore(), label: 'artigos de lore' },
+    { value: this.totalGames(), label: 'jogos' },
+  ]);
+
+  protected readonly selectedGameId = signal<number | null>(null);
   protected readonly searchTerm = signal('');
 
   protected readonly filteredQuests = computed(() => {
     const gameId = this.selectedGameId();
     const term = this.searchTerm().toLowerCase().trim();
-
-    return QUESTS.filter((q) => !gameId || q.gameId === gameId)
+    return this.quests()
+      .filter((q) => !gameId || q.gameId === String(gameId))
       .filter((q) => !term || q.title.toLowerCase().includes(term))
       .slice(0, 5);
   });
@@ -41,13 +59,34 @@ export class Home {
   protected readonly filteredLore = computed(() => {
     const gameId = this.selectedGameId();
     const term = this.searchTerm().toLowerCase().trim();
-
-    return LORE.filter((l) => !gameId || l.gameId === gameId)
+    return this.lore()
+      .filter((l) => !gameId || l.gameId === String(gameId))
       .filter((l) => !term || l.title.toLowerCase().includes(term))
       .slice(0, 4);
   });
 
-  protected toggleGame(gameId: string): void {
+  ngOnInit(): void {
+    forkJoin({
+      games: this.gameService.getFeatured(),
+      gamesTotal: this.gameService.list(0, 1),
+      quests: this.questService.list(0, 20),
+      lore: this.loreService.list(0, 12),
+    }).subscribe({
+      next: ({ games, gamesTotal, quests, lore }) => {
+        this.games.set(games);
+        this.totalGames.set(gamesTotal.totalElements ?? gamesTotal.content.length);
+        this.quests.set(quests.content);
+        this.totalQuests.set(quests.totalElements ?? quests.content.length);
+        this.lore.set(lore.content);
+        this.totalLore.set(lore.totalElements ?? lore.content.length);
+      },
+      error: () => {
+        /* silenced */
+      },
+    });
+  }
+
+  protected toggleGame(gameId: number): void {
     this.selectedGameId.update((id) => (id === gameId ? null : gameId));
   }
 

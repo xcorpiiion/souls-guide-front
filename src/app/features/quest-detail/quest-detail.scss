@@ -105,35 +105,60 @@
 .quest-detail__btn {
   display: inline-flex;
   align-items: center;
-  gap: v.$space-2;
-  padding: 9px 16px;
+  justify-content: center;
+  gap: 6px;
+  height: 36px;
+  padding: 0 14px;
   font-family: v.$font-body;
-  font-size: v.$font-size-sm;
+  font-size: 13px;
   border-radius: v.$radius-md;
   cursor: pointer;
   text-decoration: none;
   white-space: nowrap;
+  line-height: 1;
   transition:
     background v.$transition-fast,
     border-color v.$transition-fast,
     color v.$transition-fast;
 
+  i {
+    font-size: 15px;
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
   &--ghost {
     background: transparent;
     border: 0.5px solid v.$color-border-focus;
-    color: v.$color-text;
+    color: v.$color-text-muted;
 
     @include m.on-hover {
-      background: rgba(255, 255, 255, 0.06);
+      background: rgba(255, 255, 255, 0.05);
       border-color: v.$color-gold;
+      color: v.$color-text;
     }
+  }
+
+  &--liked {
+    border-color: #e85050 !important;
+    color: #e85050 !important;
+    background: rgba(232, 80, 80, 0.08) !important;
+  }
+
+  &--following {
+    border-color: #378add !important;
+    color: #378add !important;
+    background: rgba(55, 138, 221, 0.08) !important;
   }
 
   &--accent {
     background: v.$color-gold;
     border: none;
     color: #0f0d0b;
-    font-weight: 500;
+    font-weight: 600;
 
     @include m.on-hover {
       background: v.$color-gold-light;
@@ -175,7 +200,11 @@
 .quest-detail__body {
   display: grid;
   grid-template-columns: 1fr 280px;
-  min-height: calc(100vh - 200px);
+  min-height: 0;
+
+  &--list {
+    grid-template-columns: 1fr;
+  }
 
   @media (max-width: 768px) {
     grid-template-columns: 1fr;
@@ -186,6 +215,14 @@
   padding: v.$space-6 v.$space-6 v.$space-8;
   border-right: 1px solid v.$color-border;
   min-width: 0;
+
+  app-quest-view-canvas {
+    display: block;
+    height: 460px;
+    border: 1px solid v.$color-border;
+    border-radius: v.$radius-lg;
+    overflow: hidden;
+  }
 
   @media (max-width: 768px) {
     border-right: none;
@@ -489,6 +526,76 @@
   }
 }
 
+// ─── Kanban popover ───────────────────────────────────────────────────────────
+.quest-detail__kanban-popover {
+  min-width: 240px;
+}
+
+.quest-detail__kanban-hint {
+  font-size: v.$font-size-sm;
+  color: v.$color-text-muted;
+  margin-bottom: v.$space-2;
+}
+
+.quest-detail__kanban-input {
+  width: 100%;
+  padding: 7px 10px;
+  font-size: v.$font-size-sm;
+  font-family: v.$font-body;
+  background: v.$color-bg-elevated;
+  border: 0.5px solid v.$color-border;
+  border-radius: v.$radius-sm;
+  color: v.$color-text;
+  outline: none;
+  margin-bottom: v.$space-3;
+  box-sizing: border-box;
+
+  &:focus {
+    border-color: v.$color-border-focus;
+  }
+
+  &::placeholder {
+    color: v.$color-text-muted;
+  }
+}
+
+.quest-detail__kanban-btn {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: v.$space-2;
+  padding: 8px;
+  font-size: v.$font-size-sm;
+  font-family: v.$font-body;
+  background: v.$color-gold;
+  color: #0f0d0b;
+  border: none;
+  border-radius: v.$radius-sm;
+  cursor: pointer;
+  font-weight: 500;
+  transition: background v.$transition-fast;
+
+  @include m.on-hover {
+    background: v.$color-gold-light;
+  }
+
+  &:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+  }
+}
+
+@keyframes qd-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.quest-detail__spin {
+  animation: qd-spin 0.8s linear infinite;
+}
+
 // ─── Not found ────────────────────────────────────────────────────────────────
 .quest-detail__not-found {
   @include m.flex-column-center;
@@ -505,4 +612,253 @@
   @include m.on-hover {
     color: v.$color-gold;
   }
+}
+
+// ─── Progress bar ─────────────────────────────────────────────────────────────
+.quest-detail__progress-bar-wrap {
+  padding: 14px 28px 18px;
+  border-top: 1px solid v.$color-border;
+}
+
+.quest-detail__progress-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.quest-detail__progress-label {
+  font-size: 12px;
+  color: v.$color-text-muted;
+}
+
+.quest-detail__progress-reset {
+  font-size: 11px;
+  color: v.$color-text-muted;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  font-family: v.$font-body;
+  text-decoration: underline;
+  opacity: 0.6;
+
+  &:hover {
+    opacity: 1;
+    color: v.$color-text;
+  }
+}
+
+.quest-detail__progress-track {
+  height: 5px;
+  background: v.$color-bg-elevated;
+  border-radius: 99px;
+  overflow: hidden;
+}
+
+.quest-detail__progress-fill {
+  height: 100%;
+  background: v.$color-gold;
+  border-radius: 99px;
+  transition: width 0.3s ease;
+
+  &--complete {
+    background: #1faa64;
+  }
+}
+
+// ─── View toggle ──────────────────────────────────────────────────────────────
+.quest-detail__graph-header-right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.quest-detail__view-toggle {
+  display: flex;
+  border: 1px solid v.$color-border;
+  border-radius: v.$radius-md;
+  overflow: hidden;
+}
+
+.quest-detail__view-btn {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 12px;
+  font-size: 12px;
+  font-family: v.$font-body;
+  background: transparent;
+  border: none;
+  color: v.$color-text-muted;
+  cursor: pointer;
+  transition:
+    background 0.15s,
+    color 0.15s;
+
+  & + & {
+    border-left: 1px solid v.$color-border;
+  }
+
+  &--active {
+    background: v.$color-bg-elevated;
+    color: v.$color-gold;
+  }
+
+  &:hover:not(&--active) {
+    color: v.$color-text;
+  }
+}
+
+// ─── Checklist ────────────────────────────────────────────────────────────────
+.quest-detail__checklist {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.quest-detail__check-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 12px 14px;
+  background: v.$color-bg-surface;
+  border: 1px solid v.$color-border;
+  border-radius: v.$radius-md;
+  transition:
+    border-color 0.15s,
+    background 0.15s;
+
+  &--done {
+    background: rgba(31, 170, 100, 0.05);
+    border-color: rgba(31, 170, 100, 0.25);
+
+    .quest-detail__check-title {
+      color: v.$color-text-muted;
+      text-decoration: line-through;
+    }
+  }
+}
+
+.quest-detail__check-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border: none;
+  background: none;
+  cursor: pointer;
+  color: v.$color-text-muted;
+  font-size: 20px;
+  flex-shrink: 0;
+  transition: color 0.15s;
+  padding: 0;
+
+  &:hover:not(:disabled) {
+    color: #1faa64;
+  }
+  &:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+  }
+
+  .quest-detail__check-item--done & {
+    color: #1faa64;
+  }
+}
+
+.quest-detail__check-info {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding-top: 4px;
+}
+
+.quest-detail__check-title {
+  font-size: 13px;
+  font-weight: 500;
+  color: v.$color-text;
+  transition: color 0.15s;
+}
+
+.quest-detail__check-sub {
+  font-size: 11px;
+  color: v.$color-text-muted;
+}
+
+.quest-detail__check-loc {
+  font-size: 11px;
+  color: v.$color-text-muted;
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  margin-top: 2px;
+}
+
+.quest-detail__check-num {
+  font-size: 11px;
+  color: v.$color-text-muted;
+  opacity: 0.4;
+  flex-shrink: 0;
+  padding-top: 6px;
+}
+
+// ─── Node done button (sidebar) ───────────────────────────────────────────────
+.quest-detail__node-done-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+  margin-top: 10px;
+  padding: 8px 12px;
+  border: 1px solid v.$color-border;
+  border-radius: v.$radius-md;
+  background: transparent;
+  color: v.$color-text-muted;
+  font-size: 13px;
+  font-family: v.$font-body;
+  cursor: pointer;
+  transition:
+    border-color 0.15s,
+    color 0.15s,
+    background 0.15s;
+
+  &:hover:not(:disabled) {
+    border-color: #1faa64;
+    color: #1faa64;
+  }
+
+  &--done {
+    background: rgba(31, 170, 100, 0.08);
+    border-color: rgba(31, 170, 100, 0.35);
+    color: #1faa64;
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+}
+
+// ─── Spin animation ───────────────────────────────────────────────────────────
+.quest-detail__spin {
+  animation: qd-spin 0.7s linear infinite;
+  display: inline-block;
+  @keyframes qd-spin {
+    to {
+      transform: rotate(360deg);
+    }
+  }
+}
+
+// ─── Comments ─────────────────────────────────────────────────────────────────
+.quest-detail__comments {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 2.5rem 1.5rem 4rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
 }

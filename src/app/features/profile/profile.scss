@@ -806,21 +806,49 @@
   font-size: 11px;
   padding: 2px 8px;
   border-radius: 10px;
+  background: none;
+  border: 0.5px solid transparent;
+  cursor: pointer;
+  font-family: inherit;
+  transition:
+    opacity 0.12s,
+    filter 0.12s;
 
   .ti {
     font-size: 11px;
   }
 
+  &:hover:not(:disabled) {
+    filter: brightness(1.2);
+  }
+
+  &:disabled {
+    cursor: default;
+    opacity: 0.6;
+  }
+
   &--private {
     background: rgba(100, 116, 139, 0.1);
     color: #94a3b8;
-    border: 0.5px solid rgba(100, 116, 139, 0.2);
+    border-color: rgba(100, 116, 139, 0.2);
+  }
+
+  &--public {
+    background: rgba(31, 170, 100, 0.08);
+    color: #1faa64;
+    border-color: rgba(31, 170, 100, 0.25);
   }
 
   &--copy {
     background: rgba(v.$color-gold, 0.07);
     color: v.$color-gold;
-    border: 0.5px solid rgba(v.$color-gold, 0.2);
+    border-color: rgba(v.$color-gold, 0.2);
+  }
+
+  &--no-copy {
+    background: rgba(100, 116, 139, 0.08);
+    color: #94a3b8;
+    border-color: rgba(100, 116, 139, 0.15);
   }
 }
 
@@ -838,6 +866,111 @@
 .pf__spin {
   animation: pf-spin 0.7s linear infinite;
   display: inline-block;
+}
+
+// ─── social (seguidores / sigo) ───────────────────────────────────────────────
+.pf__social-subtabs {
+  display: flex;
+  gap: 0;
+  border-bottom: 1px solid v.$color-border;
+  margin-bottom: 16px;
+}
+
+.pf__social-tab {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 18px;
+  font-size: 13px;
+  color: v.$color-text-muted;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  font-family: v.$font-body;
+  border-bottom: 2px solid transparent;
+  transition:
+    color 0.15s,
+    border-color 0.15s;
+
+  &:hover {
+    color: v.$color-text;
+  }
+
+  &--active {
+    color: v.$color-gold;
+    border-bottom-color: v.$color-gold;
+  }
+}
+
+.pf__social-count {
+  font-size: 11px;
+  color: v.$color-text-muted;
+  background: v.$color-bg-elevated;
+  border: 1px solid v.$color-border;
+  border-radius: 10px;
+  padding: 1px 6px;
+}
+
+.pf__person-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  background: v.$color-bg-surface;
+  border: 1px solid v.$color-border;
+  border-radius: 8px;
+  text-decoration: none;
+  color: inherit;
+  margin-bottom: 8px;
+  transition: border-color 0.15s;
+
+  &:hover {
+    border-color: rgba(v.$color-gold, 0.4);
+  }
+}
+
+.pf__person-avatar {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background: v.$color-bg-elevated;
+  border: 1px solid v.$color-border;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: v.$font-display;
+  font-size: 16px;
+  color: v.$color-gold;
+  flex-shrink: 0;
+}
+
+.pf__person-info {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.pf__person-name {
+  font-size: 13px;
+  font-weight: 500;
+  color: v.$color-text;
+}
+
+.pf__person-handle {
+  font-size: 11px;
+  color: v.$color-text-muted;
+}
+
+.pf__inline-link {
+  color: v.$color-gold;
+  text-decoration: none;
+  margin-left: 4px;
+
+  &:hover {
+    text-decoration: underline;
+  }
 }
 
 // ─── Kanban promo ─────────────────────────────────────────────────────────────

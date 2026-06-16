@@ -1,0 +1,205 @@
+<section class="cs">
+  <h2 class="cs__title">
+    comentários
+    @if (!loading()) {
+      <span class="cs__count">{{ totalCount() }}</span>
+    }
+  </h2>
+
+  @if (loading()) {
+    <p class="cs__empty">Carregando comentários…</p>
+  } @else {
+    @if (auth.isLoggedIn()) {
+      <div class="cs__compose">
+        <div class="cs__avatar cs__avatar--me">{{ authorInitial() }}</div>
+        <div class="cs__compose-field">
+          <textarea
+            class="cs__textarea"
+            rows="3"
+            placeholder="Adicionar um comentário…"
+            [value]="composeText()"
+            (input)="composeText.set($any($event.target).value)"
+          ></textarea>
+          <div class="cs__compose-footer">
+            <label class="cs__spoiler-check">
+              <input
+                type="checkbox"
+                [checked]="composeSpoiler()"
+                (change)="composeSpoiler.set($any($event.target).checked)"
+              />
+              marcar como spoiler
+            </label>
+            <button
+              class="cs__send-btn"
+              type="button"
+              [disabled]="!composeText().trim() || submitting()"
+              (click)="submit()"
+            >
+              <i class="ti ti-send" aria-hidden="true"></i>
+              {{ submitting() ? 'enviando…' : 'comentar' }}
+            </button>
+          </div>
+        </div>
+      </div>
+    }
+
+    @if (comments().length === 0) {
+      <p class="cs__empty">Ainda não há comentários. Seja o primeiro!</p>
+    }
+
+    @for (comment of comments(); track comment.id) {
+      <div class="cs__comment">
+        <a
+          class="cs__avatar cs__avatar--link"
+          [routerLink]="['/usuarios', comment.authorHandle]"
+          [title]="comment.authorName"
+        >
+          {{ comment.authorName[0] }}
+        </a>
+        <div class="cs__body">
+          <div class="cs__meta">
+            <span class="cs__author">{{ comment.authorHandle }}</span>
+            <span class="cs__time">{{ daysLabel(comment.daysAgo) }}</span>
+            @if (comment.isSpoiler) {
+              <span class="cs__spoiler-badge">spoiler</span>
+            }
+          </div>
+
+          @if (isSpoilerHidden(comment)) {
+            <button class="cs__spoiler-reveal" type="button" (click)="revealSpoiler(comment.id)">
+              <i class="ti ti-eye-off" aria-hidden="true"></i> revelar spoiler
+            </button>
+          } @else {
+            <p class="cs__text" [innerHTML]="renderContent(comment.content)"></p>
+          }
+
+          <div class="cs__actions">
+            <button
+              class="cs__action-btn"
+              [class.cs__action-btn--liked]="comment.userHasLiked"
+              type="button"
+              (click)="toggleLike(comment)"
+            >
+              <i class="ti ti-heart" aria-hidden="true"></i> {{ comment.likeCount }}
+            </button>
+            @if (auth.isLoggedIn()) {
+              <button
+                class="cs__action-btn"
+                type="button"
+                (click)="openReply(comment.id, comment.authorHandle)"
+              >
+                <i class="ti ti-corner-down-right" aria-hidden="true"></i> responder
+              </button>
+            }
+            @if (isOwn(comment)) {
+              <button
+                class="cs__action-btn cs__action-btn--delete"
+                type="button"
+                (click)="deleteComment(comment.id)"
+              >
+                <i class="ti ti-trash" aria-hidden="true"></i>
+              </button>
+            }
+          </div>
+
+          @if (replyingToId() === comment.id) {
+            <div class="cs__reply-compose">
+              <div class="cs__reply-mention">
+                <i class="ti ti-corner-down-right" aria-hidden="true"></i>
+                respondendo a <strong>&#64;{{ replyingToHandle() }}</strong>
+              </div>
+              <textarea
+                class="cs__textarea cs__textarea--sm"
+                rows="2"
+                [placeholder]="'@' + replyingToHandle() + ' '"
+                [value]="replyText()"
+                (input)="replyText.set($any($event.target).value)"
+              ></textarea>
+              <div class="cs__compose-footer">
+                <label class="cs__spoiler-check">
+                  <input
+                    type="checkbox"
+                    [checked]="replySpoiler()"
+                    (change)="replySpoiler.set($any($event.target).checked)"
+                  />
+                  spoiler
+                </label>
+                <div style="display: flex; gap: 8px">
+                  <button class="cs__cancel-btn" type="button" (click)="replyingToId.set(null)">
+                    cancelar
+                  </button>
+                  <button
+                    class="cs__send-btn"
+                    type="button"
+                    [disabled]="!replyText().trim() || submittingReply()"
+                    (click)="submitReply(comment.id)"
+                  >
+                    <i class="ti ti-send" aria-hidden="true"></i>
+                    {{ submittingReply() ? 'enviando…' : 'responder' }}
+                  </button>
+                </div>
+              </div>
+            </div>
+          }
+
+          @if (comment.replies.length) {
+            <div class="cs__replies">
+              @for (reply of comment.replies; track reply.id) {
+                <div class="cs__comment cs__comment--reply">
+                  <a
+                    class="cs__avatar cs__avatar--sm cs__avatar--link"
+                    [routerLink]="['/usuarios', reply.authorHandle]"
+                    [title]="reply.authorName"
+                  >
+                    {{ reply.authorName[0] }}
+                  </a>
+                  <div class="cs__body">
+                    <div class="cs__meta">
+                      <span class="cs__author">{{ reply.authorHandle }}</span>
+                      <span class="cs__time">{{ daysLabel(reply.daysAgo) }}</span>
+                      @if (reply.isSpoiler) {
+                        <span class="cs__spoiler-badge">spoiler</span>
+                      }
+                    </div>
+
+                    @if (isSpoilerHidden(reply)) {
+                      <button
+                        class="cs__spoiler-reveal"
+                        type="button"
+                        (click)="revealSpoiler(reply.id)"
+                      >
+                        <i class="ti ti-eye-off" aria-hidden="true"></i> revelar spoiler
+                      </button>
+                    } @else {
+                      <p class="cs__text">{{ reply.content }}</p>
+                    }
+
+                    <div class="cs__actions">
+                      <button
+                        class="cs__action-btn"
+                        [class.cs__action-btn--liked]="reply.userHasLiked"
+                        type="button"
+                        (click)="toggleLike(reply, comment.id)"
+                      >
+                        <i class="ti ti-heart" aria-hidden="true"></i> {{ reply.likeCount }}
+                      </button>
+                      @if (isOwn(reply)) {
+                        <button
+                          class="cs__action-btn cs__action-btn--delete"
+                          type="button"
+                          (click)="deleteComment(reply.id, comment.id)"
+                        >
+                          <i class="ti ti-trash" aria-hidden="true"></i>
+                        </button>
+                      }
+                    </div>
+                  </div>
+                </div>
+              }
+            </div>
+          }
+        </div>
+      </div>
+    }
+  }
+</section>

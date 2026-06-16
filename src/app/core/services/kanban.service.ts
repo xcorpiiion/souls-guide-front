@@ -4,7 +4,7 @@ import { Observable, tap } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { KanbanBoard, KanbanCard, KanbanColumn } from '../../shared/models/kanban.model';
 
-const BASE = `${environment.apis.soulsGuide}/kanban`;
+const BASE = `${environment.apis.soulsGuide}/api/kanban`;
 
 @Injectable({ providedIn: 'root' })
 export class KanbanService {

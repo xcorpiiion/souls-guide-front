@@ -1,3 +1,11 @@
+export interface FeaturedGame {
+  id: number;
+  name: string;
+  shortName: string;
+  questCount: number;
+  loreCount: number;
+}
+
 export interface Game {
   id: number;
   name: string;

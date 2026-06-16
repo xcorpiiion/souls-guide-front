@@ -19,23 +19,34 @@ interface GraphLayout {
   height: number;
 }
 
-const NW: Record<string, number> = {
-  start: 44,
-  end: 44,
-  task: 110,
-  gateway: 44,
-  'external-quest': 110,
+const NW_BASE: Record<string, number> = {
+  start: 56,
+  end: 56,
+  task: 150,
+  gateway: 56,
+  'external-quest': 150,
 };
 const NH: Record<string, number> = {
-  start: 44,
-  end: 44,
-  task: 50,
-  gateway: 44,
-  'external-quest': 50,
+  start: 56,
+  end: 56,
+  task: 64,
+  gateway: 56,
+  'external-quest': 64,
 };
-const H_GAP = 52;
-const V_GAP = 32;
-const PAD = 28;
+const CHAR_W = 7.2;
+const TEXT_H_PAD = 56;
+const NW_MIN = 150;
+const NW_MAX = 300;
+
+function nodeW(n: QuestNode): number {
+  if (n.type !== 'task' && n.type !== 'external-quest') return NW_BASE[n.type];
+  const label = n.label ?? '';
+  return Math.max(NW_MIN, Math.min(NW_MAX, Math.ceil(label.length * CHAR_W) + TEXT_H_PAD));
+}
+
+const H_GAP = 60;
+const V_GAP = 36;
+const PAD = 32;
 
 function buildLayout(nodes: QuestNode[], edges: QuestEdge[]): GraphLayout {
   if (!nodes.length) return { nodes: [], edges: [], width: 0, height: 100 };
@@ -79,7 +90,7 @@ function buildLayout(nodes: QuestNode[], edges: QuestEdge[]): GraphLayout {
   let x = PAD;
   for (const l of sortedLayers) {
     const ids = byLayer.get(l)!;
-    const colW = Math.max(...ids.map((id) => NW[nodeMap.get(id)!.type]));
+    const colW = Math.max(...ids.map((id) => nodeW(nodeMap.get(id)!)));
     const colH = ids.reduce((s, id) => s + NH[nodeMap.get(id)!.type], 0) + (ids.length - 1) * V_GAP;
     let y = (canvasH - colH) / 2;
     for (const id of ids) {
@@ -94,7 +105,7 @@ function buildLayout(nodes: QuestNode[], edges: QuestEdge[]): GraphLayout {
     ...n,
     x: pos.get(n.id)!.x,
     y: pos.get(n.id)!.y,
-    w: NW[n.type],
+    w: nodeW(n),
     h: NH[n.type],
   }));
 
@@ -127,6 +138,7 @@ export class QuestGraph {
   readonly nodes = input<QuestNode[]>([]);
   readonly edges = input<QuestEdge[]>([]);
   readonly selectedNodeId = input<string | null>(null);
+  readonly completedNodeIds = input<Set<string>>(new Set());
   readonly nodeSelect = output<string>();
 
   protected readonly layout = computed(() => buildLayout(this.nodes(), this.edges()));
@@ -137,11 +149,27 @@ export class QuestGraph {
   }
 
   protected textY(n: LayoutNode): number {
-    return n.sublabel ? n.y + 17 : n.y + n.h / 2 + 4;
+    return n.sublabel ? n.y + 22 : n.y + n.h / 2 + 5;
   }
 
   protected onNodeClick(id: string): void {
     this.nodeSelect.emit(id);
+  }
+
+  protected onScrollMouseDown(e: MouseEvent, el: HTMLElement): void {
+    if ((e.target as HTMLElement).closest('[role="button"]')) return;
+    e.preventDefault();
+    const startX = e.pageX - el.offsetLeft;
+    const scrollLeft = el.scrollLeft;
+    const onMove = (mv: MouseEvent) => {
+      el.scrollLeft = scrollLeft - (mv.pageX - el.offsetLeft - startX);
+    };
+    const onUp = () => {
+      window.removeEventListener('mousemove', onMove);
+      window.removeEventListener('mouseup', onUp);
+    };
+    window.addEventListener('mousemove', onMove);
+    window.addEventListener('mouseup', onUp);
   }
 
   protected trackEdge(_: number, e: LayoutEdge): string {

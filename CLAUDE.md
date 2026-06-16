@@ -136,6 +136,18 @@ interface UserProgress {
 
 ---
 
+## Fluxo obrigatório por etapa
+
+**Toda implementação deve seguir essa ordem — sem exceção:**
+
+1. Implementar o código
+2. Escrever os testes (`.spec.ts`) na mesma etapa
+3. Só então reportar como concluído
+
+Nunca deixar testes para depois. Se uma etapa não tiver testes, ela não está pronta.
+
+---
+
 ## O que NÃO fazer
 
 - Não adicionar SSR

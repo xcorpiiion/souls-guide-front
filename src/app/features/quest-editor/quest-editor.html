@@ -1,17 +1,20 @@
 <div class="qe">
-  <!-- ══ toolbar ════════════════════════════════════════════════════════════ -->
+  <!-- â•â• toolbar â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• -->
   <header class="qe__toolbar">
     <button class="qe__tool-btn qe__tool-btn--back" type="button" title="voltar" (click)="cancel()">
       <i class="ti ti-arrow-left"></i>
     </button>
 
-    <input
-      class="qe__title-input"
-      type="text"
-      placeholder="título da quest…"
-      [value]="title()"
-      (input)="title.set($any($event.target).value)"
-    />
+    <div class="qe__title-wrap">
+      <i class="ti ti-pencil qe__title-icon" aria-hidden="true"></i>
+      <input
+        class="qe__title-input"
+        type="text"
+        placeholder="título da quest…"
+        [value]="title()"
+        (input)="title.set($any($event.target).value); markDirty()"
+      />
+    </div>
 
     <div class="qe__toolbar-actions">
       <button
@@ -54,22 +57,39 @@
         <i class="ti ti-arrow-forward-up"></i>
       </button>
 
+      <button
+        class="qe__tool-btn"
+        type="button"
+        title="organizar automaticamente"
+        (click)="autoLayout()"
+      >
+        <i class="ti ti-layout-distribute-horizontal"></i>
+      </button>
+
       <div class="qe__toolbar-sep"></div>
 
       <span class="qe__status-badge">
         {{ isEdit ? 'edição' : 'criação' }}
       </span>
 
-      <button class="qe__save-btn" type="button" (click)="saveQuest()">
+      <button class="qe__cancel-btn" type="button" (click)="cancel()">cancelar</button>
+
+      <button class="qe__save-btn" type="button" (click)="saveQuest()" [disabled]="loading()">
         <i class="ti ti-device-floppy"></i>
-        salvar
+        {{ loading() ? 'carregando…' : 'salvar' }}
       </button>
     </div>
   </header>
 
-  <!-- ══ body ══════════════════════════════════════════════════════════════ -->
+  @if (loading()) {
+    <div class="qe__loading-overlay">
+      <span>Carregando quest…</span>
+    </div>
+  }
+
+  <!-- â•â• body â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• -->
   <div class="qe__body">
-    <!-- ── palette sidebar ─────────────────────────────────────────────── -->
+    <!-- â”€â”€ palette sidebar â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
     <aside class="qe__palette">
       <p class="qe__palette-title">nós</p>
 
@@ -151,7 +171,7 @@
       }
     </aside>
 
-    <!-- ── canvas ───────────────────────────────────────────────────────── -->
+    <!-- â”€â”€ canvas â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
     <main class="qe__canvas-area">
       <app-quest-editor-canvas
         [nodes]="nodes()"
@@ -169,9 +189,14 @@
       />
     </main>
 
-    <!-- ── properties panel ─────────────────────────────────────────────── -->
+    <!-- â”€â”€ properties panel â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
     @if (selectedNode() || selectedEdge()) {
-      <aside class="qe__props">
+      <aside class="qe__props" [style.width.px]="propsWidth()">
+        <div
+          class="qe__props-resize"
+          (mousedown)="onPropsResizeStart($event)"
+          title="Arrastar para redimensionar"
+        ></div>
         @if (selectedNode(); as node) {
           <header class="qe__props-header">
             <span class="qe__props-title">propriedades</span>
@@ -184,6 +209,21 @@
               <i class="ti ti-trash"></i>
             </button>
           </header>
+
+          <label class="qe__field">
+            <span class="qe__label">tipo</span>
+            <select
+              class="qe__input qe__input--select"
+              [value]="node.type"
+              (change)="updateNodeType($any($event.target).value)"
+            >
+              <option value="start">início</option>
+              <option value="end">fim</option>
+              <option value="task">tarefa</option>
+              <option value="gateway">gateway (X)</option>
+              <option value="external-quest">quest externa</option>
+            </select>
+          </label>
 
           <label class="qe__field">
             <span class="qe__label">nome</span>
@@ -294,7 +334,9 @@
           </header>
 
           <div class="qe__edge-info">
-            <span class="qe__edge-route">{{ edgeFromLabel(edge) }} → {{ edgeToLabel(edge) }}</span>
+            <span class="qe__edge-route"
+              >{{ edgeFromLabel(edge) }} â†’ {{ edgeToLabel(edge) }}</span
+            >
           </div>
 
           <label class="qe__field">
@@ -311,9 +353,14 @@
       </aside>
     }
 
-    <!-- ── meta sidebar (no selection) ─────────────────────────────────── -->
+    <!-- â”€â”€ meta sidebar (no selection) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
     @if (!selectedNode() && !selectedEdge()) {
-      <aside class="qe__props">
+      <aside class="qe__props" [style.width.px]="propsWidth()">
+        <div
+          class="qe__props-resize"
+          (mousedown)="onPropsResizeStart($event)"
+          title="Arrastar para redimensionar"
+        ></div>
         <header class="qe__props-header">
           <span class="qe__props-title">quest</span>
         </header>
@@ -325,7 +372,7 @@
             type="text"
             placeholder="título da quest"
             [value]="title()"
-            (input)="title.set($any($event.target).value)"
+            (input)="title.set($any($event.target).value); markDirty()"
           />
         </label>
 
@@ -336,7 +383,7 @@
             rows="4"
             placeholder="descreva a questline…"
             [value]="description()"
-            (input)="description.set($any($event.target).value)"
+            (input)="description.set($any($event.target).value); markDirty()"
           ></textarea>
         </label>
 
@@ -345,7 +392,7 @@
           <select
             class="qe__input qe__input--select"
             [value]="questStatus()"
-            (change)="questStatus.set($any($event.target).value)"
+            (change)="questStatus.set($any($event.target).value); markDirty()"
           >
             @for (s of statuses; track s.value) {
               <option [value]="s.value">{{ s.label }}</option>

@@ -1,0 +1,96 @@
+<div
+  class="cpm__overlay"
+  role="button"
+  tabindex="0"
+  aria-label="fechar modal"
+  (click)="dismissed.emit()"
+  (keydown.enter)="dismissed.emit()"
+  (keydown.escape)="dismissed.emit()"
+></div>
+
+<div class="cpm">
+  <header class="cpm__header">
+    <i class="ti ti-copy cpm__icon"></i>
+    <h2 class="cpm__title">
+      {{
+        hasConflict()
+          ? 'substituir ' + (contentType() === 'lore' ? 'artigo' : 'quest') + '?'
+          : 'copiar para o perfil'
+      }}
+    </h2>
+  </header>
+
+  @if (hasConflict()) {
+    <p class="cpm__desc">
+      Você já tem {{ contentType() === 'lore' ? 'um artigo de lore' : 'uma quest' }} com este nome
+      no seu perfil. Deseja substituir pela versão da comunidade?
+    </p>
+  } @else {
+    <p class="cpm__desc">
+      Uma cópia será adicionada ao seu perfil. Você poderá editar livremente sem afetar o original.
+    </p>
+  }
+
+  @if (contentType() === 'lore' && !hasConflict()) {
+    <div class="cpm__filter">
+      <p class="cpm__filter-label">o que deseja copiar?</p>
+      <div class="cpm__filter-opts">
+        <label class="cpm__filter-opt">
+          <input
+            type="radio"
+            name="loreFilter"
+            value="all"
+            [checked]="loreFilter() === 'all'"
+            (change)="loreFilter.set('all')"
+          />
+          <span>artigo completo</span>
+        </label>
+        <label class="cpm__filter-opt">
+          <input
+            type="radio"
+            name="loreFilter"
+            value="character"
+            [checked]="loreFilter() === 'character'"
+            (change)="loreFilter.set('character')"
+          />
+          <span>apenas lore de personagem</span>
+        </label>
+        <label class="cpm__filter-opt">
+          <input
+            type="radio"
+            name="loreFilter"
+            value="world"
+            [checked]="loreFilter() === 'world'"
+            (change)="loreFilter.set('world')"
+          />
+          <span>apenas lore do mundo</span>
+        </label>
+      </div>
+    </div>
+  }
+
+  <div class="cpm__actions">
+    <button
+      type="button"
+      class="cpm__btn cpm__btn--ghost"
+      (click)="dismissed.emit()"
+      [disabled]="saving()"
+    >
+      cancelar
+    </button>
+    <button
+      type="button"
+      class="cpm__btn cpm__btn--primary"
+      (click)="onConfirm()"
+      [disabled]="saving()"
+    >
+      @if (saving()) {
+        <i class="ti ti-loader-2 cpm__spin"></i> copiando...
+      } @else if (hasConflict()) {
+        <i class="ti ti-replace"></i> substituir
+      } @else {
+        <i class="ti ti-copy"></i> copiar
+      }
+    </button>
+  </div>
+</div>

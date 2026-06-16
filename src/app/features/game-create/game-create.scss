@@ -1,0 +1,384 @@
+@use 'styles/variables' as v;
+
+.gc {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 40px 24px 80px;
+}
+
+.gc__header {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  margin-bottom: 28px;
+}
+
+.gc__back {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 13px;
+  color: v.$color-text-muted;
+  text-decoration: none;
+  padding: 6px 0;
+  white-space: nowrap;
+  margin-top: 2px;
+
+  i {
+    font-size: 15px;
+  }
+
+  &:hover {
+    color: v.$color-text;
+  }
+}
+
+.gc__title {
+  font-size: 22px;
+  font-weight: 500;
+  color: v.$color-text;
+  margin: 0 0 4px;
+}
+
+.gc__subtitle {
+  font-size: 12px;
+  color: v.$color-text-muted;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+
+  i {
+    font-size: 14px;
+  }
+}
+
+.gc__notice {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 12px 16px;
+  background: rgba(v.$color-gold, 0.08);
+  border: 0.5px solid rgba(v.$color-gold, 0.25);
+  border-radius: v.$radius-md;
+  font-size: 12px;
+  color: v.$color-gold-dark;
+  margin-bottom: 20px;
+
+  i {
+    font-size: 15px;
+    flex-shrink: 0;
+    margin-top: 1px;
+  }
+}
+
+.gc__card {
+  background: v.$color-bg-surface;
+  border: 0.5px solid v.$color-border;
+  border-radius: v.$radius-lg;
+  padding: 20px 24px;
+  margin-bottom: 16px;
+}
+
+.gc__section-label {
+  font-size: 11px;
+  font-weight: 500;
+  color: v.$color-text-muted;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  margin-bottom: 16px;
+}
+
+.gc__field {
+  margin-bottom: 14px;
+
+  &:last-child {
+    margin-bottom: 0;
+  }
+}
+
+.gc__label {
+  display: block;
+  font-size: 12px;
+  color: v.$color-text-muted;
+  margin-bottom: 5px;
+}
+
+.gc__required {
+  color: #f87171;
+  margin-left: 2px;
+}
+
+.gc__search-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+
+  > i:first-child {
+    position: absolute;
+    left: 12px;
+    font-size: 15px;
+    color: v.$color-text-muted;
+    pointer-events: none;
+  }
+}
+
+.gc__spin {
+  position: absolute;
+  right: 12px;
+  font-size: 15px;
+  animation: gc-spin 0.8s linear infinite;
+}
+
+@keyframes gc-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.gc__input {
+  width: 100%;
+  padding: 9px 12px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 0.5px solid v.$color-border;
+  border-radius: v.$radius-md;
+  color: v.$color-text;
+  font-size: 13px;
+  font-family: v.$font-body;
+  box-sizing: border-box;
+  outline: none;
+  transition: border-color 0.15s;
+
+  &::placeholder {
+    color: v.$color-text-muted;
+    opacity: 0.5;
+  }
+  &:focus {
+    border-color: v.$color-gold-dark;
+  }
+
+  &--search {
+    padding-left: 38px;
+    padding-right: 36px;
+  }
+
+  &--textarea {
+    resize: vertical;
+    min-height: 76px;
+    line-height: 1.5;
+  }
+}
+
+.gc__dup-alert {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin-top: 10px;
+  padding: 10px 14px;
+  background: rgba(248, 113, 113, 0.08);
+  border: 0.5px solid rgba(248, 113, 113, 0.3);
+  border-radius: v.$radius-md;
+  font-size: 12px;
+  color: #f87171;
+
+  i {
+    font-size: 15px;
+    flex-shrink: 0;
+    margin-top: 1px;
+  }
+}
+
+.gc__search-hint {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: v.$color-text-muted;
+  margin-top: 10px;
+  margin-bottom: 6px;
+
+  i {
+    font-size: 14px;
+  }
+}
+
+.gc__similar-list {
+  list-style: none;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.gc__similar-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: v.$color-text-muted;
+  padding: 5px 10px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 0.5px solid v.$color-border;
+  border-radius: v.$radius-md;
+
+  i {
+    font-size: 14px;
+  }
+}
+
+.gc__search-ok {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: #1faa64;
+  margin-top: 10px;
+
+  i {
+    font-size: 15px;
+  }
+}
+
+.gc__grid-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+
+  @media (max-width: 540px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+.gc__tags-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 10px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 0.5px solid v.$color-border;
+  border-radius: v.$radius-md;
+  min-height: 40px;
+}
+
+.gc__tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 8px 3px 10px;
+  background: rgba(v.$color-gold, 0.1);
+  border: 0.5px solid rgba(v.$color-gold, 0.25);
+  border-radius: 20px;
+  font-size: 12px;
+  color: v.$color-gold-dark;
+}
+
+.gc__tag-rm {
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  color: v.$color-gold-dark;
+  display: flex;
+  align-items: center;
+  opacity: 0.6;
+
+  i {
+    font-size: 12px;
+  }
+  &:hover {
+    opacity: 1;
+  }
+}
+
+.gc__tag-input {
+  flex: 1;
+  min-width: 120px;
+  background: transparent;
+  border: none;
+  outline: none;
+  font-size: 13px;
+  color: v.$color-text;
+  font-family: v.$font-body;
+
+  &::placeholder {
+    color: v.$color-text-muted;
+    opacity: 0.4;
+  }
+}
+
+.gc__hint {
+  font-size: 11px;
+  color: v.$color-text-muted;
+  opacity: 0.5;
+  margin-top: 6px;
+}
+
+.gc__error {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  background: rgba(248, 113, 113, 0.08);
+  border: 0.5px solid rgba(248, 113, 113, 0.3);
+  border-radius: v.$radius-md;
+  font-size: 13px;
+  color: #f87171;
+  margin-bottom: 16px;
+
+  i {
+    font-size: 16px;
+  }
+}
+
+.gc__actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.gc__btn-cancel {
+  padding: 9px 18px;
+  background: transparent;
+  border: 0.5px solid v.$color-border;
+  border-radius: v.$radius-md;
+  color: v.$color-text-muted;
+  font-size: 13px;
+  font-family: v.$font-body;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  transition: color 0.15s;
+
+  &:hover {
+    color: v.$color-text;
+  }
+}
+
+.gc__btn-submit {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 9px 20px;
+  background: v.$color-gold;
+  border: none;
+  border-radius: v.$radius-md;
+  color: #0f0d0b;
+  font-size: 13px;
+  font-weight: 500;
+  font-family: v.$font-body;
+  cursor: pointer;
+  transition: background 0.15s;
+
+  i {
+    font-size: 15px;
+  }
+
+  &:hover:not(:disabled) {
+    background: v.$color-gold-light;
+  }
+
+  &:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+  }
+}

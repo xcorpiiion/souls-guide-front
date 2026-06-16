@@ -118,6 +118,48 @@
     }
   }
 
+  &__logout-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border-radius: v.$radius-sm;
+    border: none;
+    background: transparent;
+    color: v.$color-text-muted;
+    font-size: 16px;
+    cursor: pointer;
+    transition:
+      color 0.15s,
+      background 0.15s;
+
+    &:hover {
+      background: v.$color-bg-elevated;
+      color: v.$color-text;
+    }
+  }
+
+  &__login-btn {
+    font-size: 13px;
+    font-weight: 500;
+    color: v.$color-text;
+    text-decoration: none;
+    padding: 6px 14px;
+    border-radius: v.$radius-sm;
+    border: 1px solid v.$color-border;
+    background: transparent;
+    transition:
+      background 0.15s,
+      border-color 0.15s;
+
+    &:hover {
+      background: v.$color-bg-elevated;
+      border-color: rgba(v.$color-gold, 0.4);
+      color: v.$color-gold;
+    }
+  }
+
   &__hamburger {
     display: none;
     align-items: center;

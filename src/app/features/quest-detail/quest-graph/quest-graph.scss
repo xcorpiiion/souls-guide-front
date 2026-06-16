@@ -12,10 +12,25 @@
   border: 1px solid v.$color-border;
   border-radius: v.$radius-lg;
   -webkit-overflow-scrolling: touch;
-  scrollbar-width: none;
+  cursor: grab;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.12) transparent;
+
+  &:active {
+    cursor: grabbing;
+  }
 
   &::-webkit-scrollbar {
-    display: none;
+    height: 4px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.12);
+    border-radius: 2px;
   }
 }
 
@@ -121,7 +136,7 @@
 // ─── Text ────────────────────────────────────────────────────────────────────
 .quest-graph__text {
   font-family: v.$font-body;
-  font-size: 10px;
+  font-size: 13px;
   fill: v.$color-text;
   pointer-events: none;
   dominant-baseline: auto;
@@ -131,24 +146,43 @@
   }
 
   &--small {
-    font-size: 9px;
+    font-size: 11px;
     fill: v.$color-text-muted;
   }
 
   &--sub {
-    font-size: 9px;
+    font-size: 11px;
     fill: v.$color-text-muted;
   }
 
   &--gateway {
     fill: #378add;
-    font-size: 11px;
-    font-weight: 500;
+    font-size: 14px;
+    font-weight: 600;
   }
 
   &--ext-icon {
-    font-size: 9px;
+    font-size: 11px;
     fill: rgba(200, 112, 232, 0.8);
     text-anchor: end;
   }
+
+  &--done-check {
+    font-size: 11px;
+    font-weight: 700;
+    fill: #0f0d0b;
+    dominant-baseline: auto;
+  }
+}
+
+// ─── Done state ──────────────────────────────────────────────────────────────
+.quest-graph__node--done {
+  .quest-graph__rect--task {
+    fill: rgba(31, 170, 100, 0.08);
+    stroke: rgba(31, 170, 100, 0.5);
+  }
+}
+
+.quest-graph__done-badge {
+  fill: #1faa64;
 }

@@ -1,0 +1,134 @@
+@use 'variables' as v;
+
+// Shared styles for all authentication screens (login, forgot-password, reset-password)
+
+.login {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: v.$color-bg;
+  padding: 24px;
+}
+
+.login__card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background: v.$color-bg-surface;
+  border: 1px solid v.$color-border;
+  border-radius: 16px;
+  padding: 40px 36px 36px;
+  width: 100%;
+  max-width: 360px;
+  box-shadow: 0 24px 64px rgba(0, 0, 0, 0.4);
+}
+
+.login__title {
+  font-family: v.$font-display;
+  font-size: 26px;
+  font-weight: 500;
+  color: v.$color-text;
+  margin: 0 0 4px;
+  letter-spacing: 0.02em;
+}
+
+.login__accent {
+  color: v.$color-gold;
+}
+
+.login__tagline {
+  font-size: 12px;
+  color: v.$color-text-muted;
+  margin: 0 0 28px;
+}
+
+.login__error {
+  width: 100%;
+  background: rgba(232, 80, 80, 0.1);
+  border: 0.5px solid rgba(232, 80, 80, 0.3);
+  border-radius: 8px;
+  padding: 9px 12px;
+  font-size: 12px;
+  color: #f87171;
+  margin-bottom: 12px;
+}
+
+.login__form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: 100%;
+}
+
+.login__field {
+  position: relative;
+  display: flex;
+  align-items: center;
+
+  i {
+    position: absolute;
+    left: 12px;
+    font-size: 15px;
+    color: v.$color-text-muted;
+    pointer-events: none;
+    line-height: 1;
+  }
+
+  &--error .login__input {
+    border-color: v.$color-ember;
+  }
+}
+
+.login__field-error {
+  font-size: v.$font-size-xs;
+  color: v.$color-ember-light;
+  margin-top: -4px;
+}
+
+.login__input {
+  width: 100%;
+  padding: 10px 12px 10px 38px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 0.5px solid v.$color-border;
+  border-radius: 8px;
+  color: v.$color-text;
+  font-size: 13px;
+  font-family: v.$font-body;
+  box-sizing: border-box;
+  outline: none;
+  transition: border-color 0.15s;
+
+  &::placeholder {
+    color: v.$color-text-muted;
+    opacity: 0.6;
+  }
+
+  &:focus {
+    border-color: v.$color-gold-dark;
+  }
+}
+
+.login__btn-primary {
+  width: 100%;
+  padding: 11px;
+  margin-top: 4px;
+  background: v.$color-gold;
+  border: none;
+  border-radius: 8px;
+  color: #0f0d0b;
+  font-size: 13px;
+  font-weight: 500;
+  font-family: v.$font-body;
+  cursor: pointer;
+  transition: background 0.15s;
+
+  &:hover:not(:disabled) {
+    background: v.$color-gold-light;
+  }
+
+  &:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+  }
+}

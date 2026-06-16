@@ -1,0 +1,153 @@
+@use 'styles/variables' as v;
+@use 'styles/mixins' as m;
+
+.cpm__overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  z-index: 100;
+}
+
+.cpm {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 101;
+  width: min(420px, calc(100vw - 32px));
+  background: v.$color-bg-elevated;
+  border: 0.5px solid v.$color-border-focus;
+  border-radius: v.$radius-lg;
+  padding: v.$space-6;
+  box-shadow: 0 24px 64px rgba(0, 0, 0, 0.6);
+}
+
+.cpm__header {
+  display: flex;
+  align-items: center;
+  gap: v.$space-3;
+  margin-bottom: v.$space-4;
+}
+
+.cpm__icon {
+  font-size: 22px;
+  color: v.$color-gold;
+}
+
+.cpm__title {
+  font-size: v.$font-size-base;
+  font-weight: 500;
+  color: v.$color-text;
+}
+
+.cpm__desc {
+  font-size: v.$font-size-sm;
+  color: v.$color-text-muted;
+  line-height: 1.6;
+  margin-bottom: v.$space-5;
+}
+
+// ─── Filtro de lore ───────────────────────────────────────────────────────────
+.cpm__filter {
+  margin-bottom: v.$space-5;
+}
+
+.cpm__filter-label {
+  font-size: v.$font-size-xs;
+  font-weight: 500;
+  color: v.$color-text-muted;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  margin-bottom: v.$space-3;
+}
+
+.cpm__filter-opts {
+  display: flex;
+  flex-direction: column;
+  gap: v.$space-2;
+}
+
+.cpm__filter-opt {
+  display: flex;
+  align-items: center;
+  gap: v.$space-3;
+  padding: v.$space-3;
+  border: 0.5px solid v.$color-border;
+  border-radius: v.$radius-md;
+  cursor: pointer;
+  font-size: v.$font-size-sm;
+  color: v.$color-text-muted;
+  transition:
+    border-color v.$transition-fast,
+    color v.$transition-fast;
+
+  input[type='radio'] {
+    accent-color: v.$color-gold;
+    width: 14px;
+    height: 14px;
+    flex-shrink: 0;
+  }
+
+  &:has(input:checked) {
+    border-color: v.$color-gold;
+    color: v.$color-text;
+    background: rgba(v.$color-gold, 0.04);
+  }
+}
+
+// ─── Actions ──────────────────────────────────────────────────────────────────
+.cpm__actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: v.$space-3;
+}
+
+.cpm__btn {
+  display: inline-flex;
+  align-items: center;
+  gap: v.$space-2;
+  padding: 9px 20px;
+  border-radius: v.$radius-md;
+  font-size: v.$font-size-sm;
+  font-family: v.$font-body;
+  cursor: pointer;
+  transition:
+    background v.$transition-fast,
+    border-color v.$transition-fast;
+
+  &--ghost {
+    background: transparent;
+    border: 0.5px solid v.$color-border;
+    color: v.$color-text-muted;
+
+    @include m.on-hover {
+      border-color: v.$color-border-focus;
+      color: v.$color-text;
+    }
+  }
+
+  &--primary {
+    background: v.$color-gold;
+    border: none;
+    color: #0f0d0b;
+    font-weight: 500;
+
+    @include m.on-hover {
+      background: v.$color-gold-light;
+    }
+    &:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+  }
+}
+
+@keyframes cpm-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+.cpm__spin {
+  animation: cpm-spin 0.8s linear infinite;
+  display: inline-block;
+}

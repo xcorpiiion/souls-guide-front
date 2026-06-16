@@ -85,6 +85,14 @@
           >
             <i class="ti ti-layout-kanban" aria-hidden="true"></i> kanban
           </button>
+          <button
+            class="pf__tab"
+            [class.pf__tab--active]="activeTab() === 'seguidores'"
+            role="tab"
+            (click)="setTab('seguidores')"
+          >
+            <i class="ti ti-users" aria-hidden="true"></i> seguidores
+          </button>
         }
       </nav>
     </div>
@@ -257,27 +265,72 @@
                     </span>
                   </div>
                   <div class="pf__personal-card-badges">
-                    @if (!quest.isPublic) {
-                      <span class="pf__visibility-badge pf__visibility-badge--private">
+                    <button
+                      class="pf__visibility-badge"
+                      [class.pf__visibility-badge--private]="!quest.isPublic"
+                      [class.pf__visibility-badge--public]="quest.isPublic"
+                      type="button"
+                      [disabled]="togglingVisibilityId() === quest.id"
+                      (click)="toggleQuestVisibility(quest)"
+                      [title]="
+                        quest.isPublic ? 'clique para tornar privado' : 'clique para tornar público'
+                      "
+                    >
+                      @if (togglingVisibilityId() === quest.id) {
+                        <i class="ti ti-loader-2 pf__spin" aria-hidden="true"></i>
+                      } @else if (quest.isPublic) {
+                        <i class="ti ti-world" aria-hidden="true"></i> público
+                      } @else {
                         <i class="ti ti-lock" aria-hidden="true"></i> privado
-                      </span>
-                    }
-                    @if (quest.allowCopy) {
-                      <span class="pf__visibility-badge pf__visibility-badge--copy">
+                      }
+                    </button>
+                    <button
+                      class="pf__visibility-badge"
+                      [class.pf__visibility-badge--copy]="quest.allowCopy"
+                      [class.pf__visibility-badge--no-copy]="!quest.allowCopy"
+                      type="button"
+                      [disabled]="togglingCopyId() === quest.id"
+                      (click)="toggleQuestCopy(quest)"
+                      [title]="
+                        quest.allowCopy
+                          ? 'clique para desabilitar cópia'
+                          : 'clique para permitir cópia'
+                      "
+                    >
+                      @if (togglingCopyId() === quest.id) {
+                        <i class="ti ti-loader-2 pf__spin" aria-hidden="true"></i>
+                      } @else if (quest.allowCopy) {
                         <i class="ti ti-copy" aria-hidden="true"></i> copiável
-                      </span>
-                    }
+                      } @else {
+                        <i class="ti ti-copy-off" aria-hidden="true"></i> sem cópia
+                      }
+                    </button>
                     <span class="pf__badge pf__badge--{{ quest.status | lowercase }}">
                       {{ statusLabel(quest.status) }}
                     </span>
                   </div>
                 </div>
                 <div class="pf__personal-card-actions">
+                  <a
+                    class="pf__personal-action"
+                    [routerLink]="['/games', quest.gameId, 'quests', quest.id]"
+                    title="ver quest"
+                  >
+                    <i class="ti ti-eye" aria-hidden="true"></i>
+                  </a>
+                  <a
+                    class="pf__personal-action"
+                    [routerLink]="['/games', quest.gameId, 'quests', quest.id, 'edit']"
+                    title="editar quest"
+                  >
+                    <i class="ti ti-edit" aria-hidden="true"></i>
+                  </a>
                   <button
                     class="pf__personal-action pf__personal-action--danger"
                     type="button"
                     [disabled]="deletingQuestId() === quest.id"
                     (click)="deletePersonalQuest(quest.id)"
+                    title="excluir quest"
                   >
                     @if (deletingQuestId() === quest.id) {
                       <i class="ti ti-loader-2 pf__spin"></i>
@@ -333,11 +386,26 @@
                   </div>
                 </div>
                 <div class="pf__personal-card-actions">
+                  <a
+                    class="pf__personal-action"
+                    [routerLink]="['/lore', article.id]"
+                    title="ver artigo"
+                  >
+                    <i class="ti ti-eye" aria-hidden="true"></i>
+                  </a>
+                  <a
+                    class="pf__personal-action"
+                    [routerLink]="['/lore', article.id, 'edit']"
+                    title="editar artigo"
+                  >
+                    <i class="ti ti-edit" aria-hidden="true"></i>
+                  </a>
                   <button
                     class="pf__personal-action pf__personal-action--danger"
                     type="button"
                     [disabled]="deletingLoreId() === article.id"
                     (click)="deletePersonalLore(article.id)"
+                    title="excluir artigo"
                   >
                     @if (deletingLoreId() === article.id) {
                       <i class="ti ti-loader-2 pf__spin"></i>
@@ -413,6 +481,68 @@
               <i class="ti ti-arrow-right" aria-hidden="true"></i> acessar kanbans
             </a>
           </div>
+        }
+
+        @if (activeTab() === 'seguidores') {
+          <div class="pf__social-subtabs" role="tablist">
+            <button
+              class="pf__social-tab"
+              [class.pf__social-tab--active]="socialSubTab() === 'me-seguem'"
+              role="tab"
+              (click)="socialSubTab.set('me-seguem')"
+            >
+              me seguem
+              <span class="pf__social-count">{{ profile().followers }}</span>
+            </button>
+            <button
+              class="pf__social-tab"
+              [class.pf__social-tab--active]="socialSubTab() === 'sigo'"
+              role="tab"
+              (click)="socialSubTab.set('sigo')"
+            >
+              sigo
+              <span class="pf__social-count">{{ profile().following }}</span>
+            </button>
+          </div>
+
+          @if (loadingSocial()) {
+            <p class="pf__empty">Carregando…</p>
+          } @else if (socialSubTab() === 'me-seguem') {
+            @if (!followers().length) {
+              <p class="pf__empty">Você ainda não tem seguidores.</p>
+            }
+            @for (user of followers(); track user.id) {
+              <a class="pf__person-row" [routerLink]="['/usuarios', user.handle]">
+                <div class="pf__person-avatar">{{ user.name[0] }}</div>
+                <div class="pf__person-info">
+                  <span class="pf__person-name">{{ user.name }}</span>
+                  <span class="pf__person-handle"
+                    >&#64;{{ user.handle }} · {{ user.questCount }} quests</span
+                  >
+                </div>
+                <i class="ti ti-chevron-right pf__quest-arrow" aria-hidden="true"></i>
+              </a>
+            }
+          } @else {
+            @if (!followingPeople().length) {
+              <p class="pf__empty">
+                Você ainda não segue ninguém.
+                <a routerLink="/comunidade" class="pf__inline-link">Explorar a comunidade →</a>
+              </p>
+            }
+            @for (user of followingPeople(); track user.id) {
+              <a class="pf__person-row" [routerLink]="['/usuarios', user.handle]">
+                <div class="pf__person-avatar">{{ user.name[0] }}</div>
+                <div class="pf__person-info">
+                  <span class="pf__person-name">{{ user.name }}</span>
+                  <span class="pf__person-handle"
+                    >&#64;{{ user.handle }} · {{ user.questCount }} quests</span
+                  >
+                </div>
+                <i class="ti ti-chevron-right pf__quest-arrow" aria-hidden="true"></i>
+              </a>
+            }
+          }
         }
 
         @if (activeTab() === 'favoritos') {

@@ -1,0 +1,245 @@
+<section class="lore-create">
+  <div class="lore-create__back">
+    <a routerLink="/lore" class="lore-create__back-link">
+      <i class="ti ti-arrow-left"></i> voltar para lore
+    </a>
+  </div>
+
+  <header class="lore-create__header">
+    <h1 class="lore-create__title">novo artigo de lore</h1>
+    <p class="lore-create__subtitle"><i class="ti ti-world"></i> visível para toda a comunidade</p>
+  </header>
+
+  <form [formGroup]="form" (ngSubmit)="submit()" class="lore-create__form" novalidate>
+    <!-- Tipo -->
+    <div class="lore-create__card">
+      <p class="lore-create__section-label">tipo de lore</p>
+      <div class="lore-create__type-row">
+        <button
+          type="button"
+          class="lore-create__type-opt"
+          [class.lore-create__type-opt--active]="loreType() === 'world'"
+          (click)="setType('world')"
+        >
+          <i class="ti ti-map"></i>
+          <span class="lore-create__type-text">
+            <span class="lore-create__type-label">lore do mundo</span>
+            <span class="lore-create__type-desc">história, locais, facções, eventos</span>
+          </span>
+        </button>
+        <button
+          type="button"
+          class="lore-create__type-opt"
+          [class.lore-create__type-opt--active]="loreType() === 'character'"
+          (click)="setType('character')"
+        >
+          <i class="ti ti-user-circle"></i>
+          <span class="lore-create__type-text">
+            <span class="lore-create__type-label">lore de personagem</span>
+            <span class="lore-create__type-desc">origem, motivações, relações</span>
+          </span>
+        </button>
+      </div>
+
+      @if (isCharacter()) {
+        <div class="lore-create__char-field">
+          <label class="lore-create__char-label" for="characterName">nome do personagem *</label>
+          <input
+            id="characterName"
+            type="text"
+            class="lore-create__input"
+            formControlName="characterName"
+            placeholder="ex: Ranni, a Bruxa da Lua"
+            autocomplete="off"
+          />
+        </div>
+      }
+    </div>
+
+    <!-- Informações -->
+    <div class="lore-create__card">
+      <p class="lore-create__section-label">informações</p>
+
+      <div class="lore-create__field">
+        <label class="lore-create__label" for="title"
+          >título <span class="lore-create__req">*</span></label
+        >
+        <input
+          id="title"
+          type="text"
+          class="lore-create__input"
+          formControlName="title"
+          placeholder="ex: A Ordem dos Sem Graça e o Plano da Lua"
+          autocomplete="off"
+        />
+      </div>
+
+      <div class="lore-create__grid2">
+        <!-- Game search -->
+        <div class="lore-create__field">
+          <label class="lore-create__label" for="gameSearch"
+            >jogo <span class="lore-create__req">*</span></label
+          >
+          <div class="lore-create__game-wrap">
+            <input
+              id="gameSearch"
+              type="text"
+              class="lore-create__input"
+              [value]="gameQuery()"
+              (input)="onGameInput($any($event.target).value)"
+              placeholder="buscar jogo..."
+              autocomplete="off"
+            />
+            @if (gameSearching()) {
+              <i class="ti ti-loader-2 lore-create__game-spin"></i>
+            }
+            @if (showGameDropdown()) {
+              <ul class="lore-create__game-dropdown">
+                @for (g of gameResults(); track g.id) {
+                  <li>
+                    <button type="button" class="lore-create__game-option" (click)="selectGame(g)">
+                      {{ g.name }}
+                    </button>
+                  </li>
+                }
+              </ul>
+            }
+          </div>
+          @if (selectedGame()) {
+            <span class="lore-create__game-selected">
+              <i class="ti ti-check"></i> {{ selectedGame()!.name }}
+            </span>
+          }
+        </div>
+
+        <!-- Tags -->
+        <div class="lore-create__field">
+          <span class="lore-create__label"
+            >tags <span class="lore-create__hint-inline">(máx. 5)</span></span
+          >
+          <div class="lore-create__tags-wrap">
+            @for (tag of tags(); track tag) {
+              <span class="lore-create__tag">
+                {{ tag }}
+                <button
+                  type="button"
+                  class="lore-create__tag-remove"
+                  (click)="removeTag(tag)"
+                  aria-label="remover tag"
+                >
+                  ×
+                </button>
+              </span>
+            }
+            @if (tags().length < 5) {
+              <input
+                #tagInputEl
+                type="text"
+                class="lore-create__tag-input"
+                [value]="tagInput()"
+                (input)="tagInput.set($any($event.target).value)"
+                (keydown)="onTagKeydown($event, tagInputEl)"
+                (blur)="addTag()"
+                placeholder="adicionar..."
+                autocomplete="off"
+              />
+            }
+          </div>
+          <span class="lore-create__hint">Enter ou vírgula para adicionar</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Editor -->
+    <div class="lore-create__card">
+      <div class="lore-create__editor-header">
+        <p class="lore-create__section-label" style="margin-bottom: 0">
+          conteúdo <span class="lore-create__req">*</span>
+        </p>
+        <button type="button" class="lore-create__preview-toggle" (click)="togglePreview()">
+          <i [class]="showPreview() ? 'ti ti-pencil' : 'ti ti-eye'"></i>
+          {{ showPreview() ? 'editar' : 'preview' }}
+        </button>
+      </div>
+
+      @if (!showPreview()) {
+        <div class="lore-create__editor-wrap">
+          <div class="lore-create__toolbar">
+            <button type="button" class="lore-create__tb-btn" title="negrito (**texto**)">
+              <i class="ti ti-bold"></i>
+            </button>
+            <button type="button" class="lore-create__tb-btn" title="itálico (*texto*)">
+              <i class="ti ti-italic"></i>
+            </button>
+            <button type="button" class="lore-create__tb-btn" title="título (## Título)">
+              <i class="ti ti-heading"></i>
+            </button>
+            <span class="lore-create__tb-sep"></span>
+            <button type="button" class="lore-create__tb-btn" title="lista (- item)">
+              <i class="ti ti-list"></i>
+            </button>
+            <button type="button" class="lore-create__tb-btn" title="citação (> texto)">
+              <i class="ti ti-blockquote"></i>
+            </button>
+          </div>
+          <textarea
+            class="lore-create__textarea"
+            formControlName="content"
+            placeholder="Escreva o conteúdo em Markdown...&#10;&#10;## Seção&#10;**Negrito**, *itálico*, > citação&#10;- item de lista"
+            rows="14"
+          ></textarea>
+          <p class="lore-create__editor-hint">
+            Suporta Markdown · **negrito** · *itálico* · ## título · > citação
+          </p>
+        </div>
+      } @else {
+        <div class="lore-create__preview">
+          <div class="lore-create__preview-meta">
+            <span class="lore-create__badge" [class]="'lore-create__badge--' + loreType()">
+              <i [class]="loreType() === 'world' ? 'ti ti-map' : 'ti ti-user-circle'"></i>
+              {{ loreType() === 'world' ? 'lore do mundo' : 'lore de personagem' }}
+            </span>
+            @if (selectedGame()) {
+              <span class="lore-create__badge lore-create__badge--game">
+                <i class="ti ti-device-gamepad-2"></i> {{ selectedGame()!.name }}
+              </span>
+            }
+          </div>
+          <h2 class="lore-create__preview-title">{{ form.value.title || 'Sem título' }}</h2>
+          @if (isCharacter() && form.value.characterName) {
+            <p class="lore-create__preview-char">
+              Personagem: <strong>{{ form.value.characterName }}</strong>
+            </p>
+          }
+          <div class="lore-create__preview-body" [innerHTML]="previewContent()"></div>
+          @if (!form.value.content) {
+            <p class="lore-create__preview-empty">Nenhum conteúdo ainda.</p>
+          }
+        </div>
+      }
+    </div>
+
+    <!-- Erro -->
+    @if (errorMsg()) {
+      <p class="lore-create__error"><i class="ti ti-alert-circle"></i> {{ errorMsg() }}</p>
+    }
+
+    <!-- Actions -->
+    <div class="lore-create__actions">
+      <a routerLink="/lore" class="lore-create__btn lore-create__btn--ghost">cancelar</a>
+      <button
+        type="submit"
+        class="lore-create__btn lore-create__btn--primary"
+        [disabled]="
+          form.invalid || saving() || (isCharacter() && !form.value.characterName?.trim())
+        "
+      >
+        @if (saving()) {
+          <i class="ti ti-loader-2 lore-create__spin"></i> publicando...
+        } @else {
+          <i class="ti ti-check"></i> publicar artigo
+        }
+      </button>
+    </div>
+  </form>
+</section>

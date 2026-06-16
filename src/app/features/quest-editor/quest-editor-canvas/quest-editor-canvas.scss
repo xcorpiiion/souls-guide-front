@@ -1,5 +1,11 @@
 @use 'styles/variables' as v;
 
+:host {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
 .qec {
   width: 100%;
   height: 100%;
@@ -250,7 +256,7 @@
 // ─── Text ─────────────────────────────────────────────────────────────────────
 .qec__text {
   font-family: v.$font-body;
-  font-size: 10px;
+  font-size: 13px;
   fill: v.$color-text;
   pointer-events: none;
   dominant-baseline: auto;
@@ -261,23 +267,23 @@
   }
 
   &--small {
-    font-size: 9px;
+    font-size: 11px;
     fill: v.$color-text-muted;
   }
 
   &--sub {
-    font-size: 9px;
+    font-size: 11px;
     fill: v.$color-text-muted;
   }
 
   &--gateway {
     fill: #378add;
-    font-size: 11px;
-    font-weight: 500;
+    font-size: 14px;
+    font-weight: 600;
   }
 
   &--ext-icon {
-    font-size: 9px;
+    font-size: 11px;
     fill: rgba(200, 112, 232, 0.8);
     text-anchor: end;
   }
@@ -412,4 +418,27 @@
   stroke: rgba(200, 112, 232, 0.6);
   stroke-width: 0.5;
   stroke-dasharray: 2, 1;
+}
+
+// ─── gateway tooltip ──────────────────────────────────────────────────────────
+.qec__gateway-tip {
+  opacity: 0;
+  transition: opacity 0.15s;
+}
+
+.qec__node:hover .qec__gateway-tip {
+  opacity: 1;
+}
+
+.qec__gateway-tip-bg {
+  fill: rgba(30, 25, 18, 0.92);
+  stroke: #378add;
+  stroke-width: 0.8;
+}
+
+.qec__gateway-tip-text {
+  font-family: v.$font-body;
+  font-size: 10px;
+  fill: #378add;
+  dominant-baseline: auto;
 }

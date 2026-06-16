@@ -1,0 +1,554 @@
+@use 'styles/variables' as v;
+
+.ck {
+  display: grid;
+  grid-template-columns: 1fr 300px;
+  height: clamp(400px, calc(100vh - 380px), 680px);
+  gap: 0;
+  overflow: hidden;
+  border: 1px solid v.$color-border;
+  border-radius: v.$radius-lg;
+}
+
+// ─── Lista ────────────────────────────────────────────────────────────────────
+.ck__list {
+  padding: v.$space-4 0;
+  border-right: 1px solid v.$color-border;
+  overflow-y: auto;
+  height: 100%;
+  scrollbar-width: thin;
+  scrollbar-color: v.$color-border transparent;
+
+  &::-webkit-scrollbar {
+    width: 4px;
+  }
+  &::-webkit-scrollbar-thumb {
+    background: v.$color-border;
+    border-radius: 2px;
+  }
+}
+
+.ck__list-label {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: v.$color-text-muted;
+  font-weight: 500;
+  padding: 0 v.$space-5 v.$space-3;
+}
+
+// ─── Row (step + fork compartilham) ───────────────────────────────────────────
+.ck__row {
+  display: flex;
+  gap: 0;
+  padding: 0 v.$space-5 0 20px;
+}
+
+// ─── Spine ────────────────────────────────────────────────────────────────────
+.ck__spine {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 36px;
+  flex-shrink: 0;
+}
+
+.ck__spine-line {
+  width: 1.5px;
+  flex: 1;
+  background: v.$color-border;
+  min-height: 14px;
+}
+
+// ─── Dots ─────────────────────────────────────────────────────────────────────
+.ck__dot {
+  flex-shrink: 0;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  &--start {
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    border: 1.5px solid #1faa64;
+    background: rgba(31, 170, 100, 0.13);
+    color: #1faa64;
+  }
+
+  &--end {
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    border: 1.5px solid v.$color-gold;
+    background: rgba(200, 160, 74, 0.12);
+    color: v.$color-gold;
+  }
+
+  &--task {
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    border: 1.5px solid v.$color-border;
+    background: v.$color-bg;
+    color: #1faa64;
+
+    &.ck__dot--done {
+      border-color: #1faa64;
+      background: rgba(31, 170, 100, 0.15);
+    }
+  }
+
+  &--fork {
+    width: 20px;
+    height: 20px;
+    transform: rotate(45deg);
+    border: 1.5px solid #378add;
+    background: rgba(55, 138, 221, 0.1);
+    border-radius: 2px;
+  }
+}
+
+// ─── Node card (step task) ────────────────────────────────────────────────────
+.ck__node-card {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  border: 0.5px solid v.$color-border;
+  border-radius: v.$radius-md;
+  padding: 14px 18px;
+  background: v.$color-bg-surface;
+  cursor: pointer;
+  margin: 0 0 16px 14px;
+  transition:
+    border-color 0.12s,
+    background 0.12s;
+  user-select: none;
+
+  &:hover {
+    border-color: v.$color-border-focus;
+    background: v.$color-bg-elevated;
+  }
+
+  &--active {
+    border-color: v.$color-gold;
+    background: rgba(200, 160, 74, 0.06);
+
+    .ck__step-title {
+      color: v.$color-gold;
+    }
+  }
+
+  &--done {
+    border-color: rgba(31, 170, 100, 0.4);
+    background: rgba(31, 170, 100, 0.04);
+  }
+}
+
+// ─── Boundary labels (start / end) ────────────────────────────────────────────
+.ck__boundary-label {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 11px;
+  font-weight: 500;
+  padding: 3px 0 14px 12px;
+
+  &--start {
+    color: #1faa64;
+  }
+  &--end {
+    color: v.$color-gold;
+  }
+}
+
+// ─── Shared text helpers ───────────────────────────────────────────────────────
+.ck__step-title {
+  font-size: 16px;
+  font-weight: 500;
+  color: v.$color-text;
+  line-height: 1.35;
+}
+
+.ck__step-sub {
+  font-size: 13px;
+  color: v.$color-text-muted;
+}
+
+.ck__done-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 10px;
+  color: #1faa64;
+  margin-top: 2px;
+}
+
+.ck__end-badge {
+  display: inline-block;
+  font-size: 10px;
+  padding: 2px 7px;
+  border-radius: 20px;
+
+  &--positive {
+    background: rgba(31, 170, 100, 0.15);
+    color: #1faa64;
+  }
+  &--tragic {
+    background: rgba(232, 80, 80, 0.15);
+    color: #e85050;
+  }
+  &--neutral {
+    background: rgba(v.$color-gold, 0.15);
+    color: v.$color-gold;
+  }
+}
+
+// ─── Fork row ─────────────────────────────────────────────────────────────────
+.ck__row--fork {
+  align-items: flex-start;
+}
+
+.ck__fork-body {
+  flex: 1;
+  padding: 0 0 16px 12px;
+  min-width: 0;
+}
+
+.ck__fork-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  padding: 2px 0;
+  user-select: none;
+
+  &:hover .ck__fork-hint {
+    color: v.$color-text;
+  }
+}
+
+.ck__fork-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: rgba(55, 138, 221, 0.1);
+  color: #378add;
+  font-size: 10px;
+  padding: 2px 8px;
+  border-radius: 20px;
+  flex-shrink: 0;
+}
+
+.ck__fork-count {
+  font-size: 10px;
+  color: v.$color-text-muted;
+  padding: 2px 6px;
+  border: 0.5px solid v.$color-border;
+  border-radius: 20px;
+  flex-shrink: 0;
+}
+
+.ck__fork-hint {
+  font-size: 11px;
+  color: v.$color-text-muted;
+  flex: 1;
+}
+
+.ck__fork-chevron {
+  font-size: 13px;
+  color: v.$color-text-muted;
+  transition: transform 0.18s;
+  flex-shrink: 0;
+
+  &--open {
+    transform: rotate(180deg);
+  }
+}
+
+// ─── Branches: scroll horizontal (≤ 3 rotas) ──────────────────────────────────
+.ck__branches-scroll {
+  display: flex;
+  gap: 8px;
+  margin-top: 10px;
+  overflow-x: auto;
+  padding-bottom: 6px;
+  scrollbar-width: thin;
+  scrollbar-color: v.$color-border transparent;
+
+  &::-webkit-scrollbar {
+    height: 3px;
+  }
+  &::-webkit-scrollbar-thumb {
+    background: v.$color-border;
+    border-radius: 2px;
+  }
+}
+
+.ck__branch-col {
+  flex: 0 0 160px;
+  border: 0.5px solid v.$color-border;
+  border-radius: v.$radius-md;
+  overflow: hidden;
+}
+
+.ck__branch-head {
+  padding: 5px 10px;
+  border-bottom: 0.5px solid v.$color-border;
+  font-size: 10px;
+  color: v.$color-text-muted;
+  background: v.$color-bg-surface;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.ck__branch-steps {
+  padding: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.ck__branch-arrow {
+  text-align: center;
+  font-size: 11px;
+  color: v.$color-border;
+}
+
+.ck__branch-node {
+  border: 0.5px solid v.$color-border;
+  border-radius: v.$radius-md;
+  padding: 7px 10px;
+  background: v.$color-bg;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  transition:
+    border-color 0.12s,
+    background 0.12s;
+  user-select: none;
+
+  &:hover {
+    border-color: v.$color-border-focus;
+    background: v.$color-bg-surface;
+  }
+
+  &--active {
+    border-color: v.$color-gold;
+    background: rgba(200, 160, 74, 0.06);
+
+    .ck__step-title {
+      color: v.$color-gold;
+    }
+  }
+
+  &--done {
+    border-color: rgba(31, 170, 100, 0.4);
+    background: rgba(31, 170, 100, 0.04);
+  }
+
+  &--sub {
+    border-style: dashed;
+    opacity: 0.85;
+  }
+}
+
+// ─── Branches: stack vertical (≥ 4 rotas) ─────────────────────────────────────
+.ck__branches-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 10px;
+}
+
+.ck__stack-branch {
+  border: 0.5px solid v.$color-border;
+  border-radius: v.$radius-md;
+  overflow: hidden;
+}
+
+.ck__stack-head {
+  padding: 6px 12px;
+  border-bottom: 0.5px solid v.$color-border;
+  font-size: 11px;
+  color: v.$color-text-muted;
+  background: v.$color-bg-surface;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.ck__stack-count {
+  font-size: 10px;
+  color: v.$color-text-muted;
+}
+
+.ck__stack-nodes {
+  display: flex;
+  gap: 6px;
+  padding: 8px;
+  flex-wrap: wrap;
+}
+
+// ─── Painel ───────────────────────────────────────────────────────────────────
+.ck__panel {
+  padding: v.$space-4 v.$space-5;
+  background: v.$color-bg-surface;
+  overflow-y: auto;
+  height: 100%;
+  scrollbar-width: thin;
+  scrollbar-color: v.$color-border transparent;
+
+  &::-webkit-scrollbar {
+    width: 4px;
+  }
+  &::-webkit-scrollbar-thumb {
+    background: v.$color-border;
+    border-radius: 2px;
+  }
+}
+
+.ck__panel-label {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: v.$color-text-muted;
+  font-weight: 500;
+  margin-bottom: v.$space-3;
+}
+
+.ck__panel-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 48px 16px;
+  color: v.$color-text-muted;
+  text-align: center;
+
+  i {
+    font-size: 28px;
+    opacity: 0.3;
+  }
+  span {
+    font-size: 13px;
+  }
+}
+
+.ck__panel-card {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.ck__node-type-badge {
+  display: inline-block;
+  font-size: 10px;
+  padding: 2px 8px;
+  border-radius: 20px;
+  background: rgba(200, 112, 232, 0.12);
+  color: rgba(200, 112, 232, 0.9);
+  width: fit-content;
+}
+
+.ck__node-title {
+  font-size: 15px;
+  font-weight: 500;
+  color: v.$color-text;
+  line-height: 1.4;
+}
+
+.ck__node-desc {
+  font-size: 12px;
+  color: v.$color-text-muted;
+  line-height: 1.6;
+}
+
+.ck__node-loc {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 12px;
+  color: #e85050;
+
+  i {
+    font-size: 14px;
+  }
+}
+
+.ck__node-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+
+.ck__tag {
+  font-size: 10px;
+  padding: 3px 8px;
+  border-radius: 20px;
+  border: 0.5px solid v.$color-border;
+  color: v.$color-text-muted;
+}
+
+.ck__ext-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 12px;
+  color: rgba(200, 112, 232, 0.9);
+  text-decoration: none;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
+.ck__done-btn {
+  width: 100%;
+  padding: 8px;
+  border-radius: v.$radius-md;
+  border: 0.5px solid v.$color-border;
+  background: transparent;
+  color: v.$color-text-muted;
+  font-size: 12px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  font-family: v.$font-body;
+  transition:
+    background 0.12s,
+    border-color 0.12s,
+    color 0.12s;
+
+  &:hover {
+    background: v.$color-bg-elevated;
+  }
+
+  &--done {
+    border-color: #1faa64;
+    color: #1faa64;
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+}
+
+@keyframes ck-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.ck__spin {
+  animation: ck-spin 0.8s linear infinite;
+}

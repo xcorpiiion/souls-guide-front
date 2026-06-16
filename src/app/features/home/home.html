@@ -26,7 +26,7 @@
     </div>
 
     <div class="hero__games" role="group" aria-label="Filtrar por jogo">
-      @for (game of games; track game.id) {
+      @for (game of games(); track game.id) {
         <button
           class="hero__game-pill"
           [class.hero__game-pill--active]="selectedGameId() === game.id"
@@ -41,7 +41,7 @@
 
   <!-- STATS -->
   <div class="hero__stats">
-    @for (stat of stats; track stat.label) {
+    @for (stat of stats(); track stat.label) {
       <div class="hero__stat">
         <span class="hero__stat-n">{{ stat.value }}</span>
         <span class="hero__stat-l">{{ stat.label }}</span>

@@ -1,0 +1,257 @@
+<div
+  class="qvc"
+  (mousemove)="onMouseMove($event)"
+  (mouseup)="onMouseUp()"
+  (mouseleave)="onMouseUp()"
+>
+  <svg
+    #svgEl
+    class="qvc__svg"
+    (mousedown)="onSvgMouseDown($event)"
+    (click)="onSvgClick($event)"
+    (keydown.escape)="nodeSelect.emit(null)"
+    role="img"
+    aria-label="Grafo da quest"
+  >
+    <defs>
+      <pattern
+        id="qvc-grid"
+        width="24"
+        height="24"
+        patternUnits="userSpaceOnUse"
+        [attr.patternTransform]="gridPatternTransform()"
+      >
+        <circle cx="0" cy="0" r="0.8" class="qvc__grid-dot" />
+      </pattern>
+      <marker id="qvc-arr" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+        <path d="M0,0 L0,6 L8,3 z" class="qvc__marker" />
+      </marker>
+      <marker id="qvc-arr-ext" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+        <path d="M0,0 L0,6 L8,3 z" class="qvc__marker qvc__marker--ext" />
+      </marker>
+    </defs>
+
+    <rect width="100%" height="100%" fill="url(#qvc-grid)" class="qvc__grid-bg" />
+
+    <g [attr.transform]="contentTransform()">
+      <!-- edges -->
+      @for (edge of canvasEdges(); track trackEdge($index, edge)) {
+        <path
+          [attr.d]="edge.path"
+          [attr.marker-end]="edge.isExternal ? 'url(#qvc-arr-ext)' : 'url(#qvc-arr)'"
+          [class]="'qvc__edge' + (edge.isExternal ? ' qvc__edge--ext' : '')"
+        />
+        @if (edge.label) {
+          <rect
+            [attr.x]="edge.mx - edge.label.length * 3 - 4"
+            [attr.y]="edge.my - 10"
+            [attr.width]="edge.label.length * 6 + 8"
+            height="14"
+            rx="3"
+            class="qvc__edge-label-bg"
+          />
+          <text [attr.x]="edge.mx" [attr.y]="edge.my" class="qvc__edge-label">
+            {{ edge.label }}
+          </text>
+        }
+      }
+
+      <!-- nodes -->
+      @for (node of nodes(); track trackNode($index, node)) {
+        <g
+          [attr.data-node-id]="node.id"
+          [class]="
+            'qvc__node' +
+            (selectedNodeId() === node.id ? ' qvc__node--selected' : '') +
+            (completedNodeIds().has(node.id) ? ' qvc__node--done' : '')
+          "
+          (click)="onNodeClick($event, node.id)"
+          role="button"
+          tabindex="0"
+          [attr.aria-label]="node.label"
+          (keydown.enter)="nodeSelect.emit(node.id)"
+        >
+          @if (node.type === 'start' || node.type === 'end') {
+            <circle
+              [attr.cx]="px(node.id) + nw(node) / 2"
+              [attr.cy]="py(node.id) + nh(node.type) / 2"
+              [attr.r]="nw(node) / 2 - 2"
+              [class]="'qvc__circle qvc__circle--' + (node.endingType ?? node.type)"
+            />
+            <text
+              [attr.x]="px(node.id) + nw(node) / 2"
+              [attr.y]="py(node.id) + nh(node.type) / 2 + 4"
+              class="qvc__text qvc__text--center qvc__text--small"
+            >
+              {{ node.label }}
+            </text>
+          }
+
+          @if (node.type === 'gateway') {
+            <polygon [attr.points]="diamondPoints(node.id)" class="qvc__diamond" />
+            <text
+              [attr.x]="px(node.id) + 28"
+              [attr.y]="py(node.id) + 33"
+              class="qvc__text qvc__text--center qvc__text--gateway"
+            >
+              X
+            </text>
+            <g class="qvc__gateway-tip" pointer-events="none">
+              <rect
+                [attr.x]="px(node.id) - 30"
+                [attr.y]="py(node.id) - 30"
+                width="116"
+                height="20"
+                rx="4"
+                class="qvc__gateway-tip-bg"
+              />
+              <text
+                [attr.x]="px(node.id) + 28"
+                [attr.y]="py(node.id) - 15"
+                class="qvc__text qvc__text--center qvc__gateway-tip-text"
+              >
+                bifurcação de caminhos
+              </text>
+            </g>
+          }
+
+          @if (node.type === 'task' || node.type === 'external-quest') {
+            <rect
+              [attr.x]="px(node.id)"
+              [attr.y]="py(node.id)"
+              [attr.width]="nw(node)"
+              [attr.height]="nh(node.type)"
+              rx="7"
+              [class]="'qvc__rect qvc__rect--' + node.type"
+            />
+            <text
+              [attr.x]="px(node.id) + nw(node) / 2"
+              [attr.y]="textY(node.id, node.type, !!node.sublabel)"
+              class="qvc__text qvc__text--center"
+            >
+              {{ node.label }}
+            </text>
+            @if (node.sublabel) {
+              <text
+                [attr.x]="px(node.id) + nw(node) / 2"
+                [attr.y]="py(node.id) + 40"
+                class="qvc__text qvc__text--center qvc__text--sub"
+              >
+                {{ node.sublabel }}
+              </text>
+            }
+            @if (node.type === 'external-quest') {
+              <text
+                [attr.x]="px(node.id) + nw(node) - 6"
+                [attr.y]="py(node.id) + 13"
+                class="qvc__text qvc__text--ext-icon"
+              >
+                ↗
+              </text>
+            }
+            @if (completedNodeIds().has(node.id)) {
+              <circle
+                [attr.cx]="px(node.id) + nw(node) - 9"
+                [attr.cy]="py(node.id) + 9"
+                r="9"
+                class="qvc__done-badge"
+              />
+              <text
+                [attr.x]="px(node.id) + nw(node) - 9"
+                [attr.y]="py(node.id) + 13"
+                class="qvc__text qvc__text--center qvc__text--done-check"
+              >
+                ✓
+              </text>
+            }
+          }
+        </g>
+      }
+    </g>
+  </svg>
+
+  <!-- zoom controls -->
+  <div class="qvc__zoom-bar" role="group" aria-label="controles de zoom">
+    <button
+      class="qvc__zoom-btn"
+      type="button"
+      title="diminuir zoom"
+      [disabled]="!canUnzoomMore()"
+      (click)="zoomStep(-1)"
+    >
+      <i class="ti ti-minus" aria-hidden="true"></i>
+    </button>
+    <span
+      class="qvc__zoom-level"
+      role="button"
+      tabindex="0"
+      title="clique para 100%"
+      (click)="zoomReset()"
+      (keydown.enter)="zoomReset()"
+    >
+      {{ zoomPercent() }}%
+    </span>
+    <button
+      class="qvc__zoom-btn"
+      type="button"
+      title="aumentar zoom"
+      [disabled]="!canZoomMore()"
+      (click)="zoomStep(1)"
+    >
+      <i class="ti ti-plus" aria-hidden="true"></i>
+    </button>
+    <div class="qvc__zoom-sep"></div>
+    <button class="qvc__zoom-fit" type="button" title="ajustar ao canvas" (click)="fitAll()">
+      <i class="ti ti-frame" style="font-size: 12px" aria-hidden="true"></i> fit
+    </button>
+  </div>
+
+  <!-- mini-map -->
+  @if (minimapNodes().length) {
+    <div class="qvc__minimap" role="img" aria-label="mini-mapa">
+      <svg [attr.width]="MM_W" [attr.height]="MM_H">
+        @for (n of minimapNodes(); track trackMm($index, n)) {
+          @if (n.type === 'start') {
+            <circle
+              [attr.cx]="n.x + n.w / 2"
+              [attr.cy]="n.y + n.h / 2"
+              [attr.r]="n.w / 2"
+              class="qvc__mm-start"
+            />
+          }
+          @if (n.type === 'end') {
+            <circle
+              [attr.cx]="n.x + n.w / 2"
+              [attr.cy]="n.y + n.h / 2"
+              [attr.r]="n.w / 2"
+              class="qvc__mm-end"
+            />
+          }
+          @if (n.type === 'task') {
+            <rect
+              [attr.x]="n.x"
+              [attr.y]="n.y"
+              [attr.width]="n.w"
+              [attr.height]="n.h"
+              rx="1"
+              class="qvc__mm-task"
+            />
+          }
+          @if (n.type === 'gateway') {
+            <polygon [attr.points]="mmDiamond(n)" class="qvc__mm-gateway" />
+          }
+          @if (n.type === 'external-quest') {
+            <rect
+              [attr.x]="n.x"
+              [attr.y]="n.y"
+              [attr.width]="n.w"
+              [attr.height]="n.h"
+              rx="1"
+              class="qvc__mm-ext"
+            />
+          }
+        }
+      </svg>
+    </div>
+  }
+</div>

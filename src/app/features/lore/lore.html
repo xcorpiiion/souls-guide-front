@@ -2,7 +2,10 @@
   <!-- ══ header ═══════════════════════════════════════════════════════════════ -->
   <header class="lr__head">
     <div class="lr__head-inner">
-      <h1 class="lr__title">lore</h1>
+      <div class="lr__head-top">
+        <h1 class="lr__title">lore</h1>
+        <a routerLink="/lore/new" class="lr__btn-new"> <i class="ti ti-plus"></i> novo artigo </a>
+      </div>
 
       <div class="lr__search">
         <i class="ti ti-search lr__search-icon" aria-hidden="true"></i>
@@ -10,23 +13,10 @@
           class="lr__search-input"
           type="search"
           placeholder="buscar artigos de lore…"
-          [value]="search()"
-          (input)="search.set($any($event.target).value)"
+          [ngModel]="searchTerm()"
+          (ngModelChange)="onSearchInput($event)"
           aria-label="Buscar artigos de lore"
         />
-      </div>
-
-      <div class="lr__filter-row">
-        @for (f of gameFilters; track f.id) {
-          <button
-            class="lr__chip"
-            [class.lr__chip--active]="gameFilter() === f.id"
-            type="button"
-            (click)="gameFilter.set(f.id)"
-          >
-            {{ f.label }}
-          </button>
-        }
       </div>
 
       <div class="lr__filter-row">
@@ -35,7 +25,7 @@
             class="lr__chip"
             [class.lr__chip--active]="categoryFilter() === f.id"
             type="button"
-            (click)="categoryFilter.set(f.id)"
+            (click)="setCategoryFilter(f.id)"
           >
             {{ f.label }}
           </button>
@@ -64,9 +54,9 @@
           </div>
         }
       </div>
-    } @else if (filtered().length) {
+    } @else if (articles().length) {
       <div class="lr__grid">
-        @for (article of filtered(); track article.id) {
+        @for (article of articles(); track article.id) {
           <a class="lr__card" [routerLink]="['/lore', article.id]">
             <div class="lr__card-badges">
               <span class="lr__badge lr__badge--game lr__badge--{{ article.gameId }}">
@@ -86,6 +76,12 @@
                 <i class="ti ti-clock" aria-hidden="true"></i>
                 {{ article.readMinutes }} min
               </span>
+              @if (article.likeCount) {
+                <span class="lr__card-likes">
+                  <i class="ti ti-heart" aria-hidden="true"></i>
+                  {{ article.likeCount }}
+                </span>
+              }
               <span class="lr__card-author">@{{ article.author }}</span>
             </div>
           </a>
@@ -93,6 +89,45 @@
       </div>
     } @else {
       <p class="lr__empty">Nenhum artigo encontrado.</p>
+    }
+
+    @if (totalPages() > 1) {
+      <nav class="lr__pagination" aria-label="Paginação">
+        <button
+          class="lr__page-btn lr__page-btn--arrow"
+          type="button"
+          [disabled]="currentPage() === 0"
+          (click)="goToPage(currentPage() - 1)"
+          aria-label="Página anterior"
+        >
+          <i class="ti ti-chevron-left"></i>
+        </button>
+
+        @for (page of pageNumbers(); track $index) {
+          @if (page === -1) {
+            <span class="lr__page-ellipsis">…</span>
+          } @else {
+            <button
+              class="lr__page-btn"
+              type="button"
+              [class.lr__page-btn--active]="page === currentPage()"
+              (click)="goToPage(page)"
+            >
+              {{ page + 1 }}
+            </button>
+          }
+        }
+
+        <button
+          class="lr__page-btn lr__page-btn--arrow"
+          type="button"
+          [disabled]="currentPage() === totalPages() - 1"
+          (click)="goToPage(currentPage() + 1)"
+          aria-label="Próxima página"
+        >
+          <i class="ti ti-chevron-right"></i>
+        </button>
+      </nav>
     }
   </div>
 </div>

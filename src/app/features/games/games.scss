@@ -82,22 +82,134 @@ $game-colors: (
   display: flex;
   align-items: center;
   gap: v.$space-2;
-  padding: v.$space-2 v.$space-4;
-  background: transparent;
+  padding: 9px 18px;
+  background: v.$color-gold;
+  border: none;
+  border-radius: v.$radius-md;
+  color: #0f0d0b;
+  font-family: v.$font-body;
+  font-size: v.$font-size-sm;
+  font-weight: 500;
+  cursor: pointer;
+  text-decoration: none;
+  transition: background v.$transition-fast;
+
+  @include m.on-hover {
+    border-color: v.$color-gold;
+    color: v.$color-gold;
+  }
+}
+
+.games__search-bar {
+  display: flex;
+  align-items: center;
+  gap: v.$space-3;
+  background: v.$color-bg-surface;
   border: 1px solid v.$color-border;
   border-radius: v.$radius-md;
+  padding: 0 v.$space-4;
+  margin-bottom: v.$space-6;
+  transition: border-color v.$transition-fast;
+
+  &:focus-within {
+    border-color: v.$color-border-focus;
+  }
+
+  i {
+    color: v.$color-text-muted;
+    font-size: v.$font-size-lg;
+    flex-shrink: 0;
+  }
+}
+
+.games__search-input {
+  flex: 1;
+  background: transparent;
+  border: none;
+  outline: none;
+  color: v.$color-text;
+  font-family: v.$font-body;
+  font-size: v.$font-size-sm;
+  padding: v.$space-3 0;
+
+  &::placeholder {
+    color: v.$color-text-muted;
+  }
+
+  &::-webkit-search-cancel-button {
+    cursor: pointer;
+  }
+}
+
+.games__loading,
+.games__empty,
+.games__error {
+  text-align: center;
+  color: v.$color-text-muted;
+  padding: v.$space-12 0;
+  font-size: v.$font-size-sm;
+}
+
+.games__error {
+  color: #e85050;
+}
+
+.games__pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: v.$space-2;
+  margin-top: v.$space-8;
+  flex-wrap: wrap;
+}
+
+.games__page-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 36px;
+  height: 36px;
+  padding: 0 v.$space-2;
+  background: v.$color-bg-surface;
+  border: 1px solid v.$color-border;
+  border-radius: v.$radius-sm;
   color: v.$color-text-muted;
   font-family: v.$font-body;
   font-size: v.$font-size-sm;
   cursor: pointer;
   transition:
     border-color v.$transition-fast,
-    color v.$transition-fast;
+    color v.$transition-fast,
+    background v.$transition-fast;
 
-  @include m.on-hover {
-    border-color: v.$color-gold;
-    color: v.$color-gold;
+  &:hover:not(:disabled) {
+    border-color: v.$color-border-focus;
+    color: v.$color-text;
   }
+
+  &--active {
+    background: v.$color-gold;
+    border-color: v.$color-gold;
+    color: #0f0d0b;
+    font-weight: 600;
+    cursor: default;
+  }
+
+  &--arrow {
+    font-size: v.$font-size-base;
+  }
+
+  &:disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+  }
+}
+
+.games__page-ellipsis {
+  color: v.$color-text-muted;
+  font-size: v.$font-size-sm;
+  padding: 0 v.$space-1;
+  user-select: none;
 }
 
 .games__grid {
@@ -247,37 +359,38 @@ $game-colors: (
 
 .game-card__btn {
   flex: 1;
-  padding: v.$space-2 v.$space-3;
+  padding: 9px v.$space-3;
   border-radius: v.$radius-md;
   font-family: v.$font-body;
-  font-size: v.$font-size-xs;
+  font-size: v.$font-size-sm;
   cursor: pointer;
   text-align: center;
   text-decoration: none;
+  white-space: nowrap;
   transition:
-    background-color v.$transition-fast,
+    background v.$transition-fast,
     color v.$transition-fast,
     border-color v.$transition-fast;
 
   &--primary {
-    background-color: v.$color-bg-elevated;
-    border: 1px solid v.$color-border;
-    color: v.$color-text;
+    background: v.$color-gold;
+    border: none;
+    color: #0f0d0b;
+    font-weight: 500;
 
     @include m.on-hover {
-      border-color: v.$color-gold;
-      color: v.$color-gold;
+      background: v.$color-gold-light;
     }
   }
 
   &--secondary {
-    background-color: transparent;
-    border: 1px solid v.$color-border;
-    color: v.$color-text-muted;
+    background: transparent;
+    border: 0.5px solid v.$color-border-focus;
+    color: v.$color-text;
 
     @include m.on-hover {
-      border-color: v.$color-border;
-      color: v.$color-text;
+      background: rgba(255, 255, 255, 0.06);
+      border-color: v.$color-gold;
     }
   }
 }

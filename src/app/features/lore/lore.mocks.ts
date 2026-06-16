@@ -6,7 +6,7 @@ export const LORE_ARTICLES: LoreArticle[] = [
     title: 'Ranni, a Bruxa das Estrelas',
     gameId: 'elden-ring',
     gameName: 'Elden Ring',
-    category: 'NPC',
+    category: 'CHARACTER',
     status: 'CANONICO',
     excerpt:
       'Semideusa que abandonou seu destino divino para executar o Plano da Lua — uma grande fuga do ciclo dos Elden Lords.',
@@ -44,7 +44,7 @@ export const LORE_ARTICLES: LoreArticle[] = [
     title: 'Gehrman e o Sonho do Caçador',
     gameId: 'bloodborne',
     gameName: 'Bloodborne',
-    category: 'NPC',
+    category: 'CHARACTER',
     status: 'CANONICO',
     excerpt:
       'O primeiro caçador e sua prisão voluntária — a relação com a Boneca e a Grande Mente por trás do sonho.',
@@ -75,7 +75,7 @@ export const LORE_ARTICLES: LoreArticle[] = [
     title: 'Farum Azula e a Cidade do Tempo',
     gameId: 'elden-ring',
     gameName: 'Elden Ring',
-    category: 'LOCACAO',
+    category: 'WORLD',
     status: 'CANONICO',
     excerpt:
       'Ruínas suspensas no ar que testemunham o fim da era dos Dragões — e a origem da Tempestade de Marika.',
@@ -101,7 +101,7 @@ export const LORE_ARTICLES: LoreArticle[] = [
     title: 'O Elden Ring e os Grandes Runes',
     gameId: 'elden-ring',
     gameName: 'Elden Ring',
-    category: 'ITEM',
+    category: 'WORLD',
     status: 'TEORIA',
     excerpt:
       'Teoria sobre a natureza do Elden Ring original e o que cada Grande Rune representa da ordem do mundo.',
@@ -128,7 +128,7 @@ export const LORE_ARTICLES: LoreArticle[] = [
     title: 'Eileen the Crow e o Código dos Caçadores',
     gameId: 'bloodborne',
     gameName: 'Bloodborne',
-    category: 'NPC',
+    category: 'CHARACTER',
     status: 'CONSOLIDADO',
     excerpt:
       'A única caçadora que caça outros caçadores — e o que isso diz sobre a tragédia de Yharnam.',
@@ -154,7 +154,7 @@ export const LORE_ARTICLES: LoreArticle[] = [
     title: 'A Catedral do Abismo — Oolacile',
     gameId: 'dark-souls-3',
     gameName: 'Dark Souls III',
-    category: 'LOCACAO',
+    category: 'WORLD',
     status: 'CONSOLIDADO',
     excerpt:
       'A queda de Oolacile e a corrupção de Manus revelam como o Abismo surge da humanidade perturbada.',

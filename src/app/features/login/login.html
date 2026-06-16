@@ -1,0 +1,131 @@
+<div class="login">
+  <div class="login__card">
+    <h1 class="login__title">Soul<span class="login__accent">Guide</span></h1>
+    <p class="login__tagline">seu guia para os mundos souls-like</p>
+
+    <div class="login__tabs">
+      <button
+        class="login__tab"
+        type="button"
+        [class.login__tab--active]="activeTab() === 'login'"
+        (click)="setTab('login')"
+      >
+        Entrar
+      </button>
+      <button
+        class="login__tab"
+        type="button"
+        [class.login__tab--active]="activeTab() === 'signup'"
+        (click)="setTab('signup')"
+      >
+        Criar conta
+      </button>
+    </div>
+
+    @if (errorMsg()) {
+      <div class="login__error" role="alert">{{ errorMsg() }}</div>
+    }
+
+    @if (activeTab() === 'login') {
+      <form class="login__form" [formGroup]="loginForm" (ngSubmit)="onLogin()">
+        <div class="login__field">
+          <i class="ti ti-mail" aria-hidden="true"></i>
+          <input
+            class="login__input"
+            type="email"
+            placeholder="Email"
+            autocomplete="email"
+            formControlName="email"
+          />
+        </div>
+        <div class="login__field">
+          <i class="ti ti-lock" aria-hidden="true"></i>
+          <input
+            class="login__input"
+            type="password"
+            placeholder="Senha"
+            autocomplete="current-password"
+            formControlName="password"
+          />
+        </div>
+        <button
+          class="login__btn-primary"
+          type="submit"
+          [disabled]="loginForm.invalid || loading()"
+        >
+          {{ loading() ? 'Entrando…' : 'Entrar' }}
+        </button>
+        <a class="login__forgot-link" routerLink="/forgot-password">Esqueci minha senha</a>
+      </form>
+    }
+
+    @if (activeTab() === 'signup') {
+      <form class="login__form" [formGroup]="signupForm" (ngSubmit)="onSignup()">
+        <div class="login__field">
+          <i class="ti ti-user" aria-hidden="true"></i>
+          <input
+            class="login__input"
+            type="text"
+            placeholder="Nome completo"
+            autocomplete="name"
+            formControlName="name"
+          />
+        </div>
+        <div class="login__field">
+          <i class="ti ti-at" aria-hidden="true"></i>
+          <input
+            class="login__input"
+            type="text"
+            placeholder="Nickname"
+            autocomplete="username"
+            formControlName="nickname"
+          />
+        </div>
+        <div class="login__field">
+          <i class="ti ti-mail" aria-hidden="true"></i>
+          <input
+            class="login__input"
+            type="email"
+            placeholder="Email"
+            autocomplete="email"
+            formControlName="email"
+          />
+        </div>
+        <div class="login__field">
+          <i class="ti ti-lock" aria-hidden="true"></i>
+          <input
+            class="login__input"
+            type="password"
+            placeholder="Senha (mín. 6 caracteres)"
+            autocomplete="new-password"
+            formControlName="password"
+          />
+        </div>
+        <div class="login__field" [class.login__field--error]="passwordMismatch()">
+          <i class="ti ti-lock-check" aria-hidden="true"></i>
+          <input
+            class="login__input"
+            type="password"
+            placeholder="Confirmar senha"
+            autocomplete="new-password"
+            formControlName="confirmPassword"
+          />
+        </div>
+        @if (passwordMismatch()) {
+          <p class="login__field-error">As senhas não coincidem.</p>
+        }
+        <button
+          class="login__btn-primary"
+          type="submit"
+          [disabled]="signupForm.invalid || loading()"
+        >
+          {{ loading() ? 'Criando conta…' : 'Criar conta' }}
+        </button>
+      </form>
+    }
+
+    <div class="login__divider"><span>ou</span></div>
+
+    <div id="google-btn" class="login__google-btn"></div>
+  </div>
+</div>

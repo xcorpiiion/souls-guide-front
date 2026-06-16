@@ -10,10 +10,13 @@ import { PersonalQuestService } from '../../core/services/personal-quest.service
 import { PersonalLoreService } from '../../core/services/personal-lore.service';
 import { QuestService } from '../../core/services/quest.service';
 import { LoreService } from '../../core/services/lore.service';
+import { UserService } from '../../core/services/user.service';
 import { ToastService } from '../../shared/components/toast/toast.service';
 import { MY_PROFILE, UserProfile } from './profile.mocks';
+import { UserSummary } from '../../shared/models/user.model';
 
-type ProfileTab = 'quests' | 'lore' | 'seguindo' | 'favoritos' | 'kanban';
+type ProfileTab = 'quests' | 'lore' | 'seguindo' | 'favoritos' | 'kanban' | 'seguidores';
+type SocialSubTab = 'me-seguem' | 'sigo';
 
 @Component({
   selector: 'app-profile',
@@ -29,6 +32,7 @@ export class Profile implements OnInit {
   private readonly personalLoreService = inject(PersonalLoreService);
   private readonly questService = inject(QuestService);
   private readonly loreService = inject(LoreService);
+  private readonly userService = inject(UserService);
   private readonly toast = inject(ToastService);
   private readonly fb = inject(FormBuilder);
 
@@ -49,6 +53,8 @@ export class Profile implements OnInit {
   protected readonly loadingContent = signal(false);
   protected readonly deletingQuestId = signal<string | null>(null);
   protected readonly deletingLoreId = signal<string | null>(null);
+  protected readonly togglingVisibilityId = signal<string | null>(null);
+  protected readonly togglingCopyId = signal<string | null>(null);
 
   protected readonly infoForm = this.fb.group({
     name: ['', Validators.required],
@@ -73,6 +79,12 @@ export class Profile implements OnInit {
   private followedLoaded = false;
   private favoritesLoaded = false;
 
+  protected readonly socialSubTab = signal<SocialSubTab>('me-seguem');
+  protected readonly followers = signal<UserSummary[]>([]);
+  protected readonly followingPeople = signal<UserSummary[]>([]);
+  protected readonly loadingSocial = signal(false);
+  private socialLoaded = false;
+
   ngOnInit(): void {
     this.isGoogleUser.set(this.authService.isGoogleUser());
 
@@ -87,6 +99,11 @@ export class Profile implements OnInit {
           name: data.name,
           handle: data.nickname,
           bio: data.bio ?? p.bio,
+          joinedLabel:
+            data.joinedLabel ??
+            (data.createdAt ? this.formatJoinedLabel(data.createdAt) : p.joinedLabel),
+          followers: data.followerCount ?? 0,
+          following: data.followingCount ?? 0,
         }));
         this.infoForm.patchValue({
           name: data.name,
@@ -95,7 +112,24 @@ export class Profile implements OnInit {
           location: data.location ?? '',
           website: data.website ?? '',
         });
-        this.loadPersonalContent(String(data.id));
+        const uid = String(data.id);
+        this.loadPersonalContent(uid);
+        this.userService.getActivity(uid).subscribe({
+          next: (events) => {
+            this.profile.update((p) => ({
+              ...p,
+              activity: events.map((e) => ({
+                type: e.type === 'followed_user' ? 'followed' : e.type,
+                target: e.targetTitle ?? `#${e.targetId}`,
+                questId: e.targetKind === 'quest' ? e.targetId : undefined,
+                daysAgo: e.daysAgo,
+              })),
+            }));
+          },
+          error: () => {
+            /* silenced — activity is non-critical */
+          },
+        });
       },
       error: () => {
         const p = this.profile();
@@ -111,7 +145,10 @@ export class Profile implements OnInit {
   private loadPersonalContent(userId: string): void {
     this.loadingContent.set(true);
     this.personalQuestService.listByUser(userId).subscribe({
-      next: (list) => this.personalQuests.set(list),
+      next: (list) => {
+        this.personalQuests.set(list);
+        this.updateContentStats();
+      },
       error: () => {
         /* silenced */
       },
@@ -119,9 +156,63 @@ export class Profile implements OnInit {
     this.personalLoreService.listByUser(userId).subscribe({
       next: (list) => {
         this.personalLore.set(list);
+        this.updateContentStats();
         this.loadingContent.set(false);
       },
       error: () => this.loadingContent.set(false),
+    });
+  }
+
+  private updateContentStats(): void {
+    const quests = this.personalQuests();
+    const lore = this.personalLore();
+    const gameIds = new Set([...quests.map((q) => q.gameId), ...lore.map((l) => l.gameId)]);
+    this.profile.update((p) => ({
+      ...p,
+      questCount: quests.length,
+      gameCount: gameIds.size,
+    }));
+  }
+
+  private formatJoinedLabel(iso: string): string {
+    const d = new Date(iso);
+    return d
+      .toLocaleDateString('pt-BR', { month: 'short', year: 'numeric' })
+      .replace('.', '')
+      .toLowerCase();
+  }
+
+  protected toggleQuestVisibility(quest: QuestSummary): void {
+    if (this.togglingVisibilityId()) return;
+    this.togglingVisibilityId.set(quest.id);
+    this.personalQuestService.updatePersonal(quest.id, { isPublic: !quest.isPublic }).subscribe({
+      next: () => {
+        this.personalQuests.update((list) =>
+          list.map((q) => (q.id === quest.id ? { ...q, isPublic: !q.isPublic } : q)),
+        );
+        this.togglingVisibilityId.set(null);
+      },
+      error: () => {
+        this.toast.error('Erro', 'Não foi possível alterar a visibilidade.');
+        this.togglingVisibilityId.set(null);
+      },
+    });
+  }
+
+  protected toggleQuestCopy(quest: QuestSummary): void {
+    if (this.togglingCopyId()) return;
+    this.togglingCopyId.set(quest.id);
+    this.personalQuestService.updatePersonal(quest.id, { allowCopy: !quest.allowCopy }).subscribe({
+      next: () => {
+        this.personalQuests.update((list) =>
+          list.map((q) => (q.id === quest.id ? { ...q, allowCopy: !q.allowCopy } : q)),
+        );
+        this.togglingCopyId.set(null);
+      },
+      error: () => {
+        this.toast.error('Erro', 'Não foi possível alterar a permissão de cópia.');
+        this.togglingCopyId.set(null);
+      },
     });
   }
 
@@ -172,6 +263,25 @@ export class Profile implements OnInit {
           this.loadingFollowed.set(false);
         },
         error: () => this.loadingFollowed.set(false),
+      });
+    }
+    if (tab === 'seguidores' && !this.socialLoaded) {
+      const id = this.userId();
+      if (id === null) return;
+      this.socialLoaded = true;
+      this.loadingSocial.set(true);
+      this.userService.getFollowers(id).subscribe({
+        next: (list) => this.followers.set(list),
+        error: () => {
+          /* silenced */
+        },
+      });
+      this.userService.getFollowing(id).subscribe({
+        next: (list) => {
+          this.followingPeople.set(list);
+          this.loadingSocial.set(false);
+        },
+        error: () => this.loadingSocial.set(false),
       });
     }
     if (tab === 'favoritos' && !this.favoritesLoaded) {
@@ -277,10 +387,12 @@ export class Profile implements OnInit {
   protected activityLabel(type: string): string {
     return (
       (
-        { created: 'Criou', updated: 'Atualizou', followed: 'Começou a seguir' } as Record<
-          string,
-          string
-        >
+        {
+          created: 'Criou',
+          updated: 'Atualizou',
+          followed: 'Começou a seguir',
+          followed_user: 'Começou a seguir',
+        } as Record<string, string>
       )[type] ?? type
     );
   }

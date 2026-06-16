@@ -1,0 +1,313 @@
+@use 'styles/variables' as v;
+
+.cs {
+  padding: 2rem 0 1rem;
+  border-top: 1px solid v.$color-border;
+}
+
+.cs__title {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: v.$color-text-muted;
+  margin-bottom: 1.25rem;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.cs__count {
+  font-size: 11px;
+  font-weight: 400;
+  color: v.$color-text-muted;
+}
+
+.cs__empty {
+  font-size: 14px;
+  color: v.$color-text-muted;
+  margin-bottom: 1.5rem;
+}
+
+// ─── compose ─────────────────────────────────────────────────────────────────
+.cs__compose {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 2rem;
+}
+
+.cs__compose-field {
+  flex: 1;
+  min-width: 0;
+}
+
+.cs__textarea {
+  width: 100%;
+  background: v.$color-bg-elevated;
+  border: 1px solid v.$color-border;
+  border-radius: v.$radius-lg;
+  padding: 10px 14px;
+  font-size: 14px;
+  font-family: v.$font-body;
+  color: v.$color-text;
+  resize: none;
+  line-height: 1.5;
+  outline: none;
+  transition: border-color 0.15s;
+
+  &:focus {
+    border-color: rgba(v.$color-gold, 0.5);
+  }
+
+  &::placeholder {
+    color: v.$color-text-muted;
+  }
+
+  &--sm {
+    font-size: 13px;
+  }
+}
+
+.cs__compose-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 8px;
+}
+
+.cs__spoiler-check {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: v.$color-text-muted;
+  cursor: pointer;
+
+  input {
+    accent-color: v.$color-gold;
+  }
+}
+
+.cs__send-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 16px;
+  background: v.$color-bg-elevated;
+  border: 1px solid v.$color-border;
+  border-radius: v.$radius-md;
+  font-size: 13px;
+  font-weight: 500;
+  color: v.$color-text;
+  cursor: pointer;
+  transition:
+    border-color 0.12s,
+    background 0.12s;
+
+  &:hover:not(:disabled) {
+    border-color: rgba(v.$color-gold, 0.4);
+    background: rgba(v.$color-gold, 0.04);
+  }
+
+  &:disabled {
+    opacity: 0.4;
+    cursor: default;
+  }
+}
+
+.cs__cancel-btn {
+  padding: 6px 12px;
+  background: transparent;
+  border: 1px solid v.$color-border;
+  border-radius: v.$radius-md;
+  font-size: 13px;
+  color: v.$color-text-muted;
+  cursor: pointer;
+
+  &:hover {
+    color: v.$color-text;
+  }
+}
+
+// ─── avatar ──────────────────────────────────────────────────────────────────
+.cs__avatar {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: v.$color-bg-surface;
+  border: 1px solid v.$color-border;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  font-weight: 500;
+  color: v.$color-text-muted;
+  flex-shrink: 0;
+  text-decoration: none;
+
+  &--sm {
+    width: 28px;
+    height: 28px;
+    font-size: 11px;
+  }
+
+  &--me {
+    background: rgba(v.$color-gold, 0.12);
+    border-color: rgba(v.$color-gold, 0.3);
+    color: v.$color-gold;
+  }
+
+  &--link {
+    cursor: pointer;
+    transition:
+      border-color 0.12s,
+      background 0.12s;
+
+    &:hover {
+      border-color: v.$color-border-focus;
+      background: v.$color-bg-elevated;
+    }
+  }
+}
+
+// ─── reply mention hint ───────────────────────────────────────────────────────
+.cs__reply-mention {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 12px;
+  color: v.$color-text-muted;
+  margin-bottom: 6px;
+
+  i {
+    font-size: 13px;
+  }
+
+  strong {
+    color: v.$color-gold;
+    font-weight: 500;
+  }
+}
+
+// ─── comment ─────────────────────────────────────────────────────────────────
+.cs__comment {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 1.25rem;
+
+  &--reply {
+    gap: 10px;
+  }
+}
+
+.cs__body {
+  flex: 1;
+  min-width: 0;
+}
+
+.cs__meta {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  margin-bottom: 4px;
+  flex-wrap: wrap;
+}
+
+.cs__author {
+  font-size: 13px;
+  font-weight: 500;
+  color: v.$color-text;
+}
+
+.cs__time {
+  font-size: 12px;
+  color: v.$color-text-muted;
+}
+
+.cs__spoiler-badge {
+  font-size: 11px;
+  background: rgba(v.$color-gold, 0.12);
+  color: v.$color-gold;
+  border-radius: v.$radius-sm;
+  padding: 1px 7px;
+}
+
+.cs__text {
+  font-size: 14px;
+  color: v.$color-text;
+  line-height: 1.55;
+}
+
+.cs__mention {
+  color: v.$color-gold;
+  font-weight: 500;
+  text-decoration: none;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
+.cs__spoiler-reveal {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  color: v.$color-text-muted;
+  background: none;
+  border: 1px dashed v.$color-border;
+  border-radius: v.$radius-md;
+  padding: 4px 12px;
+  cursor: pointer;
+  transition:
+    color 0.12s,
+    border-color 0.12s;
+
+  &:hover {
+    color: v.$color-text;
+    border-color: v.$color-text-muted;
+  }
+}
+
+// ─── actions ─────────────────────────────────────────────────────────────────
+.cs__actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 6px;
+}
+
+.cs__action-btn {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 12px;
+  color: v.$color-text-muted;
+  padding: 0;
+  transition: color 0.12s;
+
+  &:hover {
+    color: v.$color-text;
+  }
+
+  &--liked {
+    color: v.$color-gold;
+  }
+
+  &--delete:hover {
+    color: #e85050;
+  }
+}
+
+// ─── replies ─────────────────────────────────────────────────────────────────
+.cs__replies {
+  margin-top: 1rem;
+  padding-left: 1rem;
+  border-left: 1px solid v.$color-border;
+}
+
+.cs__reply-compose {
+  margin-top: 0.75rem;
+}

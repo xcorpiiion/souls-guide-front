@@ -39,9 +39,16 @@
             type="button"
             [disabled]="!auth.isLoggedIn() || liking()"
             (click)="toggleLike()"
+            [title]="userHasLiked() ? 'remover curtida' : 'curtir'"
           >
-            <i class="ti ti-heart" aria-hidden="true"></i>
-            {{ likeCount() }}
+            <i
+              [class]="userHasLiked() ? 'ti ti-heart-filled' : 'ti ti-heart'"
+              aria-hidden="true"
+            ></i>
+            {{ userHasLiked() ? 'curtido' : 'curtir' }}
+            @if (likeCount() > 0) {
+              · {{ likeCount() }}
+            }
           </button>
           <button
             class="quest-detail__btn quest-detail__btn--ghost"
@@ -49,15 +56,22 @@
             type="button"
             [disabled]="!auth.isLoggedIn() || following()"
             (click)="toggleFollow()"
+            [title]="userIsFollowing() ? 'parar de seguir' : 'seguir quest'"
           >
-            <i class="ti ti-bell" aria-hidden="true"></i>
-            {{ userIsFollowing() ? 'seguindo' : 'seguir' }} · {{ followerCount() }}
+            <i
+              [class]="userIsFollowing() ? 'ti ti-bell-ringing' : 'ti ti-bell'"
+              aria-hidden="true"
+            ></i>
+            {{ userIsFollowing() ? 'seguindo' : 'seguir' }}
+            @if (followerCount() > 0) {
+              · {{ followerCount() }}
+            }
           </button>
           <div class="quest-detail__share-wrap">
             <button
               class="quest-detail__btn quest-detail__btn--ghost"
               type="button"
-              (click)="toggleSharePopover()"
+              (click)="toggleSharePopover(); $event.stopPropagation()"
               [attr.aria-expanded]="showSharePopover()"
             >
               <i class="ti ti-share" aria-hidden="true"></i> compartilhar
@@ -85,7 +99,7 @@
           >
             <i class="ti ti-history" aria-hidden="true"></i> histórico
           </a>
-          @if (auth.isLoggedIn()) {
+          @if (auth.isLoggedIn() && !isOwner()) {
             <button
               class="quest-detail__btn quest-detail__btn--ghost"
               type="button"
@@ -93,12 +107,50 @@
             >
               <i class="ti ti-copy" aria-hidden="true"></i> copiar
             </button>
+            <div class="quest-detail__share-wrap">
+              <button
+                class="quest-detail__btn quest-detail__btn--ghost"
+                type="button"
+                (click)="showKanbanPopover.set(!showKanbanPopover()); $event.stopPropagation()"
+                [attr.aria-expanded]="showKanbanPopover()"
+              >
+                <i class="ti ti-layout-kanban" aria-hidden="true"></i> kanban
+              </button>
+              @if (showKanbanPopover()) {
+                <div class="quest-detail__share-popover quest-detail__kanban-popover" role="dialog">
+                  <p class="quest-detail__share-label">novo kanban para {{ q.gameName }}</p>
+                  <p class="quest-detail__kanban-hint">Como se chama seu personagem?</p>
+                  <input
+                    class="quest-detail__kanban-input"
+                    type="text"
+                    placeholder="ex: Tarnished, Ashen One…"
+                    [value]="kanbanCharName()"
+                    (input)="kanbanCharName.set($any($event.target).value)"
+                    (keydown.enter)="createKanbanFromQuest()"
+                  />
+                  <button
+                    class="quest-detail__kanban-btn"
+                    type="button"
+                    [disabled]="!kanbanCharName().trim() || creatingKanban()"
+                    (click)="createKanbanFromQuest()"
+                  >
+                    @if (creatingKanban()) {
+                      <i class="ti ti-loader-2 quest-detail__spin" aria-hidden="true"></i> criando…
+                    } @else {
+                      <i class="ti ti-layout-kanban" aria-hidden="true"></i> criar kanban
+                    }
+                  </button>
+                </div>
+              }
+            </div>
           }
-          <a
-            class="quest-detail__btn quest-detail__btn--accent"
-            [routerLink]="['/games', gameId, 'quests', q.id, 'edit']"
-            >+ editar</a
-          >
+          @if (canEdit()) {
+            <a
+              class="quest-detail__btn quest-detail__btn--accent"
+              [routerLink]="['/games', gameId, 'quests', q.id, 'edit']"
+              >+ editar</a
+            >
+          }
         </div>
       </div>
 
@@ -120,99 +172,44 @@
           <span class="quest-detail__stat-label">seguindo</span>
         </div>
       </div>
-    </div>
 
-    <div class="quest-detail__body">
-      <div class="quest-detail__main">
-        <div class="quest-detail__graph-header">
-          <span class="quest-detail__graph-label">grafo da quest</span>
-          <div class="quest-detail__legend">
-            <span class="quest-detail__legend-item quest-detail__legend-item--task">tarefa</span>
-            <span class="quest-detail__legend-item quest-detail__legend-item--gateway"
-              >bifurcação</span
-            >
-            <span class="quest-detail__legend-item quest-detail__legend-item--ext"
-              >quest externa ↗</span
-            >
-            <span class="quest-detail__legend-item quest-detail__legend-item--end">final</span>
+      @if (auth.isLoggedIn() && progressTotal() > 0) {
+        <div class="quest-detail__progress-bar-wrap">
+          <div class="quest-detail__progress-meta">
+            <span class="quest-detail__progress-label">
+              {{ progressDone() }} de {{ progressTotal() }} etapas concluídas
+            </span>
+            @if (progressDone() > 0) {
+              <button class="quest-detail__progress-reset" type="button" (click)="resetProgress()">
+                resetar
+              </button>
+            }
+          </div>
+          <div class="quest-detail__progress-track">
+            <div
+              class="quest-detail__progress-fill"
+              [style.width.%]="progressPct()"
+              [class.quest-detail__progress-fill--complete]="progressPct() === 100"
+            ></div>
           </div>
         </div>
+      }
+    </div>
 
-        <app-quest-graph
+    <div class="quest-detail__body quest-detail__body--list">
+      <div class="quest-detail__main">
+        <app-quest-checklist
           [nodes]="q.nodes"
           [edges]="q.edges"
-          [selectedNodeId]="selectedNodeId()"
-          (nodeSelect)="onNodeSelect($event)"
+          [completedNodeIds]="completedNodeIds()"
+          [togglingNodeId]="togglingNodeId()"
+          [gameId]="gameId"
+          (nodeDoneToggle)="toggleNodeDone($event)"
         />
       </div>
-
-      <aside class="quest-detail__side">
-        @if (selectedNode(); as node) {
-          <div class="quest-detail__panel-section">
-            <p class="quest-detail__panel-title">nó selecionado</p>
-            <div class="quest-detail__node-card">
-              @if (node.type === 'external-quest') {
-                <span class="quest-detail__node-type-badge">quest externa</span>
-              }
-              <p class="quest-detail__node-title">
-                {{ node.label }}
-                @if (node.sublabel) {
-                  — {{ node.sublabel }}
-                }
-              </p>
-              @if (node.description) {
-                <p class="quest-detail__node-desc">{{ node.description }}</p>
-              }
-              @if (node.location) {
-                <p class="quest-detail__node-location">📍 {{ node.location }}</p>
-              }
-              @if (node.tags && node.tags.length) {
-                <div class="quest-detail__node-tags">
-                  @for (tag of node.tags; track tag) {
-                    <span class="quest-detail__tag">{{ tag }}</span>
-                  }
-                </div>
-              }
-              @if (node.type === 'external-quest' && node.linkedQuestName) {
-                <a
-                  class="quest-detail__link-quest-btn"
-                  [routerLink]="['/games', gameId, 'quests', node.linkedQuestId]"
-                  >↗ ver {{ node.linkedQuestName }}</a
-                >
-              }
-            </div>
-          </div>
-        } @else {
-          <div class="quest-detail__panel-section quest-detail__panel-section--hint">
-            <p class="quest-detail__panel-hint">Clique em um nó do grafo para ver os detalhes.</p>
-          </div>
-        }
-
-        @if (q.relatedQuests.length) {
-          <div class="quest-detail__panel-section">
-            <p class="quest-detail__panel-title">quests relacionadas</p>
-            <ul class="quest-detail__related-list">
-              @for (rel of q.relatedQuests; track rel.questId) {
-                <li class="quest-detail__related-card">
-                  <div class="quest-detail__related-initials">{{ rel.npcInitials ?? '?' }}</div>
-                  <div class="quest-detail__related-info">
-                    <span class="quest-detail__related-name">{{ rel.questTitle }}</span>
-                    <span class="quest-detail__related-crossing"
-                      >cruzamento em: {{ rel.crossingNodeLabel }}</span
-                    >
-                  </div>
-                  <a
-                    class="quest-detail__related-arrow"
-                    [routerLink]="['/games', gameId, 'quests', rel.questId]"
-                    aria-label="ir para {{ rel.questTitle }}"
-                    >→</a
-                  >
-                </li>
-              }
-            </ul>
-          </div>
-        }
-      </aside>
+    </div>
+    <div class="quest-detail__comments">
+      <app-comment-section targetKind="quest" [targetId]="questId" />
     </div>
   </div>
 

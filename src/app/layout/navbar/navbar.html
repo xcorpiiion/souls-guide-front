@@ -27,7 +27,14 @@
     </button>
 
     <!-- profile avatar -->
-    <a class="navbar__avatar" routerLink="/profile" aria-label="Perfil">V</a>
+    @if (auth.isLoggedIn()) {
+      <a class="navbar__avatar" routerLink="/profile" aria-label="Perfil">V</a>
+      <button class="navbar__logout-btn" type="button" (click)="auth.logout()" title="Sair">
+        <i class="ti ti-logout" aria-hidden="true"></i>
+      </button>
+    } @else {
+      <a class="navbar__login-btn" routerLink="/login">Entrar</a>
+    }
 
     <!-- hamburger -->
     <button

@@ -2,6 +2,7 @@ import {
   ChangeDetectionStrategy,
   Component,
   HostListener,
+  OnInit,
   computed,
   inject,
   signal,
@@ -9,15 +10,16 @@ import {
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import {
-  QuestDetailData,
+  QuestApi,
   QuestEdge,
   QuestEndingType,
   QuestNode,
   QuestNodeType,
   QuestStatus,
 } from '../../shared/models/quest.model';
-import { GAMES_DETAIL } from '../game-detail/game-detail.mocks';
-import { QUESTS_DETAIL } from '../quest-detail/quest-detail.mocks';
+import { QuestService } from '../../core/services/quest.service';
+import { HasUnsavedChanges } from '../../core/guards/unsaved-changes.guard';
+import { ToastService } from '../../shared/components/toast/toast.service';
 import { NodePosition, QuestEditorCanvas } from './quest-editor-canvas/quest-editor-canvas';
 
 export type EditorTool = 'select' | 'connect';
@@ -29,13 +31,22 @@ interface HistoryEntry {
   positions: Map<string, NodePosition>;
 }
 
-const NW: Record<QuestNodeType, number> = {
+const NW_BASE: Record<QuestNodeType, number> = {
   start: 44,
   end: 44,
   task: 110,
   gateway: 44,
   'external-quest': 110,
 };
+
+const CHAR_W = 7.2;
+const TEXT_H_PAD = 28;
+function editorNodeW(node: QuestNode): number {
+  const base = NW_BASE[node.type];
+  if (node.type !== 'task' && node.type !== 'external-quest') return base;
+  const computed = Math.ceil((node.label ?? '').length * CHAR_W) + TEXT_H_PAD * 2;
+  return Math.max(base, Math.min(320, computed));
+}
 const NH: Record<QuestNodeType, number> = {
   start: 44,
   end: 44,
@@ -84,7 +95,7 @@ function bfsPositions(nodes: QuestNode[], edges: QuestEdge[]): Map<string, NodeP
   let x = PAD;
   for (const l of sortedLayers) {
     const ids = byLayer.get(l)!;
-    const colW = Math.max(...ids.map((id) => NW[nodeMap.get(id)!.type]));
+    const colW = Math.max(...ids.map((id) => editorNodeW(nodeMap.get(id)!)));
     const colH = ids.reduce((s, id) => s + NH[nodeMap.get(id)!.type], 0) + (ids.length - 1) * V_GAP;
     let y = (canvasH - colH) / 2;
     for (const id of ids) {
@@ -94,6 +105,10 @@ function bfsPositions(nodes: QuestNode[], edges: QuestEdge[]): Map<string, NodeP
     x += colW + H_GAP;
   }
   return pos;
+}
+
+function snap(v: number): number {
+  return Math.round(v / 8) * 8;
 }
 
 function makeId(prefix: string): string {
@@ -107,14 +122,17 @@ function makeId(prefix: string): string {
   styleUrl: './quest-editor.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class QuestEditor {
+export class QuestEditor implements OnInit, HasUnsavedChanges {
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
+  private readonly questService = inject(QuestService);
+  private readonly toast = inject(ToastService);
 
   protected readonly gameId = this.route.snapshot.paramMap.get('gameId') ?? '';
   private readonly questId = this.route.snapshot.paramMap.get('questId');
   protected readonly isEdit = !!this.questId;
-  protected readonly gameName = GAMES_DETAIL.find((g) => g.id === this.gameId)?.name ?? this.gameId;
+  protected readonly loading = signal(false);
+  private readonly isDirty = signal(false);
 
   // ─── quest metadata ───────────────────────────────────────────────────────
   protected readonly title = signal('');
@@ -136,6 +154,8 @@ export class QuestEditor {
   protected readonly tool = signal<EditorTool>('select');
   protected readonly selected = signal<SelectedItem>(null);
   protected readonly fitTrigger = signal(0);
+  protected readonly propsWidth = signal(256);
+  private resizeDrag: { startX: number; startW: number } | null = null;
 
   protected readonly selectedNode = computed((): QuestNode | null => {
     const s = this.selected();
@@ -160,30 +180,47 @@ export class QuestEditor {
   });
 
   constructor() {
-    if (this.isEdit && this.questId) {
-      const q = QUESTS_DETAIL.find((x) => x.id === this.questId);
-      if (q) this.loadQuest(q);
-    } else {
+    if (!this.isEdit) {
       const startId = makeId('n');
       this.nodes.set([{ id: startId, type: 'start', label: 'início' }]);
       const pos = new Map<string, NodePosition>();
       pos.set(startId, { x: 60, y: 220 });
       this.positions.set(pos);
+      this.pushHistory(false);
     }
-    this.pushHistory();
   }
 
-  private loadQuest(q: QuestDetailData): void {
-    this.title.set(q.title);
-    this.description.set(q.description ?? '');
-    this.questStatus.set(q.status);
-    this.nodes.set([...q.nodes]);
-    this.edges.set([...q.edges]);
-    this.positions.set(bfsPositions(q.nodes, q.edges));
+  ngOnInit(): void {
+    if (this.isEdit && this.questId) {
+      this.loading.set(true);
+      this.questService.get(this.questId).subscribe({
+        next: (api) => {
+          this.loadFromApi(api);
+          this.loading.set(false);
+        },
+        error: () => {
+          this.loading.set(false);
+          this.cancel();
+        },
+      });
+    }
+  }
+
+  private loadFromApi(api: QuestApi): void {
+    this.title.set(api.title);
+    this.description.set(api.description ?? '');
+    this.questStatus.set(api.status ?? 'TEORIA');
+    const nodes = api.nodes ?? [];
+    const edges = api.edges ?? [];
+    this.nodes.set([...nodes]);
+    this.edges.set([...edges]);
+    this.positions.set(bfsPositions(nodes, edges));
+    this.pushHistory(false);
+    this.isDirty.set(false);
   }
 
   // ─── history ──────────────────────────────────────────────────────────────
-  private pushHistory(): void {
+  private pushHistory(markDirty = true): void {
     const snap: HistoryEntry = {
       nodes: [...this.nodes()],
       edges: [...this.edges()],
@@ -194,6 +231,7 @@ export class QuestEditor {
     if (stack.length > 60) stack.shift();
     this.history.set(stack);
     this.historyIdx.set(stack.length - 1);
+    if (markDirty) this.isDirty.set(true);
   }
 
   protected undo(): void {
@@ -222,6 +260,13 @@ export class QuestEditor {
   }
 
   // ─── keyboard shortcuts ───────────────────────────────────────────────────
+  @HostListener('window:beforeunload', ['$event'])
+  onBeforeUnload(e: BeforeUnloadEvent): void {
+    if (this.isDirty()) {
+      e.preventDefault();
+    }
+  }
+
   @HostListener('document:keydown', ['$event'])
   onKeyDown(e: KeyboardEvent): void {
     const tag = (e.target as HTMLElement)?.tagName ?? '';
@@ -248,6 +293,14 @@ export class QuestEditor {
   }
 
   // ─── toolbar / palette actions ────────────────────────────────────────────
+  protected autoLayout(): void {
+    const newPos = bfsPositions(this.nodes(), this.edges());
+    if (!newPos.size) return;
+    this.positions.set(newPos);
+    this.fitTrigger.update((n) => n + 1);
+    this.pushHistory();
+  }
+
   protected setTool(t: EditorTool): void {
     this.tool.set(t);
   }
@@ -262,11 +315,72 @@ export class QuestEditor {
       'external-quest': 'quest externa',
     };
     const node: QuestNode = { id, type, label: defaultLabel[type] };
-    this.nodes.update((ns) => [...ns, node]);
+    const existingNodes = this.nodes();
     const existing = this.positions();
-    const count = existing.size;
     const newPos = new Map(existing);
-    newPos.set(id, { x: 80 + (count % 5) * 150, y: 80 + Math.floor(count / 5) * 120 });
+    this.nodes.update((ns) => [...ns, node]);
+
+    // ── inserir entre aresta selecionada ──────────────────────────────────
+    const sel = this.selected();
+    if (sel?.kind === 'edge') {
+      const edge = this.edges().find((e) => e.id === sel.id);
+      if (edge) {
+        const fp = existing.get(edge.from);
+        const tp = existing.get(edge.to);
+        if (fp && tp) {
+          newPos.set(id, { x: snap((fp.x + tp.x) / 2), y: snap((fp.y + tp.y) / 2) });
+        } else {
+          newPos.set(id, { x: 200, y: 200 });
+        }
+        const e1 = makeId('e');
+        const e2 = makeId('e');
+        this.edges.update((es) => [
+          ...es.filter((e) => e.id !== sel.id),
+          { id: e1, from: edge.from, to: id },
+          { id: e2, from: id, to: edge.to },
+        ]);
+        this.positions.set(newPos);
+        this.selected.set({ kind: 'node', id });
+        this.tool.set('select');
+        this.pushHistory();
+        return;
+      }
+    }
+
+    // ── auto-conectar ao nó source ─────────────────────────────────────────
+    let autoFromId: string | null = null;
+    if (type !== 'start') {
+      // preferir o nó selecionado se não for 'end'
+      if (sel?.kind === 'node') {
+        const selNode = existingNodes.find((n) => n.id === sel.id);
+        if (selNode && selNode.type !== 'end') autoFromId = sel.id;
+      }
+      // senão, pegar o último nó que não seja 'end'
+      if (!autoFromId) {
+        const lastNonEnd = [...existingNodes].reverse().find((n) => n.type !== 'end');
+        autoFromId = lastNonEnd?.id ?? null;
+      }
+    }
+
+    // posicionar à direita do nó de origem, ou em grade
+    if (autoFromId) {
+      const fromPos = existing.get(autoFromId);
+      const fromNode = existingNodes.find((n) => n.id === autoFromId);
+      if (fromPos && fromNode) {
+        newPos.set(id, { x: snap(fromPos.x + editorNodeW(fromNode) + 80), y: fromPos.y });
+      } else {
+        newPos.set(id, { x: 80 + existing.size * 180, y: 80 });
+      }
+      const edgeExists = this.edges().some((e) => e.from === autoFromId && e.to === id);
+      if (!edgeExists) {
+        const edgeId = makeId('e');
+        this.edges.update((es) => [...es, { id: edgeId, from: autoFromId!, to: id }]);
+      }
+    } else {
+      const count = existing.size;
+      newPos.set(id, { x: 80 + (count % 5) * 180, y: 80 + Math.floor(count / 5) * 120 });
+    }
+
     this.positions.set(newPos);
     this.selected.set({ kind: 'node', id });
     this.tool.set('select');
@@ -291,6 +405,7 @@ export class QuestEditor {
 
   // ─── canvas events ────────────────────────────────────────────────────────
   protected onPositionChange(ev: { id: string; x: number; y: number }): void {
+    if (!isFinite(ev.x) || !isFinite(ev.y)) return;
     const pos = new Map(this.positions());
     pos.set(ev.id, { x: ev.x, y: ev.y });
     this.positions.set(pos);
@@ -310,6 +425,8 @@ export class QuestEditor {
 
   protected onConnect(ev: { from: string; to: string }): void {
     if (ev.from === ev.to) return;
+    const fromNode = this.nodes().find((n) => n.id === ev.from);
+    if (fromNode?.type === 'end') return;
     const exists = this.edges().some((e) => e.from === ev.from && e.to === ev.to);
     if (exists) return;
     const id = makeId('e');
@@ -319,6 +436,33 @@ export class QuestEditor {
   }
 
   // ─── properties panel ────────────────────────────────────────────────────
+  protected updateNodeType(value: QuestNodeType): void {
+    const s = this.selected();
+    if (s?.kind !== 'node') return;
+    const resetFields: Partial<QuestNode> = {
+      sublabel: null,
+      description: null,
+      location: null,
+      tags: undefined,
+      endingType: null,
+      linkedQuestId: null,
+      linkedQuestName: null,
+    };
+    const labelDefaults: Record<QuestNodeType, string> = {
+      start: 'início',
+      end: 'fim',
+      task: 'novo nó',
+      gateway: 'X',
+      'external-quest': 'quest externa',
+    };
+    this.nodes.update((ns) =>
+      ns.map((n) =>
+        n.id === s.id ? { ...n, ...resetFields, type: value, label: labelDefaults[value] } : n,
+      ),
+    );
+    this.pushHistory();
+  }
+
   protected updateNodeLabel(value: string): void {
     this.updateNodeField('label', value);
   }
@@ -362,47 +506,66 @@ export class QuestEditor {
 
   // ─── save ─────────────────────────────────────────────────────────────────
   protected saveQuest(): void {
-    const nodes = this.nodes();
-    const edges = this.edges();
-    const game = GAMES_DETAIL.find((g) => g.id === this.gameId);
+    const request = {
+      title: this.title() || 'Nova Quest',
+      description: this.description(),
+      status: this.questStatus(),
+      gameId: Number(this.gameId),
+      nodes: this.nodes(),
+      edges: this.edges(),
+    };
 
     if (this.isEdit && this.questId) {
-      const idx = QUESTS_DETAIL.findIndex((q) => q.id === this.questId);
-      if (idx !== -1) {
-        QUESTS_DETAIL[idx] = {
-          ...QUESTS_DETAIL[idx],
-          title: this.title(),
-          description: this.description(),
-          status: this.questStatus(),
-          nodes,
-          edges,
-          stepCount: nodes.filter((n) => n.type !== 'start').length,
-          forkCount: nodes.filter((n) => n.type === 'gateway').length,
-          endingCount: nodes.filter((n) => n.type === 'end').length,
-        };
-      }
-      this.router.navigate(['/games', this.gameId, 'quests', this.questId]);
+      this.questService.update(this.questId, request).subscribe({
+        next: () => {
+          this.isDirty.set(false);
+          this.router.navigate(['/games', this.gameId, 'quests', this.questId]);
+        },
+        error: (err) => {
+          if (err.status === 403) {
+            this.toast.error(
+              'Acesso negado',
+              'Você está temporariamente banido de fazer edições. Aguarde o período de ban expirar.',
+            );
+          } else {
+            this.toast.error('Erro', 'Não foi possível salvar a quest. Tente novamente.');
+          }
+        },
+      });
     } else {
-      const id = makeId('q');
-      const newQuest: QuestDetailData = {
-        id,
-        title: this.title() || 'Nova Quest',
-        gameId: this.gameId,
-        gameName: game?.name ?? this.gameId,
-        description: this.description(),
-        status: this.questStatus(),
-        followers: 0,
-        author: null,
-        stepCount: nodes.filter((n) => n.type !== 'start').length,
-        forkCount: nodes.filter((n) => n.type === 'gateway').length,
-        endingCount: nodes.filter((n) => n.type === 'end').length,
-        nodes,
-        edges,
-        relatedQuests: [],
-      };
-      QUESTS_DETAIL.push(newQuest);
-      this.router.navigate(['/games', this.gameId, 'quests', id]);
+      this.questService.create(request).subscribe({
+        next: (created) => {
+          this.isDirty.set(false);
+          this.router.navigate(['/games', this.gameId, 'quests', created.id]);
+        },
+        error: () => this.toast.error('Erro', 'Não foi possível criar a quest. Tente novamente.'),
+      });
     }
+  }
+
+  protected onPropsResizeStart(event: MouseEvent): void {
+    event.preventDefault();
+    this.resizeDrag = { startX: event.clientX, startW: this.propsWidth() };
+    const onMove = (e: MouseEvent) => {
+      if (!this.resizeDrag) return;
+      const delta = this.resizeDrag.startX - e.clientX;
+      this.propsWidth.set(Math.max(200, Math.min(520, this.resizeDrag.startW + delta)));
+    };
+    const onUp = () => {
+      this.resizeDrag = null;
+      window.removeEventListener('mousemove', onMove);
+      window.removeEventListener('mouseup', onUp);
+    };
+    window.addEventListener('mousemove', onMove);
+    window.addEventListener('mouseup', onUp);
+  }
+
+  hasUnsavedChanges(): boolean {
+    return this.isDirty();
+  }
+
+  protected markDirty(): void {
+    this.isDirty.set(true);
   }
 
   protected cancel(): void {

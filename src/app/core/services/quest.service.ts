@@ -5,6 +5,8 @@ import { environment } from '../../../environments/environment';
 import {
   FollowResponse,
   QuestApi,
+  QuestNode,
+  QuestEdge,
   QuestSummary,
   questApiToSummary,
 } from '../../shared/models/quest.model';
@@ -16,6 +18,8 @@ export interface QuestRequest {
   description: string;
   status: string;
   gameId: number;
+  nodes: QuestNode[];
+  edges: QuestEdge[];
 }
 
 @Injectable({ providedIn: 'root' })

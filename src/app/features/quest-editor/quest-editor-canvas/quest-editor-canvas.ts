@@ -14,20 +14,29 @@ import {
 import { QuestEdge, QuestNode, QuestNodeType } from '../../../shared/models/quest.model';
 import { EditorTool } from '../quest-editor';
 
-const NW: Record<QuestNodeType, number> = {
-  start: 44,
-  end: 44,
-  task: 110,
-  gateway: 44,
-  'external-quest': 110,
+const NW_BASE: Record<QuestNodeType, number> = {
+  start: 56,
+  end: 56,
+  task: 150,
+  gateway: 56,
+  'external-quest': 150,
 };
 const NH: Record<QuestNodeType, number> = {
-  start: 44,
-  end: 44,
-  task: 50,
-  gateway: 44,
-  'external-quest': 50,
+  start: 56,
+  end: 56,
+  task: 64,
+  gateway: 56,
+  'external-quest': 64,
 };
+const CHAR_W = 7.2;
+const TEXT_H_PAD = 28;
+
+function nodeW(node: QuestNode): number {
+  const base = NW_BASE[node.type];
+  if (node.type !== 'task' && node.type !== 'external-quest') return base;
+  const computed = Math.ceil((node.label ?? '').length * CHAR_W) + TEXT_H_PAD * 2;
+  return Math.max(base, Math.min(320, computed));
+}
 const GRID = 8;
 const MIN_ZOOM = 0.2;
 const MAX_ZOOM = 3;
@@ -98,7 +107,13 @@ export class QuestEditorCanvas {
 
   private readonly svgRef = viewChild<ElementRef<SVGSVGElement>>('svgEl');
 
-  private drag: { nodeId: string; offX: number; offY: number } | null = null;
+  private drag: {
+    nodeId: string;
+    startX: number;
+    startY: number;
+    startClientX: number;
+    startClientY: number;
+  } | null = null;
   private panStart: { x: number; y: number; px: number; py: number } | null = null;
   private wasPan = false;
 
@@ -138,7 +153,7 @@ export class QuestEditorCanvas {
       const fp = pos.get(e.from);
       const tp = pos.get(e.to);
       if (!f || !t || !fp || !tp) return [];
-      const x1 = fp.x + NW[f.type],
+      const x1 = fp.x + nodeW(f),
         y1 = fp.y + NH[f.type] / 2;
       const x2 = tp.x,
         y2 = tp.y + NH[t.type] / 2;
@@ -167,7 +182,7 @@ export class QuestEditorCanvas {
     for (const n of nodes) {
       const p = pos.get(n.id);
       if (!p) continue;
-      xs.push(p.x - pad, p.x + NW[n.type] + pad);
+      xs.push(p.x - pad, p.x + nodeW(n) + pad);
       ys.push(p.y - pad, p.y + NH[n.type] + pad);
     }
     if (!xs.length) return [];
@@ -189,18 +204,15 @@ export class QuestEditorCanvas {
         type: n.type,
         x: p.x * scale + offX,
         y: p.y * scale + offY,
-        w: NW[n.type] * scale,
+        w: nodeW(n) * scale,
         h: NH[n.type] * scale,
       };
     });
   });
 
   private svgPoint(event: MouseEvent): NodePosition {
-    const el = this.elRef.nativeElement;
-    const rect =
-      typeof el.getBoundingClientRect === 'function'
-        ? el.getBoundingClientRect()
-        : { left: 0, top: 0 };
+    const el = this.svgRef()?.nativeElement ?? this.elRef.nativeElement;
+    const rect = el.getBoundingClientRect();
     const x = (event.clientX - rect.left - this.panX()) / this.zoom();
     const y = (event.clientY - rect.top - this.panY()) / this.zoom();
     return { x, y };
@@ -210,7 +222,7 @@ export class QuestEditorCanvas {
     const factor = e.deltaY < 0 ? 1.12 : 1 / 1.12;
     const oldZoom = this.zoom();
     const newZoom = Math.max(MIN_ZOOM, Math.min(MAX_ZOOM, oldZoom * factor));
-    const rect = this.elRef.nativeElement.getBoundingClientRect?.() ?? { left: 0, top: 0 };
+    const rect = (this.svgRef()?.nativeElement ?? this.elRef.nativeElement).getBoundingClientRect();
     const mx = e.clientX - rect.left;
     const my = e.clientY - rect.top;
     this.panX.update((px) => mx - (mx - px) * (newZoom / oldZoom));
@@ -219,7 +231,7 @@ export class QuestEditorCanvas {
   }
 
   private applyZoom(newZoom: number): void {
-    const el = this.elRef.nativeElement;
+    const el = this.svgRef()?.nativeElement ?? this.elRef.nativeElement;
     const cx = (el.clientWidth || 600) / 2;
     const cy = (el.clientHeight || 400) / 2;
     const oldZoom = this.zoom();
@@ -251,17 +263,19 @@ export class QuestEditorCanvas {
     for (const n of nodes) {
       const p = pos.get(n.id);
       if (!p) continue;
-      xs.push(p.x, p.x + NW[n.type]);
+      xs.push(p.x, p.x + nodeW(n));
       ys.push(p.y, p.y + NH[n.type]);
     }
-    if (!xs.length) return;
+    const safeXs = xs.filter(isFinite);
+    const safeYs = ys.filter(isFinite);
+    if (!safeXs.length) return;
 
     const PAD = 60;
-    const minX = Math.min(...xs),
-      maxX = Math.max(...xs);
-    const minY = Math.min(...ys),
-      maxY = Math.max(...ys);
-    const el = this.elRef.nativeElement;
+    const minX = Math.min(...safeXs),
+      maxX = Math.max(...safeXs);
+    const minY = Math.min(...safeYs),
+      maxY = Math.max(...safeYs);
+    const el = this.svgRef()?.nativeElement ?? this.elRef.nativeElement;
     const W = el.clientWidth || 600;
     const H = el.clientHeight || 400;
     const newZoom = Math.max(
@@ -277,8 +291,8 @@ export class QuestEditorCanvas {
   }
 
   // ─── coordinate helpers ─────────────────────────────────────────────────────
-  protected nw(type: QuestNodeType): number {
-    return NW[type];
+  protected nw(node: QuestNode): number {
+    return nodeW(node);
   }
   protected nh(type: QuestNodeType): number {
     return NH[type];
@@ -293,7 +307,7 @@ export class QuestEditorCanvas {
   // right-edge handle position
   protected handleX(id: string): number {
     const node = this.nodes().find((n) => n.id === id);
-    return node ? this.px(id) + NW[node.type] : 0;
+    return node ? this.px(id) + nodeW(node) : 0;
   }
   protected handleY(id: string): number {
     const node = this.nodes().find((n) => n.id === id);
@@ -313,7 +327,7 @@ export class QuestEditorCanvas {
   }
 
   protected textY(id: string, type: QuestNodeType, hasSublabel: boolean): number {
-    return hasSublabel ? this.py(id) + 17 : this.py(id) + NH[type] / 2 + 4;
+    return hasSublabel ? this.py(id) + 22 : this.py(id) + NH[type] / 2 + 5;
   }
 
   protected gridPatternTransform(): string {
@@ -326,7 +340,8 @@ export class QuestEditorCanvas {
 
   // ─── connect helpers ─────────────────────────────────────────────────────────
   protected showHandle(id: string): boolean {
-    // show right-edge handle when hovering in select mode (and not already dragging a node)
+    const node = this.nodes().find((n) => n.id === id);
+    if (node?.type === 'end') return false;
     if (this.tool() === 'connect') return true;
     return this.tool() === 'select' && !this.drag && this.hoveredNodeId() === id;
   }
@@ -339,6 +354,8 @@ export class QuestEditorCanvas {
 
   // ─── interaction ─────────────────────────────────────────────────────────────
   protected onHandleMouseDown(event: MouseEvent, id: string): void {
+    const node = this.nodes().find((n) => n.id === id);
+    if (node?.type === 'end') return;
     event.stopPropagation();
     this.connectSource.set(id);
     this.nodeSelect.emit(id);
@@ -380,10 +397,15 @@ export class QuestEditorCanvas {
 
     // normal select + drag
     this.nodeSelect.emit(id);
-    const { x, y } = this.svgPoint(event);
     const pos = this.positions().get(id);
     if (!pos) return;
-    this.drag = { nodeId: id, offX: x - pos.x, offY: y - pos.y };
+    this.drag = {
+      nodeId: id,
+      startX: pos.x,
+      startY: pos.y,
+      startClientX: event.clientX,
+      startClientY: event.clientY,
+    };
   }
 
   protected onSvgMouseDown(event: MouseEvent): void {
@@ -395,11 +417,13 @@ export class QuestEditorCanvas {
 
   protected onMouseMove(event: MouseEvent): void {
     if (this.drag) {
-      const { x, y } = this.svgPoint(event);
+      const zoom = this.zoom();
+      const dx = (event.clientX - this.drag.startClientX) / zoom;
+      const dy = (event.clientY - this.drag.startClientY) / zoom;
       this.positionChange.emit({
         id: this.drag.nodeId,
-        x: snap(Math.max(0, x - this.drag.offX)),
-        y: snap(Math.max(0, y - this.drag.offY)),
+        x: snap(Math.max(0, this.drag.startX + dx)),
+        y: snap(Math.max(0, this.drag.startY + dy)),
       });
     } else if (this.isDrawingEdge()) {
       // update edge preview line
@@ -444,6 +468,13 @@ export class QuestEditorCanvas {
       this.edgeDrawPos.set(null);
       this.nodeSelect.emit(null);
     }
+  }
+
+  protected onSvgEscKey(): void {
+    this.connectSource.set(null);
+    this.edgeDrawPos.set(null);
+    this.nodeSelect.emit(null);
+    this.edgeSelect.emit(null);
   }
 
   protected onSvgClick(event: MouseEvent): void {

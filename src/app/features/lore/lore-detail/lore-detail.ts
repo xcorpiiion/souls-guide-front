@@ -10,11 +10,12 @@ import {
   CopyToProfileModal,
   CopyConfirmEvent,
 } from '../../../shared/components/copy-to-profile-modal/copy-to-profile-modal';
+import { CommentSection } from '../../../shared/components/comment-section/comment-section';
 import { ToastService } from '../../../shared/components/toast/toast.service';
 
 @Component({
   selector: 'app-lore-detail',
-  imports: [RouterLink, LowerCasePipe, CopyToProfileModal],
+  imports: [RouterLink, LowerCasePipe, CopyToProfileModal, CommentSection],
   templateUrl: './lore-detail.html',
   styleUrl: './lore-detail.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -76,6 +77,10 @@ export class LoreDetail implements OnInit {
       CANONICO: 'canônico',
     };
     return map[s];
+  }
+
+  protected loreIdStr(id: number): string {
+    return String(id);
   }
 
   protected contentParagraphs(content: string): string[] {

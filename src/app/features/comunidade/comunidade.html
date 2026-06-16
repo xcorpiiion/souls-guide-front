@@ -1,0 +1,116 @@
+<div class="cm">
+  <header class="cm__header">
+    <div class="cm__header-inner">
+      <h1 class="cm__title">comunidade</h1>
+      <p class="cm__subtitle">
+        Explore os exploradores — veja quests, lore e builds de outros jogadores.
+      </p>
+
+      <div class="cm__search-row">
+        <i class="ti ti-search cm__search-icon" aria-hidden="true"></i>
+        <input
+          class="cm__search-input"
+          type="search"
+          placeholder="buscar por nome ou @handle…"
+          [value]="searchQuery()"
+          (input)="onSearchInput($any($event.target).value)"
+          aria-label="Buscar usuários"
+        />
+      </div>
+
+      <div class="cm__filters" role="group" aria-label="Filtrar por jogo">
+        <button
+          class="cm__chip"
+          [class.cm__chip--active]="selectedGameId() === null"
+          (click)="selectGame(null)"
+        >
+          todos
+        </button>
+        @for (game of games(); track game.id) {
+          <button
+            class="cm__chip"
+            [class.cm__chip--active]="selectedGameId() === '' + game.id"
+            (click)="selectGame('' + game.id)"
+          >
+            {{ game.name }}
+          </button>
+        }
+      </div>
+    </div>
+  </header>
+
+  <div class="cm__body">
+    @if (loading()) {
+      <div class="cm__grid">
+        @for (_ of [1, 2, 3, 4, 5, 6]; track $index) {
+          <div class="cm__card cm__card--skeleton"></div>
+        }
+      </div>
+    } @else if (users().length === 0) {
+      <div class="cm__empty">
+        <i class="ti ti-users-group cm__empty-icon" aria-hidden="true"></i>
+        <p>Nenhum usuário encontrado.</p>
+      </div>
+    } @else {
+      <div class="cm__grid">
+        @for (user of users(); track user.id) {
+          <a class="cm__card" [routerLink]="['/usuarios', user.handle]">
+            <div class="cm__avatar">{{ initial(user.name) }}</div>
+            <p class="cm__user-name">{{ user.name }}</p>
+            <p class="cm__user-handle">&#64;{{ user.handle }}</p>
+
+            <div class="cm__user-stats">
+              <div class="cm__stat">
+                <span class="cm__stat-n">{{ user.questCount }}</span>
+                <span class="cm__stat-l">quests</span>
+              </div>
+              <div class="cm__stat">
+                <span class="cm__stat-n">{{ user.loreCount }}</span>
+                <span class="cm__stat-l">lore</span>
+              </div>
+              <div class="cm__stat">
+                <span class="cm__stat-n">{{ user.followerCount }}</span>
+                <span class="cm__stat-l">seguidores</span>
+              </div>
+            </div>
+
+            @if (user.favoriteGame) {
+              <span class="cm__game-badge">{{ user.favoriteGame }}</span>
+            }
+
+            @if (isLoggedIn()) {
+              <button
+                class="cm__follow-btn"
+                [class.cm__follow-btn--active]="isFollowing(user.id)"
+                type="button"
+                (click)="toggleFollow(user, $event)"
+                [attr.aria-label]="
+                  isFollowing(user.id) ? 'Deixar de seguir ' + user.name : 'Seguir ' + user.name
+                "
+              >
+                @if (isFollowing(user.id)) {
+                  <i class="ti ti-check" aria-hidden="true"></i> seguindo
+                } @else {
+                  <i class="ti ti-user-plus" aria-hidden="true"></i> seguir
+                }
+              </button>
+            }
+          </a>
+        }
+      </div>
+
+      @if (hasMore()) {
+        <div class="cm__load-more">
+          <button
+            class="cm__load-more-btn"
+            type="button"
+            (click)="loadMore()"
+            [disabled]="loadingMore()"
+          >
+            {{ loadingMore() ? 'carregando…' : 'carregar mais' }}
+          </button>
+        </div>
+      }
+    }
+  </div>
+</div>

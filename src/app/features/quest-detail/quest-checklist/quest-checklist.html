@@ -1,0 +1,291 @@
+<div class="ck">
+  <!-- ══ Lista com spine ═══════════════════════════════════════════════════════ -->
+  <div class="ck__list">
+    <p class="ck__list-label">etapas da quest</p>
+
+    @for (entry of entries(); track $index; let last = $last) {
+      @if (entry.kind === 'step') {
+        <div class="ck__row" [class.ck__row--last]="last">
+          <!-- spine -->
+          <div class="ck__spine">
+            @if (entry.node.type === 'start') {
+              <div class="ck__dot ck__dot--start">
+                <i class="ti ti-circle-filled" aria-hidden="true" style="font-size: 8px"></i>
+              </div>
+            } @else if (entry.node.type === 'end') {
+              <div class="ck__dot ck__dot--end">
+                <i class="ti ti-flag" aria-hidden="true" style="font-size: 9px"></i>
+              </div>
+            } @else {
+              <div
+                class="ck__dot ck__dot--task"
+                [class.ck__dot--done]="completedNodeIds().has(entry.node.id)"
+              >
+                @if (completedNodeIds().has(entry.node.id)) {
+                  <i class="ti ti-check" aria-hidden="true" style="font-size: 8px"></i>
+                }
+              </div>
+            }
+            @if (!last) {
+              <div class="ck__spine-line"></div>
+            }
+          </div>
+
+          <!-- conteúdo -->
+          @if (entry.node.type === 'start' || entry.node.type === 'end') {
+            <div
+              class="ck__boundary-label"
+              [class.ck__boundary-label--start]="entry.node.type === 'start'"
+              [class.ck__boundary-label--end]="entry.node.type === 'end'"
+            >
+              {{ entry.node.label }}
+              @if (entry.node.type === 'end') {
+                <span class="ck__end-badge ck__end-badge--{{ entry.node.endingType ?? 'neutral' }}">
+                  {{ endingLabel(entry.node.endingType) }}
+                </span>
+              }
+            </div>
+          } @else {
+            <div
+              class="ck__node-card"
+              [class.ck__node-card--active]="selectedId() === entry.node.id"
+              [class.ck__node-card--done]="completedNodeIds().has(entry.node.id)"
+              (click)="select(entry.node.id)"
+              role="button"
+              tabindex="0"
+              (keydown.enter)="select(entry.node.id)"
+            >
+              <span class="ck__step-title">{{ entry.node.label }}</span>
+              @if (entry.node.sublabel) {
+                <span class="ck__step-sub">{{ entry.node.sublabel }}</span>
+              }
+              @if (completedNodeIds().has(entry.node.id)) {
+                <span class="ck__done-badge">
+                  <i class="ti ti-check" aria-hidden="true" style="font-size: 10px"></i> concluído
+                </span>
+              }
+            </div>
+          }
+        </div>
+      }
+
+      @if (entry.kind === 'fork') {
+        <div class="ck__row ck__row--fork" [class.ck__row--last]="last">
+          <!-- spine -->
+          <div class="ck__spine">
+            <div class="ck__dot ck__dot--fork"></div>
+            @if (!last) {
+              <div class="ck__spine-line"></div>
+            }
+          </div>
+
+          <!-- fork body -->
+          <div class="ck__fork-body">
+            <div
+              class="ck__fork-header"
+              (click)="toggleFork(entry.id)"
+              role="button"
+              tabindex="0"
+              (keydown.enter)="toggleFork(entry.id)"
+            >
+              <span class="ck__fork-badge">
+                <i class="ti ti-git-fork" aria-hidden="true" style="font-size: 11px"></i>
+                bifurcação
+              </span>
+              <span class="ck__fork-count">{{ entry.options.length }} rotas</span>
+              <span class="ck__fork-hint">escolha uma rota</span>
+              <i
+                class="ti ti-chevron-down ck__fork-chevron"
+                [class.ck__fork-chevron--open]="isForkOpen(entry.id)"
+                aria-hidden="true"
+              ></i>
+            </div>
+
+            @if (isForkOpen(entry.id)) {
+              <!-- ≤ 3 rotas: colunas com scroll horizontal -->
+              @if (entry.options.length <= 3) {
+                <div class="ck__branches-scroll">
+                  @for (opt of entry.options; track opt.firstNode.id) {
+                    <div class="ck__branch-col">
+                      <div class="ck__branch-head">
+                        {{ opt.firstNode.sublabel ?? opt.firstNode.label }}
+                      </div>
+                      <div class="ck__branch-steps">
+                        <div
+                          class="ck__branch-node"
+                          [class.ck__branch-node--active]="selectedId() === opt.firstNode.id"
+                          [class.ck__branch-node--done]="completedNodeIds().has(opt.firstNode.id)"
+                          (click)="select(opt.firstNode.id)"
+                          role="button"
+                          tabindex="0"
+                          (keydown.enter)="select(opt.firstNode.id)"
+                        >
+                          <span class="ck__step-title">{{ opt.firstNode.label }}</span>
+                          @if (opt.firstNode.sublabel) {
+                            <span class="ck__step-sub">{{ opt.firstNode.sublabel }}</span>
+                          }
+                          @if (completedNodeIds().has(opt.firstNode.id)) {
+                            <span class="ck__done-badge">
+                              <i class="ti ti-check" aria-hidden="true" style="font-size: 10px"></i>
+                              concluído
+                            </span>
+                          }
+                        </div>
+                        @for (sub of opt.subSteps; track sub.id) {
+                          <div class="ck__branch-arrow" aria-hidden="true">↓</div>
+                          <div
+                            class="ck__branch-node"
+                            [class.ck__branch-node--active]="selectedId() === sub.id"
+                            [class.ck__branch-node--done]="completedNodeIds().has(sub.id)"
+                            (click)="select(sub.id)"
+                            role="button"
+                            tabindex="0"
+                            (keydown.enter)="select(sub.id)"
+                          >
+                            <span class="ck__step-title">{{ sub.label }}</span>
+                            @if (sub.sublabel) {
+                              <span class="ck__step-sub">{{ sub.sublabel }}</span>
+                            }
+                            @if (completedNodeIds().has(sub.id)) {
+                              <span class="ck__done-badge">
+                                <i
+                                  class="ti ti-check"
+                                  aria-hidden="true"
+                                  style="font-size: 10px"
+                                ></i>
+                                concluído
+                              </span>
+                            }
+                          </div>
+                        }
+                      </div>
+                    </div>
+                  }
+                </div>
+              }
+
+              <!-- ≥ 4 rotas: lista vertical (cada rota como item) -->
+              @if (entry.options.length >= 4) {
+                <div class="ck__branches-stack">
+                  @for (opt of entry.options; track opt.firstNode.id) {
+                    <div class="ck__stack-branch">
+                      <div class="ck__stack-head">
+                        <span>{{ opt.firstNode.label }}</span>
+                        @if (opt.subSteps.length) {
+                          <span class="ck__stack-count"
+                            >+{{ opt.subSteps.length }} etapa{{
+                              opt.subSteps.length > 1 ? 's' : ''
+                            }}</span
+                          >
+                        }
+                      </div>
+                      <div class="ck__stack-nodes">
+                        <div
+                          class="ck__branch-node"
+                          [class.ck__branch-node--active]="selectedId() === opt.firstNode.id"
+                          [class.ck__branch-node--done]="completedNodeIds().has(opt.firstNode.id)"
+                          (click)="select(opt.firstNode.id)"
+                          role="button"
+                          tabindex="0"
+                          (keydown.enter)="select(opt.firstNode.id)"
+                        >
+                          <span class="ck__step-title">{{ opt.firstNode.label }}</span>
+                          @if (opt.firstNode.sublabel) {
+                            <span class="ck__step-sub">{{ opt.firstNode.sublabel }}</span>
+                          }
+                        </div>
+                        @for (sub of opt.subSteps; track sub.id) {
+                          <div
+                            class="ck__branch-node ck__branch-node--sub"
+                            [class.ck__branch-node--active]="selectedId() === sub.id"
+                            [class.ck__branch-node--done]="completedNodeIds().has(sub.id)"
+                            (click)="select(sub.id)"
+                            role="button"
+                            tabindex="0"
+                            (keydown.enter)="select(sub.id)"
+                          >
+                            <span class="ck__step-title">{{ sub.label }}</span>
+                            @if (sub.sublabel) {
+                              <span class="ck__step-sub">{{ sub.sublabel }}</span>
+                            }
+                          </div>
+                        }
+                      </div>
+                    </div>
+                  }
+                </div>
+              }
+            }
+          </div>
+        </div>
+      }
+    }
+  </div>
+
+  <!-- ══ Painel de detalhe ═════════════════════════════════════════════════════ -->
+  <div class="ck__panel">
+    <p class="ck__panel-label">nó selecionado</p>
+
+    @if (selectedNode(); as node) {
+      <div class="ck__panel-card">
+        @if (node.type === 'external-quest') {
+          <span class="ck__node-type-badge">quest externa</span>
+        }
+        <p class="ck__node-title">
+          {{ node.label }}
+          @if (node.sublabel) {
+            — {{ node.sublabel }}
+          }
+        </p>
+
+        @if (node.description) {
+          <p class="ck__node-desc">{{ node.description }}</p>
+        }
+
+        @if (node.location) {
+          <p class="ck__node-loc">
+            <i class="ti ti-map-pin" aria-hidden="true"></i> {{ node.location }}
+          </p>
+        }
+
+        @if (node.tags && node.tags.length) {
+          <div class="ck__node-tags">
+            @for (tag of node.tags; track tag) {
+              <span class="ck__tag">{{ tag }}</span>
+            }
+          </div>
+        }
+
+        @if (node.type === 'external-quest' && node.linkedQuestId) {
+          <a class="ck__ext-link" [routerLink]="['/games', gameId(), 'quests', node.linkedQuestId]">
+            <i class="ti ti-external-link" aria-hidden="true"></i>
+            ver {{ node.linkedQuestName ?? 'quest vinculada' }}
+          </a>
+        }
+
+        @if (node.type === 'task') {
+          <button
+            class="ck__done-btn"
+            [class.ck__done-btn--done]="completedNodeIds().has(node.id)"
+            type="button"
+            [disabled]="togglingNodeId() === node.id"
+            (click)="toggleDone(node.id)"
+          >
+            @if (togglingNodeId() === node.id) {
+              <i class="ti ti-loader-2 ck__spin" aria-hidden="true"></i> aguarde…
+            } @else if (completedNodeIds().has(node.id)) {
+              <i class="ti ti-circle-check-filled" aria-hidden="true"></i> concluído
+            } @else {
+              <i class="ti ti-circle" aria-hidden="true"></i> marcar como concluído
+            }
+          </button>
+        }
+      </div>
+    } @else {
+      <div class="ck__panel-empty">
+        <i class="ti ti-hand-click" aria-hidden="true"></i>
+        <span>Clique em uma etapa para ver os detalhes</span>
+      </div>
+    }
+  </div>
+</div>

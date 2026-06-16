@@ -5,8 +5,57 @@
       <div class="qs__head-top">
         <h1 class="qs__title">quests</h1>
         <span class="qs__count"
-          >{{ filtered().length }} resultado{{ filtered().length !== 1 ? 's' : '' }}</span
+          >{{ totalElements() }} resultado{{ totalElements() !== 1 ? 's' : '' }}</span
         >
+
+        @if (auth.isLoggedIn()) {
+          <div class="qs__new-wrap">
+            <button type="button" class="qs__btn-new" (click)="toggleGamePicker()">
+              <i class="ti ti-plus"></i> nova quest
+            </button>
+
+            @if (showGamePicker()) {
+              <div class="qs__game-picker">
+                <p class="qs__game-picker-label">selecione o jogo</p>
+                <div class="qs__game-picker-search">
+                  <i class="ti ti-search"></i>
+                  <input
+                    type="text"
+                    class="qs__game-picker-input"
+                    [value]="gameQuery()"
+                    (input)="onGameInput($any($event.target).value)"
+                    placeholder="buscar jogo..."
+                    autocomplete="off"
+                  />
+                  @if (gameSearching()) {
+                    <i class="ti ti-loader-2 qs__game-picker-spin"></i>
+                  }
+                </div>
+
+                @if (gameResults().length) {
+                  <ul class="qs__game-picker-list">
+                    @for (g of gameResults(); track g.id) {
+                      <li>
+                        <button
+                          type="button"
+                          class="qs__game-picker-option"
+                          (click)="selectGame(g)"
+                        >
+                          <i class="ti ti-device-gamepad-2"></i>
+                          {{ g.name }}
+                        </button>
+                      </li>
+                    }
+                  </ul>
+                } @else if (gameQuery().length >= 2 && !gameSearching()) {
+                  <p class="qs__game-picker-empty">Nenhum jogo encontrado.</p>
+                } @else if (!gameQuery()) {
+                  <p class="qs__game-picker-hint">Digite o nome do jogo para buscar.</p>
+                }
+              </div>
+            }
+          </div>
+        }
       </div>
 
       <div class="qs__search">
@@ -15,23 +64,10 @@
           class="qs__search-input"
           type="search"
           placeholder="buscar questlines…"
-          [value]="search()"
-          (input)="search.set($any($event.target).value)"
+          [ngModel]="searchTerm()"
+          (ngModelChange)="onSearchInput($event)"
           aria-label="Buscar questlines"
         />
-      </div>
-
-      <div class="qs__filter-row">
-        @for (f of gameFilters; track f.id) {
-          <button
-            class="qs__chip"
-            [class.qs__chip--active]="gameFilter() === f.id"
-            type="button"
-            (click)="gameFilter.set(f.id)"
-          >
-            {{ f.label }}
-          </button>
-        }
       </div>
 
       <div class="qs__filter-row">
@@ -40,7 +76,7 @@
             class="qs__chip"
             [class.qs__chip--active]="statusFilter() === f.id"
             type="button"
-            (click)="statusFilter.set(f.id)"
+            (click)="setStatusFilter(f.id)"
           >
             {{ f.label }}
           </button>
@@ -69,9 +105,9 @@
           </div>
         }
       </div>
-    } @else if (filtered().length) {
+    } @else if (quests().length) {
       <div class="qs__list">
-        @for (quest of filtered(); track quest.id) {
+        @for (quest of quests(); track quest.id) {
           <a class="qs__card" [routerLink]="['/games', quest.gameId, 'quests', quest.id]">
             <!-- mini-graph -->
             <svg class="qs__mg" [attr.viewBox]="'0 0 64 40'" aria-hidden="true">
@@ -172,6 +208,12 @@
                   <i class="ti ti-users" aria-hidden="true"></i>
                   {{ followersLabel(quest.followers) }}
                 </span>
+                @if (quest.likeCount) {
+                  <span class="qs__stat">
+                    <i class="ti ti-heart" aria-hidden="true"></i>
+                    {{ quest.likeCount }}
+                  </span>
+                }
                 <span class="qs__game-chip qs__game-chip--{{ quest.gameId }}">{{
                   quest.gameName
                 }}</span>
@@ -184,6 +226,45 @@
       </div>
     } @else {
       <p class="qs__empty">Nenhuma quest encontrada.</p>
+    }
+
+    @if (totalPages() > 1) {
+      <nav class="qs__pagination" aria-label="Paginação">
+        <button
+          class="qs__page-btn qs__page-btn--arrow"
+          type="button"
+          [disabled]="currentPage() === 0"
+          (click)="goToPage(currentPage() - 1)"
+          aria-label="Página anterior"
+        >
+          <i class="ti ti-chevron-left"></i>
+        </button>
+
+        @for (page of pageNumbers(); track $index) {
+          @if (page === -1) {
+            <span class="qs__page-ellipsis">…</span>
+          } @else {
+            <button
+              class="qs__page-btn"
+              type="button"
+              [class.qs__page-btn--active]="page === currentPage()"
+              (click)="goToPage(page)"
+            >
+              {{ page + 1 }}
+            </button>
+          }
+        }
+
+        <button
+          class="qs__page-btn qs__page-btn--arrow"
+          type="button"
+          [disabled]="currentPage() === totalPages() - 1"
+          (click)="goToPage(currentPage() + 1)"
+          aria-label="Próxima página"
+        >
+          <i class="ti ti-chevron-right"></i>
+        </button>
+      </nav>
     }
   </div>
 </div>

@@ -105,6 +105,14 @@ export const routes: Routes = [
     canActivate: [authGuard],
   },
   {
+    path: 'comunidade',
+    loadComponent: () => import('./features/comunidade/comunidade').then((m) => m.Comunidade),
+  },
+  {
+    path: 'usuarios/:handle',
+    loadComponent: () => import('./features/usuario/usuario').then((m) => m.Usuario),
+  },
+  {
     path: 'search',
     loadComponent: () => import('./features/search/search').then((m) => m.Search),
   },

@@ -73,7 +73,7 @@ export const GAMES_DETAIL: GameDetailData[] = [
         title: 'A Origem dos Dedos Dourados',
         gameId: 'elden-ring',
         gameName: 'Elden Ring',
-        category: 'TEORIA' as const,
+        category: 'WORLD' as const,
         status: 'CANONICO',
         votes: 892,
         excerpt:
@@ -87,7 +87,7 @@ export const GAMES_DETAIL: GameDetailData[] = [
         title: 'Marika e a Ruína da Ordem',
         gameId: 'elden-ring',
         gameName: 'Elden Ring',
-        category: 'NPC' as const,
+        category: 'CHARACTER' as const,
         status: 'CONSOLIDADO',
         votes: 641,
         excerpt:
@@ -101,7 +101,7 @@ export const GAMES_DETAIL: GameDetailData[] = [
         title: 'Conexão entre Ranni e os Sem-Deus',
         gameId: 'elden-ring',
         gameName: 'Elden Ring',
-        category: 'TEORIA' as const,
+        category: 'WORLD' as const,
         status: 'TEORIA',
         votes: 218,
         excerpt:
@@ -148,7 +148,7 @@ export const GAMES_DETAIL: GameDetailData[] = [
         title: 'Gwyn sabia do Oco desde o início',
         gameId: 'dark-souls-3',
         gameName: 'Dark Souls III',
-        category: 'TEORIA' as const,
+        category: 'WORLD' as const,
         status: 'TEORIA',
         votes: 99,
         excerpt:
@@ -195,7 +195,7 @@ export const GAMES_DETAIL: GameDetailData[] = [
         title: 'O ciclo dos sonhos e Mergo',
         gameId: 'bloodborne',
         gameName: 'Bloodborne',
-        category: 'NPC' as const,
+        category: 'CHARACTER' as const,
         status: 'CONSOLIDADO',
         votes: 412,
         excerpt:

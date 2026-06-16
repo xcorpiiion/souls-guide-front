@@ -1,5 +1,6 @@
 import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
 import { Router, RouterLink, RouterLinkActive } from '@angular/router';
+import { AuthService } from '../../core/services/auth.service';
 
 @Component({
   selector: 'app-navbar',
@@ -10,12 +11,14 @@ import { Router, RouterLink, RouterLinkActive } from '@angular/router';
 })
 export class Navbar {
   private readonly router = inject(Router);
+  readonly auth = inject(AuthService);
 
   readonly navLinks = [
     { path: '/home', label: 'Início' },
     { path: '/games', label: 'Jogos' },
     { path: '/quests', label: 'Quests' },
     { path: '/lore', label: 'Lore' },
+    { path: '/comunidade', label: 'Comunidade' },
     { path: '/profile', label: 'Perfil' },
   ];
 

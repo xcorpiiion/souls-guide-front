@@ -5,7 +5,7 @@ import { describe, beforeEach, afterEach, it, expect } from 'vitest';
 import { KanbanService } from './kanban.service';
 import { KanbanBoard, KanbanCard, KanbanColumn } from '../../shared/models/kanban.model';
 
-const BASE = 'http://localhost:8765/souls-guide-api/kanban';
+const BASE = 'http://localhost:8765/souls-guide-api/api/kanban';
 
 const MOCK_CARD: KanbanCard = {
   id: 'card-1',

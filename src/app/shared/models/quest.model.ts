@@ -45,12 +45,14 @@ export interface QuestApi {
   // campos de conteúdo de perfil
   isPersonal: boolean;
   ownerId: string | null;
+  isOwner: boolean;
   isPublic: boolean;
   allowCopy: boolean;
   likeCount: number;
   userHasLiked: boolean;
   followerCount: number;
   userIsFollowing: boolean;
+  stepCount?: number;
 }
 
 export interface QuestSummary {
@@ -68,6 +70,7 @@ export interface QuestSummary {
   // campos de conteúdo de perfil
   isPersonal?: boolean;
   ownerId?: string;
+  isOwner?: boolean;
   ownerNickname?: string;
   isPublic?: boolean;
   allowCopy?: boolean;
@@ -89,14 +92,15 @@ export function questApiToSummary(q: QuestApi): QuestSummary {
     description: q.description,
     gameId: String(q.gameId),
     gameName: q.gameName,
-    stepCount: q.nodes?.filter((n) => n.type === 'task').length ?? 0,
+    stepCount: q.stepCount ?? q.nodes?.filter((n) => n.type === 'task').length ?? 0,
     forkCount: q.nodes?.filter((n) => n.type === 'gateway').length ?? 0,
     endingCount: q.nodes?.filter((n) => n.type === 'end').length ?? 0,
     status: q.status ?? 'TEORIA',
-    followers: 0,
+    followers: q.followerCount ?? 0,
     author: q.userId ?? null,
     isPersonal: q.isPersonal ?? false,
     ownerId: q.ownerId ?? undefined,
+    isOwner: q.isOwner ?? false,
     isPublic: q.isPublic ?? true,
     allowCopy: q.allowCopy ?? false,
     likeCount: q.likeCount ?? 0,

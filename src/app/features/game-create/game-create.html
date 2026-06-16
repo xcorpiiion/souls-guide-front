@@ -1,0 +1,162 @@
+<section class="gc">
+  <header class="gc__header">
+    <a class="gc__back" [routerLink]="['/games']">
+      <i class="ti ti-arrow-left" aria-hidden="true"></i> jogos
+    </a>
+    <div>
+      <h1 class="gc__title">adicionar jogo</h1>
+      <p class="gc__subtitle">
+        <i class="ti ti-world" aria-hidden="true"></i> visível para toda a comunidade
+      </p>
+    </div>
+  </header>
+
+  <!-- aviso -->
+  <div class="gc__notice">
+    <i class="ti ti-info-circle" aria-hidden="true"></i>
+    Verifique se o jogo já existe antes de cadastrar. Duplicatas são removidas pelos moderadores.
+  </div>
+
+  <form [formGroup]="form" (ngSubmit)="submit()">
+    <!-- verificar duplicata -->
+    <div class="gc__card">
+      <p class="gc__section-label">verificar se já existe</p>
+
+      <div class="gc__field">
+        <label class="gc__label" for="gc-name">
+          nome do jogo <span class="gc__required" aria-hidden="true">*</span>
+        </label>
+        <div class="gc__search-wrap">
+          <i class="ti ti-search" aria-hidden="true"></i>
+          <input
+            id="gc-name"
+            class="gc__input gc__input--search"
+            type="text"
+            placeholder="Digite o nome do jogo…"
+            formControlName="name"
+            autocomplete="off"
+            (input)="onNameInput(form.value.name ?? '')"
+          />
+          @if (searching()) {
+            <i class="ti ti-loader gc__spin" aria-hidden="true"></i>
+          }
+        </div>
+
+        @if (searchResults().length) {
+          @if (hasDuplicate()) {
+            <div class="gc__dup-alert" role="alert">
+              <i class="ti ti-alert-triangle" aria-hidden="true"></i>
+              "{{ form.value.name }}" já está cadastrado. Confira a ortografia ou escolha outro
+              nome.
+            </div>
+          } @else {
+            <p class="gc__search-hint">
+              <i class="ti ti-eye" aria-hidden="true"></i>
+              Jogos parecidos encontrados — verifique se não é o mesmo:
+            </p>
+            <ul class="gc__similar-list">
+              @for (g of searchResults(); track g.id) {
+                <li class="gc__similar-item">
+                  <i class="ti ti-device-gamepad-2" aria-hidden="true"></i>
+                  {{ g.name }}
+                </li>
+              }
+            </ul>
+          }
+        }
+
+        @if (
+          (form.value.name ?? '').trim().length >= 2 && !searching() && !searchResults().length
+        ) {
+          <p class="gc__search-ok">
+            <i class="ti ti-circle-check" aria-hidden="true"></i>
+            Nenhum jogo encontrado com esse nome — pode cadastrar.
+          </p>
+        }
+      </div>
+    </div>
+
+    <!-- dados do jogo -->
+    <div class="gc__card">
+      <p class="gc__section-label">informações do jogo</p>
+
+      <div class="gc__grid-2">
+        <div class="gc__field">
+          <label class="gc__label" for="gc-dev">desenvolvedora</label>
+          <input id="gc-dev" class="gc__input" type="text" formControlName="developer" />
+        </div>
+        <div class="gc__field">
+          <label class="gc__label" for="gc-year">ano de lançamento</label>
+          <input
+            id="gc-year"
+            class="gc__input"
+            type="number"
+            min="1970"
+            max="2030"
+            formControlName="releaseYear"
+          />
+        </div>
+      </div>
+
+      <div class="gc__field">
+        <label class="gc__label" for="gc-desc">descrição curta</label>
+        <textarea
+          id="gc-desc"
+          class="gc__input gc__input--textarea"
+          rows="3"
+          placeholder="Ex: RPG de ação souls-like ambientado em…"
+          formControlName="description"
+        ></textarea>
+      </div>
+    </div>
+
+    <!-- tags -->
+    <div class="gc__card">
+      <p class="gc__section-label">gêneros / tags</p>
+
+      <div class="gc__tags-row">
+        @for (tag of tags(); track tag) {
+          <span class="gc__tag">
+            {{ tag }}
+            <button
+              type="button"
+              class="gc__tag-rm"
+              (click)="removeTag(tag)"
+              [attr.aria-label]="'remover ' + tag"
+            >
+              <i class="ti ti-x" aria-hidden="true"></i>
+            </button>
+          </span>
+        }
+        <input
+          class="gc__tag-input"
+          type="text"
+          placeholder="adicionar tag…"
+          [value]="tagInput()"
+          (input)="tagInput.set($any($event.target).value)"
+          (keydown)="onTagKeydown($event)"
+          (blur)="addTag()"
+        />
+      </div>
+      <p class="gc__hint">Pressione Enter ou vírgula para confirmar cada tag.</p>
+    </div>
+
+    @if (errorMsg()) {
+      <div class="gc__error" role="alert">
+        <i class="ti ti-alert-circle" aria-hidden="true"></i> {{ errorMsg() }}
+      </div>
+    }
+
+    <div class="gc__actions">
+      <a class="gc__btn-cancel" [routerLink]="['/games']">cancelar</a>
+      <button
+        class="gc__btn-submit"
+        type="submit"
+        [disabled]="form.invalid || hasDuplicate() || saving()"
+      >
+        <i class="ti ti-check" aria-hidden="true"></i>
+        {{ saving() ? 'publicando…' : 'publicar jogo' }}
+      </button>
+    </div>
+  </form>
+</section>

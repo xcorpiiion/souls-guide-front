@@ -1,5 +1,5 @@
 <div class="quest-graph">
-  <div class="quest-graph__scroll">
+  <div class="quest-graph__scroll" #scrollEl (mousedown)="onScrollMouseDown($event, scrollEl)">
     <svg
       class="quest-graph__svg"
       [attr.width]="layout().width"
@@ -34,7 +34,8 @@
         <g
           [class]="
             'quest-graph__node' +
-            (selectedNodeId() === node.id ? ' quest-graph__node--selected' : '')
+            (selectedNodeId() === node.id ? ' quest-graph__node--selected' : '') +
+            (completedNodeIds().has(node.id) ? ' quest-graph__node--done' : '')
           "
           (click)="onNodeClick(node.id)"
           role="button"
@@ -88,7 +89,7 @@
             @if (node.sublabel) {
               <text
                 [attr.x]="node.x + node.w / 2"
-                [attr.y]="node.y + 31"
+                [attr.y]="node.y + 40"
                 class="quest-graph__text quest-graph__text--center quest-graph__text--sub"
               >
                 {{ node.sublabel }}
@@ -101,6 +102,21 @@
                 class="quest-graph__text quest-graph__text--ext-icon"
               >
                 ↗
+              </text>
+            }
+            @if (completedNodeIds().has(node.id)) {
+              <circle
+                [attr.cx]="node.x + node.w - 8"
+                [attr.cy]="node.y + 8"
+                r="8"
+                class="quest-graph__done-badge"
+              />
+              <text
+                [attr.x]="node.x + node.w - 8"
+                [attr.y]="node.y + 12"
+                class="quest-graph__text quest-graph__text--center quest-graph__text--done-check"
+              >
+                ✓
               </text>
             }
           }

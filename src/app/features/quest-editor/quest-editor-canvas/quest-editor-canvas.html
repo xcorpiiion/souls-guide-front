@@ -11,7 +11,7 @@
     [class.qec__svg--drawing]="isDrawingEdge()"
     (mousedown)="onSvgMouseDown($event)"
     (click)="onSvgClick($event)"
-    (keydown)="onSvgMouseDown($any($event))"
+    (keydown.escape)="onSvgEscKey()"
     role="application"
     tabindex="0"
     aria-label="Canvas do editor de quest"
@@ -114,13 +114,13 @@
         >
           @if (node.type === 'start' || node.type === 'end') {
             <circle
-              [attr.cx]="px(node.id) + nw(node.type) / 2"
+              [attr.cx]="px(node.id) + nw(node) / 2"
               [attr.cy]="py(node.id) + nh(node.type) / 2"
-              [attr.r]="nw(node.type) / 2 - 2"
+              [attr.r]="nw(node) / 2 - 2"
               [class]="'qec__circle qec__circle--' + (node.endingType ?? node.type)"
             />
             <text
-              [attr.x]="px(node.id) + nw(node.type) / 2"
+              [attr.x]="px(node.id) + nw(node) / 2"
               [attr.y]="py(node.id) + nh(node.type) / 2 + 4"
               class="qec__text qec__text--center qec__text--small"
             >
@@ -129,6 +129,7 @@
           }
 
           @if (node.type === 'gateway') {
+            <title>Bifurcação — divide o fluxo em múltiplos caminhos alternativos</title>
             <polygon [attr.points]="diamondPoints(node.id)" class="qec__diamond" />
             <text
               [attr.x]="px(node.id) + 22"
@@ -137,19 +138,37 @@
             >
               X
             </text>
+            <!-- tooltip badge que aparece no hover -->
+            <g class="qec__gateway-tip" pointer-events="none">
+              <rect
+                [attr.x]="px(node.id) - 30"
+                [attr.y]="py(node.id) - 30"
+                width="116"
+                height="20"
+                rx="4"
+                class="qec__gateway-tip-bg"
+              />
+              <text
+                [attr.x]="px(node.id) + 28"
+                [attr.y]="py(node.id) - 15"
+                class="qec__text qec__text--center qec__gateway-tip-text"
+              >
+                bifurcação de caminhos
+              </text>
+            </g>
           }
 
           @if (node.type === 'task' || node.type === 'external-quest') {
             <rect
               [attr.x]="px(node.id)"
               [attr.y]="py(node.id)"
-              [attr.width]="nw(node.type)"
+              [attr.width]="nw(node)"
               [attr.height]="nh(node.type)"
               rx="7"
               [class]="'qec__rect qec__rect--' + node.type"
             />
             <text
-              [attr.x]="px(node.id) + nw(node.type) / 2"
+              [attr.x]="px(node.id) + nw(node) / 2"
               [attr.y]="textY(node.id, node.type, !!node.sublabel)"
               class="qec__text qec__text--center"
             >
@@ -157,8 +176,8 @@
             </text>
             @if (node.sublabel) {
               <text
-                [attr.x]="px(node.id) + nw(node.type) / 2"
-                [attr.y]="py(node.id) + 31"
+                [attr.x]="px(node.id) + nw(node) / 2"
+                [attr.y]="py(node.id) + 40"
                 class="qec__text qec__text--center qec__text--sub"
               >
                 {{ node.sublabel }}
@@ -166,7 +185,7 @@
             }
             @if (node.type === 'external-quest') {
               <text
-                [attr.x]="px(node.id) + nw(node.type) - 6"
+                [attr.x]="px(node.id) + nw(node) - 6"
                 [attr.y]="py(node.id) + 13"
                 class="qec__text qec__text--ext-icon"
               >
@@ -190,9 +209,9 @@
           <!-- target ring when drawing an edge -->
           @if (showTargetHint(node.id)) {
             <circle
-              [attr.cx]="px(node.id) + nw(node.type) / 2"
+              [attr.cx]="px(node.id) + nw(node) / 2"
               [attr.cy]="py(node.id) + nh(node.type) / 2"
-              [attr.r]="Math.max(nw(node.type), nh(node.type)) / 2 + 6"
+              [attr.r]="Math.max(nw(node), nh(node.type)) / 2 + 6"
               class="qec__target-ring"
               pointer-events="none"
             />
