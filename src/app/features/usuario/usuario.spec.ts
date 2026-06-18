@@ -28,6 +28,7 @@ function makeUserSvc(profile: UserPublicProfile | null = MOCK_PROFILE) {
     getByHandle: vi.fn(() => (profile ? of(profile) : throwError(() => new Error('not found')))),
     follow: vi.fn(() => of(undefined)),
     unfollow: vi.fn(() => of(undefined)),
+    getActivity: vi.fn(() => of([])),
   };
 }
 

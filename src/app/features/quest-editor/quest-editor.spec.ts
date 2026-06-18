@@ -39,7 +39,7 @@ function createFixture(gameId: string, questId?: string) {
   TestBed.configureTestingModule({
     imports: [QuestEditor],
     providers: [
-      provideRouter([]),
+      provideRouter([{ path: 'games/:gameId/quests/:questId', component: QuestEditor }]),
       {
         provide: ActivatedRoute,
         useValue: {
