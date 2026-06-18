@@ -167,17 +167,6 @@
             </div>
           </form>
         </div>
-
-        <!-- danger zone -->
-        <div class="pf__danger-card">
-          <p class="pf__danger-title">zona de perigo</p>
-          <div class="pf__danger-row">
-            <span class="pf__danger-desc"
-              >Excluir conta permanentemente. Esta ação não pode ser desfeita.</span
-            >
-            <button class="pf__danger-btn" type="button">excluir conta</button>
-          </div>
-        </div>
       </main>
 
       <!-- sidebar: alterar senha -->
@@ -239,6 +228,17 @@
           </div>
         </aside>
       }
+
+      <!-- danger zone: sempre por último -->
+      <div class="pf__danger-card pf__danger-card--full">
+        <p class="pf__danger-title">zona de perigo</p>
+        <div class="pf__danger-row">
+          <span class="pf__danger-desc"
+            >Excluir conta permanentemente. Esta ação não pode ser desfeita.</span
+          >
+          <button class="pf__danger-btn" type="button">excluir conta</button>
+        </div>
+      </div>
     } @else {
       <main class="pf__main">
         @if (activeTab() === 'quests') {

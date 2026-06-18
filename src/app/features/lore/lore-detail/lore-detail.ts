@@ -19,10 +19,11 @@ import {
 } from '../../../shared/components/copy-to-profile-modal/copy-to-profile-modal';
 import { CommentSection } from '../../../shared/components/comment-section/comment-section';
 import { ToastService } from '../../../shared/components/toast/toast.service';
+import { PageLoader } from '../../../shared/components/page-loader/page-loader';
 
 @Component({
   selector: 'app-lore-detail',
-  imports: [RouterLink, LowerCasePipe, CopyToProfileModal, CommentSection],
+  imports: [RouterLink, LowerCasePipe, CopyToProfileModal, CommentSection, PageLoader],
   templateUrl: './lore-detail.html',
   styleUrl: './lore-detail.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

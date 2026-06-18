@@ -16,6 +16,7 @@ import { GameService } from '../../core/services/game.service';
 import { QuestService } from '../../core/services/quest.service';
 import { LoreService } from '../../core/services/lore.service';
 import { AuthService } from '../../core/services/auth.service';
+import { PageLoader } from '../../shared/components/page-loader/page-loader';
 
 type Tab = 'quests' | 'lore' | 'contributors';
 type QuestFilter = QuestStatus | 'todos';
@@ -27,7 +28,7 @@ interface FilterOption {
 
 @Component({
   selector: 'app-game-detail',
-  imports: [RouterLink],
+  imports: [RouterLink, PageLoader],
   templateUrl: './game-detail.html',
   styleUrl: './game-detail.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

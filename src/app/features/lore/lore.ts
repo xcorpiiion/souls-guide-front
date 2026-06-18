@@ -110,6 +110,13 @@ export class Lore implements OnInit {
           this.totalElements.set(page.totalElements ?? page.content.length);
           this.totalPages.set(page.totalPages ?? 1);
           this.loading.set(false);
+          if (!this.allGames().length && page.content.length) {
+            const seen = new Map<string, string>();
+            for (const a of page.content) seen.set(a.gameId, a.gameName);
+            this.allGames.set(
+              [...seen.entries()].map(([id, name]) => ({ id, name }) as unknown as GameSummary),
+            );
+          }
         },
         error: () => {
           this.error.set('Não foi possível carregar o lore.');

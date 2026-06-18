@@ -21,6 +21,13 @@
   position: sticky;
   top: 0;
   z-index: 5;
+
+  @media (max-width: 600px) {
+    flex-wrap: wrap;
+    height: auto;
+    padding: 8px 10px;
+    gap: 6px;
+  }
 }
 
 .qe__title-wrap {
@@ -30,6 +37,12 @@
   gap: 6px;
   min-width: 0;
   padding: 0 4px;
+
+  @media (max-width: 600px) {
+    flex-basis: 100%;
+    order: -1;
+    padding: 0;
+  }
 
   .qe__title-icon {
     color: v.$color-text-muted;
@@ -78,6 +91,17 @@
   align-items: center;
   gap: 8px;
   flex-shrink: 0;
+
+  @media (max-width: 600px) {
+    gap: 6px;
+    flex: 1;
+    overflow-x: auto;
+    scrollbar-width: none;
+
+    &::-webkit-scrollbar {
+      display: none;
+    }
+  }
 }
 
 .qe__tool-btn {

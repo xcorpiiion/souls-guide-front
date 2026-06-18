@@ -603,6 +603,12 @@
   border-radius: v.$radius-lg;
   padding: 20px 24px;
   margin-bottom: 16px;
+
+  &--full {
+    grid-column: 1 / -1;
+    margin-bottom: 0;
+    margin-top: 8px;
+  }
 }
 
 .pf__danger-title {

@@ -11,7 +11,109 @@
       href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css"
     />
   </head>
+  <style>
+    #sg-splash {
+      position: fixed;
+      inset: 0;
+      background: #0d0d0d;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 28px;
+      z-index: 9999;
+      transition: opacity 0.4s ease;
+    }
+    #sg-splash.sg-splash--hidden {
+      opacity: 0;
+      pointer-events: none;
+    }
+    .sg-splash__logo {
+      font-family: 'Cinzel', 'Georgia', serif;
+      font-size: 32px;
+      letter-spacing: 0.06em;
+      color: #e8e0d0;
+    }
+    .sg-splash__logo span {
+      color: #c9a84c;
+    }
+    .sg-splash__rune {
+      width: 48px;
+      height: 48px;
+      position: relative;
+      animation: sg-pulse 2s ease-in-out infinite;
+    }
+    .sg-splash__rune::before,
+    .sg-splash__rune::after {
+      content: '';
+      position: absolute;
+      border-radius: 50%;
+      border: 1.5px solid #c9a84c;
+    }
+    .sg-splash__rune::before {
+      inset: 0;
+      opacity: 0.6;
+      animation: sg-spin 3s linear infinite;
+    }
+    .sg-splash__rune::after {
+      inset: 10px;
+      opacity: 0.9;
+      animation: sg-spin 3s linear infinite reverse;
+    }
+    .sg-splash__dot {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #c9a84c;
+    }
+    .sg-splash__bar {
+      width: 120px;
+      height: 2px;
+      background: #1a1a1a;
+      border-radius: 1px;
+      overflow: hidden;
+    }
+    .sg-splash__bar-fill {
+      height: 100%;
+      width: 40%;
+      background: linear-gradient(90deg, transparent, #c9a84c, transparent);
+      animation: sg-sweep 1.4s ease-in-out infinite;
+    }
+    @keyframes sg-pulse {
+      0%,
+      100% {
+        transform: scale(1);
+      }
+      50% {
+        transform: scale(1.08);
+      }
+    }
+    @keyframes sg-spin {
+      to {
+        transform: rotate(360deg);
+      }
+    }
+    @keyframes sg-sweep {
+      0% {
+        transform: translateX(-200%);
+      }
+      100% {
+        transform: translateX(350%);
+      }
+    }
+  </style>
   <body>
+    <div id="sg-splash" aria-hidden="true">
+      <div class="sg-splash__rune">
+        <div class="sg-splash__dot"></div>
+      </div>
+      <div class="sg-splash__logo">Soul<span>Guide</span></div>
+      <div class="sg-splash__bar"><div class="sg-splash__bar-fill"></div></div>
+    </div>
     <app-root></app-root>
     <script src="https://accounts.google.com/gsi/client" async></script>
   </body>

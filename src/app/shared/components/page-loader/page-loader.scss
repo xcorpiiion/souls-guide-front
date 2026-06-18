@@ -1,0 +1,82 @@
+@use 'styles/variables' as v;
+
+.pl {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+  min-height: 40vh;
+  padding: 48px 24px;
+}
+
+.pl__rune {
+  width: 48px;
+  height: 48px;
+  position: relative;
+  animation: pl-pulse 2s ease-in-out infinite;
+}
+
+.pl__rune::before,
+.pl__rune::after {
+  content: '';
+  position: absolute;
+  border-radius: 50%;
+  border: 1.5px solid v.$color-gold;
+}
+
+.pl__rune::before {
+  inset: 0;
+  opacity: 0.5;
+  animation: pl-spin 3s linear infinite;
+}
+
+.pl__rune::after {
+  inset: 10px;
+  opacity: 0.85;
+  animation: pl-spin 3s linear infinite reverse;
+}
+
+.pl__rune-inner {
+  position: absolute;
+  inset: 20px;
+  border-radius: 50%;
+  border: 1px solid rgba(v.$color-gold, 0.4);
+}
+
+.pl__rune-dot {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: v.$color-gold;
+  box-shadow: 0 0 8px rgba(v.$color-gold, 0.6);
+}
+
+.pl__msg {
+  font-family: v.$font-display;
+  font-size: 13px;
+  letter-spacing: 0.06em;
+  color: v.$color-text-muted;
+}
+
+@keyframes pl-pulse {
+  0%,
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.06);
+    opacity: 0.85;
+  }
+}
+
+@keyframes pl-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}

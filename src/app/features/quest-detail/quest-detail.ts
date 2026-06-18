@@ -27,10 +27,11 @@ import { CommentSection } from '../../shared/components/comment-section/comment-
 import { QuestChecklist } from './quest-checklist/quest-checklist';
 import { ToastService } from '../../shared/components/toast/toast.service';
 import { HttpErrorResponse } from '@angular/common/http';
+import { PageLoader } from '../../shared/components/page-loader/page-loader';
 
 @Component({
   selector: 'app-quest-detail',
-  imports: [RouterLink, CopyToProfileModal, CommentSection, QuestChecklist],
+  imports: [RouterLink, CopyToProfileModal, CommentSection, QuestChecklist, PageLoader],
   templateUrl: './quest-detail.html',
   styleUrl: './quest-detail.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

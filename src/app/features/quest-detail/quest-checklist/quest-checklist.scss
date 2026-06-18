@@ -8,6 +8,12 @@
   overflow: hidden;
   border: 1px solid v.$color-border;
   border-radius: v.$radius-lg;
+
+  @media (max-width: 640px) {
+    grid-template-columns: 1fr;
+    height: auto;
+    overflow: visible;
+  }
 }
 
 // ─── Lista ────────────────────────────────────────────────────────────────────
@@ -17,6 +23,13 @@
   overflow-y: auto;
   height: 100%;
   scrollbar-width: thin;
+
+  @media (max-width: 640px) {
+    height: auto;
+    max-height: 60vh;
+    border-right: none;
+    border-bottom: 1px solid v.$color-border;
+  }
   scrollbar-color: v.$color-border transparent;
 
   &::-webkit-scrollbar {
@@ -402,6 +415,11 @@
   overflow-y: auto;
   height: 100%;
   scrollbar-width: thin;
+
+  @media (max-width: 640px) {
+    height: auto;
+    min-height: 200px;
+  }
   scrollbar-color: v.$color-border transparent;
 
   &::-webkit-scrollbar {
