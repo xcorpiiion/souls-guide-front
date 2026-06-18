@@ -43,8 +43,21 @@
       </div>
     }
 
+    @if (!auth.isLoggedIn()) {
+      <a class="cs__login-prompt" routerLink="/login">
+        <i class="ti ti-login" aria-hidden="true"></i>
+        Entre para deixar um comentário
+      </a>
+    }
+
     @if (comments().length === 0) {
-      <p class="cs__empty">Ainda não há comentários. Seja o primeiro!</p>
+      <p class="cs__empty">
+        @if (auth.isLoggedIn()) {
+          Ainda não há comentários. Seja o primeiro!
+        } @else {
+          Ainda não há comentários.
+        }
+      </p>
     }
 
     @for (comment of comments(); track comment.id) {
@@ -77,6 +90,9 @@
             <button
               class="cs__action-btn"
               [class.cs__action-btn--liked]="comment.userHasLiked"
+              [class.cs__action-btn--guest]="!auth.isLoggedIn()"
+              [disabled]="!auth.isLoggedIn()"
+              [title]="auth.isLoggedIn() ? '' : 'Entre para curtir'"
               type="button"
               (click)="toggleLike(comment)"
             >
@@ -178,6 +194,9 @@
                       <button
                         class="cs__action-btn"
                         [class.cs__action-btn--liked]="reply.userHasLiked"
+                        [class.cs__action-btn--guest]="!auth.isLoggedIn()"
+                        [disabled]="!auth.isLoggedIn()"
+                        [title]="auth.isLoggedIn() ? '' : 'Entre para curtir'"
                         type="button"
                         (click)="toggleLike(reply, comment.id)"
                       >

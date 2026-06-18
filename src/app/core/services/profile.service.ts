@@ -1,6 +1,9 @@
 import { inject, Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
+import { map, Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
+import { QuestApi, QuestSummary, questApiToSummary } from '../../shared/models/quest.model';
+import { LoreApi, LoreSummary, loreApiToSummary } from '../../shared/models/lore-article.model';
 
 export interface ProfileResponse {
   id: number;
@@ -34,21 +37,34 @@ export interface ChangePasswordRequest {
 @Injectable({ providedIn: 'root' })
 export class ProfileService {
   private readonly http = inject(HttpClient);
-  private readonly base = `${environment.apis.users}/users`;
+  private readonly usersBase = `${environment.apis.users}/users`;
+  private readonly sgBase = `${environment.apis.soulsGuide}`;
 
-  getByEmail(email: string) {
-    return this.http.get<ProfileResponse>(`${this.base}/email/${encodeURIComponent(email)}`);
+  getByEmail(email: string): Observable<ProfileResponse> {
+    return this.http.get<ProfileResponse>(`${this.usersBase}/email/${encodeURIComponent(email)}`);
   }
 
-  updateProfile(id: number, data: UpdateProfileRequest) {
-    return this.http.put<ProfileResponse>(`${this.base}/${id}/profile`, data);
+  updateProfile(id: number, data: UpdateProfileRequest): Observable<ProfileResponse> {
+    return this.http.put<ProfileResponse>(`${this.usersBase}/${id}/profile`, data);
   }
 
-  changePassword(id: number, data: ChangePasswordRequest) {
-    return this.http.put<void>(`${this.base}/${id}/password`, data);
+  changePassword(id: number, data: ChangePasswordRequest): Observable<void> {
+    return this.http.put<void>(`${this.usersBase}/${id}/password`, data);
   }
 
-  deleteAccount(id: number) {
-    return this.http.delete<void>(`${this.base}/${id}`);
+  deleteAccount(id: number): Observable<void> {
+    return this.http.delete<void>(`${this.usersBase}/${id}`);
+  }
+
+  getQuestsByUser(userId: number): Observable<QuestSummary[]> {
+    return this.http
+      .get<QuestApi[]>(`${this.sgBase}/quests/by-user/${userId}`)
+      .pipe(map((list) => list.map(questApiToSummary)));
+  }
+
+  getLoreByUser(userId: number): Observable<LoreSummary[]> {
+    return this.http
+      .get<LoreApi[]>(`${this.sgBase}/lore/by-user/${userId}`)
+      .pipe(map((list) => list.map(loreApiToSummary)));
   }
 }

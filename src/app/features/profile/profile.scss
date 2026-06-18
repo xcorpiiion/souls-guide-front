@@ -869,6 +869,109 @@
 }
 
 // ─── social (seguidores / sigo) ───────────────────────────────────────────────
+// ─── sub-tabs (quests/lore minhas vs seguidas) ────────────────────────────────
+.pf__subtabs {
+  display: flex;
+  gap: 0;
+  border-bottom: 1px solid v.$color-border;
+  margin-bottom: 12px;
+}
+
+.pf__subtab {
+  padding: 8px 18px;
+  font-size: 13px;
+  font-family: v.$font-body;
+  color: v.$color-text-muted;
+  background: transparent;
+  border: none;
+  border-bottom: 2px solid transparent;
+  cursor: pointer;
+  transition:
+    color 0.15s,
+    border-color 0.15s;
+
+  &:hover {
+    color: v.$color-text;
+  }
+
+  &--active {
+    color: v.$color-gold;
+    border-bottom-color: v.$color-gold;
+  }
+}
+
+// ─── game pills ───────────────────────────────────────────────────────────────
+.pf__game-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 12px;
+}
+
+.pf__game-pill {
+  padding: 3px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-family: v.$font-body;
+  border: 1px solid v.$color-border;
+  background: transparent;
+  color: v.$color-text-muted;
+  cursor: pointer;
+  transition:
+    border-color 0.15s,
+    color 0.15s,
+    background 0.15s;
+  white-space: nowrap;
+
+  &:hover {
+    color: v.$color-text;
+    border-color: v.$color-text-muted;
+  }
+
+  &--active {
+    background: rgba(v.$color-gold, 0.12);
+    border-color: v.$color-gold;
+    color: v.$color-gold;
+  }
+}
+
+// ─── search bar ───────────────────────────────────────────────────────────────
+.pf__search-wrap {
+  position: relative;
+  margin-bottom: 16px;
+}
+
+.pf__search-icon {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: v.$color-text-muted;
+  font-size: 14px;
+  pointer-events: none;
+}
+
+.pf__search {
+  width: 100%;
+  padding: 9px 12px 9px 34px;
+  background: v.$color-bg-surface;
+  border: 1px solid v.$color-border;
+  border-radius: v.$radius-md;
+  font-family: v.$font-body;
+  font-size: 13px;
+  color: v.$color-text;
+  box-sizing: border-box;
+  transition: border-color 0.15s;
+
+  &::placeholder {
+    color: v.$color-text-muted;
+  }
+  &:focus {
+    outline: none;
+    border-color: v.$color-gold;
+  }
+}
+
 .pf__social-subtabs {
   display: flex;
   gap: 0;
@@ -970,58 +1073,5 @@
 
   &:hover {
     text-decoration: underline;
-  }
-}
-
-// ─── Kanban promo ─────────────────────────────────────────────────────────────
-.pf__kanban-promo {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  text-align: center;
-  gap: v.$space-3;
-  padding: v.$space-10 v.$space-6;
-  border: 0.5px dashed v.$color-border;
-  border-radius: v.$radius-lg;
-  margin-top: v.$space-2;
-}
-
-.pf__kanban-promo-icon {
-  font-size: 2.5rem;
-  color: v.$color-gold;
-  opacity: 0.7;
-}
-
-.pf__kanban-promo-title {
-  font-family: v.$font-display;
-  font-size: v.$font-size-lg;
-  color: v.$color-text;
-  font-weight: 500;
-  letter-spacing: 0.03em;
-}
-
-.pf__kanban-promo-desc {
-  font-size: v.$font-size-sm;
-  color: v.$color-text-muted;
-  max-width: 380px;
-  line-height: 1.6;
-}
-
-.pf__kanban-promo-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: v.$space-2;
-  padding: 10px 22px;
-  background: v.$color-gold;
-  color: #0f0d0b;
-  border-radius: v.$radius-md;
-  font-size: v.$font-size-sm;
-  font-weight: 500;
-  text-decoration: none;
-  margin-top: v.$space-2;
-  transition: background v.$transition-fast;
-
-  &:hover {
-    background: v.$color-gold-light;
   }
 }

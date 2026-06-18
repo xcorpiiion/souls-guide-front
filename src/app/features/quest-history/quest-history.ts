@@ -26,6 +26,14 @@ export class QuestHistory implements OnInit {
 
   protected readonly gameId = this.route.snapshot.paramMap.get('gameId') ?? '';
   protected readonly questId = this.route.snapshot.paramMap.get('questId') ?? '';
+  protected readonly handle = this.route.snapshot.paramMap.get('handle') ?? '';
+  protected readonly context: 'game' | 'profile' | 'usuario' = this.route.snapshot.paramMap.has(
+    'gameId',
+  )
+    ? 'game'
+    : this.route.snapshot.paramMap.has('handle')
+      ? 'usuario'
+      : 'profile';
 
   protected readonly isLoggedIn = this.authService.isLoggedIn;
   protected readonly versions = signal<QuestVersion[]>([]);
@@ -36,6 +44,20 @@ export class QuestHistory implements OnInit {
   protected readonly current = computed(
     () => this.versions().find((v) => v.status === 'current') ?? null,
   );
+
+  protected readonly uniqueEditors = computed(
+    () => new Set(this.versions().map((v) => v.editedBy.nickname)).size,
+  );
+
+  protected readonly lastEditedAgo = computed(() => {
+    const list = this.versions();
+    if (!list.length) return '';
+    const latest = list.reduce((a, b) => (new Date(a.editedAt) > new Date(b.editedAt) ? a : b));
+    const diff = Date.now() - new Date(latest.editedAt).getTime();
+    const d = Math.floor(diff / 86400000);
+    if (d < 1) return 'hoje';
+    return `${d}d`;
+  });
 
   ngOnInit(): void {
     this.versionService.list(this.questId).subscribe({

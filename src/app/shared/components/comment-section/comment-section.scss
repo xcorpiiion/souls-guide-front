@@ -23,6 +23,31 @@
   color: v.$color-text-muted;
 }
 
+.cs__login-prompt {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 16px;
+  margin-bottom: 1.5rem;
+  border-radius: v.$radius-md;
+  border: 1px dashed v.$color-border;
+  font-size: 14px;
+  color: v.$color-text-muted;
+  text-decoration: none;
+  transition:
+    border-color 0.15s,
+    color 0.15s;
+
+  i {
+    color: v.$color-gold;
+  }
+
+  &:hover {
+    border-color: v.$color-gold;
+    color: v.$color-gold;
+  }
+}
+
 .cs__empty {
   font-size: 14px;
   color: v.$color-text-muted;
@@ -298,6 +323,15 @@
 
   &--delete:hover {
     color: #e85050;
+  }
+
+  &--guest {
+    cursor: not-allowed;
+    opacity: 0.5;
+
+    &:hover {
+      color: v.$color-text-muted;
+    }
   }
 }
 

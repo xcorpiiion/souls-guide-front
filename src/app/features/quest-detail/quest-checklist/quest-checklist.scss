@@ -543,6 +543,28 @@
   }
 }
 
+.ck__login-hint {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: v.$color-text-muted;
+  margin: 0;
+
+  i {
+    flex-shrink: 0;
+  }
+
+  a {
+    color: v.$color-gold;
+    text-decoration: none;
+
+    &:hover {
+      text-decoration: underline;
+    }
+  }
+}
+
 @keyframes ck-spin {
   to {
     transform: rotate(360deg);

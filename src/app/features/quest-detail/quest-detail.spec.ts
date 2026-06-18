@@ -24,6 +24,7 @@ const MOCK_QUEST_API: QuestApi = {
   relatedQuests: MOCK_QUEST.relatedQuests,
   isPersonal: false,
   ownerId: null,
+  isOwner: false,
   isPublic: true,
   allowCopy: false,
   likeCount: 7,
@@ -84,22 +85,9 @@ describe('QuestDetail', () => {
     expect(stats.length).toBe(4);
   });
 
-  it('deve exibir a hint de clique quando nenhum nó está selecionado', () => {
+  it('deve renderizar o checklist da quest', () => {
     const fixture = createFixture('elden-ring', 'er-q1');
-    expect(fixture.nativeElement.querySelector('.quest-detail__panel-hint')).toBeTruthy();
-  });
-
-  it('deve deselecionar nó ao clicar novamente', () => {
-    const fixture = createFixture('elden-ring', 'er-q1');
-    fixture.componentInstance['onNodeSelect']('n1');
-    fixture.componentInstance['onNodeSelect']('n1');
-    fixture.detectChanges();
-    expect(fixture.componentInstance['selectedNodeId']()).toBeNull();
-  });
-
-  it('deve renderizar o componente de grafo', () => {
-    const fixture = createFixture('elden-ring', 'er-q1');
-    expect(fixture.nativeElement.querySelector('app-quest-graph')).toBeTruthy();
+    expect(fixture.nativeElement.querySelector('app-quest-checklist')).toBeTruthy();
   });
 
   it('deve exibir not-found quando service retorna erro', () => {

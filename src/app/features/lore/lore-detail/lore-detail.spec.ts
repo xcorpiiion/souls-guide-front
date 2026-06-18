@@ -112,19 +112,28 @@ describe('LoreDetail', () => {
 
     it('exibe botão de like sempre visível', () => {
       const fixture = createFixture('1', undefined, makeAuth(false));
-      const btn = fixture.nativeElement.querySelector('button.ld__like-btn');
+      const btns: HTMLButtonElement[] = Array.from(
+        fixture.nativeElement.querySelectorAll('button.ld__btn'),
+      );
+      const btn = btns.find((b) => b.querySelector('.ti-heart, .ti-heart-filled'));
       expect(btn).toBeTruthy();
     });
 
     it('botão de like está desabilitado quando não logado', () => {
       const fixture = createFixture('1', undefined, makeAuth(false));
-      const btn: HTMLButtonElement = fixture.nativeElement.querySelector('button.ld__like-btn');
+      const btns: HTMLButtonElement[] = Array.from(
+        fixture.nativeElement.querySelectorAll('button.ld__btn'),
+      );
+      const btn = btns.find((b) => b.querySelector('.ti-heart, .ti-heart-filled'));
       expect(btn?.disabled).toBe(true);
     });
 
     it('botão de like está habilitado quando logado', () => {
       const fixture = createFixture('1', undefined, makeAuth(true));
-      const btn: HTMLButtonElement = fixture.nativeElement.querySelector('button.ld__like-btn');
+      const btns: HTMLButtonElement[] = Array.from(
+        fixture.nativeElement.querySelectorAll('button.ld__btn'),
+      );
+      const btn = btns.find((b) => b.querySelector('.ti-heart, .ti-heart-filled'));
       expect(btn?.disabled).toBe(false);
     });
 
@@ -198,19 +207,28 @@ describe('LoreDetail', () => {
 
     it('exibe botão de seguir sempre visível', () => {
       const fixture = createFixture('1', undefined, makeAuth(false));
-      const btn = fixture.nativeElement.querySelector('button.ld__follow-btn');
+      const btns: HTMLButtonElement[] = Array.from(
+        fixture.nativeElement.querySelectorAll('button.ld__btn'),
+      );
+      const btn = btns.find((b) => b.querySelector('.ti-bell, .ti-bell-ringing'));
       expect(btn).toBeTruthy();
     });
 
     it('botão de seguir está desabilitado quando não logado', () => {
       const fixture = createFixture('1', undefined, makeAuth(false));
-      const btn: HTMLButtonElement = fixture.nativeElement.querySelector('button.ld__follow-btn');
+      const btns: HTMLButtonElement[] = Array.from(
+        fixture.nativeElement.querySelectorAll('button.ld__btn'),
+      );
+      const btn = btns.find((b) => b.querySelector('.ti-bell, .ti-bell-ringing'));
       expect(btn?.disabled).toBe(true);
     });
 
     it('botão de seguir está habilitado quando logado', () => {
       const fixture = createFixture('1', undefined, makeAuth(true));
-      const btn: HTMLButtonElement = fixture.nativeElement.querySelector('button.ld__follow-btn');
+      const btns: HTMLButtonElement[] = Array.from(
+        fixture.nativeElement.querySelectorAll('button.ld__btn'),
+      );
+      const btn = btns.find((b) => b.querySelector('.ti-bell, .ti-bell-ringing'));
       expect(btn?.disabled).toBe(false);
     });
 

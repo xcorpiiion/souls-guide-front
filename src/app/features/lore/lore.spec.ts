@@ -4,6 +4,7 @@ import { describe, beforeEach, afterEach, it, expect, vi } from 'vitest';
 import { of } from 'rxjs';
 import { Lore } from './lore';
 import { LoreService } from '../../core/services/lore.service';
+import { GameService } from '../../core/services/game.service';
 import { LoreSummary } from '../../shared/models/lore-article.model';
 
 const MOCK_LORE: LoreSummary[] = [
@@ -46,13 +47,18 @@ const makePage = (articles: LoreSummary[], total = articles.length, pages = 1) =
 });
 
 const loreServiceMock = { list: vi.fn(() => of(makePage(MOCK_LORE))) };
+const gameServiceMock = { list: vi.fn(() => of(makePage([] as any))) };
 
 async function setup(page = makePage(MOCK_LORE)) {
   loreServiceMock.list.mockReturnValue(of(page));
 
   await TestBed.configureTestingModule({
     imports: [Lore],
-    providers: [provideRouter([]), { provide: LoreService, useValue: loreServiceMock }],
+    providers: [
+      provideRouter([]),
+      { provide: LoreService, useValue: loreServiceMock },
+      { provide: GameService, useValue: gameServiceMock },
+    ],
   }).compileComponents();
 
   const fixture: ComponentFixture<Lore> = TestBed.createComponent(Lore);

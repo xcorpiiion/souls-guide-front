@@ -1,5 +1,14 @@
-import { ChangeDetectionStrategy, Component, computed, input, output, signal } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  computed,
+  inject,
+  input,
+  output,
+  signal,
+} from '@angular/core';
 import { RouterLink } from '@angular/router';
+import { AuthService } from '../../../core/services/auth.service';
 import { QuestEdge, QuestNode } from '../../../shared/models/quest.model';
 
 export interface ForkOption {
@@ -15,6 +24,7 @@ export interface ForkEntry {
   kind: 'fork';
   id: string;
   options: ForkOption[];
+  convergesTo: string | null;
 }
 export type ListEntry = StepEntry | ForkEntry;
 
@@ -84,7 +94,7 @@ export function buildEntries(nodes: QuestNode[], edges: QuestEdge[]): ListEntry[
         const branch = collectBranch(childId, conv, adj, nodeMap);
         return { firstNode: branch[0] ?? nodeMap.get(childId)!, subSteps: branch.slice(1) };
       });
-      result.push({ kind: 'fork', id: cur, options });
+      result.push({ kind: 'fork', id: cur, options, convergesTo: conv });
       cur = conv;
     } else {
       result.push({ kind: 'step', node });
@@ -102,6 +112,8 @@ export function buildEntries(nodes: QuestNode[], edges: QuestEdge[]): ListEntry[
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class QuestChecklist {
+  protected readonly auth = inject(AuthService);
+
   readonly nodes = input<QuestNode[]>([]);
   readonly edges = input<QuestEdge[]>([]);
   readonly completedNodeIds = input<Set<string>>(new Set());

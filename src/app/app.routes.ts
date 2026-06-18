@@ -26,6 +26,12 @@ export const routes: Routes = [
     loadComponent: () => import('./features/game-detail/game-detail').then((m) => m.GameDetail),
   },
   {
+    path: 'games/:id/conditions',
+    loadComponent: () =>
+      import('./features/quest-conditions/quest-conditions').then((m) => m.QuestConditions),
+    canActivate: [authGuard],
+  },
+  {
     path: 'login',
     loadComponent: () => import('./features/login/login').then((m) => m.Login),
   },
@@ -91,18 +97,41 @@ export const routes: Routes = [
   {
     path: 'profile',
     loadComponent: () => import('./features/profile/profile').then((m) => m.Profile),
-  },
-  {
-    path: 'kanban',
-    loadComponent: () =>
-      import('./features/kanban/kanban-list/kanban-list').then((m) => m.KanbanList),
     canActivate: [authGuard],
   },
   {
-    path: 'kanban/:id',
-    loadComponent: () =>
-      import('./features/kanban/kanban-board/kanban-board').then((m) => m.KanbanBoard),
+    path: 'profile/quests/:questId',
+    loadComponent: () => import('./features/quest-detail/quest-detail').then((m) => m.QuestDetail),
     canActivate: [authGuard],
+  },
+  {
+    path: 'profile/quests/:questId/history',
+    loadComponent: () =>
+      import('./features/quest-history/quest-history').then((m) => m.QuestHistory),
+    canActivate: [authGuard],
+  },
+  {
+    path: 'profile/quests/:questId/edit',
+    loadComponent: () => import('./features/quest-editor/quest-editor').then((m) => m.QuestEditor),
+    canActivate: [authGuard],
+    canDeactivate: [unsavedChangesGuard],
+  },
+  {
+    path: 'profile/lore/:id/history',
+    loadComponent: () => import('./features/lore-history/lore-history').then((m) => m.LoreHistory),
+    canActivate: [authGuard],
+  },
+  {
+    path: 'profile/lore/:id',
+    loadComponent: () =>
+      import('./features/lore/lore-detail/lore-detail').then((m) => m.LoreDetail),
+    canActivate: [authGuard],
+  },
+  {
+    path: 'profile/lore/:id/edit',
+    loadComponent: () => import('./features/lore-editor/lore-editor').then((m) => m.LoreEditor),
+    canActivate: [authGuard],
+    canDeactivate: [unsavedChangesGuard],
   },
   {
     path: 'comunidade',
@@ -111,6 +140,24 @@ export const routes: Routes = [
   {
     path: 'usuarios/:handle',
     loadComponent: () => import('./features/usuario/usuario').then((m) => m.Usuario),
+  },
+  {
+    path: 'usuarios/:handle/quests/:questId/history',
+    loadComponent: () =>
+      import('./features/quest-history/quest-history').then((m) => m.QuestHistory),
+  },
+  {
+    path: 'usuarios/:handle/lore/:id/history',
+    loadComponent: () => import('./features/lore-history/lore-history').then((m) => m.LoreHistory),
+  },
+  {
+    path: 'usuarios/:handle/quests/:questId',
+    loadComponent: () => import('./features/quest-detail/quest-detail').then((m) => m.QuestDetail),
+  },
+  {
+    path: 'usuarios/:handle/lore/:id',
+    loadComponent: () =>
+      import('./features/lore/lore-detail/lore-detail').then((m) => m.LoreDetail),
   },
   {
     path: 'search',

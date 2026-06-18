@@ -11,13 +11,27 @@
     <div class="ld__topbar">
       <div class="ld__topbar-inner">
         <nav class="ld__crumb" aria-label="Navegação">
-          <a class="ld__crumb-link" routerLink="/lore">lore</a>
-          <i class="ti ti-chevron-right ld__crumb-sep" aria-hidden="true"></i>
-          <span class="ld__crumb-link">{{ a.gameName }}</span>
-          <i class="ti ti-chevron-right ld__crumb-sep" aria-hidden="true"></i>
-          <span class="ld__crumb-current">{{
-            a.type === 'CHARACTER' ? 'personagem' : 'mundo'
-          }}</span>
+          @if (context === 'profile') {
+            <a class="ld__crumb-link" routerLink="/profile">perfil</a>
+            <i class="ti ti-chevron-right ld__crumb-sep" aria-hidden="true"></i>
+            <a class="ld__crumb-link" routerLink="/profile">lore</a>
+          } @else if (context === 'usuario') {
+            <a class="ld__crumb-link" [routerLink]="['/usuarios', handle]">&#64;{{ handle }}</a>
+            <i class="ti ti-chevron-right ld__crumb-sep" aria-hidden="true"></i>
+            <a class="ld__crumb-link" [routerLink]="['/usuarios', handle]">lore</a>
+          } @else {
+            <a class="ld__crumb-link" routerLink="/lore">lore</a>
+            <i class="ti ti-chevron-right ld__crumb-sep" aria-hidden="true"></i>
+            <span class="ld__crumb-link">{{ a.gameName }}</span>
+            <i class="ti ti-chevron-right ld__crumb-sep" aria-hidden="true"></i>
+            <span class="ld__crumb-current">{{
+              a.type === 'CHARACTER' ? 'personagem' : 'mundo'
+            }}</span>
+          }
+          @if (context !== 'community') {
+            <i class="ti ti-chevron-right ld__crumb-sep" aria-hidden="true"></i>
+            <span class="ld__crumb-current">{{ a.title }}</span>
+          }
         </nav>
       </div>
     </div>
@@ -27,63 +41,104 @@
       <!-- ── article body ── -->
       <article class="ld__article">
         <header class="ld__article-head">
-          <div class="ld__badges">
-            <span class="lr__badge lr__badge--{{ a.gameId }}">{{ a.gameName }}</span>
-            <span class="lr__badge lr__badge--cat">{{
-              a.type === 'CHARACTER' ? 'personagem' : 'mundo'
-            }}</span>
-            <span class="lr__badge lr__badge--{{ a.status | lowercase }}">
-              {{ statusLabel(a.status) }}
-            </span>
+          <div class="ld__head-row">
+            <div class="ld__medallion">
+              <i
+                [class]="a.type === 'CHARACTER' ? 'ti ti-moon-stars' : 'ti ti-map'"
+                aria-hidden="true"
+              ></i>
+            </div>
+            <div class="ld__head-info">
+              <div class="ld__badges">
+                <span class="lr__badge lr__badge--{{ a.gameId }}">{{ a.gameName }}</span>
+                <span class="lr__badge lr__badge--cat">{{
+                  a.type === 'CHARACTER' ? 'personagem' : 'mundo'
+                }}</span>
+                <span class="lr__badge lr__badge--{{ a.status | lowercase }}">
+                  {{ statusLabel(a.status) }}
+                </span>
+              </div>
+
+              <h1 class="ld__title">{{ a.title }}</h1>
+
+              @if (a.characterName) {
+                <p class="ld__character-name">
+                  <i class="ti ti-user-circle" aria-hidden="true"></i> {{ a.characterName }}
+                </p>
+              }
+            </div>
           </div>
 
-          <h1 class="ld__title">{{ a.title }}</h1>
-
-          @if (a.characterName) {
-            <p class="ld__character-name">
-              <i class="ti ti-user-circle" aria-hidden="true"></i> {{ a.characterName }}
-            </p>
-          }
-
           <div class="ld__meta">
-            <span class="ld__meta-item">
+            <span class="ld__author-chip">
               <i class="ti ti-user" aria-hidden="true"></i>
               @{{ a.userId }}
             </span>
-            <span class="ld__meta-sep">·</span>
+
             <button
-              class="ld__like-btn"
-              [class.ld__like-btn--liked]="userHasLiked()"
+              class="ld__btn"
+              [class.ld__btn--liked]="userHasLiked()"
               type="button"
               [disabled]="!auth.isLoggedIn() || liking()"
               (click)="toggleLike()"
+              [title]="userHasLiked() ? 'remover curtida' : 'curtir'"
             >
-              <i class="ti ti-heart" aria-hidden="true"></i> {{ likeCount() }}
+              <i
+                [class]="userHasLiked() ? 'ti ti-heart-filled' : 'ti ti-heart'"
+                aria-hidden="true"
+              ></i>
+              {{ userHasLiked() ? 'curtido' : 'curtir' }}
+              @if (likeCount() > 0) {
+                · {{ likeCount() }}
+              }
             </button>
-            <span class="ld__meta-sep">·</span>
+
             <button
-              class="ld__follow-btn"
-              [class.ld__follow-btn--following]="userIsFollowing()"
+              class="ld__btn"
+              [class.ld__btn--following]="userIsFollowing()"
               type="button"
               [disabled]="!auth.isLoggedIn() || following()"
               (click)="toggleFollow()"
+              [title]="userIsFollowing() ? 'parar de seguir' : 'seguir'"
             >
-              <i class="ti ti-bell" aria-hidden="true"></i>
-              {{ userIsFollowing() ? 'seguindo' : 'seguir' }} · {{ followerCount() }}
+              <i
+                [class]="userIsFollowing() ? 'ti ti-bell-ringing' : 'ti ti-bell'"
+                aria-hidden="true"
+              ></i>
+              {{ userIsFollowing() ? 'seguindo' : 'seguir' }}
+              @if (followerCount() > 0) {
+                · {{ followerCount() }}
+              }
             </button>
-            <span class="ld__meta-sep">·</span>
-            <a class="ld__history-link" [routerLink]="['/lore', a.id, 'history']">
-              <i class="ti ti-git-branch" aria-hidden="true"></i> histórico
+
+            <a
+              class="ld__btn"
+              [routerLink]="
+                context === 'profile'
+                  ? ['/profile', 'lore', a.id, 'history']
+                  : context === 'usuario'
+                    ? ['/usuarios', handle, 'lore', a.id, 'history']
+                    : ['/lore', a.id, 'history']
+              "
+            >
+              <i class="ti ti-history" aria-hidden="true"></i> histórico
             </a>
-            @if (auth.isLoggedIn() && a.allowCopy) {
-              <span class="ld__meta-sep">·</span>
-              <button class="ld__copy-btn" type="button" (click)="openCopyModal()">
+
+            @if (canCopy()) {
+              <button class="ld__btn" type="button" (click)="openCopyModal()">
                 <i class="ti ti-copy" aria-hidden="true"></i> copiar
               </button>
             }
-            @if (auth.isLoggedIn()) {
-              <span class="ld__meta-sep">·</span>
-              <a class="ld__history-link" [routerLink]="['/lore', a.id, 'edit']">
+
+            @if (canEdit()) {
+              <a
+                class="ld__btn ld__btn--accent"
+                [routerLink]="
+                  context === 'profile'
+                    ? ['/profile', 'lore', a.id, 'edit']
+                    : ['/lore', a.id, 'edit']
+                "
+              >
                 <i class="ti ti-pencil" aria-hidden="true"></i> editar
               </a>
             }
@@ -95,7 +150,10 @@
             @if (paragraph.startsWith('## ')) {
               <h2 class="ld__section-heading">{{ paragraph.slice(3) }}</h2>
             } @else if (paragraph.startsWith('> ')) {
-              <blockquote class="ld__quote">{{ paragraph.slice(2) }}</blockquote>
+              <blockquote class="ld__quote">
+                <i class="ti ti-quote ld__quote-icon" aria-hidden="true"></i>
+                <span class="ld__quote-text">{{ paragraph.slice(2) }}</span>
+              </blockquote>
             } @else {
               <p class="ld__paragraph">{{ paragraph }}</p>
             }

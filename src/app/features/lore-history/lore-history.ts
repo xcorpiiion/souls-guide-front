@@ -24,8 +24,15 @@ export class LoreHistory implements OnInit {
   private readonly authService = inject(AuthService);
   private readonly toast = inject(ToastService);
 
-  protected readonly gameId = this.route.snapshot.paramMap.get('gameId') ?? '';
-  protected readonly loreId = this.route.snapshot.paramMap.get('loreId') ?? '';
+  protected readonly loreId =
+    this.route.snapshot.paramMap.get('loreId') ?? this.route.snapshot.paramMap.get('id') ?? '';
+  protected readonly handle = this.route.snapshot.paramMap.get('handle') ?? '';
+  protected readonly context: 'community' | 'profile' | 'usuario' =
+    this.route.snapshot.url[0]?.path === 'profile'
+      ? 'profile'
+      : this.route.snapshot.paramMap.has('handle')
+        ? 'usuario'
+        : 'community';
 
   protected readonly isLoggedIn = this.authService.isLoggedIn;
   protected readonly versions = signal<LoreVersion[]>([]);

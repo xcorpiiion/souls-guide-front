@@ -1,158 +1,223 @@
 <section class="qh">
   <header class="qh__header">
-    <a class="qh__back" [routerLink]="['/games', gameId, 'quests', questId]">
+    <a
+      class="qh__back"
+      [routerLink]="
+        context === 'profile'
+          ? ['/profile', 'quests', questId]
+          : context === 'usuario'
+            ? ['/usuarios', handle, 'quests', questId]
+            : ['/games', gameId, 'quests', questId]
+      "
+    >
       <i class="ti ti-arrow-left" aria-hidden="true"></i> voltar para a quest
     </a>
-    <div>
-      <h1 class="qh__title">histórico de versões</h1>
-      <p class="qh__subtitle">
-        <i class="ti ti-git-branch" aria-hidden="true"></i>
-        {{ versions().length }} versões · reverter cria uma nova versão, nada é apagado
-      </p>
-    </div>
+
+    <h1 class="qh__title">histórico de versões</h1>
+    <p class="qh__subtitle">
+      <i class="ti ti-git-branch" aria-hidden="true"></i>
+      {{ versions().length }} versões · reverter cria uma nova versão, nada é apagado
+    </p>
+
+    @if (!loading() && versions().length > 0) {
+      <div class="qh__stats">
+        <div class="qh__stat">
+          <span class="qh__stat-n">{{ versions().length }}</span>
+          <span class="qh__stat-l">versões</span>
+        </div>
+        <div class="qh__stat">
+          <span class="qh__stat-n">{{ uniqueEditors() }}</span>
+          <span class="qh__stat-l">colaboradores</span>
+        </div>
+        <div class="qh__stat">
+          <span class="qh__stat-n">{{ lastEditedAgo() }}</span>
+          <span class="qh__stat-l">última edição</span>
+        </div>
+      </div>
+    }
   </header>
 
   @if (loading()) {
     <p class="qh__loading">Carregando histórico…</p>
+  } @else if (versions().length === 0) {
+    <div class="qh__empty">
+      <i class="ti ti-git-branch qh__empty-icon" aria-hidden="true"></i>
+      <p class="qh__empty-title">nenhuma versão ainda</p>
+      <p class="qh__empty-sub">As edições feitas nesta quest aparecerão aqui.</p>
+    </div>
   } @else {
-    @for (v of versions(); track v.versionNumber) {
-      @if (v.status === 'reverted' && $index > 0 && versions()[$index - 1].status !== 'reverted') {
-        <div class="qh__divider">
-          <i class="ti ti-arrow-back-up" aria-hidden="true"></i>
-          versão revertida por votos da comunidade
+    <div class="qh__timeline">
+      @for (v of versions(); track v.versionNumber) {
+        @if (
+          v.status === 'reverted' && $index > 0 && versions()[$index - 1].status !== 'reverted'
+        ) {
+          <div class="qh__divider">
+            <i class="ti ti-arrow-back-up" aria-hidden="true"></i>
+            versão revertida por votos da comunidade
+          </div>
+        }
+
+        <div class="qh__entry">
+          <div
+            class="qh__dot"
+            [class.qh__dot--current]="v.status === 'current'"
+            [class.qh__dot--reverted]="v.status === 'reverted'"
+          ></div>
+
+          <div class="qh__card" [class.qh__card--reverted]="v.status === 'reverted'">
+            <div class="qh__card-head">
+              <span class="qh__ver">v{{ v.versionNumber }}</span>
+
+              <div class="qh__avatar" [class]="'qh__avatar--' + (v.versionNumber % 4)">
+                {{ initials(v.editedBy.nickname) }}
+              </div>
+
+              <div class="qh__meta">
+                <div class="qh__meta-name">
+                  @{{ v.editedBy.nickname }}
+                  @if (v.status === 'current') {
+                    <span class="qh__badge qh__badge--current">versão atual</span>
+                  }
+                  @if (v.versionNumber === 1) {
+                    <span class="qh__badge qh__badge--origin">criação original</span>
+                  }
+                  @if (v.status === 'reverted') {
+                    <span class="qh__badge qh__badge--reverted">
+                      <i class="ti ti-ban" aria-hidden="true"></i> revertida
+                    </span>
+                  }
+                  @if (v.revertedFromVersion) {
+                    <span class="qh__badge qh__badge--info">
+                      revertida de v{{ v.revertedFromVersion }}
+                    </span>
+                  }
+                </div>
+                <div class="qh__meta-time">
+                  <i class="ti ti-clock" aria-hidden="true"></i> {{ formatDate(v.editedAt) }}
+                </div>
+              </div>
+
+              <div class="qh__actions">
+                <a
+                  class="qh__btn"
+                  [routerLink]="
+                    context === 'profile'
+                      ? ['/profile', 'quests', questId]
+                      : context === 'usuario'
+                        ? ['/usuarios', handle, 'quests', questId]
+                        : ['/games', gameId, 'quests', questId]
+                  "
+                  [queryParams]="{ version: v.versionNumber }"
+                >
+                  <i class="ti ti-eye" aria-hidden="true"></i> ver
+                </a>
+                @if (v.status !== 'current' && v.status !== 'reverted' && isLoggedIn()) {
+                  <button
+                    class="qh__btn qh__btn--danger"
+                    type="button"
+                    [disabled]="reverting() !== null"
+                    (click)="revert(v)"
+                  >
+                    <i class="ti ti-arrow-back-up" aria-hidden="true"></i>
+                    {{ reverting() === v.versionNumber ? 'revertendo…' : 'reverter para esta' }}
+                  </button>
+                }
+              </div>
+            </div>
+
+            @if (v.diff) {
+              <div class="qh__diff">
+                @if (v.diff.titleOld || v.diff.titleNew) {
+                  <div class="qh__diff-row">
+                    <span class="qh__diff-label">título</span>
+                    <span>
+                      @if (v.diff.titleOld) {
+                        <span class="qh__old">{{ v.diff.titleOld }}</span>
+                      }
+                      @if (v.diff.titleNew) {
+                        <span class="qh__new">{{ v.diff.titleNew }}</span>
+                      }
+                    </span>
+                  </div>
+                }
+                @if (v.diff.descriptionOld || v.diff.descriptionNew) {
+                  <div class="qh__diff-row">
+                    <span class="qh__diff-label">descrição</span>
+                    <span>
+                      @if (v.diff.descriptionOld) {
+                        <span class="qh__old">{{ v.diff.descriptionOld }}</span>
+                      }
+                      @if (v.diff.descriptionNew) {
+                        <span class="qh__new">{{ v.diff.descriptionNew }}</span>
+                      }
+                    </span>
+                  </div>
+                }
+                @if (v.diff.statusOld || v.diff.statusNew) {
+                  <div class="qh__diff-row">
+                    <span class="qh__diff-label">status</span>
+                    <span>
+                      @if (v.diff.statusOld) {
+                        <span class="qh__old">{{ v.diff.statusOld }}</span>
+                      }
+                      @if (v.diff.statusNew) {
+                        <span class="qh__new">{{ v.diff.statusNew }}</span>
+                      }
+                    </span>
+                  </div>
+                }
+                @if (v.diff.nodesAdded) {
+                  <div class="qh__diff-row">
+                    <span class="qh__diff-label">nós adicionados</span>
+                    <span class="qh__new">+{{ v.diff.nodesAdded }} nós</span>
+                  </div>
+                }
+                @if (v.diff.nodesRemoved) {
+                  <div class="qh__diff-row">
+                    <span class="qh__diff-label">nós removidos</span>
+                    <span class="qh__old">−{{ v.diff.nodesRemoved }} nós</span>
+                  </div>
+                }
+              </div>
+            }
+
+            @if (v.status === 'reverted') {
+              <div class="qh__vote-bar-row">
+                <i class="ti ti-arrow-back-up" aria-hidden="true"></i>
+                <span>{{ v.revertVotes }} de {{ v.revertVotesNeeded }} votos atingidos</span>
+                <div class="qh__vote-bar-wrap">
+                  <div
+                    class="qh__vote-bar qh__vote-bar--danger"
+                    [style.width.%]="votePercent(v)"
+                  ></div>
+                </div>
+                <span class="qh__reverted-label">revertida</span>
+              </div>
+              @if (v.strikeIssued) {
+                <div class="qh__strike-banner">
+                  <i class="ti ti-alert-triangle" aria-hidden="true"></i>
+                  @{{ v.editedBy.nickname }} recebeu 1 strike por esta edição
+                </div>
+              }
+            }
+
+            @if (v.status === 'current' && current()!.revertVotes > 0) {
+              <div class="qh__vote-bar-row">
+                <i class="ti ti-flag" aria-hidden="true"></i>
+                <span
+                  >{{ current()!.revertVotes }} de {{ current()!.revertVotesNeeded }} votos para
+                  reverter</span
+                >
+                <div class="qh__vote-bar-wrap">
+                  <div class="qh__vote-bar" [style.width.%]="votePercent(current()!)"></div>
+                </div>
+              </div>
+            }
+          </div>
         </div>
       }
+    </div>
 
-      <div class="qh__card" [class.qh__card--reverted]="v.status === 'reverted'">
-        <!-- cabeçalho da versão -->
-        <div class="qh__card-head">
-          <span class="qh__ver">v{{ v.versionNumber }}</span>
-
-          <div class="qh__avatar" [class]="'qh__avatar--' + (v.versionNumber % 4)">
-            {{ initials(v.editedBy.nickname) }}
-          </div>
-
-          <div class="qh__meta">
-            <div class="qh__meta-name">
-              @{{ v.editedBy.nickname }}
-              @if (v.status === 'current') {
-                <span class="qh__badge qh__badge--current">versão atual</span>
-              }
-              @if (v.versionNumber === 1) {
-                <span class="qh__badge qh__badge--origin">criação original</span>
-              }
-              @if (v.status === 'reverted') {
-                <span class="qh__badge qh__badge--reverted">
-                  <i class="ti ti-ban" aria-hidden="true"></i> revertida
-                </span>
-              }
-              @if (v.revertedFromVersion) {
-                <span class="qh__badge qh__badge--info">
-                  revertida de v{{ v.revertedFromVersion }}
-                </span>
-              }
-            </div>
-            <div class="qh__meta-time">
-              <i class="ti ti-clock" aria-hidden="true"></i> {{ formatDate(v.editedAt) }}
-            </div>
-          </div>
-
-          <div class="qh__actions">
-            <button class="qh__btn" type="button">
-              <i class="ti ti-eye" aria-hidden="true"></i> ver
-            </button>
-            @if (v.status !== 'current' && v.status !== 'reverted' && isLoggedIn()) {
-              <button
-                class="qh__btn qh__btn--danger"
-                type="button"
-                [disabled]="reverting() !== null"
-                (click)="revert(v)"
-              >
-                <i class="ti ti-arrow-back-up" aria-hidden="true"></i>
-                {{ reverting() === v.versionNumber ? 'revertendo…' : 'reverter para esta' }}
-              </button>
-            }
-          </div>
-        </div>
-
-        <!-- diff -->
-        @if (v.diff) {
-          <div class="qh__diff">
-            @if (v.diff.titleOld || v.diff.titleNew) {
-              <div class="qh__diff-row">
-                <span class="qh__diff-label">título</span>
-                <span>
-                  @if (v.diff.titleOld) {
-                    <span class="qh__old">{{ v.diff.titleOld }}</span>
-                  }
-                  @if (v.diff.titleNew) {
-                    <span class="qh__new">{{ v.diff.titleNew }}</span>
-                  }
-                </span>
-              </div>
-            }
-            @if (v.diff.descriptionOld || v.diff.descriptionNew) {
-              <div class="qh__diff-row">
-                <span class="qh__diff-label">descrição</span>
-                <span>
-                  @if (v.diff.descriptionOld) {
-                    <span class="qh__old">{{ v.diff.descriptionOld }}</span>
-                  }
-                  @if (v.diff.descriptionNew) {
-                    <span class="qh__new">{{ v.diff.descriptionNew }}</span>
-                  }
-                </span>
-              </div>
-            }
-            @if (v.diff.statusOld || v.diff.statusNew) {
-              <div class="qh__diff-row">
-                <span class="qh__diff-label">status</span>
-                <span>
-                  @if (v.diff.statusOld) {
-                    <span class="qh__old">{{ v.diff.statusOld }}</span>
-                  }
-                  @if (v.diff.statusNew) {
-                    <span class="qh__new">{{ v.diff.statusNew }}</span>
-                  }
-                </span>
-              </div>
-            }
-            @if (v.diff.nodesAdded) {
-              <div class="qh__diff-row">
-                <span class="qh__diff-label">nós adicionados</span>
-                <span class="qh__new">+{{ v.diff.nodesAdded }} nós</span>
-              </div>
-            }
-            @if (v.diff.nodesRemoved) {
-              <div class="qh__diff-row">
-                <span class="qh__diff-label">nós removidos</span>
-                <span class="qh__old">−{{ v.diff.nodesRemoved }} nós</span>
-              </div>
-            }
-          </div>
-        }
-
-        <!-- votos de reversão (versão revertida) -->
-        @if (v.status === 'reverted') {
-          <div class="qh__vote-bar-row">
-            <i class="ti ti-arrow-back-up" aria-hidden="true"></i>
-            <span>{{ v.revertVotes }} de {{ v.revertVotesNeeded }} votos atingidos</span>
-            <div class="qh__vote-bar-wrap">
-              <div class="qh__vote-bar qh__vote-bar--danger" [style.width.%]="votePercent(v)"></div>
-            </div>
-            <span class="qh__reverted-label">revertida</span>
-          </div>
-          @if (v.strikeIssued) {
-            <div class="qh__strike-banner">
-              <i class="ti ti-alert-triangle" aria-hidden="true"></i>
-              @{{ v.editedBy.nickname }} recebeu 1 strike por esta edição
-            </div>
-          }
-        }
-      </div>
-    }
-
-    <!-- painel de voto na versão atual -->
     @if (current() && isLoggedIn()) {
       <div class="qh__vote-panel">
         <p class="qh__vote-panel-title">

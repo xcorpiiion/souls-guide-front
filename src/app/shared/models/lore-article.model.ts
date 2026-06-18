@@ -58,7 +58,7 @@ export function loreApiToSummary(l: LoreApi): LoreSummary {
     category: l.type === 'CHARACTER' ? 'CHARACTER' : 'WORLD',
     status: l.status,
     excerpt: l.content.slice(0, 120) + (l.content.length > 120 ? '…' : ''),
-    votes: 0,
+    votes: l.likeCount ?? 0,
     author: l.userId ?? '—',
     readMinutes: Math.max(1, Math.ceil(l.content.split(' ').length / 200)),
     tags: l.tags?.length ? l.tags : l.items.map((i) => i.name),

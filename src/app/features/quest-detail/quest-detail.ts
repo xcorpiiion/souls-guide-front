@@ -8,12 +8,17 @@ import {
   computed,
 } from '@angular/core';
 import { RouterLink, ActivatedRoute, Router } from '@angular/router';
-import { QuestDetailData, QuestNode, questApiToSummary } from '../../shared/models/quest.model';
+import {
+  QuestDetailData,
+  QuestNode,
+  QuestEdge,
+  questApiToSummary,
+} from '../../shared/models/quest.model';
 import { QuestService } from '../../core/services/quest.service';
 import { QuestProgressService } from '../../core/services/quest-progress.service';
+import { QuestVersionService } from '../../core/services/quest-version.service';
 import { PersonalQuestService } from '../../core/services/personal-quest.service';
 import { AuthService } from '../../core/services/auth.service';
-import { KanbanService } from '../../core/services/kanban.service';
 import {
   CopyToProfileModal,
   CopyConfirmEvent,
@@ -35,13 +40,29 @@ export class QuestDetail implements OnInit {
   private readonly router = inject(Router);
   private readonly questService = inject(QuestService);
   private readonly progressService = inject(QuestProgressService);
+  private readonly versionService = inject(QuestVersionService);
   private readonly personalQuestService = inject(PersonalQuestService);
-  private readonly kanbanService = inject(KanbanService);
   protected readonly auth = inject(AuthService);
   private readonly toast = inject(ToastService);
 
-  protected readonly gameId: string = this.route.snapshot.paramMap.get('gameId') ?? '';
+  protected readonly gameId = signal<string>(this.route.snapshot.paramMap.get('gameId') ?? '');
   protected readonly questId: string = this.route.snapshot.paramMap.get('questId') ?? '';
+  protected readonly handle: string = this.route.snapshot.paramMap.get('handle') ?? '';
+  protected readonly context: 'game' | 'profile' | 'usuario' = this.route.snapshot.paramMap.has(
+    'gameId',
+  )
+    ? 'game'
+    : this.route.snapshot.paramMap.has('handle')
+      ? 'usuario'
+      : 'profile';
+  protected readonly previewVersion = signal<number | null>(
+    Number(this.route.snapshot.queryParamMap.get('version')) || null,
+  );
+  protected readonly emptySet = new Set<string>();
+  protected readonly snapshotNodes = signal<QuestNode[] | null>(null);
+  protected readonly snapshotEdges = signal<QuestEdge[] | null>(null);
+  protected readonly snapshotUnavailable = signal(false);
+  protected readonly snapshotLoading = signal(false);
 
   protected readonly loading = signal(true);
   protected readonly error = signal<string | null>(null);
@@ -61,11 +82,6 @@ export class QuestDetail implements OnInit {
   protected readonly showSharePopover = signal(false);
   protected readonly copied = signal(false);
 
-  // ─── Kanban from quest ─────────────────────────────────────────────────────
-  protected readonly showKanbanPopover = signal(false);
-  protected readonly kanbanCharName = signal('');
-  protected readonly creatingKanban = signal(false);
-
   // ─── Progress ──────────────────────────────────────────────────────────────
   protected readonly completedNodeIds = signal<Set<string>>(new Set());
   protected readonly togglingNodeId = signal<string | null>(null);
@@ -77,8 +93,15 @@ export class QuestDetail implements OnInit {
     const q = this.quest();
     if (!q || !this.auth.isLoggedIn()) return false;
     if (q.isPersonal) return q.isOwner === true;
-    return true; // quest da comunidade: qualquer logado edita
+    return true; // quest da comunidade: qualquer logado pode editar
   });
+
+  // ─── Condições entre quests ──────────────────────────────────────────────
+  protected readonly hiddenReasonRevealed = signal(false);
+
+  protected revealHiddenReason(): void {
+    this.hiddenReasonRevealed.set(true);
+  }
 
   protected readonly progressTotal = computed(() => this.taskNodes().length);
   protected readonly progressDone = computed(
@@ -92,10 +115,16 @@ export class QuestDetail implements OnInit {
     this.questService.get(this.questId).subscribe({
       next: (api) => {
         const summary = questApiToSummary(api);
+        if (!this.gameId()) this.gameId.set(String(api.gameId));
         this.quest.set({
           ...summary,
-          nodes: api.nodes ?? [],
-          edges: api.edges ?? [],
+          nodes: (api.nodes ?? []).map((n) => ({ ...n, id: String(n.id) })),
+          edges: (api.edges ?? []).map((e) => ({
+            ...e,
+            id: String(e.id),
+            from: String(e.from),
+            to: String(e.to),
+          })),
           relatedQuests: api.relatedQuests ?? [],
         });
         this.likeCount.set(api.likeCount ?? 0);
@@ -103,6 +132,31 @@ export class QuestDetail implements OnInit {
         this.followerCount.set(api.followerCount ?? 0);
         this.userIsFollowing.set(api.userIsFollowing ?? false);
         this.loading.set(false);
+
+        const ver = this.previewVersion();
+        if (ver !== null) {
+          this.snapshotLoading.set(true);
+          this.versionService.getSnapshot(this.questId, ver).subscribe({
+            next: (snap) => {
+              if (snap.nodes.length === 0) {
+                this.snapshotUnavailable.set(true);
+              } else {
+                this.snapshotNodes.set(snap.nodes.map((n) => ({ ...n, id: String(n.id) })));
+                this.snapshotEdges.set(
+                  snap.edges.map((e) => ({
+                    ...e,
+                    id: String(e.id),
+                    from: String(e.from),
+                    to: String(e.to),
+                  })),
+                );
+              }
+              this.snapshotLoading.set(false);
+            },
+            error: () => this.snapshotLoading.set(false),
+          });
+        }
+
         if (this.auth.isLoggedIn()) {
           this.progressService.getProgress(this.questId).subscribe({
             next: (p) => this.completedNodeIds.set(new Set(p.completedNodeIds)),
@@ -150,10 +204,13 @@ export class QuestDetail implements OnInit {
   protected onCopyConfirm(event: CopyConfirmEvent): void {
     this.copying.set(true);
     this.personalQuestService.copyToProfile(this.questId, event.replaceExistingId).subscribe({
-      next: () => {
+      next: (created) => {
         this.copying.set(false);
         this.showCopyModal.set(false);
         this.toast.success('Quest copiada!', 'A quest foi adicionada ao seu perfil.');
+        this.router.navigate(['/games', this.gameId, 'quests', created.id, 'edit'], {
+          queryParams: { personal: 'true' },
+        });
       },
       error: (err: HttpErrorResponse) => {
         this.copying.set(false);
@@ -166,26 +223,6 @@ export class QuestDetail implements OnInit {
           this.showCopyModal.set(false);
           this.toast.error('Erro', 'Erro ao copiar quest. Tente novamente.');
         }
-      },
-    });
-  }
-
-  protected createKanbanFromQuest(): void {
-    const q = this.quest();
-    if (!q || this.creatingKanban()) return;
-    const charName = this.kanbanCharName().trim();
-    if (!charName) return;
-    this.creatingKanban.set(true);
-    this.kanbanService.createBoard(q.gameId, q.gameName, charName).subscribe({
-      next: (board) => {
-        this.creatingKanban.set(false);
-        this.showKanbanPopover.set(false);
-        this.kanbanCharName.set('');
-        this.router.navigate(['/kanban', board.id]);
-      },
-      error: () => {
-        this.creatingKanban.set(false);
-        this.toast.error('Erro', 'Não foi possível criar o Kanban.');
       },
     });
   }
@@ -213,7 +250,6 @@ export class QuestDetail implements OnInit {
   @HostListener('document:click')
   protected onDocumentClick(): void {
     this.showSharePopover.set(false);
-    this.showKanbanPopover.set(false);
   }
 
   protected toggleSharePopover(): void {

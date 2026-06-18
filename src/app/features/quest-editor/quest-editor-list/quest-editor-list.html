@@ -1,0 +1,297 @@
+<div class="qel">
+  <div class="qel__toolbar">
+    <button
+      class="qel__toolbar-btn"
+      type="button"
+      title="desfazer (Ctrl+Z)"
+      [disabled]="!canUndo()"
+      (click)="undo()"
+    >
+      <i class="ti ti-arrow-back-up" aria-hidden="true"></i>
+    </button>
+    <button
+      class="qel__toolbar-btn"
+      type="button"
+      title="refazer (Ctrl+Y)"
+      [disabled]="!canRedo()"
+      (click)="redo()"
+    >
+      <i class="ti ti-arrow-forward-up" aria-hidden="true"></i>
+    </button>
+  </div>
+
+  <p class="qel__order-hint">
+    <i class="ti ti-arrows-sort" aria-hidden="true"></i>
+    a ordem das etapas importa — arraste pelo ícone
+    <i class="ti ti-grip-vertical" aria-hidden="true"></i> ou use as setas para reorganizar
+  </p>
+
+  <div class="qel__list" cdkDropList (cdkDropListDropped)="onCdkDrop($event)">
+    @for (entry of entries(); track entryKey(entry); let i = $index) {
+      @if (entry.kind === 'step') {
+        @if (entry.node.type === 'start') {
+          <div class="qel__row" cdkDrag [cdkDragDisabled]="true">
+            <div class="qel__spine">
+              <div class="qel__dot qel__dot--start">
+                <i class="ti ti-player-play" aria-hidden="true"></i>
+              </div>
+              <div class="qel__spine-line"></div>
+            </div>
+            <div class="qel__boundary qel__boundary--start">início</div>
+          </div>
+        } @else if (entry.node.type === 'end') {
+          <div class="qel__row" cdkDrag [cdkDragDisabled]="true">
+            <div class="qel__spine">
+              <div class="qel__dot qel__dot--end">
+                <i class="ti ti-flag" aria-hidden="true"></i>
+              </div>
+            </div>
+            <button
+              class="qel__boundary qel__boundary--end qel__boundary--clickable"
+              type="button"
+              [class.qel__boundary--active]="selectedStepId() === entry.node.id"
+              (click)="selectStep(entry.node.id)"
+            >
+              {{ entry.node.label || 'final' }}
+            </button>
+          </div>
+        } @else {
+          <div class="qel__row" cdkDrag cdkDragLockAxis="y" [cdkDragData]="entry">
+            <div class="qel__spine">
+              <div
+                class="qel__dot qel__dot--task"
+                [class.qel__dot--active]="selectedStepId() === entry.node.id"
+              >
+                {{ i }}
+              </div>
+              <div class="qel__spine-line"></div>
+            </div>
+            <div
+              class="qel__card"
+              [class.qel__card--active]="selectedStepId() === entry.node.id"
+              [class.qel__card--moved]="isRecentlyMoved(entry)"
+            >
+              <button class="qel__card-main" type="button" (click)="selectStep(entry.node.id)">
+                <i class="ti ti-grip-vertical qel__card-grip" aria-hidden="true"></i>
+                <span class="qel__card-label">{{ entry.node.label }}</span>
+              </button>
+              <div class="qel__card-actions" (mousedown)="$event.stopPropagation()">
+                <i
+                  class="ti ti-chevron-up qel__move-btn"
+                  [class.qel__move-btn--disabled]="!canMoveUp(i)"
+                  aria-hidden="true"
+                  title="mover para cima"
+                  (click)="moveUp(i)"
+                ></i>
+                <i
+                  class="ti ti-chevron-down qel__move-btn"
+                  [class.qel__move-btn--disabled]="!canMoveDown(i)"
+                  aria-hidden="true"
+                  title="mover para baixo"
+                  (click)="moveDown(i)"
+                ></i>
+                <i
+                  class="ti ti-trash qel__card-delete"
+                  aria-hidden="true"
+                  (click)="deleteStep(entry.node.id)"
+                ></i>
+              </div>
+            </div>
+          </div>
+        }
+      } @else {
+        <div class="qel__row qel__row--fork" cdkDrag cdkDragLockAxis="y" [cdkDragData]="entry">
+          <div class="qel__spine">
+            <div class="qel__dot qel__dot--fork">
+              <span>{{ i }}</span>
+            </div>
+          </div>
+          <div class="qel__fork" [class.qel__fork--moved]="isRecentlyMoved(entry)">
+            <div class="qel__fork-header">
+              <i class="ti ti-arrows-split qel__fork-handle" aria-hidden="true"></i>
+              <span class="qel__fork-title">bifurcação · {{ entry.options.length }} ramos</span>
+              <div class="qel__fork-actions" (mousedown)="$event.stopPropagation()">
+                <i
+                  class="ti ti-chevron-up qel__move-btn"
+                  [class.qel__move-btn--disabled]="!canMoveUp(i)"
+                  aria-hidden="true"
+                  title="mover para cima"
+                  (click)="moveUp(i)"
+                ></i>
+                <i
+                  class="ti ti-chevron-down qel__move-btn"
+                  [class.qel__move-btn--disabled]="!canMoveDown(i)"
+                  aria-hidden="true"
+                  title="mover para baixo"
+                  (click)="moveDown(i)"
+                ></i>
+                <i
+                  class="ti ti-trash qel__fork-delete"
+                  aria-hidden="true"
+                  (click)="deleteFork(entry)"
+                ></i>
+              </div>
+            </div>
+
+            <div class="qel__branches" (mousedown)="$event.stopPropagation()">
+              @for (option of entry.options; track option.firstNode.id; let i = $index) {
+                <div class="qel__branch">
+                  <div class="qel__branch-head">
+                    <span class="qel__branch-index">{{ i + 1 }}</span>
+                    <i
+                      class="ti ti-x qel__branch-delete"
+                      aria-hidden="true"
+                      (click)="deleteBranch(entry, i)"
+                    ></i>
+                  </div>
+
+                  <div class="qel__branch-steps">
+                    <button
+                      class="qel__branch-step"
+                      type="button"
+                      [class.qel__branch-step--active]="selectedStepId() === option.firstNode.id"
+                      (click)="selectStep(option.firstNode.id)"
+                    >
+                      <span>{{ option.firstNode.label }}</span>
+                      <i
+                        class="ti ti-trash qel__branch-step-delete"
+                        aria-hidden="true"
+                        (click)="deleteStep(option.firstNode.id); $event.stopPropagation()"
+                      ></i>
+                    </button>
+
+                    @for (sub of option.subSteps; track sub.id) {
+                      <button
+                        class="qel__branch-step"
+                        type="button"
+                        [class.qel__branch-step--active]="selectedStepId() === sub.id"
+                        (click)="selectStep(sub.id)"
+                      >
+                        <span>{{ sub.label }}</span>
+                        <i
+                          class="ti ti-trash qel__branch-step-delete"
+                          aria-hidden="true"
+                          (click)="deleteStep(sub.id); $event.stopPropagation()"
+                        ></i>
+                      </button>
+                    }
+                  </div>
+
+                  <button class="qel__branch-add" type="button" (click)="addStepToBranch(entry, i)">
+                    <i class="ti ti-plus" aria-hidden="true"></i> etapa
+                  </button>
+                </div>
+              }
+
+              <button class="qel__branch-add-col" type="button" (click)="addBranch(entry)">
+                <i class="ti ti-plus" aria-hidden="true"></i> adicionar ramo
+              </button>
+            </div>
+          </div>
+        </div>
+      }
+    }
+  </div>
+
+  @if (canAppend()) {
+    <div class="qel__append-actions">
+      <button class="qel__append-btn" type="button" (click)="addStep()">
+        <i class="ti ti-plus" aria-hidden="true"></i> adicionar etapa
+      </button>
+      <button class="qel__append-btn" type="button" (click)="addFork()">
+        <i class="ti ti-arrows-split" aria-hidden="true"></i> adicionar bifurcação
+      </button>
+    </div>
+  }
+</div>
+
+@if (selectedStep(); as step) {
+  <div class="qel__sheet-backdrop" role="none" (click)="closeDetails()"></div>
+  <aside class="qel__details" [style.width.px]="detailsWidth()">
+    <div
+      class="qel__details-resize"
+      title="arrastar para redimensionar"
+      (mousedown)="onDetailsResizeStart($event)"
+    ></div>
+
+    <header class="qel__details-header">
+      <span class="qel__details-title">detalhes da etapa</span>
+      <i class="ti ti-x qel__details-close" aria-hidden="true" (click)="closeDetails()"></i>
+    </header>
+
+    <label class="qel__field">
+      <span class="qel__label">tipo</span>
+      <select
+        class="qel__input qel__input--select"
+        [value]="step.type"
+        (change)="updateStepType($any($event.target).value)"
+      >
+        <option value="task">tarefa</option>
+        <option value="end">final</option>
+        <option value="external-quest">quest externa</option>
+      </select>
+    </label>
+
+    <label class="qel__field">
+      <span class="qel__label">nome</span>
+      <input
+        class="qel__input"
+        type="text"
+        [value]="step.label"
+        (input)="updateStepLabel($any($event.target).value)"
+      />
+    </label>
+
+    @if (step.type === 'end') {
+      <label class="qel__field">
+        <span class="qel__label">tipo de final</span>
+        <select
+          class="qel__input qel__input--select"
+          [value]="step.endingType ?? ''"
+          (change)="updateStepEndingType($any($event.target).value)"
+        >
+          @for (et of endingTypes; track et.value) {
+            <option [value]="et.value">{{ et.label }}</option>
+          }
+        </select>
+      </label>
+    }
+
+    @if (step.type !== 'end') {
+      <label class="qel__field">
+        <span class="qel__label">descrição</span>
+        <textarea
+          class="qel__input qel__input--textarea"
+          rows="3"
+          placeholder="opcional"
+          [value]="step.description ?? ''"
+          (input)="updateStepDescription($any($event.target).value)"
+        ></textarea>
+      </label>
+
+      <label class="qel__field">
+        <span class="qel__label">localização</span>
+        <input
+          class="qel__input"
+          type="text"
+          placeholder="opcional"
+          [value]="step.location ?? ''"
+          (input)="updateStepLocation($any($event.target).value)"
+        />
+      </label>
+
+      <label class="qel__field">
+        <span class="qel__label">tags (vírgula)</span>
+        <input
+          class="qel__input"
+          type="text"
+          placeholder="ex: npc, boss"
+          [value]="stepTagsString(step)"
+          (input)="updateStepTags($any($event.target).value)"
+        />
+      </label>
+    }
+
+    <button class="qel__details-done" type="button" (click)="closeDetails()">concluído</button>
+  </aside>
+}

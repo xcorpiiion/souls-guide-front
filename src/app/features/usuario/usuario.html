@@ -32,14 +32,28 @@
                 <span class="up__stat-n">{{ p.loreCount }}</span>
                 <span class="up__stat-l">lore</span>
               </div>
-              <div class="up__stat">
+              <button
+                class="up__stat up__stat--btn"
+                [class.up__stat--active]="
+                  activeTab() === 'seguidores' && socialSubTab() === 'seguidores'
+                "
+                type="button"
+                (click)="setTab('seguidores'); socialSubTab.set('seguidores')"
+              >
                 <span class="up__stat-n">{{ p.followerCount }}</span>
                 <span class="up__stat-l">seguidores</span>
-              </div>
-              <div class="up__stat">
+              </button>
+              <button
+                class="up__stat up__stat--btn"
+                [class.up__stat--active]="
+                  activeTab() === 'seguidores' && socialSubTab() === 'seguindo'
+                "
+                type="button"
+                (click)="setTab('seguidores'); socialSubTab.set('seguindo')"
+              >
                 <span class="up__stat-n">{{ p.followingCount }}</span>
                 <span class="up__stat-l">seguindo</span>
-              </div>
+              </button>
             </div>
           </div>
 
@@ -79,80 +93,364 @@
           >
             lore
           </button>
+          <button
+            class="up__tab"
+            [class.up__tab--active]="activeTab() === 'jogos'"
+            role="tab"
+            (click)="setTab('jogos')"
+          >
+            jogos
+          </button>
+          <button
+            class="up__tab"
+            [class.up__tab--active]="activeTab() === 'seguidores'"
+            role="tab"
+            (click)="setTab('seguidores')"
+          >
+            seguidores
+            @if (p.followerCount > 0) {
+              <span class="up__tab-count">{{ p.followerCount }}</span>
+            }
+          </button>
         </nav>
       </div>
     </header>
 
     <!-- ══ body ══════════════════════════════════════════════════════════════ -->
     <div class="up__body">
-      @if (loadingContent()) {
-        <p class="up__empty">Carregando…</p>
-      } @else if (activeTab() === 'quests') {
-        @if (quests().length === 0) {
-          <p class="up__empty">Este usuário ainda não publicou nenhuma quest.</p>
-        }
-        @for (quest of quests(); track quest.id) {
-          <a class="up__quest-card" [routerLink]="['/games', quest.gameId, 'quests', quest.id]">
-            <div class="up__quest-info">
-              <span class="up__quest-title">{{ quest.title }}</span>
-              <span class="up__quest-meta">
-                {{ quest.gameName }}
-                @if (quest.likeCount) {
-                  · <i class="ti ti-heart-filled up__like-icon" aria-hidden="true"></i>
-                  {{ quest.likeCount }}
-                }
-              </span>
-            </div>
-            <span class="up__badge up__badge--{{ quest.status | lowercase }}">
-              {{ statusLabel(quest.status) }}
-            </span>
-            <i class="ti ti-chevron-right up__quest-arrow" aria-hidden="true"></i>
-          </a>
-        }
-      } @else {
-        @if (lore().length === 0) {
-          <p class="up__empty">Este usuário ainda não publicou nenhum artigo de lore.</p>
-        }
-        @for (article of lore(); track article.id) {
-          <a class="up__quest-card" [routerLink]="['/lore', article.id]">
-            <div class="up__quest-info">
-              <span class="up__quest-title">{{ article.title }}</span>
-              <span class="up__quest-meta">
-                {{ article.gameName }}
-                @if (article.likeCount) {
-                  · <i class="ti ti-heart-filled up__like-icon" aria-hidden="true"></i>
-                  {{ article.likeCount }}
-                }
-              </span>
-            </div>
-            <span class="up__badge up__badge--{{ article.status | lowercase }}">
-              {{ statusLabel(article.status) }}
-            </span>
-            <i class="ti ti-chevron-right up__quest-arrow" aria-hidden="true"></i>
-          </a>
-        }
-      }
-    </div>
+      <main class="up__main">
+        <!-- ── quests ──────────────────────────────────────────────────── -->
+        @if (activeTab() === 'quests') {
+          <div class="up__subtabs">
+            <button
+              class="up__subtab"
+              [class.up__subtab--active]="questSubTab() === 'do-usuario'"
+              type="button"
+              (click)="setQuestSubTab('do-usuario')"
+            >
+              quests
+            </button>
+            <button
+              class="up__subtab"
+              [class.up__subtab--active]="questSubTab() === 'seguidas'"
+              type="button"
+              (click)="setQuestSubTab('seguidas')"
+            >
+              seguidas
+            </button>
+          </div>
 
-    <!-- ══ activity feed ═══════════════════════════════════════════════════ -->
-    @if (activity().length) {
-      <section class="up__activity">
-        <p class="up__activity-title">atividade recente</p>
-        @for (item of activity(); track item.targetId) {
-          <div class="up__activity-row">
-            <div class="up__activity-dot {{ activityDot(item.type) }}"></div>
-            <div>
-              <p class="up__activity-text">
-                {{ activityLabel(item.type) }}
-                @if (item.targetTitle) {
-                  <strong>{{ item.targetTitle }}</strong>
+          <div class="up__search-wrap">
+            <i class="ti ti-search up__search-icon" aria-hidden="true"></i>
+            <input
+              class="up__search"
+              type="text"
+              placeholder="buscar quest…"
+              [value]="questSearch()"
+              (input)="questSearch.set($any($event.target).value)"
+            />
+          </div>
+
+          @if (questSubTab() === 'do-usuario' && questGames().length > 0) {
+            <app-game-filter-dropdown
+              [games]="questGames()"
+              [selected]="questGameFilter()"
+              (selectedChange)="questGameFilter.set($event)"
+            />
+          }
+          @if (questSubTab() === 'seguidas' && followingQuestGames().length > 0) {
+            <app-game-filter-dropdown
+              [games]="followingQuestGames()"
+              [selected]="questGameFilter()"
+              (selectedChange)="questGameFilter.set($event)"
+            />
+          }
+
+          @if (questSubTab() === 'do-usuario') {
+            @if (loadingContent()) {
+              <p class="up__empty">Carregando…</p>
+            } @else if (filteredQuests().length) {
+              @for (quest of filteredQuests(); track quest.id) {
+                <a class="up__quest-card" [routerLink]="['/usuarios', handle, 'quests', quest.id]">
+                  <div class="up__quest-info">
+                    <span class="up__quest-title">{{ quest.title }}</span>
+                    <span class="up__quest-meta">
+                      {{ quest.gameName }}
+                      @if (quest.likeCount) {
+                        · <i class="ti ti-heart-filled up__like-icon" aria-hidden="true"></i>
+                        {{ quest.likeCount }}
+                      }
+                    </span>
+                  </div>
+                  <span class="up__badge up__badge--{{ quest.status | lowercase }}">
+                    {{ statusLabel(quest.status) }}
+                  </span>
+                  <i class="ti ti-chevron-right up__quest-arrow" aria-hidden="true"></i>
+                </a>
+              }
+            } @else {
+              <p class="up__empty">
+                @if (questSearch()) {
+                  Nenhuma quest encontrada para "{{ questSearch() }}".
+                } @else {
+                  Este usuário ainda não publicou nenhuma quest.
                 }
               </p>
-              <p class="up__activity-time">{{ daysLabel(item.daysAgo) }}</p>
-            </div>
+            }
+          } @else {
+            @if (loadingFollowed()) {
+              <p class="up__empty">Carregando…</p>
+            } @else if (filteredFollowingQuests().length) {
+              @for (quest of filteredFollowingQuests(); track quest.id) {
+                <a
+                  class="up__quest-card"
+                  [routerLink]="['/games', quest.gameId, 'quests', quest.id]"
+                >
+                  <div class="up__quest-info">
+                    <span class="up__quest-title">{{ quest.title }}</span>
+                    <span class="up__quest-meta">
+                      {{ quest.gameName }}
+                      @if (quest.likeCount) {
+                        · <i class="ti ti-heart-filled up__like-icon" aria-hidden="true"></i>
+                        {{ quest.likeCount }}
+                      }
+                    </span>
+                  </div>
+                  <span class="up__badge up__badge--{{ quest.status | lowercase }}">
+                    {{ statusLabel(quest.status) }}
+                  </span>
+                  <i class="ti ti-chevron-right up__quest-arrow" aria-hidden="true"></i>
+                </a>
+              }
+            } @else {
+              <p class="up__empty">
+                @if (questSearch()) {
+                  Nenhuma quest encontrada para "{{ questSearch() }}".
+                } @else {
+                  Este usuário não segue nenhuma quest.
+                }
+              </p>
+            }
+          }
+        }
+
+        <!-- ── lore ────────────────────────────────────────────────────── -->
+        @if (activeTab() === 'lore') {
+          <div class="up__subtabs">
+            <button
+              class="up__subtab"
+              [class.up__subtab--active]="loreSubTab() === 'do-usuario'"
+              type="button"
+              (click)="setLoreSubTab('do-usuario')"
+            >
+              lore
+            </button>
+            <button
+              class="up__subtab"
+              [class.up__subtab--active]="loreSubTab() === 'seguido'"
+              type="button"
+              (click)="setLoreSubTab('seguido')"
+            >
+              seguido
+            </button>
+          </div>
+
+          <div class="up__search-wrap">
+            <i class="ti ti-search up__search-icon" aria-hidden="true"></i>
+            <input
+              class="up__search"
+              type="text"
+              placeholder="buscar lore…"
+              [value]="loreSearch()"
+              (input)="loreSearch.set($any($event.target).value)"
+            />
+          </div>
+
+          @if (loreSubTab() === 'do-usuario' && loreGames().length > 0) {
+            <app-game-filter-dropdown
+              [games]="loreGames()"
+              [selected]="loreGameFilter()"
+              (selectedChange)="loreGameFilter.set($event)"
+            />
+          }
+          @if (loreSubTab() === 'seguido' && followingLoreGames().length > 0) {
+            <app-game-filter-dropdown
+              [games]="followingLoreGames()"
+              [selected]="loreGameFilter()"
+              (selectedChange)="loreGameFilter.set($event)"
+            />
+          }
+
+          @if (loreSubTab() === 'do-usuario') {
+            @if (loadingContent()) {
+              <p class="up__empty">Carregando…</p>
+            } @else if (filteredLore().length) {
+              @for (article of filteredLore(); track article.id) {
+                <a class="up__quest-card" [routerLink]="['/usuarios', handle, 'lore', article.id]">
+                  <div class="up__quest-info">
+                    <span class="up__quest-title">{{ article.title }}</span>
+                    <span class="up__quest-meta">
+                      {{ article.gameName }}
+                      @if (article.likeCount) {
+                        · <i class="ti ti-heart-filled up__like-icon" aria-hidden="true"></i>
+                        {{ article.likeCount }}
+                      }
+                    </span>
+                  </div>
+                  <span class="up__badge up__badge--{{ article.status | lowercase }}">
+                    {{ statusLabel(article.status) }}
+                  </span>
+                  <i class="ti ti-chevron-right up__quest-arrow" aria-hidden="true"></i>
+                </a>
+              }
+            } @else {
+              <p class="up__empty">
+                @if (loreSearch()) {
+                  Nenhum lore encontrado para "{{ loreSearch() }}".
+                } @else {
+                  Este usuário ainda não publicou nenhum artigo de lore.
+                }
+              </p>
+            }
+          } @else {
+            @if (loadingFollowed()) {
+              <p class="up__empty">Carregando…</p>
+            } @else if (filteredFollowingLore().length) {
+              @for (article of filteredFollowingLore(); track article.id) {
+                <a class="up__quest-card" [routerLink]="['/usuarios', handle, 'lore', article.id]">
+                  <div class="up__quest-info">
+                    <span class="up__quest-title">{{ article.title }}</span>
+                    <span class="up__quest-meta">
+                      {{ article.gameName }}
+                      @if (article.likeCount) {
+                        · <i class="ti ti-heart-filled up__like-icon" aria-hidden="true"></i>
+                        {{ article.likeCount }}
+                      }
+                    </span>
+                  </div>
+                  <span class="up__badge up__badge--{{ article.status | lowercase }}">
+                    {{ statusLabel(article.status) }}
+                  </span>
+                  <i class="ti ti-chevron-right up__quest-arrow" aria-hidden="true"></i>
+                </a>
+              }
+            } @else {
+              <p class="up__empty">
+                @if (loreSearch()) {
+                  Nenhum lore encontrado para "{{ loreSearch() }}".
+                } @else {
+                  Este usuário não segue nenhum artigo de lore.
+                }
+              </p>
+            }
+          }
+        }
+
+        <!-- ── jogos ───────────────────────────────────────────────────── -->
+        @if (activeTab() === 'jogos') {
+          @if (loadingFollowed()) {
+            <p class="up__empty">Carregando…</p>
+          } @else if (followingGames().length) {
+            @for (game of followingGames(); track game.id) {
+              <a class="up__quest-card" [routerLink]="['/games', game.id]">
+                <div class="up__quest-info">
+                  <span class="up__quest-title">{{ game.name }}</span>
+                  <span class="up__quest-meta">
+                    {{ game.questCount }} quests · {{ game.loreCount }} lore ·
+                    {{ game.followersCount }} seguidores
+                  </span>
+                </div>
+                <i class="ti ti-chevron-right up__quest-arrow" aria-hidden="true"></i>
+              </a>
+            }
+          } @else {
+            <p class="up__empty">Este usuário não segue nenhum jogo.</p>
+          }
+        }
+
+        <!-- ── seguidores ──────────────────────────────────────────────── -->
+        @if (activeTab() === 'seguidores') {
+          <div class="up__social-subtabs">
+            <button
+              class="up__social-tab"
+              [class.up__social-tab--active]="socialSubTab() === 'seguidores'"
+              type="button"
+              (click)="socialSubTab.set('seguidores')"
+            >
+              seguidores
+              <span class="up__social-count">{{ p.followerCount }}</span>
+            </button>
+            <button
+              class="up__social-tab"
+              [class.up__social-tab--active]="socialSubTab() === 'seguindo'"
+              type="button"
+              (click)="socialSubTab.set('seguindo')"
+            >
+              seguindo
+              <span class="up__social-count">{{ p.followingCount }}</span>
+            </button>
+          </div>
+
+          @if (loadingSocial()) {
+            <p class="up__empty">Carregando…</p>
+          } @else if (socialSubTab() === 'seguidores') {
+            @if (!followers().length) {
+              <p class="up__empty">Este usuário ainda não tem seguidores.</p>
+            }
+            @for (user of followers(); track user.id) {
+              <a class="up__person-row" [routerLink]="['/usuarios', user.handle]">
+                <div class="up__person-avatar">{{ user.name[0] }}</div>
+                <div class="up__person-info">
+                  <span class="up__person-name">{{ user.name }}</span>
+                  <span class="up__person-meta"
+                    >&#64;{{ user.handle }} · {{ user.questCount }} quests</span
+                  >
+                </div>
+                <i class="ti ti-chevron-right up__quest-arrow" aria-hidden="true"></i>
+              </a>
+            }
+          } @else {
+            @if (!followingPeople().length) {
+              <p class="up__empty">Este usuário ainda não segue ninguém.</p>
+            }
+            @for (user of followingPeople(); track user.id) {
+              <a class="up__person-row" [routerLink]="['/usuarios', user.handle]">
+                <div class="up__person-avatar">{{ user.name[0] }}</div>
+                <div class="up__person-info">
+                  <span class="up__person-name">{{ user.name }}</span>
+                  <span class="up__person-meta"
+                    >&#64;{{ user.handle }} · {{ user.questCount }} quests</span
+                  >
+                </div>
+                <i class="ti ti-chevron-right up__quest-arrow" aria-hidden="true"></i>
+              </a>
+            }
+          }
+        }
+      </main>
+
+      <!-- ══ sidebar ═══════════════════════════════════════════════════════════ -->
+      <aside class="up__sidebar">
+        @if (activity().length) {
+          <div class="up__sidebar-card">
+            <p class="up__sidebar-title">atividade recente</p>
+            @for (item of activity(); track item.targetId) {
+              <div class="up__activity-row">
+                <div class="up__activity-dot {{ activityDot(item.type) }}"></div>
+                <div>
+                  <p class="up__activity-text">
+                    {{ activityLabel(item.type) }}
+                    @if (activityTarget(item); as target) {
+                      <strong>{{ target }}</strong>
+                    }
+                  </p>
+                  <p class="up__activity-time">{{ daysLabel(item.daysAgo) }}</p>
+                </div>
+              </div>
+            }
           </div>
         }
-      </section>
-    }
+      </aside>
+    </div>
   }
 </div>

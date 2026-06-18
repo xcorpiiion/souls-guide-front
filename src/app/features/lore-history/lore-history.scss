@@ -1,8 +1,376 @@
 @use 'styles/variables' as v;
 
-// Reutiliza todos os estilos do quest-history (prefixo .qh)
-// Estilos extras específicos do diff de lore
+// Estilos de componente são isolados pelo Angular — não dá pra "reutilizar"
+// o CSS do quest-history só porque a classe tem o mesmo prefixo .qh. Por isso
+// a base inteira é duplicada aqui; os estilos extras do diff de lore vêm depois.
 
+.qh {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 40px 24px 80px;
+}
+
+.qh__header {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  margin-bottom: 28px;
+}
+
+.qh__back {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 13px;
+  color: v.$color-text-muted;
+  text-decoration: none;
+  padding: 6px 0;
+  white-space: nowrap;
+  margin-top: 2px;
+  i {
+    font-size: 15px;
+  }
+  &:hover {
+    color: v.$color-text;
+  }
+}
+
+.qh__title {
+  font-size: 22px;
+  font-weight: 500;
+  color: v.$color-text;
+  margin: 0 0 4px;
+}
+
+.qh__subtitle {
+  font-size: 12px;
+  color: v.$color-text-muted;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  i {
+    font-size: 14px;
+  }
+}
+
+.qh__loading {
+  font-size: 13px;
+  color: v.$color-text-muted;
+  text-align: center;
+  padding: 40px 0;
+}
+
+.qh__divider {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 11px;
+  color: v.$color-text-muted;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin: 20px 0 10px;
+
+  i {
+    font-size: 14px;
+  }
+
+  &::after {
+    content: '';
+    flex: 1;
+    height: 0.5px;
+    background: v.$color-border;
+  }
+}
+
+.qh__card {
+  background: v.$color-bg-surface;
+  border: 0.5px solid v.$color-border;
+  border-radius: v.$radius-lg;
+  margin-bottom: 10px;
+  overflow: hidden;
+
+  &--reverted {
+    opacity: 0.6;
+  }
+}
+
+.qh__card-head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 16px;
+}
+
+.qh__ver {
+  font-size: 13px;
+  font-weight: 500;
+  color: v.$color-text;
+  min-width: 28px;
+}
+
+.qh__avatar {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 500;
+  flex-shrink: 0;
+
+  &--0 {
+    background: rgba(v.$color-gold, 0.15);
+    color: v.$color-gold-dark;
+  }
+  &--1 {
+    background: rgba(64, 200, 200, 0.15);
+    color: #0f6e56;
+  }
+  &--2 {
+    background: rgba(232, 80, 80, 0.12);
+    color: #a32d2d;
+  }
+  &--3 {
+    background: rgba(127, 119, 221, 0.15);
+    color: #3c3489;
+  }
+}
+
+.qh__meta {
+  flex: 1;
+  min-width: 0;
+}
+
+.qh__meta-name {
+  font-size: 13px;
+  color: v.$color-text;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.qh__meta-time {
+  font-size: 11px;
+  color: v.$color-text-muted;
+  margin-top: 3px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  i {
+    font-size: 12px;
+  }
+}
+
+.qh__badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  padding: 2px 8px;
+  border-radius: 20px;
+  font-size: 11px;
+
+  &--current {
+    background: rgba(31, 170, 100, 0.12);
+    color: #1faa64;
+  }
+  &--origin {
+    background: rgba(v.$color-gold, 0.1);
+    color: v.$color-gold-dark;
+  }
+  &--reverted {
+    background: rgba(232, 80, 80, 0.1);
+    color: #f87171;
+  }
+  &--info {
+    background: rgba(55, 138, 221, 0.1);
+    color: #185fa5;
+  }
+
+  i {
+    font-size: 11px;
+  }
+}
+
+.qh__actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.qh__btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 5px 10px;
+  border-radius: v.$radius-md;
+  font-size: 12px;
+  font-family: v.$font-body;
+  cursor: pointer;
+  border: 0.5px solid v.$color-border;
+  background: transparent;
+  color: v.$color-text-muted;
+  transition:
+    background 0.15s,
+    color 0.15s;
+
+  i {
+    font-size: 13px;
+  }
+
+  &:hover:not(:disabled) {
+    background: rgba(255, 255, 255, 0.05);
+    color: v.$color-text;
+  }
+
+  &:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+  }
+
+  &--danger {
+    border-color: rgba(248, 113, 113, 0.3);
+    color: #f87171;
+    &:hover:not(:disabled) {
+      background: rgba(248, 113, 113, 0.08);
+    }
+  }
+
+  &--active {
+    border-color: rgba(v.$color-gold, 0.3);
+    color: v.$color-gold-dark;
+    background: rgba(v.$color-gold, 0.08);
+  }
+}
+
+.qh__diff {
+  border-top: 0.5px solid v.$color-border;
+  padding: 12px 16px;
+  background: rgba(255, 255, 255, 0.02);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.qh__diff-row {
+  display: flex;
+  gap: 10px;
+  font-size: 12px;
+  align-items: baseline;
+}
+
+.qh__diff-label {
+  color: v.$color-text-muted;
+  min-width: 90px;
+  flex-shrink: 0;
+}
+
+.qh__old {
+  color: #f87171;
+  text-decoration: line-through;
+  margin-right: 6px;
+}
+
+.qh__new {
+  color: #1faa64;
+}
+
+.qh__vote-bar-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px;
+  border-top: 0.5px solid v.$color-border;
+  font-size: 12px;
+  color: v.$color-text-muted;
+
+  i {
+    font-size: 13px;
+  }
+}
+
+.qh__vote-bar-wrap {
+  flex: 1;
+  height: 5px;
+  background: rgba(255, 255, 255, 0.06);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.qh__vote-bar {
+  height: 100%;
+  background: rgba(v.$color-gold, 0.5);
+  border-radius: 4px;
+  transition: width 0.3s;
+
+  &--danger {
+    background: rgba(248, 113, 113, 0.6);
+  }
+}
+
+.qh__reverted-label {
+  color: #f87171;
+  font-weight: 500;
+}
+
+.qh__strike-banner {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  background: rgba(251, 191, 36, 0.08);
+  border-top: 0.5px solid rgba(251, 191, 36, 0.2);
+  font-size: 12px;
+  color: #b45309;
+
+  i {
+    font-size: 14px;
+  }
+}
+
+.qh__vote-panel {
+  margin-top: 20px;
+  padding: 16px 20px;
+  background: v.$color-bg-surface;
+  border: 0.5px solid v.$color-border;
+  border-radius: v.$radius-lg;
+}
+
+.qh__vote-panel-title {
+  font-size: 13px;
+  font-weight: 500;
+  color: v.$color-text;
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  i {
+    font-size: 15px;
+  }
+}
+
+.qh__vote-panel-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+
+.qh__vote-count {
+  font-size: 12px;
+  color: v.$color-text-muted;
+  white-space: nowrap;
+}
+
+.qh__vote-hint {
+  font-size: 11px;
+  color: v.$color-text-muted;
+  opacity: 0.6;
+}
+
+// ─── extras específicos do diff de lore ────────────────────────────────────────
 .qh__diff-row--block {
   flex-direction: column;
   gap: 8px;

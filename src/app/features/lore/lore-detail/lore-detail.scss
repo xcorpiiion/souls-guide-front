@@ -128,6 +128,44 @@
   border-bottom: 1px solid v.$color-border;
 }
 
+.ld__head-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 18px;
+  margin-bottom: 16px;
+}
+
+.ld__medallion {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  border: 2px solid v.$color-gold;
+  background: rgba(v.$color-gold, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  .ti {
+    font-size: 28px;
+    color: v.$color-gold;
+  }
+
+  @media (max-width: 480px) {
+    width: 48px;
+    height: 48px;
+
+    .ti {
+      font-size: 22px;
+    }
+  }
+}
+
+.ld__head-info {
+  flex: 1;
+  min-width: 0;
+}
+
 .ld__badges {
   display: flex;
   flex-wrap: wrap;
@@ -137,81 +175,105 @@
 
 .ld__title {
   font-family: v.$font-display;
-  font-size: 26px;
+  font-size: 30px;
   font-weight: 500;
   color: v.$color-text;
-  line-height: 1.3;
+  line-height: 1.25;
   margin-bottom: 10px;
 }
 
 .ld__meta {
   display: flex;
   align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.ld__author-chip {
+  display: inline-flex;
+  align-items: center;
   gap: 6px;
+  height: 36px;
+  padding: 0 14px;
   font-size: 13px;
   color: v.$color-text-muted;
-}
-
-.ld__meta-item {
-  display: flex;
-  align-items: center;
-  gap: 4px;
 
   .ti {
-    font-size: 13px;
+    font-size: 15px;
   }
 }
 
-.ld__meta-sep {
-  opacity: 0.4;
-}
-
-.ld__history-link {
+.ld__btn {
   display: inline-flex;
   align-items: center;
-  gap: 4px;
-  font-size: v.$font-size-xs;
-  color: v.$color-text-muted;
-  text-decoration: none;
-
-  .ti {
-    font-size: 13px;
-  }
-
-  &:hover {
-    color: v.$color-gold;
-  }
-}
-
-.ld__copy-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  font-size: v.$font-size-xs;
-  color: v.$color-text-muted;
-  background: transparent;
-  border: none;
-  padding: 0;
-  cursor: pointer;
+  justify-content: center;
+  gap: 6px;
+  height: 36px;
+  padding: 0 14px;
   font-family: v.$font-body;
+  font-size: 13px;
+  border-radius: v.$radius-md;
+  cursor: pointer;
+  text-decoration: none;
+  white-space: nowrap;
+  line-height: 1;
+  background: transparent;
+  border: 0.5px solid v.$color-border-focus;
+  color: v.$color-text-muted;
+  transition:
+    background v.$transition-fast,
+    border-color v.$transition-fast,
+    color v.$transition-fast;
 
   .ti {
-    font-size: 13px;
+    font-size: 15px;
   }
 
   &:hover {
-    color: v.$color-gold;
+    background: rgba(255, 255, 255, 0.05);
+    border-color: v.$color-gold;
+    color: v.$color-text;
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  &--liked {
+    border-color: #e85050 !important;
+    color: #e85050 !important;
+    background: rgba(232, 80, 80, 0.08) !important;
+  }
+
+  &--following {
+    border-color: #378add !important;
+    color: #378add !important;
+    background: rgba(55, 138, 221, 0.08) !important;
+  }
+
+  &--accent {
+    background: v.$color-gold;
+    border: none;
+    color: #0f0d0b;
+    font-weight: 600;
+
+    &:hover {
+      background: v.$color-gold-light;
+    }
   }
 }
 
 // ─── content ───────────────────────────────────────────────────────────────────
 .ld__section-heading {
-  font-size: 15px;
+  font-family: v.$font-display;
+  font-size: 19px;
+  font-style: italic;
   font-weight: 500;
   color: v.$color-text;
-  padding-left: 12px;
+  padding-left: 14px;
   border-left: 2px solid v.$color-gold;
-  margin: 24px 0 10px;
+  margin: 28px 0 14px;
   line-height: 1.4;
 
   &:first-child {
@@ -220,21 +282,35 @@
 }
 
 .ld__paragraph {
-  font-size: 14px;
-  color: v.$color-text-muted;
-  line-height: 1.8;
-  margin-bottom: 14px;
+  font-size: 15px;
+  color: #c8bfae;
+  line-height: 1.85;
+  margin-bottom: 16px;
 }
 
 .ld__quote {
+  position: relative;
+  display: block;
   background: v.$color-bg-surface;
-  border-left: 3px solid rgba(v.$color-gold, 0.5);
-  padding: 12px 16px;
-  border-radius: 0 v.$radius-md v.$radius-md 0;
-  margin: 16px 0;
-  font-size: 13px;
+  padding: 22px 26px 22px 44px;
+  border-radius: v.$radius-md;
+  margin: 22px 0;
+  border: none;
+}
+
+.ld__quote-icon {
+  position: absolute;
+  top: 10px;
+  left: 14px;
+  font-size: 22px;
+  color: rgba(v.$color-gold, 0.3);
+}
+
+.ld__quote-text {
+  font-family: v.$font-display;
   font-style: italic;
-  color: v.$color-text-muted;
+  font-size: 16px;
+  color: v.$color-text;
   line-height: 1.7;
 }
 

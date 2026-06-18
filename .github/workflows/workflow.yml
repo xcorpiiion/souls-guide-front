@@ -1,14 +1,18 @@
-name: CI - soulguide
+name: CI/CD — SoulGuide
 
 on:
   push:
-    branches: [ "main", "dev" ]
+    branches: [ "main", "develop" ]
   pull_request:
-    branches: [ "main", "dev" ]
+    branches: [ "main", "develop" ]
 
 jobs:
-  build-and-test:
+
+  # ── Job 1: Qualidade ────────────────────────────────────────────────────────
+  quality:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
 
     steps:
       - uses: actions/checkout@v4
@@ -21,29 +25,24 @@ jobs:
           node-version: '22'
           cache: 'npm'
 
-      # ── Etapa 1: Instalar dependências ───────────────────────────────────────
       - name: Install dependencies
         run: npm ci
 
-      # ── Etapa 2: Type check ──────────────────────────────────────────────────
       - name: Type check
         id: typecheck
         run: npx tsc --noEmit
 
-      # ── Etapa 3: Lint ────────────────────────────────────────────────────────
       - name: Lint
         id: lint
         run: npm run lint
 
-      # ── Etapa 4: Testes com coverage ─────────────────────────────────────────
-      - name: Run tests
+      - name: Run tests with coverage
         id: tests
         run: |
-          npx ng test --coverage --watch=false 2>&1 | tee test-output.txt
+          npx ng test --coverage --watch=false --browsers=ChromeHeadless 2>&1 | tee test-output.txt
           echo "TESTS_PASSED=$(grep -oP '\d+ passed' test-output.txt | tail -1)" >> $GITHUB_ENV
-          echo "COVERAGE=$(grep -oP 'Lines\s+:\s+\K[\d.]+' test-output.txt)" >> $GITHUB_ENV
+          echo "COVERAGE=$(grep -oP 'Lines\s+:\s+\K[\d.]+' test-output.txt | head -1)" >> $GITHUB_ENV
 
-      # ── Etapa 5: Build ───────────────────────────────────────────────────────
       - name: Build
         id: build
         run: |
@@ -51,18 +50,24 @@ jobs:
           SIZE=$(du -sh dist/soulguide/browser 2>/dev/null | cut -f1 || echo "?")
           echo "BUILD_SIZE=$SIZE" >> $GITHUB_ENV
 
-      # ── Etapa 6: SonarCloud ──────────────────────────────────────────────────
       - name: SonarCloud Scan
         id: sonar
         uses: SonarSource/sonarqube-scan-action@v6
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
 
-      # ── Etapa 7: Job Summary ─────────────────────────────────────────────────
+      - name: Upload dist artifact
+        if: github.event_name == 'push'
+        uses: actions/upload-artifact@v4
+        with:
+          name: dist
+          path: dist/soulguide/browser
+          retention-days: 1
+
       - name: Job Summary
         if: always()
         run: |
-          echo "## 🗡️ SoulGuide — Pipeline" >> $GITHUB_STEP_SUMMARY
+          echo "## ⚔️ SoulGuide — Pipeline" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "| Etapa | Status |" >> $GITHUB_STEP_SUMMARY
           echo "|-------|--------|" >> $GITHUB_STEP_SUMMARY
@@ -99,3 +104,69 @@ jobs:
 
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "> Branch: \`${{ github.ref_name }}\` · Commit: \`${{ github.sha }}\`" >> $GITHUB_STEP_SUMMARY
+
+  # ── Job 2: Deploy DEV ───────────────────────────────────────────────────────
+  deploy-dev:
+    runs-on: ubuntu-latest
+    needs: quality
+    if: github.ref == 'refs/heads/develop' && github.event_name == 'push'
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download dist artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: dist
+          path: dist/soulguide/browser
+
+      - name: Deploy to DEV channel
+        uses: FirebaseExtended/action-hosting-deploy@v0
+        with:
+          repoToken: ${{ secrets.GITHUB_TOKEN }}
+          firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_SOULSGUIDE_F2B59 }}
+          channelId: dev
+          projectId: soulsguide-f2b59
+
+      - name: Deploy Summary
+        run: |
+          echo "## 🚀 SoulGuide — Deploy DEV" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| | |" >> $GITHUB_STEP_SUMMARY
+          echo "|---|---|" >> $GITHUB_STEP_SUMMARY
+          echo "| Ambiente | \`dev channel\` |" >> $GITHUB_STEP_SUMMARY
+          echo "| Branch | \`${{ github.ref_name }}\` |" >> $GITHUB_STEP_SUMMARY
+          echo "| Commit | \`${{ github.sha }}\` |" >> $GITHUB_STEP_SUMMARY
+
+  # ── Job 3: Deploy PROD ──────────────────────────────────────────────────────
+  deploy-prod:
+    runs-on: ubuntu-latest
+    needs: quality
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download dist artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: dist
+          path: dist/soulguide/browser
+
+      - name: Deploy to PROD (live channel)
+        uses: FirebaseExtended/action-hosting-deploy@v0
+        with:
+          repoToken: ${{ secrets.GITHUB_TOKEN }}
+          firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_SOULSGUIDE_F2B59 }}
+          channelId: live
+          projectId: soulsguide-f2b59
+
+      - name: Deploy Summary
+        run: |
+          echo "## 🚀 SoulGuide — Deploy PROD" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| | |" >> $GITHUB_STEP_SUMMARY
+          echo "|---|---|" >> $GITHUB_STEP_SUMMARY
+          echo "| URL | https://soulsguide-f2b59.web.app |" >> $GITHUB_STEP_SUMMARY
+          echo "| Branch | \`${{ github.ref_name }}\` |" >> $GITHUB_STEP_SUMMARY
+          echo "| Commit | \`${{ github.sha }}\` |" >> $GITHUB_STEP_SUMMARY

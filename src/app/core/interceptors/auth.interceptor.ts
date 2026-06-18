@@ -7,17 +7,6 @@ import { ToastService } from '../../shared/components/toast/toast.service';
 let refreshing = false;
 const refreshDone$ = new BehaviorSubject<boolean>(false);
 
-const PUBLIC_PATTERNS: RegExp[] = [
-  /\/auth\/(login|signup|google|refresh)$/,
-  /\/games(\?.*)?$/,
-  /\/quests(\?.*)?$/,
-  /\/lore(\?.*)?$/,
-];
-
-function isPublic(url: string): boolean {
-  return PUBLIC_PATTERNS.some((p) => p.test(url));
-}
-
 export const authInterceptor: HttpInterceptorFn = (req, next) => {
   const auth = inject(AuthService);
   const toast = inject(ToastService);
@@ -25,8 +14,10 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
   const addBearer = (token: string) =>
     req.clone({ setHeaders: { Authorization: `Bearer ${token}` } });
 
+  // Sempre envia o token quando válido — rotas públicas aceitam e ignoram,
+  // rotas privadas recebem o contexto do usuário. Tokens expirados nunca são enviados.
   const token = auth.getAccessToken();
-  const authedReq = token && !isPublic(req.url) ? addBearer(token) : req;
+  const authedReq = token && auth.isAccessTokenValid() ? addBearer(token) : req;
 
   return next(authedReq).pipe(
     catchError((err: HttpErrorResponse) => {

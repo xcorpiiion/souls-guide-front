@@ -26,6 +26,79 @@
       <i class="ti ti-search" aria-hidden="true"></i>
     </button>
 
+    <!-- notification bell -->
+    @if (auth.isLoggedIn()) {
+      <div class="navbar__notif" [class.navbar__notif--open]="notifOpen()">
+        <button
+          class="navbar__icon-btn"
+          type="button"
+          aria-label="Notificações"
+          (click)="toggleNotifPanel(); $event.stopPropagation()"
+        >
+          <i class="ti ti-bell" aria-hidden="true"></i>
+          @if (unreadCount() > 0) {
+            <span class="navbar__notif-badge">{{
+              unreadCount() > 99 ? '99+' : unreadCount()
+            }}</span>
+          }
+        </button>
+
+        @if (notifOpen()) {
+          <div
+            class="navbar__notif-panel"
+            (click)="$event.stopPropagation()"
+            (keydown)="$event.stopPropagation()"
+            tabindex="-1"
+          >
+            <div class="navbar__notif-header">
+              <span class="navbar__notif-title">Notificações</span>
+              @if (unreadCount() > 0) {
+                <button
+                  class="navbar__notif-mark-btn"
+                  type="button"
+                  [disabled]="markingRead()"
+                  (click)="markAllRead()"
+                >
+                  @if (markingRead()) {
+                    <i class="ti ti-loader-2 navbar__notif-spin" aria-hidden="true"></i>
+                  } @else {
+                    marcar como lido
+                  }
+                </button>
+              }
+            </div>
+
+            @if (notifLoading()) {
+              <div class="navbar__notif-loading">
+                <i class="ti ti-loader-2 navbar__notif-spin" aria-hidden="true"></i>
+              </div>
+            } @else if (notifications().length === 0) {
+              <div class="navbar__notif-empty">
+                <i class="ti ti-bell-off" aria-hidden="true"></i>
+                <p>Nenhuma notificação</p>
+              </div>
+            } @else {
+              <ul class="navbar__notif-list">
+                @for (n of notifications(); track n.id) {
+                  <li
+                    class="navbar__notif-item"
+                    [class.navbar__notif-item--unread]="!n.read"
+                    role="button"
+                    tabindex="0"
+                    (click)="onNotifClick(n)"
+                    (keydown.enter)="onNotifClick(n)"
+                  >
+                    <span class="navbar__notif-text">{{ notifText(n) }}</span>
+                    <span class="navbar__notif-time">{{ notifTimeLabel(n.createdAt) }}</span>
+                  </li>
+                }
+              </ul>
+            }
+          </div>
+        }
+      </div>
+    }
+
     <!-- profile avatar -->
     @if (auth.isLoggedIn()) {
       <a class="navbar__avatar" routerLink="/profile" aria-label="Perfil">V</a>

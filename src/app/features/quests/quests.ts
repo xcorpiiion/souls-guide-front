@@ -3,7 +3,9 @@ import {
   ChangeDetectionStrategy,
   Component,
   DestroyRef,
+  HostListener,
   OnInit,
+  computed,
   inject,
   signal,
 } from '@angular/core';
@@ -87,7 +89,29 @@ export class Quests implements OnInit {
   private readonly load$ = new Subject<QuestFilters>();
   private readonly gameSearch$ = new Subject<string>();
 
+  protected readonly allGames = signal<GameSummary[]>([]);
+
+  protected readonly gameDropdownOpen = signal(false);
+  protected readonly gameSearch = signal('');
+
+  protected readonly filteredGames = computed(() => {
+    const q = this.gameSearch().toLowerCase();
+    return q ? this.allGames().filter((g) => g.name.toLowerCase().includes(q)) : this.allGames();
+  });
+
+  protected readonly selectedGameName = computed(() => {
+    const id = this.gameFilter();
+    return id ? (this.allGames().find((g) => g.id === id)?.name ?? '') : 'todos os jogos';
+  });
+
   ngOnInit(): void {
+    this.gameService.list(0, 50).subscribe({
+      next: (page) => this.allGames.set(page.content),
+      error: () => {
+        /* silenciado — filtro de jogo fica vazio */
+      },
+    });
+
     this.load$
       .pipe(
         debounceTime(250),
@@ -164,8 +188,24 @@ export class Quests implements OnInit {
 
   protected setGameFilter(id: string): void {
     this.gameFilter.set(id);
+    this.gameDropdownOpen.set(false);
+    this.gameSearch.set('');
     this.currentPage.set(0);
     this.emit(0);
+  }
+
+  protected toggleGameDropdown(): void {
+    const opening = !this.gameDropdownOpen();
+    this.gameDropdownOpen.set(opening);
+    if (!opening) this.gameSearch.set('');
+  }
+
+  @HostListener('document:click')
+  protected onDocumentClick(): void {
+    if (this.gameDropdownOpen()) {
+      this.gameDropdownOpen.set(false);
+      this.gameSearch.set('');
+    }
   }
 
   protected setStatusFilter(id: QuestStatus | ''): void {
@@ -204,6 +244,18 @@ export class Quests implements OnInit {
 
   protected followersLabel(n: number): string {
     return n >= 1000 ? `${(n / 1000).toFixed(1)}k` : String(n);
+  }
+
+  protected readonly revealedHiddenIds = signal<Set<string>>(new Set());
+
+  protected revealHiddenReason(id: string, event: Event): void {
+    event.preventDefault();
+    event.stopPropagation();
+    this.revealedHiddenIds.update((s) => new Set([...s, id]));
+  }
+
+  protected isHiddenReasonRevealed(quest: QuestSummary): boolean {
+    return !quest.hiddenIsSpoiler || this.revealedHiddenIds().has(quest.id);
   }
 
   protected toggleGamePicker(): void {

@@ -53,6 +53,12 @@ export interface QuestApi {
   followerCount: number;
   userIsFollowing: boolean;
   stepCount?: number;
+  forkCount?: number;
+  endingCount?: number;
+  // condições entre quests
+  hidden?: boolean;
+  hiddenReason?: string | null;
+  hiddenIsSpoiler?: boolean;
 }
 
 export interface QuestSummary {
@@ -78,6 +84,10 @@ export interface QuestSummary {
   userHasLiked?: boolean;
   followerCount?: number;
   userIsFollowing?: boolean;
+  // condições entre quests
+  hidden?: boolean;
+  hiddenReason?: string | null;
+  hiddenIsSpoiler?: boolean;
 }
 
 export interface FollowResponse {
@@ -93,8 +103,8 @@ export function questApiToSummary(q: QuestApi): QuestSummary {
     gameId: String(q.gameId),
     gameName: q.gameName,
     stepCount: q.stepCount ?? q.nodes?.filter((n) => n.type === 'task').length ?? 0,
-    forkCount: q.nodes?.filter((n) => n.type === 'gateway').length ?? 0,
-    endingCount: q.nodes?.filter((n) => n.type === 'end').length ?? 0,
+    forkCount: q.forkCount ?? q.nodes?.filter((n) => n.type === 'gateway').length ?? 0,
+    endingCount: q.endingCount ?? q.nodes?.filter((n) => n.type === 'end').length ?? 0,
     status: q.status ?? 'TEORIA',
     followers: q.followerCount ?? 0,
     author: q.userId ?? null,
@@ -107,6 +117,9 @@ export function questApiToSummary(q: QuestApi): QuestSummary {
     userHasLiked: q.userHasLiked ?? false,
     followerCount: q.followerCount ?? 0,
     userIsFollowing: q.userIsFollowing ?? false,
+    hidden: q.hidden ?? false,
+    hiddenReason: q.hiddenReason ?? null,
+    hiddenIsSpoiler: q.hiddenIsSpoiler ?? true,
   };
 }
 

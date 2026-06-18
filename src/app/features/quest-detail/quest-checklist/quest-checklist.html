@@ -264,21 +264,28 @@
         }
 
         @if (node.type === 'task') {
-          <button
-            class="ck__done-btn"
-            [class.ck__done-btn--done]="completedNodeIds().has(node.id)"
-            type="button"
-            [disabled]="togglingNodeId() === node.id"
-            (click)="toggleDone(node.id)"
-          >
-            @if (togglingNodeId() === node.id) {
-              <i class="ti ti-loader-2 ck__spin" aria-hidden="true"></i> aguarde…
-            } @else if (completedNodeIds().has(node.id)) {
-              <i class="ti ti-circle-check-filled" aria-hidden="true"></i> concluído
-            } @else {
-              <i class="ti ti-circle" aria-hidden="true"></i> marcar como concluído
-            }
-          </button>
+          @if (auth.isLoggedIn()) {
+            <button
+              class="ck__done-btn"
+              [class.ck__done-btn--done]="completedNodeIds().has(node.id)"
+              type="button"
+              [disabled]="togglingNodeId() === node.id"
+              (click)="toggleDone(node.id)"
+            >
+              @if (togglingNodeId() === node.id) {
+                <i class="ti ti-loader-2 ck__spin" aria-hidden="true"></i> aguarde…
+              } @else if (completedNodeIds().has(node.id)) {
+                <i class="ti ti-circle-check-filled" aria-hidden="true"></i> concluído
+              } @else {
+                <i class="ti ti-circle" aria-hidden="true"></i> marcar como concluído
+              }
+            </button>
+          } @else {
+            <p class="ck__login-hint">
+              <i class="ti ti-lock" aria-hidden="true"></i>
+              <a routerLink="/login">Entre</a> para marcar etapas como concluídas
+            </p>
+          }
         }
       </div>
     } @else {

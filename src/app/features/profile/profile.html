@@ -71,19 +71,19 @@
           </button>
           <button
             class="pf__tab"
+            [class.pf__tab--active]="activeTab() === 'jogos'"
+            role="tab"
+            (click)="setTab('jogos')"
+          >
+            jogos
+          </button>
+          <button
+            class="pf__tab"
             [class.pf__tab--active]="activeTab() === 'favoritos'"
             role="tab"
             (click)="setTab('favoritos')"
           >
             favoritos
-          </button>
-          <button
-            class="pf__tab"
-            [class.pf__tab--active]="activeTab() === 'kanban'"
-            role="tab"
-            (click)="setTab('kanban')"
-          >
-            <i class="ti ti-layout-kanban" aria-hidden="true"></i> kanban
           </button>
           <button
             class="pf__tab"
@@ -243,191 +243,428 @@
       <main class="pf__main">
         @if (activeTab() === 'quests') {
           <div class="pf__content-header">
-            <p class="pf__section-title">minhas quests</p>
+            <p class="pf__section-title">quests</p>
             <a class="pf__content-create-btn" routerLink="/quests">
               <i class="ti ti-plus" aria-hidden="true"></i> nova quest
             </a>
           </div>
 
-          @if (loadingContent()) {
-            <p class="pf__empty">Carregando…</p>
-          } @else if (personalQuests().length) {
-            @for (quest of personalQuests(); track quest.id) {
-              <div class="pf__personal-card">
-                <div class="pf__personal-card-main">
-                  <div class="pf__personal-card-info">
-                    <span class="pf__quest-title">{{ quest.title }}</span>
-                    <span class="pf__quest-meta">
-                      {{ quest.gameName }}
-                      @if (quest.likeCount) {
-                        · <i class="ti ti-heart-filled pf__like-icon"></i> {{ quest.likeCount }}
-                      }
-                    </span>
+          <div class="pf__subtabs">
+            <button
+              class="pf__subtab"
+              [class.pf__subtab--active]="questSubTab() === 'minhas'"
+              type="button"
+              (click)="setQuestSubTab('minhas')"
+            >
+              minhas
+            </button>
+            <button
+              class="pf__subtab"
+              [class.pf__subtab--active]="questSubTab() === 'seguidas'"
+              type="button"
+              (click)="setQuestSubTab('seguidas')"
+            >
+              seguidas
+            </button>
+          </div>
+
+          <div class="pf__search-wrap">
+            <i class="ti ti-search pf__search-icon" aria-hidden="true"></i>
+            <input
+              class="pf__search"
+              type="text"
+              placeholder="buscar quest…"
+              [value]="questSearch()"
+              (input)="questSearch.set($any($event.target).value)"
+            />
+          </div>
+
+          @if (questSubTab() === 'minhas' && personalQuestGames().length > 0) {
+            <app-game-filter-dropdown
+              [games]="personalQuestGames()"
+              [selected]="questGameFilter()"
+              (selectedChange)="questGameFilter.set($event)"
+            />
+          }
+          @if (questSubTab() === 'seguidas' && followedQuestGames().length > 0) {
+            <app-game-filter-dropdown
+              [games]="followedQuestGames()"
+              [selected]="questGameFilter()"
+              (selectedChange)="questGameFilter.set($event)"
+            />
+          }
+
+          @if (questSubTab() === 'minhas') {
+            @if (loadingContent()) {
+              <p class="pf__empty">Carregando…</p>
+            } @else if (filteredPersonalQuests().length) {
+              @for (quest of filteredPersonalQuests(); track quest.id) {
+                <div class="pf__personal-card">
+                  <div class="pf__personal-card-main">
+                    <div class="pf__personal-card-info">
+                      <span class="pf__quest-title">{{ quest.title }}</span>
+                      <span class="pf__quest-meta">
+                        {{ quest.gameName }}
+                        @if (quest.likeCount) {
+                          · <i class="ti ti-heart-filled pf__like-icon"></i> {{ quest.likeCount }}
+                        }
+                      </span>
+                    </div>
+                    <div class="pf__personal-card-badges">
+                      <button
+                        class="pf__visibility-badge"
+                        [class.pf__visibility-badge--private]="!quest.isPublic"
+                        [class.pf__visibility-badge--public]="quest.isPublic"
+                        type="button"
+                        [disabled]="togglingVisibilityId() === quest.id"
+                        (click)="toggleQuestVisibility(quest)"
+                        [title]="
+                          quest.isPublic
+                            ? 'clique para tornar privado'
+                            : 'clique para tornar público'
+                        "
+                      >
+                        @if (togglingVisibilityId() === quest.id) {
+                          <i class="ti ti-loader-2 pf__spin" aria-hidden="true"></i>
+                        } @else if (quest.isPublic) {
+                          <i class="ti ti-world" aria-hidden="true"></i> público
+                        } @else {
+                          <i class="ti ti-lock" aria-hidden="true"></i> privado
+                        }
+                      </button>
+                      <button
+                        class="pf__visibility-badge"
+                        [class.pf__visibility-badge--copy]="quest.allowCopy"
+                        [class.pf__visibility-badge--no-copy]="!quest.allowCopy"
+                        type="button"
+                        [disabled]="togglingCopyId() === quest.id"
+                        (click)="toggleQuestCopy(quest)"
+                        [title]="
+                          quest.allowCopy
+                            ? 'clique para desabilitar cópia'
+                            : 'clique para permitir cópia'
+                        "
+                      >
+                        @if (togglingCopyId() === quest.id) {
+                          <i class="ti ti-loader-2 pf__spin" aria-hidden="true"></i>
+                        } @else if (quest.allowCopy) {
+                          <i class="ti ti-copy" aria-hidden="true"></i> copiável
+                        } @else {
+                          <i class="ti ti-copy-off" aria-hidden="true"></i> sem cópia
+                        }
+                      </button>
+                      <span class="pf__badge pf__badge--{{ quest.status | lowercase }}">
+                        {{ statusLabel(quest.status) }}
+                      </span>
+                    </div>
                   </div>
-                  <div class="pf__personal-card-badges">
-                    <button
-                      class="pf__visibility-badge"
-                      [class.pf__visibility-badge--private]="!quest.isPublic"
-                      [class.pf__visibility-badge--public]="quest.isPublic"
-                      type="button"
-                      [disabled]="togglingVisibilityId() === quest.id"
-                      (click)="toggleQuestVisibility(quest)"
-                      [title]="
-                        quest.isPublic ? 'clique para tornar privado' : 'clique para tornar público'
-                      "
+                  <div class="pf__personal-card-actions">
+                    <a
+                      class="pf__personal-action"
+                      [routerLink]="['/profile', 'quests', quest.id]"
+                      title="ver quest"
                     >
-                      @if (togglingVisibilityId() === quest.id) {
-                        <i class="ti ti-loader-2 pf__spin" aria-hidden="true"></i>
-                      } @else if (quest.isPublic) {
-                        <i class="ti ti-world" aria-hidden="true"></i> público
+                      <i class="ti ti-eye" aria-hidden="true"></i>
+                    </a>
+                    <a
+                      class="pf__personal-action"
+                      [routerLink]="['/profile', 'quests', quest.id, 'edit']"
+                      [queryParams]="{ personal: 'true' }"
+                      title="editar quest"
+                    >
+                      <i class="ti ti-edit" aria-hidden="true"></i>
+                    </a>
+                    <button
+                      class="pf__personal-action pf__personal-action--danger"
+                      type="button"
+                      [disabled]="deletingQuestId() === quest.id"
+                      (click)="deletePersonalQuest(quest.id)"
+                      title="excluir quest"
+                    >
+                      @if (deletingQuestId() === quest.id) {
+                        <i class="ti ti-loader-2 pf__spin"></i>
                       } @else {
-                        <i class="ti ti-lock" aria-hidden="true"></i> privado
+                        <i class="ti ti-trash" aria-hidden="true"></i>
                       }
                     </button>
-                    <button
-                      class="pf__visibility-badge"
-                      [class.pf__visibility-badge--copy]="quest.allowCopy"
-                      [class.pf__visibility-badge--no-copy]="!quest.allowCopy"
-                      type="button"
-                      [disabled]="togglingCopyId() === quest.id"
-                      (click)="toggleQuestCopy(quest)"
-                      [title]="
-                        quest.allowCopy
-                          ? 'clique para desabilitar cópia'
-                          : 'clique para permitir cópia'
-                      "
-                    >
-                      @if (togglingCopyId() === quest.id) {
-                        <i class="ti ti-loader-2 pf__spin" aria-hidden="true"></i>
-                      } @else if (quest.allowCopy) {
-                        <i class="ti ti-copy" aria-hidden="true"></i> copiável
-                      } @else {
-                        <i class="ti ti-copy-off" aria-hidden="true"></i> sem cópia
-                      }
-                    </button>
-                    <span class="pf__badge pf__badge--{{ quest.status | lowercase }}">
-                      {{ statusLabel(quest.status) }}
-                    </span>
                   </div>
                 </div>
-                <div class="pf__personal-card-actions">
-                  <a
-                    class="pf__personal-action"
-                    [routerLink]="['/games', quest.gameId, 'quests', quest.id]"
-                    title="ver quest"
-                  >
-                    <i class="ti ti-eye" aria-hidden="true"></i>
-                  </a>
-                  <a
-                    class="pf__personal-action"
-                    [routerLink]="['/games', quest.gameId, 'quests', quest.id, 'edit']"
-                    title="editar quest"
-                  >
-                    <i class="ti ti-edit" aria-hidden="true"></i>
-                  </a>
-                  <button
-                    class="pf__personal-action pf__personal-action--danger"
-                    type="button"
-                    [disabled]="deletingQuestId() === quest.id"
-                    (click)="deletePersonalQuest(quest.id)"
-                    title="excluir quest"
-                  >
-                    @if (deletingQuestId() === quest.id) {
-                      <i class="ti ti-loader-2 pf__spin"></i>
-                    } @else {
-                      <i class="ti ti-trash" aria-hidden="true"></i>
-                    }
-                  </button>
-                </div>
-              </div>
+              }
+            } @else {
+              <p class="pf__empty">
+                @if (questSearch()) {
+                  Nenhuma quest encontrada para "{{ questSearch() }}".
+                } @else {
+                  Você ainda não criou nenhuma quest de perfil.
+                }
+              </p>
             }
           } @else {
-            <p class="pf__empty">Você ainda não criou nenhuma quest de perfil.</p>
+            <!-- sub-tab: seguidas -->
+            @if (loadingFollowed()) {
+              <p class="pf__empty">Carregando…</p>
+            } @else if (filteredFollowedQuests().length) {
+              @for (quest of filteredFollowedQuests(); track quest.id) {
+                <a
+                  class="pf__quest-card"
+                  [routerLink]="['/games', quest.gameId, 'quests', quest.id]"
+                >
+                  <div class="pf__quest-info">
+                    <span class="pf__quest-title">{{ quest.title }}</span>
+                    <span class="pf__quest-meta">{{ quest.gameName }}</span>
+                  </div>
+                  <span class="pf__badge pf__badge--{{ quest.status | lowercase }}">{{
+                    statusLabel(quest.status)
+                  }}</span>
+                  <i class="ti ti-chevron-right pf__quest-arrow" aria-hidden="true"></i>
+                </a>
+              }
+            } @else {
+              <p class="pf__empty">
+                @if (questSearch()) {
+                  Nenhuma quest encontrada para "{{ questSearch() }}".
+                } @else {
+                  Você ainda não segue nenhuma quest da comunidade.
+                }
+              </p>
+            }
           }
         }
 
         @if (activeTab() === 'lore') {
           <div class="pf__content-header">
-            <p class="pf__section-title">meu lore</p>
+            <p class="pf__section-title">lore</p>
             <a class="pf__content-create-btn" routerLink="/lore/new">
               <i class="ti ti-plus" aria-hidden="true"></i> novo artigo
             </a>
           </div>
 
-          @if (loadingContent()) {
-            <p class="pf__empty">Carregando…</p>
-          } @else if (personalLore().length) {
-            @for (article of personalLore(); track article.id) {
-              <div class="pf__personal-card">
-                <div class="pf__personal-card-main">
-                  <div class="pf__personal-card-info">
-                    <span class="pf__quest-title">{{ article.title }}</span>
-                    <span class="pf__quest-meta">
-                      {{ article.gameName }}
-                      @if (article.likeCount) {
-                        · <i class="ti ti-heart-filled pf__like-icon"></i> {{ article.likeCount }}
+          <div class="pf__subtabs">
+            <button
+              class="pf__subtab"
+              [class.pf__subtab--active]="loreSubTab() === 'meu'"
+              type="button"
+              (click)="setLoreSubTab('meu')"
+            >
+              meu lore
+            </button>
+            <button
+              class="pf__subtab"
+              [class.pf__subtab--active]="loreSubTab() === 'seguido'"
+              type="button"
+              (click)="setLoreSubTab('seguido')"
+            >
+              lore seguido
+            </button>
+          </div>
+
+          <div class="pf__search-wrap">
+            <i class="ti ti-search pf__search-icon" aria-hidden="true"></i>
+            <input
+              class="pf__search"
+              type="text"
+              placeholder="buscar lore…"
+              [value]="loreSearch()"
+              (input)="loreSearch.set($any($event.target).value)"
+            />
+          </div>
+
+          @if (loreSubTab() === 'meu' && personalLoreGames().length > 0) {
+            <app-game-filter-dropdown
+              [games]="personalLoreGames()"
+              [selected]="loreGameFilter()"
+              (selectedChange)="loreGameFilter.set($event)"
+            />
+          }
+          @if (loreSubTab() === 'seguido' && followedLoreGames().length > 0) {
+            <app-game-filter-dropdown
+              [games]="followedLoreGames()"
+              [selected]="loreGameFilter()"
+              (selectedChange)="loreGameFilter.set($event)"
+            />
+          }
+
+          @if (loreSubTab() === 'meu') {
+            @if (loadingContent()) {
+              <p class="pf__empty">Carregando…</p>
+            } @else if (filteredPersonalLore().length) {
+              @for (article of filteredPersonalLore(); track article.id) {
+                <div class="pf__personal-card">
+                  <div class="pf__personal-card-main">
+                    <div class="pf__personal-card-info">
+                      <span class="pf__quest-title">{{ article.title }}</span>
+                      <span class="pf__quest-meta">
+                        {{ article.gameName }}
+                        @if (article.likeCount) {
+                          · <i class="ti ti-heart-filled pf__like-icon"></i> {{ article.likeCount }}
+                        }
+                      </span>
+                    </div>
+                    <div class="pf__personal-card-badges">
+                      @if (!article.isPublic) {
+                        <span class="pf__visibility-badge pf__visibility-badge--private">
+                          <i class="ti ti-lock" aria-hidden="true"></i> privado
+                        </span>
                       }
-                    </span>
+                      @if (article.allowCopy) {
+                        <span class="pf__visibility-badge pf__visibility-badge--copy">
+                          <i class="ti ti-copy" aria-hidden="true"></i> copiável
+                        </span>
+                      }
+                      <span class="pf__badge pf__badge--{{ article.status | lowercase }}">
+                        {{ statusLabel(article.status) }}
+                      </span>
+                    </div>
                   </div>
-                  <div class="pf__personal-card-badges">
-                    @if (!article.isPublic) {
-                      <span class="pf__visibility-badge pf__visibility-badge--private">
-                        <i class="ti ti-lock" aria-hidden="true"></i> privado
-                      </span>
-                    }
-                    @if (article.allowCopy) {
-                      <span class="pf__visibility-badge pf__visibility-badge--copy">
-                        <i class="ti ti-copy" aria-hidden="true"></i> copiável
-                      </span>
-                    }
-                    <span class="pf__badge pf__badge--{{ article.status | lowercase }}">
-                      {{ statusLabel(article.status) }}
-                    </span>
+                  <div class="pf__personal-card-actions">
+                    <a
+                      class="pf__personal-action"
+                      [routerLink]="['/profile', 'lore', article.id]"
+                      title="ver artigo"
+                    >
+                      <i class="ti ti-eye" aria-hidden="true"></i>
+                    </a>
+                    <a
+                      class="pf__personal-action"
+                      [routerLink]="['/profile', 'lore', article.id, 'edit']"
+                      [queryParams]="{ personal: 'true' }"
+                      title="editar artigo"
+                    >
+                      <i class="ti ti-edit" aria-hidden="true"></i>
+                    </a>
+                    <button
+                      class="pf__personal-action pf__personal-action--danger"
+                      type="button"
+                      [disabled]="deletingLoreId() === article.id"
+                      (click)="deletePersonalLore(article.id)"
+                      title="excluir artigo"
+                    >
+                      @if (deletingLoreId() === article.id) {
+                        <i class="ti ti-loader-2 pf__spin"></i>
+                      } @else {
+                        <i class="ti ti-trash" aria-hidden="true"></i>
+                      }
+                    </button>
                   </div>
                 </div>
-                <div class="pf__personal-card-actions">
-                  <a
-                    class="pf__personal-action"
-                    [routerLink]="['/lore', article.id]"
-                    title="ver artigo"
-                  >
-                    <i class="ti ti-eye" aria-hidden="true"></i>
-                  </a>
-                  <a
-                    class="pf__personal-action"
-                    [routerLink]="['/lore', article.id, 'edit']"
-                    title="editar artigo"
-                  >
-                    <i class="ti ti-edit" aria-hidden="true"></i>
-                  </a>
-                  <button
-                    class="pf__personal-action pf__personal-action--danger"
-                    type="button"
-                    [disabled]="deletingLoreId() === article.id"
-                    (click)="deletePersonalLore(article.id)"
-                    title="excluir artigo"
-                  >
-                    @if (deletingLoreId() === article.id) {
-                      <i class="ti ti-loader-2 pf__spin"></i>
-                    } @else {
-                      <i class="ti ti-trash" aria-hidden="true"></i>
-                    }
-                  </button>
-                </div>
-              </div>
+              }
+            } @else {
+              <p class="pf__empty">
+                @if (loreSearch()) {
+                  Nenhum lore encontrado para "{{ loreSearch() }}".
+                } @else {
+                  Você ainda não criou nenhum artigo de lore.
+                }
+              </p>
             }
           } @else {
-            <p class="pf__empty">Você ainda não criou nenhum artigo de lore.</p>
+            <!-- sub-tab: lore seguido -->
+            @if (loadingFollowed()) {
+              <p class="pf__empty">Carregando…</p>
+            } @else if (filteredFollowedLore().length) {
+              @for (article of filteredFollowedLore(); track article.id) {
+                <a class="pf__quest-card" [routerLink]="['/lore', article.id]">
+                  <div class="pf__quest-info">
+                    <span class="pf__quest-title">{{ article.title }}</span>
+                    <span class="pf__quest-meta">{{ article.gameName }}</span>
+                  </div>
+                  <span class="pf__badge pf__badge--{{ article.status | lowercase }}">{{
+                    statusLabel(article.status)
+                  }}</span>
+                  <i class="ti ti-chevron-right pf__quest-arrow" aria-hidden="true"></i>
+                </a>
+              }
+            } @else {
+              <p class="pf__empty">
+                @if (loreSearch()) {
+                  Nenhum lore encontrado para "{{ loreSearch() }}".
+                } @else {
+                  Você ainda não segue nenhum lore da comunidade.
+                }
+              </p>
+            }
+          }
+        }
+
+        @if (activeTab() === 'jogos') {
+          <div class="pf__content-header">
+            <p class="pf__section-title">jogos seguidos</p>
+          </div>
+          <div class="pf__search-wrap">
+            <i class="ti ti-search pf__search-icon" aria-hidden="true"></i>
+            <input
+              class="pf__search"
+              type="text"
+              placeholder="buscar jogo…"
+              [value]="gameSearch()"
+              (input)="gameSearch.set($any($event.target).value)"
+            />
+          </div>
+          @if (filteredGames().length) {
+            @for (game of filteredGames(); track game.id) {
+              <a class="pf__quest-card" [routerLink]="['/games', game.id]">
+                <div class="pf__quest-info">
+                  <span class="pf__quest-title">{{ game.name }}</span>
+                  <span class="pf__quest-meta">
+                    {{ game.questCount }} quests · {{ game.loreCount }} lore ·
+                    {{ game.followersCount }} seguidores
+                  </span>
+                </div>
+                <i class="ti ti-chevron-right pf__quest-arrow" aria-hidden="true"></i>
+              </a>
+            }
+          } @else {
+            <p class="pf__empty">
+              @if (gameSearch()) {
+                Nenhum jogo encontrado para "{{ gameSearch() }}".
+              } @else {
+                Você ainda não segue nenhum jogo.
+              }
+            </p>
           }
         }
 
         @if (activeTab() === 'seguindo') {
+          <div class="pf__subtabs">
+            <button
+              class="pf__subtab"
+              [class.pf__subtab--active]="seguindoSubTab() === 'quests'"
+              type="button"
+              (click)="setSeguindoSubTab('quests')"
+            >
+              quests
+            </button>
+            <button
+              class="pf__subtab"
+              [class.pf__subtab--active]="seguindoSubTab() === 'lore'"
+              type="button"
+              (click)="setSeguindoSubTab('lore')"
+            >
+              lore
+            </button>
+          </div>
+
           @if (loadingFollowed()) {
             <p class="pf__empty">Carregando…</p>
-          } @else {
-            <p class="pf__section-title">quests seguidas</p>
-
-            @for (quest of followedQuests(); track quest.id) {
+          } @else if (seguindoSubTab() === 'quests') {
+            <div class="pf__search-wrap">
+              <i class="ti ti-search pf__search-icon" aria-hidden="true"></i>
+              <input
+                class="pf__search"
+                type="text"
+                placeholder="buscar quest…"
+                [value]="questSearch()"
+                (input)="questSearch.set($any($event.target).value)"
+              />
+            </div>
+            @if (followedQuestGames().length > 0) {
+              <app-game-filter-dropdown
+                [games]="followedQuestGames()"
+                [selected]="questGameFilter()"
+                (selectedChange)="questGameFilter.set($event)"
+              />
+            }
+            @for (quest of filteredFollowedQuests(); track quest.id) {
               <a class="pf__quest-card" [routerLink]="['/games', quest.gameId, 'quests', quest.id]">
                 <div class="pf__quest-info">
                   <span class="pf__quest-title">{{ quest.title }}</span>
@@ -439,13 +676,34 @@
                 <i class="ti ti-chevron-right pf__quest-arrow" aria-hidden="true"></i>
               </a>
             }
-            @if (!followedQuests().length) {
-              <p class="pf__empty">Você ainda não segue nenhuma quest.</p>
+            @if (!filteredFollowedQuests().length) {
+              <p class="pf__empty">
+                @if (questSearch() || questGameFilter()) {
+                  Nenhuma quest encontrada.
+                } @else {
+                  Você ainda não segue nenhuma quest.
+                }
+              </p>
             }
-
-            <p class="pf__section-title pf__section-title--mt">lore seguido</p>
-
-            @for (article of followedLore(); track article.id) {
+          } @else {
+            <div class="pf__search-wrap">
+              <i class="ti ti-search pf__search-icon" aria-hidden="true"></i>
+              <input
+                class="pf__search"
+                type="text"
+                placeholder="buscar lore…"
+                [value]="loreSearch()"
+                (input)="loreSearch.set($any($event.target).value)"
+              />
+            </div>
+            @if (followedLoreGames().length > 0) {
+              <app-game-filter-dropdown
+                [games]="followedLoreGames()"
+                [selected]="loreGameFilter()"
+                (selectedChange)="loreGameFilter.set($event)"
+              />
+            }
+            @for (article of filteredFollowedLore(); track article.id) {
               <a class="pf__quest-card" [routerLink]="['/lore', article.id]">
                 <div class="pf__quest-info">
                   <span class="pf__quest-title">{{ article.title }}</span>
@@ -457,30 +715,16 @@
                 <i class="ti ti-chevron-right pf__quest-arrow" aria-hidden="true"></i>
               </a>
             }
-            @if (!followedLore().length) {
-              <p class="pf__empty">Você ainda não segue nenhum artigo de lore.</p>
+            @if (!filteredFollowedLore().length) {
+              <p class="pf__empty">
+                @if (loreSearch() || loreGameFilter()) {
+                  Nenhum lore encontrado.
+                } @else {
+                  Você ainda não segue nenhum artigo de lore.
+                }
+              </p>
             }
           }
-        }
-
-        @if (activeTab() === 'kanban') {
-          <div class="pf__content-header">
-            <p class="pf__section-title">meus kanbans</p>
-            <a class="pf__content-create-btn" routerLink="/kanban">
-              <i class="ti ti-layout-kanban" aria-hidden="true"></i> ver todos
-            </a>
-          </div>
-          <div class="pf__kanban-promo">
-            <i class="ti ti-layout-kanban pf__kanban-promo-icon" aria-hidden="true"></i>
-            <p class="pf__kanban-promo-title">boards por personagem</p>
-            <p class="pf__kanban-promo-desc">
-              Organize sua jornada em colunas, acompanhe o progresso das suas quests e anote tudo
-              que importa — um board para cada build.
-            </p>
-            <a class="pf__kanban-promo-btn" routerLink="/kanban">
-              <i class="ti ti-arrow-right" aria-hidden="true"></i> acessar kanbans
-            </a>
-          </div>
         }
 
         @if (activeTab() === 'seguidores') {

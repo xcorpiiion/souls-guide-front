@@ -5,22 +5,72 @@
 } @else if (error()) {
   <div class="quest-detail__not-found">
     <p>{{ error() }}</p>
-    <a class="quest-detail__back-link" [routerLink]="['/games', gameId]">← voltar para o jogo</a>
+    <a class="quest-detail__back-link" [routerLink]="['/games', gameId()]">← voltar para o jogo</a>
   </div>
 } @else if (quest(); as q) {
   <div class="quest-detail">
+    @if (previewVersion()) {
+      <div class="quest-detail__version-banner">
+        <i class="ti ti-clock-history" aria-hidden="true"></i>
+        Você está visualizando a <strong>v{{ previewVersion() }}</strong> — esta pode não ser a
+        versão atual.
+        @if (context === 'profile') {
+          <a [routerLink]="['/profile', 'quests', questId, 'history']">ver histórico completo</a>
+        } @else if (context === 'usuario') {
+          <a [routerLink]="['/usuarios', handle, 'quests', questId, 'history']"
+            >ver histórico completo</a
+          >
+        } @else {
+          <a [routerLink]="['/games', gameId(), 'quests', questId, 'history']"
+            >ver histórico completo</a
+          >
+        }
+      </div>
+    }
     <div class="quest-detail__hero">
       <nav class="quest-detail__breadcrumb" aria-label="navegação">
-        <a class="quest-detail__breadcrumb-link" routerLink="/games">jogos</a>
-        <span class="quest-detail__breadcrumb-sep" aria-hidden="true">›</span>
-        <a class="quest-detail__breadcrumb-link" [routerLink]="['/games', gameId]">{{
-          q.gameName
-        }}</a>
-        <span class="quest-detail__breadcrumb-sep" aria-hidden="true">›</span>
-        <a class="quest-detail__breadcrumb-link" [routerLink]="['/games', gameId]">quests</a>
+        @if (context === 'profile') {
+          <a class="quest-detail__breadcrumb-link" routerLink="/profile">perfil</a>
+          <span class="quest-detail__breadcrumb-sep" aria-hidden="true">›</span>
+          <a class="quest-detail__breadcrumb-link" routerLink="/profile">quests</a>
+        } @else if (context === 'usuario') {
+          <a class="quest-detail__breadcrumb-link" [routerLink]="['/usuarios', handle]"
+            >&#64;{{ handle }}</a
+          >
+          <span class="quest-detail__breadcrumb-sep" aria-hidden="true">›</span>
+          <a class="quest-detail__breadcrumb-link" [routerLink]="['/usuarios', handle]">quests</a>
+        } @else {
+          <a class="quest-detail__breadcrumb-link" routerLink="/games">jogos</a>
+          <span class="quest-detail__breadcrumb-sep" aria-hidden="true">›</span>
+          <a class="quest-detail__breadcrumb-link" [routerLink]="['/games', gameId()]">{{
+            q.gameName
+          }}</a>
+          <span class="quest-detail__breadcrumb-sep" aria-hidden="true">›</span>
+          <a class="quest-detail__breadcrumb-link" [routerLink]="['/games', gameId()]">quests</a>
+        }
         <span class="quest-detail__breadcrumb-sep" aria-hidden="true">›</span>
         <span>{{ q.title }}</span>
       </nav>
+
+      @if (q.hidden) {
+        <div class="quest-detail__hidden-banner">
+          <i class="ti ti-lock" aria-hidden="true"></i>
+          <span class="quest-detail__hidden-banner-title">
+            esta quest está oculta por uma condição
+          </span>
+          @if (!q.hiddenIsSpoiler || hiddenReasonRevealed()) {
+            <p class="quest-detail__hidden-banner-reason">{{ q.hiddenReason }}</p>
+          } @else {
+            <button
+              class="quest-detail__hidden-banner-reveal"
+              type="button"
+              (click)="revealHiddenReason()"
+            >
+              <i class="ti ti-eye-off" aria-hidden="true"></i> contém espoiler — revelar motivo
+            </button>
+          }
+        </div>
+      }
 
       <div class="quest-detail__header">
         <div class="quest-detail__title-block">
@@ -33,40 +83,42 @@
           <p class="quest-detail__description">{{ q.description }}</p>
         </div>
         <div class="quest-detail__actions">
-          <button
-            class="quest-detail__btn quest-detail__btn--ghost"
-            [class.quest-detail__btn--liked]="userHasLiked()"
-            type="button"
-            [disabled]="!auth.isLoggedIn() || liking()"
-            (click)="toggleLike()"
-            [title]="userHasLiked() ? 'remover curtida' : 'curtir'"
-          >
-            <i
-              [class]="userHasLiked() ? 'ti ti-heart-filled' : 'ti ti-heart'"
-              aria-hidden="true"
-            ></i>
-            {{ userHasLiked() ? 'curtido' : 'curtir' }}
-            @if (likeCount() > 0) {
-              · {{ likeCount() }}
-            }
-          </button>
-          <button
-            class="quest-detail__btn quest-detail__btn--ghost"
-            [class.quest-detail__btn--following]="userIsFollowing()"
-            type="button"
-            [disabled]="!auth.isLoggedIn() || following()"
-            (click)="toggleFollow()"
-            [title]="userIsFollowing() ? 'parar de seguir' : 'seguir quest'"
-          >
-            <i
-              [class]="userIsFollowing() ? 'ti ti-bell-ringing' : 'ti ti-bell'"
-              aria-hidden="true"
-            ></i>
-            {{ userIsFollowing() ? 'seguindo' : 'seguir' }}
-            @if (followerCount() > 0) {
-              · {{ followerCount() }}
-            }
-          </button>
+          @if (!q.isOwner) {
+            <button
+              class="quest-detail__btn quest-detail__btn--ghost"
+              [class.quest-detail__btn--liked]="userHasLiked()"
+              type="button"
+              [disabled]="!auth.isLoggedIn() || liking()"
+              (click)="toggleLike()"
+              [title]="userHasLiked() ? 'remover curtida' : 'curtir'"
+            >
+              <i
+                [class]="userHasLiked() ? 'ti ti-heart-filled' : 'ti ti-heart'"
+                aria-hidden="true"
+              ></i>
+              {{ userHasLiked() ? 'curtido' : 'curtir' }}
+              @if (likeCount() > 0) {
+                · {{ likeCount() }}
+              }
+            </button>
+            <button
+              class="quest-detail__btn quest-detail__btn--ghost"
+              [class.quest-detail__btn--following]="userIsFollowing()"
+              type="button"
+              [disabled]="!auth.isLoggedIn() || following()"
+              (click)="toggleFollow()"
+              [title]="userIsFollowing() ? 'parar de seguir' : 'seguir quest'"
+            >
+              <i
+                [class]="userIsFollowing() ? 'ti ti-bell-ringing' : 'ti ti-bell'"
+                aria-hidden="true"
+              ></i>
+              {{ userIsFollowing() ? 'seguindo' : 'seguir' }}
+              @if (followerCount() > 0) {
+                · {{ followerCount() }}
+              }
+            </button>
+          }
           <div class="quest-detail__share-wrap">
             <button
               class="quest-detail__btn quest-detail__btn--ghost"
@@ -95,11 +147,17 @@
           </div>
           <a
             class="quest-detail__btn quest-detail__btn--ghost"
-            [routerLink]="['/games', gameId, 'quests', q.id, 'history']"
+            [routerLink]="
+              context === 'profile'
+                ? ['/profile', 'quests', q.id, 'history']
+                : context === 'usuario'
+                  ? ['/usuarios', handle, 'quests', q.id, 'history']
+                  : ['/games', gameId(), 'quests', q.id, 'history']
+            "
           >
             <i class="ti ti-history" aria-hidden="true"></i> histórico
           </a>
-          @if (auth.isLoggedIn() && !isOwner()) {
+          @if (auth.isLoggedIn() && !q.isOwner && (!q.isPersonal || q.allowCopy)) {
             <button
               class="quest-detail__btn quest-detail__btn--ghost"
               type="button"
@@ -107,47 +165,17 @@
             >
               <i class="ti ti-copy" aria-hidden="true"></i> copiar
             </button>
-            <div class="quest-detail__share-wrap">
-              <button
-                class="quest-detail__btn quest-detail__btn--ghost"
-                type="button"
-                (click)="showKanbanPopover.set(!showKanbanPopover()); $event.stopPropagation()"
-                [attr.aria-expanded]="showKanbanPopover()"
-              >
-                <i class="ti ti-layout-kanban" aria-hidden="true"></i> kanban
-              </button>
-              @if (showKanbanPopover()) {
-                <div class="quest-detail__share-popover quest-detail__kanban-popover" role="dialog">
-                  <p class="quest-detail__share-label">novo kanban para {{ q.gameName }}</p>
-                  <p class="quest-detail__kanban-hint">Como se chama seu personagem?</p>
-                  <input
-                    class="quest-detail__kanban-input"
-                    type="text"
-                    placeholder="ex: Tarnished, Ashen One…"
-                    [value]="kanbanCharName()"
-                    (input)="kanbanCharName.set($any($event.target).value)"
-                    (keydown.enter)="createKanbanFromQuest()"
-                  />
-                  <button
-                    class="quest-detail__kanban-btn"
-                    type="button"
-                    [disabled]="!kanbanCharName().trim() || creatingKanban()"
-                    (click)="createKanbanFromQuest()"
-                  >
-                    @if (creatingKanban()) {
-                      <i class="ti ti-loader-2 quest-detail__spin" aria-hidden="true"></i> criando…
-                    } @else {
-                      <i class="ti ti-layout-kanban" aria-hidden="true"></i> criar kanban
-                    }
-                  </button>
-                </div>
-              }
-            </div>
+            <div class="quest-detail__share-wrap"></div>
           }
           @if (canEdit()) {
             <a
               class="quest-detail__btn quest-detail__btn--accent"
-              [routerLink]="['/games', gameId, 'quests', q.id, 'edit']"
+              [routerLink]="
+                q.isPersonal
+                  ? ['/profile', 'quests', q.id, 'edit']
+                  : ['/games', gameId(), 'quests', q.id, 'edit']
+              "
+              [queryParams]="q.isPersonal ? { personal: 'true' } : {}"
               >+ editar</a
             >
           }
@@ -198,14 +226,26 @@
 
     <div class="quest-detail__body quest-detail__body--list">
       <div class="quest-detail__main">
-        <app-quest-checklist
-          [nodes]="q.nodes"
-          [edges]="q.edges"
-          [completedNodeIds]="completedNodeIds()"
-          [togglingNodeId]="togglingNodeId()"
-          [gameId]="gameId"
-          (nodeDoneToggle)="toggleNodeDone($event)"
-        />
+        @if (snapshotLoading()) {
+          <p class="quest-detail__snapshot-msg">
+            <i class="ti ti-loader-2 quest-detail__spin" aria-hidden="true"></i>
+            Carregando snapshot da versão…
+          </p>
+        } @else if (snapshotUnavailable()) {
+          <p class="quest-detail__snapshot-msg quest-detail__snapshot-msg--warn">
+            <i class="ti ti-photo-off" aria-hidden="true"></i>
+            Snapshot histórico não disponível para esta versão.
+          </p>
+        } @else {
+          <app-quest-checklist
+            [nodes]="snapshotNodes() ?? q.nodes"
+            [edges]="snapshotEdges() ?? q.edges"
+            [completedNodeIds]="previewVersion() ? emptySet : completedNodeIds()"
+            [togglingNodeId]="previewVersion() ? null : togglingNodeId()"
+            [gameId]="gameId()"
+            (nodeDoneToggle)="toggleNodeDone($event)"
+          />
+        }
       </div>
     </div>
     <div class="quest-detail__comments">

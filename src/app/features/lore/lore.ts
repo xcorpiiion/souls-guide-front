@@ -3,7 +3,9 @@ import {
   ChangeDetectionStrategy,
   Component,
   DestroyRef,
+  HostListener,
   OnInit,
+  computed,
   inject,
   signal,
 } from '@angular/core';
@@ -13,6 +15,8 @@ import { Subject, debounceTime, distinctUntilChanged, switchMap } from 'rxjs';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { LoreCategory, LoreSummary } from '../../shared/models/lore-article.model';
 import { LoreService } from '../../core/services/lore.service';
+import { GameService } from '../../core/services/game.service';
+import { GameSummary } from '../../shared/models/game.model';
 
 const CATEGORY_FILTERS: { id: LoreCategory | ''; label: string }[] = [
   { id: '', label: 'todos' },
@@ -38,6 +42,7 @@ interface LoreFilters {
 })
 export class Lore implements OnInit {
   private readonly loreService = inject(LoreService);
+  private readonly gameService = inject(GameService);
   private readonly destroyRef = inject(DestroyRef);
 
   protected readonly categoryFilters = CATEGORY_FILTERS;
@@ -56,7 +61,29 @@ export class Lore implements OnInit {
 
   private readonly load$ = new Subject<LoreFilters>();
 
+  protected readonly allGames = signal<GameSummary[]>([]);
+
+  protected readonly gameDropdownOpen = signal(false);
+  protected readonly gameSearch = signal('');
+
+  protected readonly filteredGames = computed(() => {
+    const q = this.gameSearch().toLowerCase();
+    return q ? this.allGames().filter((g) => g.name.toLowerCase().includes(q)) : this.allGames();
+  });
+
+  protected readonly selectedGameName = computed(() => {
+    const id = this.gameFilter();
+    return id ? (this.allGames().find((g) => g.id === id)?.name ?? '') : 'todos os jogos';
+  });
+
   ngOnInit(): void {
+    this.gameService.list(0, 50).subscribe({
+      next: (page) => this.allGames.set(page.content),
+      error: () => {
+        /* silenciado — filtro de jogo fica vazio */
+      },
+    });
+
     this.load$
       .pipe(
         debounceTime(250),
@@ -110,8 +137,24 @@ export class Lore implements OnInit {
 
   protected setGameFilter(id: string): void {
     this.gameFilter.set(id);
+    this.gameDropdownOpen.set(false);
+    this.gameSearch.set('');
     this.currentPage.set(0);
     this.emit(0);
+  }
+
+  protected toggleGameDropdown(): void {
+    const opening = !this.gameDropdownOpen();
+    this.gameDropdownOpen.set(opening);
+    if (!opening) this.gameSearch.set('');
+  }
+
+  @HostListener('document:click')
+  protected onDocumentClick(): void {
+    if (this.gameDropdownOpen()) {
+      this.gameDropdownOpen.set(false);
+      this.gameSearch.set('');
+    }
   }
 
   protected setCategoryFilter(id: LoreCategory | ''): void {

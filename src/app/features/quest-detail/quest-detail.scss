@@ -1,6 +1,34 @@
 @use 'styles/variables' as v;
 @use 'styles/mixins' as m;
 
+.quest-detail__version-banner {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 24px;
+  background: color-mix(in srgb, v.$color-gold 12%, transparent);
+  border-bottom: 1px solid color-mix(in srgb, v.$color-gold 30%, transparent);
+  font-size: 13px;
+  color: v.$color-text-muted;
+
+  i {
+    color: v.$color-gold;
+    flex-shrink: 0;
+  }
+  strong {
+    color: v.$color-gold;
+  }
+  a {
+    color: v.$color-gold;
+    margin-left: auto;
+    text-decoration: none;
+    white-space: nowrap;
+    &:hover {
+      text-decoration: underline;
+    }
+  }
+}
+
 // ─── Hero ────────────────────────────────────────────────────────────────────
 .quest-detail__hero {
   padding: v.$space-6 v.$space-8 v.$space-5;
@@ -19,6 +47,52 @@
   font-size: v.$font-size-xs;
   color: v.$color-text-muted;
   margin-bottom: v.$space-5;
+}
+
+.quest-detail__hidden-banner {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: v.$space-2;
+  padding: v.$space-3 v.$space-4;
+  margin-bottom: v.$space-5;
+  border: 1px dashed v.$color-ember;
+  border-radius: v.$radius-md;
+  background: rgba(184, 76, 42, 0.08);
+  color: v.$color-ember-light;
+  font-size: v.$font-size-sm;
+
+  i:first-child {
+    font-size: 16px;
+  }
+}
+
+.quest-detail__hidden-banner-title {
+  font-weight: 500;
+}
+
+.quest-detail__hidden-banner-reason {
+  flex-basis: 100%;
+  margin: 0;
+  color: v.$color-text-muted;
+  font-size: v.$font-size-sm;
+}
+
+.quest-detail__hidden-banner-reveal {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: v.$font-size-xs;
+  color: v.$color-text-faint;
+  border: 1px dashed v.$color-border;
+  border-radius: v.$radius-sm;
+  padding: 2px v.$space-2;
+  background: none;
+  cursor: pointer;
+
+  &:hover {
+    color: v.$color-text-muted;
+  }
 }
 
 .quest-detail__breadcrumb-link {
@@ -215,14 +289,6 @@
   padding: v.$space-6 v.$space-6 v.$space-8;
   border-right: 1px solid v.$color-border;
   min-width: 0;
-
-  app-quest-view-canvas {
-    display: block;
-    height: 460px;
-    border: 1px solid v.$color-border;
-    border-radius: v.$radius-lg;
-    overflow: hidden;
-  }
 
   @media (max-width: 768px) {
     border-right: none;
@@ -526,66 +592,6 @@
   }
 }
 
-// ─── Kanban popover ───────────────────────────────────────────────────────────
-.quest-detail__kanban-popover {
-  min-width: 240px;
-}
-
-.quest-detail__kanban-hint {
-  font-size: v.$font-size-sm;
-  color: v.$color-text-muted;
-  margin-bottom: v.$space-2;
-}
-
-.quest-detail__kanban-input {
-  width: 100%;
-  padding: 7px 10px;
-  font-size: v.$font-size-sm;
-  font-family: v.$font-body;
-  background: v.$color-bg-elevated;
-  border: 0.5px solid v.$color-border;
-  border-radius: v.$radius-sm;
-  color: v.$color-text;
-  outline: none;
-  margin-bottom: v.$space-3;
-  box-sizing: border-box;
-
-  &:focus {
-    border-color: v.$color-border-focus;
-  }
-
-  &::placeholder {
-    color: v.$color-text-muted;
-  }
-}
-
-.quest-detail__kanban-btn {
-  width: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: v.$space-2;
-  padding: 8px;
-  font-size: v.$font-size-sm;
-  font-family: v.$font-body;
-  background: v.$color-gold;
-  color: #0f0d0b;
-  border: none;
-  border-radius: v.$radius-sm;
-  cursor: pointer;
-  font-weight: 500;
-  transition: background v.$transition-fast;
-
-  @include m.on-hover {
-    background: v.$color-gold-light;
-  }
-
-  &:disabled {
-    opacity: 0.45;
-    cursor: not-allowed;
-  }
-}
-
 @keyframes qd-spin {
   to {
     transform: rotate(360deg);
@@ -594,6 +600,22 @@
 
 .quest-detail__spin {
   animation: qd-spin 0.8s linear infinite;
+}
+
+.quest-detail__snapshot-msg {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 24px;
+  font-size: 14px;
+  color: v.$color-text-muted;
+
+  &--warn {
+    color: v.$color-text-muted;
+    i {
+      color: v.$color-gold;
+    }
+  }
 }
 
 // ─── Not found ────────────────────────────────────────────────────────────────

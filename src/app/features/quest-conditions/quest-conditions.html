@@ -1,0 +1,164 @@
+<div class="qc">
+  <nav class="qc__breadcrumb" aria-label="navegação">
+    <a class="qc__breadcrumb-link" routerLink="/games">jogos</a>
+    <span aria-hidden="true">›</span>
+    <a class="qc__breadcrumb-link" [routerLink]="['/games', gameId]">jogo</a>
+    <span aria-hidden="true">›</span>
+    <span>condições</span>
+  </nav>
+
+  <h1 class="qc__title">Condições entre quests</h1>
+  <p class="qc__subtitle">
+    Defina o que acontece quando o jogador completa certas etapas — esconder uma quest, revelar
+    outra como pré-requisito, ou sinalizar um final travado.
+  </p>
+
+  @if (loading()) {
+    <p class="qc__loading">Carregando quests e etapas…</p>
+  } @else {
+    <div class="qc__body">
+      <section class="qc__form">
+        <h2 class="qc__form-title">{{ editingId() ? 'editar condição' : 'nova condição' }}</h2>
+
+        <div class="qc__field">
+          <span class="qc__label">gatilhos — TODAS estas etapas precisam estar concluídas</span>
+          <div class="qc__triggers">
+            @for (group of nodeOptionsByQuest(); track group.questId) {
+              <div class="qc__trigger-group">
+                <span class="qc__trigger-quest">{{ group.questTitle }}</span>
+                @for (node of group.nodes; track node.nodeId) {
+                  <label class="qc__trigger-option">
+                    <input
+                      type="checkbox"
+                      [checked]="isTriggerSelected(node.nodeId)"
+                      (change)="toggleTrigger(node.nodeId)"
+                    />
+                    {{ node.nodeLabel }}
+                    <span class="qc__trigger-type">{{ node.nodeType }}</span>
+                  </label>
+                }
+              </div>
+            }
+          </div>
+        </div>
+
+        <label class="qc__field">
+          <span class="qc__label">quest afetada</span>
+          <select
+            class="qc__input qc__input--select"
+            [value]="affectedQuestId()"
+            (change)="affectedQuestId.set($any($event.target).value)"
+          >
+            <option value="">— selecione —</option>
+            @for (q of quests(); track q.id) {
+              <option [value]="q.id">{{ q.title }}</option>
+            }
+          </select>
+        </label>
+
+        <label class="qc__field">
+          <span class="qc__label">efeito</span>
+          <select
+            class="qc__input qc__input--select"
+            [value]="effect()"
+            (change)="effect.set($any($event.target).value)"
+          >
+            @for (opt of effectOptions; track opt.value) {
+              <option [value]="opt.value">{{ opt.label }}</option>
+            }
+          </select>
+        </label>
+
+        @if (effect() === 'FORCE_ENDING') {
+          <label class="qc__field">
+            <span class="qc__label">final travado</span>
+            <select
+              class="qc__input qc__input--select"
+              [value]="endingNodeId()"
+              (change)="endingNodeId.set($any($event.target).value)"
+            >
+              <option value="">— selecione um final da quest afetada —</option>
+              @for (n of endingNodeOptions(); track n.nodeId) {
+                <option [value]="n.nodeId">{{ n.nodeLabel }}</option>
+              }
+            </select>
+          </label>
+        }
+
+        <label class="qc__field">
+          <span class="qc__label">descrição (explicação narrativa)</span>
+          <textarea
+            class="qc__input qc__input--textarea"
+            rows="3"
+            placeholder="ex: Ranni nunca perdoa esse golpe — ela foge e a relação se rompe pra sempre."
+            [value]="description()"
+            (input)="description.set($any($event.target).value)"
+          ></textarea>
+        </label>
+
+        <label class="qc__spoiler-check">
+          <input
+            type="checkbox"
+            [checked]="isSpoiler()"
+            (change)="isSpoiler.set($any($event.target).checked)"
+          />
+          contém espoiler — esconder a descrição até o usuário clicar em revelar
+        </label>
+
+        <div class="qc__form-actions">
+          @if (editingId()) {
+            <button class="qc__cancel-btn" type="button" (click)="startCreate()">
+              cancelar edição
+            </button>
+          }
+          <button
+            class="qc__save-btn"
+            type="button"
+            [disabled]="!formValid() || saving()"
+            (click)="save()"
+          >
+            {{ saving() ? 'salvando…' : editingId() ? 'salvar alterações' : 'criar condição' }}
+          </button>
+        </div>
+      </section>
+
+      <section class="qc__list">
+        <h2 class="qc__form-title">condições cadastradas · {{ conditions().length }}</h2>
+
+        @if (conditions().length === 0) {
+          <p class="qc__empty">Nenhuma condição cadastrada para este jogo ainda.</p>
+        }
+
+        @for (condition of conditions(); track condition.id) {
+          <div class="qc__card">
+            <div class="qc__card-header">
+              <span class="qc__card-effect qc__card-effect--{{ condition.effect.toLowerCase() }}">
+                {{ effectLabel(condition.effect) }}
+              </span>
+              <div class="qc__card-actions">
+                <button type="button" (click)="startEdit(condition)" title="editar">
+                  <i class="ti ti-edit" aria-hidden="true"></i>
+                </button>
+                <button type="button" (click)="deleteCondition(condition)" title="excluir">
+                  <i class="ti ti-trash" aria-hidden="true"></i>
+                </button>
+              </div>
+            </div>
+            <p class="qc__card-affected">
+              afeta: <strong>{{ condition.affectedQuestTitle }}</strong>
+            </p>
+            <p class="qc__card-triggers">
+              gatilhos: {{ condition.triggerNodeIds.length }} etapa(s)
+            </p>
+            @if (condition.isSpoiler) {
+              <span class="qc__card-spoiler-badge">
+                <i class="ti ti-eye-off" aria-hidden="true"></i> espoiler
+              </span>
+            }
+            <p class="qc__card-description">{{ condition.description }}</p>
+          </div>
+        }
+      </section>
+    </div>
+  }
+</div>

@@ -2,6 +2,16 @@ import { inject, Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
+import { QuestNode, QuestEdge } from '../../shared/models/quest.model';
+
+export interface QuestVersionSnapshot {
+  versionNumber: number;
+  title: string;
+  description: string | null;
+  status: string;
+  nodes: QuestNode[];
+  edges: QuestEdge[];
+}
 
 export interface VersionAuthor {
   userId: number;
@@ -59,5 +69,11 @@ export class QuestVersionService {
 
   removeVoteRevert(questId: string): Observable<QuestVersion> {
     return this.http.delete<QuestVersion>(`${this.base}/${questId}/versions/current/vote-revert`);
+  }
+
+  getSnapshot(questId: string, versionNumber: number): Observable<QuestVersionSnapshot> {
+    return this.http.get<QuestVersionSnapshot>(
+      `${this.base}/${questId}/versions/${versionNumber}/snapshot`,
+    );
   }
 }

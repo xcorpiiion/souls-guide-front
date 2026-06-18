@@ -1,0 +1,294 @@
+@use 'styles/variables' as v;
+
+.qc {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: v.$space-6 v.$space-5 v.$space-10;
+}
+
+.qc__breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: v.$space-2;
+  font-size: v.$font-size-xs;
+  color: v.$color-text-muted;
+  margin-bottom: v.$space-4;
+}
+
+.qc__breadcrumb-link {
+  color: v.$color-text-muted;
+  text-decoration: none;
+
+  &:hover {
+    color: v.$color-text;
+  }
+}
+
+.qc__title {
+  font-family: v.$font-display;
+  font-size: v.$font-size-2xl;
+  color: v.$color-text;
+  margin: 0 0 v.$space-2;
+}
+
+.qc__subtitle {
+  font-size: v.$font-size-sm;
+  color: v.$color-text-muted;
+  margin: 0 0 v.$space-6;
+  max-width: 640px;
+}
+
+.qc__loading {
+  color: v.$color-text-muted;
+  font-size: v.$font-size-sm;
+}
+
+.qc__body {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: v.$space-6;
+
+  @media (max-width: 900px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+.qc__form,
+.qc__list {
+  background: v.$color-bg-surface;
+  border: 1px solid v.$color-border;
+  border-radius: v.$radius-lg;
+  padding: v.$space-5;
+}
+
+.qc__form-title {
+  font-size: v.$font-size-sm;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: v.$color-text-muted;
+  margin: 0 0 v.$space-4;
+}
+
+.qc__field {
+  display: block;
+  margin-bottom: v.$space-4;
+}
+
+.qc__label {
+  display: block;
+  font-size: v.$font-size-xs;
+  color: v.$color-text-muted;
+  margin-bottom: 6px;
+}
+
+.qc__input {
+  width: 100%;
+  background: v.$color-bg-elevated;
+  border: 1px solid v.$color-border;
+  border-radius: v.$radius-sm;
+  color: v.$color-text;
+  font-family: v.$font-body;
+  font-size: v.$font-size-sm;
+  padding: 8px 10px;
+  box-sizing: border-box;
+  outline: none;
+
+  &:focus {
+    border-color: rgba(v.$color-gold, 0.5);
+  }
+
+  &--textarea {
+    resize: vertical;
+  }
+
+  &--select {
+    cursor: pointer;
+  }
+}
+
+.qc__triggers {
+  border: 1px solid v.$color-border;
+  border-radius: v.$radius-md;
+  padding: v.$space-3;
+  max-height: 280px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: v.$space-3;
+}
+
+.qc__trigger-group {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.qc__trigger-quest {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: v.$color-text-faint;
+}
+
+.qc__trigger-option {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: v.$font-size-sm;
+  color: v.$color-text;
+  cursor: pointer;
+  padding: 3px 0;
+
+  input {
+    accent-color: v.$color-gold;
+  }
+}
+
+.qc__trigger-type {
+  font-size: 10px;
+  color: v.$color-text-faint;
+  margin-left: auto;
+}
+
+.qc__spoiler-check {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: v.$font-size-xs;
+  color: v.$color-text-muted;
+  cursor: pointer;
+  margin-bottom: v.$space-4;
+
+  input {
+    accent-color: v.$color-gold;
+  }
+}
+
+.qc__form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: v.$space-2;
+}
+
+.qc__save-btn {
+  padding: 8px 16px;
+  border-radius: v.$radius-sm;
+  border: 1px solid v.$color-gold;
+  background: rgba(v.$color-gold, 0.08);
+  color: v.$color-gold;
+  font-family: v.$font-body;
+  font-size: v.$font-size-sm;
+  cursor: pointer;
+
+  &:hover:not(:disabled) {
+    background: rgba(v.$color-gold, 0.18);
+  }
+
+  &:disabled {
+    opacity: 0.45;
+    cursor: default;
+  }
+}
+
+.qc__cancel-btn {
+  padding: 8px 16px;
+  border-radius: v.$radius-sm;
+  border: 1px solid v.$color-border;
+  background: transparent;
+  color: v.$color-text-muted;
+  font-family: v.$font-body;
+  font-size: v.$font-size-sm;
+  cursor: pointer;
+
+  &:hover {
+    color: v.$color-text;
+  }
+}
+
+.qc__empty {
+  font-size: v.$font-size-sm;
+  color: v.$color-text-faint;
+  font-style: italic;
+}
+
+.qc__card {
+  border: 1px solid v.$color-border;
+  border-radius: v.$radius-md;
+  padding: v.$space-4;
+  margin-bottom: v.$space-3;
+}
+
+.qc__card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: v.$space-2;
+}
+
+.qc__card-effect {
+  font-size: 10px;
+  padding: 2px v.$space-2;
+  border-radius: v.$radius-full;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+
+  &--hide {
+    color: #e85050;
+    background: rgba(232, 80, 80, 0.12);
+  }
+
+  &--reveal {
+    color: #1faa64;
+    background: rgba(31, 170, 100, 0.12);
+  }
+
+  &--force_ending {
+    color: v.$color-gold;
+    background: rgba(v.$color-gold, 0.12);
+  }
+}
+
+.qc__card-actions {
+  display: flex;
+  gap: 4px;
+
+  button {
+    background: none;
+    border: none;
+    color: v.$color-text-muted;
+    cursor: pointer;
+    padding: 4px;
+    font-size: v.$font-size-sm;
+
+    &:hover {
+      color: v.$color-text;
+    }
+  }
+}
+
+.qc__card-affected,
+.qc__card-triggers {
+  font-size: v.$font-size-sm;
+  color: v.$color-text-muted;
+  margin: 0 0 4px;
+}
+
+.qc__card-spoiler-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 10px;
+  color: v.$color-text-faint;
+  border: 1px dashed v.$color-border;
+  border-radius: v.$radius-sm;
+  padding: 2px v.$space-2;
+  margin-bottom: v.$space-2;
+}
+
+.qc__card-description {
+  font-size: v.$font-size-sm;
+  color: v.$color-text;
+  line-height: 1.5;
+  margin: v.$space-2 0 0;
+}

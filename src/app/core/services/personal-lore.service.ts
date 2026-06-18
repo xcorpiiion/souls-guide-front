@@ -44,9 +44,13 @@ export class PersonalLoreService {
     return this.http.post<LoreApi>(`${this.base}/lore/personal`, data);
   }
 
+  getPersonal(id: string): Observable<LoreApi> {
+    return this.http.get<LoreApi>(`${this.base}/lore/personal/${id}`);
+  }
+
   listByUser(userId: string): Observable<LoreSummary[]> {
     return this.http
-      .get<LoreApi[]>(`${this.base}/users/${userId}/lore`)
+      .get<LoreApi[]>(`${this.base}/lore/by-user/${userId}`)
       .pipe(map((list) => list.map(loreApiToSummary)));
   }
 

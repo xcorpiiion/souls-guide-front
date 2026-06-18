@@ -28,10 +28,54 @@
           <span class="game-detail__tag game-detail__tag--{{ g.accentClass }}">comunidade</span>
         </div>
         <div class="game-detail__actions">
-          <button class="game-detail__btn game-detail__btn--secondary" type="button">seguir</button>
-          <button class="game-detail__btn game-detail__btn--primary" type="button">
-            + contribuir
-          </button>
+          @if (auth.isLoggedIn()) {
+            <button
+              class="game-detail__btn"
+              [class.game-detail__btn--primary]="gameFollowing()"
+              [class.game-detail__btn--secondary]="!gameFollowing()"
+              type="button"
+              [disabled]="togglingFollow()"
+              (click)="toggleFollow()"
+            >
+              @if (togglingFollow()) {
+                <i class="ti ti-loader-2 game-detail__spin" aria-hidden="true"></i>
+              } @else if (gameFollowing()) {
+                <i class="ti ti-check" aria-hidden="true"></i> seguindo
+              } @else {
+                seguir
+              }
+            </button>
+          }
+          <div class="game-detail__contrib-wrap">
+            <button
+              class="game-detail__btn game-detail__btn--primary"
+              type="button"
+              (click)="toggleContribMenu()"
+            >
+              + contribuir
+              <i class="ti ti-chevron-down" aria-hidden="true"></i>
+            </button>
+            @if (showContribMenu()) {
+              <div class="game-detail__contrib-menu">
+                <a
+                  class="game-detail__contrib-item"
+                  [routerLink]="['/games', game()?.id, 'quests', 'new']"
+                  (click)="showContribMenu.set(false)"
+                >
+                  <i class="ti ti-map" aria-hidden="true"></i>
+                  nova quest
+                </a>
+                <a
+                  class="game-detail__contrib-item"
+                  [routerLink]="['/games', game()?.id, 'lore', 'new']"
+                  (click)="showContribMenu.set(false)"
+                >
+                  <i class="ti ti-book" aria-hidden="true"></i>
+                  novo lore
+                </a>
+              </div>
+            }
+          </div>
         </div>
       </div>
 
@@ -105,10 +149,24 @@
           </div>
         </div>
 
+        @if (hiddenCount() > 0) {
+          <button class="game-detail__hidden-toggle" type="button" (click)="toggleShowHidden()">
+            <i
+              class="ti"
+              [class.ti-eye-off]="!showHidden()"
+              [class.ti-eye]="showHidden()"
+              aria-hidden="true"
+            ></i>
+            {{ showHidden() ? 'ocultar' : 'mostrar' }} {{ hiddenCount() }} quest(s) oculta(s) por
+            condições
+          </button>
+        }
+
         <ul class="game-detail__quest-list">
           @for (quest of filteredQuests(); track trackById($index, quest)) {
             <li
               class="game-detail__quest-card"
+              [class.game-detail__quest-card--hidden]="quest.hidden"
               [routerLink]="['/games', g.id, 'quests', quest.id]"
               style="cursor: pointer"
             >
@@ -122,6 +180,23 @@
                     <span>{{ quest.author }}</span>
                   }
                 </div>
+                @if (quest.hidden) {
+                  <div class="game-detail__quest-hidden-reason">
+                    <i class="ti ti-lock" aria-hidden="true"></i>
+                    @if (isHiddenReasonRevealed(quest)) {
+                      <span>{{ quest.hiddenReason }}</span>
+                    } @else {
+                      <button
+                        type="button"
+                        class="game-detail__reveal-btn"
+                        (click)="revealHiddenReason(quest.id); $event.stopPropagation()"
+                      >
+                        <i class="ti ti-eye-off" aria-hidden="true"></i> contém espoiler — revelar
+                        motivo
+                      </button>
+                    }
+                  </div>
+                }
               </div>
               <div class="game-detail__quest-right">
                 <span
@@ -138,9 +213,14 @@
           }
         </ul>
 
-        <a class="game-detail__add-card" [routerLink]="['/games', g.id, 'quests', 'new']"
-          >+ adicionar quest</a
-        >
+        <div class="game-detail__quest-actions">
+          <a class="game-detail__add-card" [routerLink]="['/games', g.id, 'quests', 'new']"
+            >+ adicionar quest</a
+          >
+          <a class="game-detail__conditions-link" [routerLink]="['/games', g.id, 'conditions']">
+            <i class="ti ti-git-branch" aria-hidden="true"></i> gerenciar condições
+          </a>
+        </div>
       </div>
     }
 

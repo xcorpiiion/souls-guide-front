@@ -82,6 +82,71 @@
           </button>
         }
       </div>
+
+      @if (allGames().length) {
+        <div class="qs__filter-row qs__filter-row--games">
+          <div class="qs__game-dd" [class.qs__game-dd--open]="gameDropdownOpen()">
+            <button
+              type="button"
+              class="qs__game-dd-toggle"
+              [class.qs__game-dd-toggle--active]="gameFilter() !== ''"
+              (click)="toggleGameDropdown(); $event.stopPropagation()"
+            >
+              <i class="ti ti-device-gamepad-2" aria-hidden="true"></i>
+              {{ selectedGameName() }}
+              <i class="ti ti-chevron-down qs__game-dd-arrow" aria-hidden="true"></i>
+            </button>
+
+            @if (gameDropdownOpen()) {
+              <div
+                class="qs__game-dd-panel"
+                (click)="$event.stopPropagation()"
+                (keydown)="$event.stopPropagation()"
+                tabindex="-1"
+              >
+                <div class="qs__game-dd-search">
+                  <i class="ti ti-search" aria-hidden="true"></i>
+                  <input
+                    type="text"
+                    class="qs__game-dd-input"
+                    placeholder="buscar jogo…"
+                    [ngModel]="gameSearch()"
+                    (ngModelChange)="gameSearch.set($event)"
+                    autocomplete="off"
+                  />
+                </div>
+                <ul class="qs__game-dd-list">
+                  <li>
+                    <button
+                      type="button"
+                      class="qs__game-dd-option"
+                      [class.qs__game-dd-option--active]="gameFilter() === ''"
+                      (click)="setGameFilter('')"
+                    >
+                      todos os jogos
+                    </button>
+                  </li>
+                  @for (g of filteredGames(); track g.id) {
+                    <li>
+                      <button
+                        type="button"
+                        class="qs__game-dd-option"
+                        [class.qs__game-dd-option--active]="gameFilter() === g.id"
+                        (click)="setGameFilter(g.id)"
+                      >
+                        {{ g.name }}
+                      </button>
+                    </li>
+                  }
+                  @if (filteredGames().length === 0) {
+                    <li class="qs__game-dd-empty">Nenhum jogo encontrado.</li>
+                  }
+                </ul>
+              </div>
+            }
+          </div>
+        </div>
+      }
     </div>
   </header>
 
@@ -108,7 +173,11 @@
     } @else if (quests().length) {
       <div class="qs__list">
         @for (quest of quests(); track quest.id) {
-          <a class="qs__card" [routerLink]="['/games', quest.gameId, 'quests', quest.id]">
+          <a
+            class="qs__card"
+            [class.qs__card--hidden]="quest.hidden"
+            [routerLink]="['/games', quest.gameId, 'quests', quest.id]"
+          >
             <!-- mini-graph -->
             <svg class="qs__mg" [attr.viewBox]="'0 0 64 40'" aria-hidden="true">
               @for (edge of miniGraph().edges; track $index) {
@@ -184,12 +253,29 @@
 
             <!-- info -->
             <div class="qs__card-info">
-              <div class="qs__card-top">
-                <span class="qs__card-title">{{ quest.title }}</span>
+              <div class="qs__card-badges">
+                <span class="qs__game-badge qs__game-badge--{{ quest.gameId }}">
+                  <i class="ti ti-device-gamepad-2" aria-hidden="true"></i> {{ quest.gameName }}
+                </span>
                 <span class="qs__badge qs__badge--{{ quest.status | lowercase }}">
                   {{ statusLabel(quest.status) }}
                 </span>
               </div>
+              <div class="qs__card-top">
+                <span class="qs__card-title">{{ quest.title }}</span>
+              </div>
+              @if (quest.hidden) {
+                <div class="qs__hidden-reason">
+                  <i class="ti ti-lock" aria-hidden="true"></i>
+                  @if (isHiddenReasonRevealed(quest)) {
+                    <span>{{ quest.hiddenReason }}</span>
+                  } @else {
+                    <button type="button" (click)="revealHiddenReason(quest.id, $event)">
+                      <i class="ti ti-eye-off" aria-hidden="true"></i> espoiler — revelar motivo
+                    </button>
+                  }
+                </div>
+              }
               <p class="qs__card-desc">{{ quest.description ?? '' }}</p>
               <div class="qs__card-stats">
                 <span class="qs__stat">
@@ -214,9 +300,6 @@
                     {{ quest.likeCount }}
                   </span>
                 }
-                <span class="qs__game-chip qs__game-chip--{{ quest.gameId }}">{{
-                  quest.gameName
-                }}</span>
               </div>
             </div>
 

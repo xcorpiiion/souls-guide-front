@@ -47,7 +47,10 @@ const makePage = (quests: QuestSummary[], total = quests.length, pages = 1) => (
 });
 
 const questServiceMock = { list: vi.fn(() => of(makePage(MOCK_QUESTS))) };
-const gameServiceMock = { search: vi.fn(() => of([])) };
+const gameServiceMock = {
+  search: vi.fn(() => of([])),
+  list: vi.fn(() => of(makePage([] as any))),
+};
 
 async function setup(page = makePage(MOCK_QUESTS)) {
   questServiceMock.list.mockReturnValue(of(page));

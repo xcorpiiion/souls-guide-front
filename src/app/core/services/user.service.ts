@@ -1,9 +1,12 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
-import { Observable } from 'rxjs';
+import { map, Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { UserSummary, UserPublicProfile, ActivityEvent } from '../../shared/models/user.model';
 import { Page } from '../../shared/models/page.model';
+import { QuestApi, QuestSummary, questApiToSummary } from '../../shared/models/quest.model';
+import { LoreApi, LoreSummary, loreApiToSummary } from '../../shared/models/lore-article.model';
+import { GameListItem, GameSummary, gameListItemToSummary } from '../../shared/models/game.model';
 
 const BASE = `${environment.apis.soulsGuide}/users`;
 
@@ -40,5 +43,23 @@ export class UserService {
 
   getActivity(userId: string): Observable<ActivityEvent[]> {
     return this.http.get<ActivityEvent[]>(`${BASE}/${userId}/activity`);
+  }
+
+  getFollowingQuests(userId: number): Observable<QuestSummary[]> {
+    return this.http
+      .get<QuestApi[]>(`${BASE}/${userId}/following-quests`)
+      .pipe(map((list) => list.map(questApiToSummary)));
+  }
+
+  getFollowingLore(userId: number): Observable<LoreSummary[]> {
+    return this.http
+      .get<LoreApi[]>(`${BASE}/${userId}/following-lore`)
+      .pipe(map((list) => list.map(loreApiToSummary)));
+  }
+
+  getFollowingGames(userId: number): Observable<GameSummary[]> {
+    return this.http
+      .get<GameListItem[]>(`${BASE}/${userId}/following-games`)
+      .pipe(map((list) => list.map(gameListItemToSummary)));
   }
 }

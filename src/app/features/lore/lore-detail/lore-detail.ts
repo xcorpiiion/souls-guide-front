@@ -1,6 +1,13 @@
 import { LowerCasePipe } from '@angular/common';
-import { ChangeDetectionStrategy, Component, OnInit, inject, signal } from '@angular/core';
-import { ActivatedRoute, RouterLink } from '@angular/router';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  OnInit,
+  computed,
+  inject,
+  signal,
+} from '@angular/core';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { HttpErrorResponse } from '@angular/common/http';
 import { LoreApi, LoreCategory } from '../../../shared/models/lore-article.model';
 import { LoreService } from '../../../core/services/lore.service';
@@ -22,6 +29,7 @@ import { ToastService } from '../../../shared/components/toast/toast.service';
 })
 export class LoreDetail implements OnInit {
   private readonly route = inject(ActivatedRoute);
+  private readonly router = inject(Router);
   private readonly loreService = inject(LoreService);
   private readonly personalLoreService = inject(PersonalLoreService);
   protected readonly auth = inject(AuthService);
@@ -43,6 +51,33 @@ export class LoreDetail implements OnInit {
   protected readonly userIsFollowing = signal(false);
   protected readonly following = signal(false);
   private loreId = '';
+  protected readonly handle: string = this.route.snapshot.paramMap.get('handle') ?? '';
+  protected readonly context: 'community' | 'profile' | 'usuario' =
+    this.route.snapshot.url[0]?.path === 'profile'
+      ? 'profile'
+      : this.route.snapshot.paramMap.has('handle')
+        ? 'usuario'
+        : 'community';
+
+  protected readonly isOwner = computed(() => {
+    const a = this.article();
+    if (!a || !this.auth.isLoggedIn()) return false;
+    return String(a.ownerId) === String(this.auth.getUserId());
+  });
+
+  protected readonly canEdit = computed(() => {
+    const a = this.article();
+    if (!a || !this.auth.isLoggedIn()) return false;
+    if (a.isPersonal) return this.isOwner();
+    return true; // lore da comunidade: qualquer logado pode editar
+  });
+
+  protected readonly canCopy = computed(() => {
+    const a = this.article();
+    if (!a || !this.auth.isLoggedIn() || this.isOwner()) return false;
+    if (a.isPersonal) return a.allowCopy ?? false;
+    return true; // lore da comunidade: todos podem copiar
+  });
 
   ngOnInit(): void {
     this.loreId = this.route.snapshot.paramMap.get('id') ?? '';
@@ -137,10 +172,13 @@ export class LoreDetail implements OnInit {
     this.personalLoreService
       .copyToProfile(this.loreId, event.filterType ?? 'all', event.replaceExistingId)
       .subscribe({
-        next: () => {
+        next: (created) => {
           this.copying.set(false);
           this.showCopyModal.set(false);
           this.toast.success('Lore copiado!', 'O artigo foi adicionado ao seu perfil.');
+          this.router.navigate(['/profile', 'lore', created.id], {
+            queryParams: { personal: 'true' },
+          });
         },
         error: (err: HttpErrorResponse) => {
           this.copying.set(false);

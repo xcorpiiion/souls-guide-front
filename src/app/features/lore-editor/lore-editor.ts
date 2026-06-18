@@ -12,6 +12,7 @@ import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { Subject, debounceTime, distinctUntilChanged, switchMap, takeUntil } from 'rxjs';
 import { HttpErrorResponse } from '@angular/common/http';
 import { LoreService } from '../../core/services/lore.service';
+import { PersonalLoreService } from '../../core/services/personal-lore.service';
 import { GameService } from '../../core/services/game.service';
 import { GameSummary } from '../../shared/models/game.model';
 import { LoreType, LoreTypeApi } from '../lore-create/lore-create';
@@ -26,6 +27,7 @@ import { HasUnsavedChanges } from '../../core/guards/unsaved-changes.guard';
 })
 export class LoreEditor implements OnInit, OnDestroy, HasUnsavedChanges {
   private readonly loreService = inject(LoreService);
+  private readonly personalLoreService = inject(PersonalLoreService);
   private readonly gameService = inject(GameService);
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
@@ -34,6 +36,7 @@ export class LoreEditor implements OnInit, OnDestroy, HasUnsavedChanges {
   private readonly gameSearch$ = new Subject<string>();
 
   protected readonly loreId = this.route.snapshot.paramMap.get('id') ?? '';
+  private readonly isPersonal = this.route.snapshot.queryParamMap.get('personal') === 'true';
 
   protected readonly form = this.fb.group({
     title: ['', [Validators.required, Validators.minLength(3)]],
@@ -93,7 +96,11 @@ export class LoreEditor implements OnInit, OnDestroy, HasUnsavedChanges {
   }
 
   ngOnInit(): void {
-    this.loreService.get(this.loreId).subscribe({
+    const load$ = this.isPersonal
+      ? this.personalLoreService.getPersonal(this.loreId)
+      : this.loreService.get(this.loreId);
+
+    load$.subscribe({
       next: (data) => {
         this.loreType.set(data.type === 'CHARACTER' ? 'character' : 'world');
         this.tags.set(data.tags ?? []);
@@ -168,29 +175,37 @@ export class LoreEditor implements OnInit, OnDestroy, HasUnsavedChanges {
     this.errorMsg.set(null);
 
     const v = this.form.value;
-    this.loreService
-      .update(this.loreId, {
-        title: v.title!,
-        type: this.loreType().toUpperCase() as LoreTypeApi,
-        gameId: v.gameId!,
-        characterName: this.isCharacter() ? v.characterName || undefined : undefined,
-        content: v.content!,
-        tags: this.tags().length ? this.tags() : undefined,
-      })
-      .subscribe({
-        next: () => {
-          this.form.markAsPristine();
+    const payload = {
+      title: v.title!,
+      type: this.loreType().toUpperCase() as LoreTypeApi,
+      gameId: v.gameId!,
+      characterName: this.isCharacter() ? v.characterName || undefined : undefined,
+      content: v.content!,
+      tags: this.tags().length ? this.tags() : undefined,
+    };
+
+    const save$ = this.isPersonal
+      ? this.personalLoreService.updatePersonal(this.loreId, payload)
+      : this.loreService.update(this.loreId, payload);
+
+    save$.subscribe({
+      next: () => {
+        this.form.markAsPristine();
+        if (this.isPersonal) {
+          this.router.navigate(['/profile']);
+        } else {
           this.router.navigate(['/lore', this.loreId]);
-        },
-        error: (err: HttpErrorResponse) => {
-          this.errorMsg.set(
-            err.status === 403
-              ? 'Você não tem permissão para editar este artigo.'
-              : 'Não foi possível salvar as alterações. Tente novamente.',
-          );
-          this.saving.set(false);
-        },
-      });
+        }
+      },
+      error: (err: HttpErrorResponse) => {
+        this.errorMsg.set(
+          err.status === 403
+            ? 'Você não tem permissão para editar este artigo.'
+            : 'Não foi possível salvar as alterações. Tente novamente.',
+        );
+        this.saving.set(false);
+      },
+    });
   }
 
   private renderMarkdown(md: string): string {

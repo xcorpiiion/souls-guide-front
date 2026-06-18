@@ -1,0 +1,677 @@
+@use 'styles/variables' as v;
+
+.qel {
+  display: flex;
+  flex-direction: column;
+  gap: v.$space-2;
+}
+
+// ─── Toolbar (undo/redo) ────────────────────────────────────────────────────
+.qel__toolbar {
+  display: flex;
+  gap: 4px;
+  margin-bottom: v.$space-2;
+}
+
+.qel__toolbar-btn {
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: v.$radius-sm;
+  border: 0.5px solid v.$color-border;
+  background: v.$color-bg-surface;
+  color: v.$color-text-muted;
+  cursor: pointer;
+  font-size: 15px;
+  transition:
+    border-color 0.12s,
+    color 0.12s;
+
+  &:hover:not(:disabled) {
+    border-color: v.$color-border-focus;
+    color: v.$color-text;
+  }
+
+  &:disabled {
+    opacity: 0.35;
+    cursor: default;
+  }
+}
+
+// ─── Order hint ───────────────────────────────────────────────────────────────
+.qel__order-hint {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: v.$color-text-muted;
+  margin: 0 0 v.$space-3 4px;
+
+  i {
+    font-size: 14px;
+    color: v.$color-gold;
+  }
+}
+
+// ─── Row / spine ────────────────────────────────────────────────────────────
+.qel__row {
+  display: flex;
+  gap: 0;
+  padding: 0 0 0 4px;
+
+  &--fork {
+    align-items: stretch;
+  }
+
+  &.cdk-drag-preview {
+    box-shadow: v.$shadow-lg;
+    border-radius: v.$radius-md;
+    opacity: 0.95;
+  }
+
+  &.cdk-drag-placeholder {
+    opacity: 0.25;
+  }
+
+  &.cdk-drag-animating {
+    transition: transform 200ms cubic-bezier(0, 0, 0.2, 1);
+  }
+}
+
+.cdk-drop-list-dragging .qel__row:not(.cdk-drag-placeholder) {
+  transition: transform 200ms cubic-bezier(0, 0, 0.2, 1);
+}
+
+.qel__card,
+.qel__fork-header {
+  cursor: grab;
+
+  &:active {
+    cursor: grabbing;
+  }
+}
+
+.qel__card-actions,
+.qel__fork-actions {
+  cursor: default;
+}
+
+.qel__spine {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 36px;
+  flex-shrink: 0;
+}
+
+.qel__spine-line {
+  width: 1.5px;
+  flex: 1;
+  background: v.$color-border;
+  min-height: 14px;
+}
+
+.qel__dot {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1;
+
+  &--start {
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    border: 1.5px solid #1faa64;
+    background: rgba(31, 170, 100, 0.13);
+    color: #1faa64;
+    font-size: 12px;
+  }
+
+  &--end {
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    border: 1.5px solid v.$color-gold;
+    background: rgba(200, 160, 74, 0.12);
+    color: v.$color-gold;
+    font-size: 12px;
+  }
+
+  &--task {
+    width: 20px;
+    height: 20px;
+    margin-top: 8px;
+    border-radius: 50%;
+    border: 1.5px solid v.$color-border;
+    background: v.$color-bg;
+    color: v.$color-text-muted;
+    font-size: 10px;
+    font-weight: 600;
+
+    &.qel__dot--active {
+      border-color: v.$color-gold;
+      background: rgba(200, 160, 74, 0.25);
+      color: v.$color-gold;
+    }
+  }
+
+  &--fork {
+    width: 22px;
+    height: 22px;
+    margin-top: 12px;
+    transform: rotate(45deg);
+    border: 1.5px solid #378add;
+    background: rgba(55, 138, 221, 0.1);
+    border-radius: 2px;
+    color: #378add;
+    font-size: 10px;
+    font-weight: 600;
+
+    span {
+      transform: rotate(-45deg);
+    }
+  }
+}
+
+.qel__boundary {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  font-weight: 500;
+  padding: 3px 0 16px 12px;
+  color: #1faa64;
+  background: none;
+  border: none;
+  text-align: left;
+  font-family: v.$font-body;
+  cursor: default;
+
+  &--end {
+    color: v.$color-gold;
+  }
+
+  &--clickable {
+    cursor: pointer;
+  }
+
+  &--active {
+    text-decoration: underline;
+  }
+}
+
+// ─── Task card ────────────────────────────────────────────────────────────────
+.qel__card {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  border: 0.5px solid v.$color-border;
+  border-radius: v.$radius-md;
+  padding: 4px 8px 4px 4px;
+  background: v.$color-bg-surface;
+  margin: 0 0 16px 14px;
+  transition:
+    border-color 0.12s,
+    background 0.12s;
+
+  &:hover {
+    border-color: v.$color-border-focus;
+    background: v.$color-bg-elevated;
+  }
+
+  &--active {
+    border-color: v.$color-gold;
+    background: rgba(200, 160, 74, 0.06);
+  }
+
+  &--moved {
+    animation: qel-flash 0.9s ease-out;
+  }
+}
+
+@keyframes qel-flash {
+  0%,
+  35% {
+    border-color: v.$color-gold;
+    background: rgba(200, 160, 74, 0.22);
+    box-shadow: 0 0 0 2px rgba(200, 160, 74, 0.25);
+  }
+  100% {
+    border-color: v.$color-border;
+    background: v.$color-bg-surface;
+    box-shadow: 0 0 0 0 rgba(200, 160, 74, 0);
+  }
+}
+
+.qel__card-main {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 6px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  text-align: left;
+  font-family: v.$font-body;
+  min-width: 0;
+}
+
+.qel__card-grip {
+  font-size: 14px;
+  color: v.$color-text-faint;
+  flex-shrink: 0;
+}
+
+.qel__card-label {
+  font-size: 14px;
+  color: v.$color-text;
+  line-height: 1.35;
+}
+
+.qel__card-actions {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  flex-shrink: 0;
+}
+
+.qel__card-delete {
+  font-size: 15px;
+  color: v.$color-text-muted;
+  flex-shrink: 0;
+  cursor: pointer;
+  padding: 6px;
+
+  &:hover {
+    color: #e85050;
+  }
+}
+
+.qel__move-btn {
+  font-size: 15px;
+  color: v.$color-text-muted;
+  cursor: pointer;
+  padding: 6px 3px;
+
+  &:hover {
+    color: v.$color-gold;
+  }
+
+  &--disabled {
+    opacity: 0.25;
+    pointer-events: none;
+  }
+}
+
+// ─── Fork ───────────────────────────────────────────────────────────────────
+.qel__fork {
+  flex: 1;
+  border: 0.5px solid #378add;
+  border-radius: v.$radius-lg;
+  overflow: hidden;
+  margin: 0 0 16px 8px;
+
+  &--moved {
+    animation: qel-flash-fork 0.9s ease-out;
+  }
+}
+
+@keyframes qel-flash-fork {
+  0%,
+  35% {
+    box-shadow: 0 0 0 2px rgba(55, 138, 221, 0.4);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(55, 138, 221, 0);
+  }
+}
+
+.qel__fork-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  background: rgba(55, 138, 221, 0.1);
+  color: #378add;
+  font-size: 12px;
+}
+
+.qel__fork-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.qel__fork-title {
+  flex: 1;
+  font-weight: 500;
+}
+
+.qel__fork-delete {
+  font-size: 15px;
+  cursor: pointer;
+  padding: 4px;
+
+  &:hover {
+    color: #e85050;
+  }
+}
+
+.qel__branches {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+  gap: 12px;
+  padding: 14px;
+
+  @media (max-width: 768px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+.qel__branch {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  border: 0.5px solid v.$color-border;
+  border-radius: v.$radius-md;
+  padding: 12px;
+  background: v.$color-bg-surface;
+}
+
+.qel__branch-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.qel__branch-index {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: rgba(55, 138, 221, 0.12);
+  color: #378add;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.qel__branch-delete {
+  font-size: 14px;
+  color: v.$color-text-muted;
+  cursor: pointer;
+
+  &:hover {
+    color: #e85050;
+  }
+}
+
+.qel__branch-steps {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.qel__branch-step {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+  border: 0.5px solid v.$color-border;
+  border-radius: v.$radius-md;
+  padding: 9px 11px;
+  background: v.$color-bg;
+  cursor: pointer;
+  font-family: v.$font-body;
+  text-align: left;
+  font-size: 12px;
+  color: v.$color-text;
+  transition:
+    border-color 0.12s,
+    background 0.12s;
+
+  &:hover {
+    border-color: v.$color-border-focus;
+  }
+
+  &--active {
+    border-color: v.$color-gold;
+    background: rgba(200, 160, 74, 0.06);
+  }
+}
+
+.qel__branch-step-delete {
+  font-size: 13px;
+  color: v.$color-text-muted;
+  flex-shrink: 0;
+
+  &:hover {
+    color: #e85050;
+  }
+}
+
+.qel__branch-add,
+.qel__branch-add-col {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  font-size: 11px;
+  padding: 7px 8px;
+  border: 0.5px dashed v.$color-border;
+  border-radius: v.$radius-md;
+  background: none;
+  color: v.$color-text-muted;
+  cursor: pointer;
+  font-family: v.$font-body;
+  transition:
+    border-color 0.12s,
+    color 0.12s;
+
+  &:hover {
+    border-color: v.$color-gold;
+    color: v.$color-gold;
+  }
+}
+
+.qel__branch-add-col {
+  align-self: stretch;
+  min-height: 60px;
+}
+
+// ─── Append actions ───────────────────────────────────────────────────────────
+.qel__append-actions {
+  display: flex;
+  gap: 10px;
+  padding-left: 8px;
+  margin-top: 4px;
+}
+
+.qel__append-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  padding: 9px 14px;
+  border: 0.5px solid v.$color-border;
+  border-radius: v.$radius-md;
+  background: none;
+  color: v.$color-text;
+  cursor: pointer;
+  font-family: v.$font-body;
+  transition:
+    border-color 0.12s,
+    background 0.12s;
+
+  &:hover {
+    border-color: v.$color-gold;
+    background: rgba(200, 160, 74, 0.06);
+  }
+}
+
+// ─── Details panel (desktop sidebar / mobile bottom sheet) ────────────────────
+.qel__sheet-backdrop {
+  display: none;
+}
+
+.qel__details {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 300px;
+  background: v.$color-bg-surface;
+  border-left: 0.5px solid v.$color-border;
+  padding: v.$space-5;
+  overflow-y: auto;
+  z-index: v.$z-modal;
+}
+
+.qel__details-resize {
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 6px;
+  cursor: col-resize;
+  z-index: 10;
+
+  &::after {
+    content: '';
+    position: absolute;
+    left: 2px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 1px;
+    height: 32px;
+    background: v.$color-border;
+    border-radius: 1px;
+    opacity: 0;
+    transition: opacity 0.15s;
+  }
+
+  &:hover::after {
+    opacity: 1;
+    background: v.$color-gold;
+  }
+}
+
+.qel__details-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: v.$space-4;
+}
+
+.qel__details-title {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: v.$color-text-muted;
+  font-weight: 500;
+}
+
+.qel__details-close {
+  font-size: 18px;
+  color: v.$color-text-muted;
+  cursor: pointer;
+
+  &:hover {
+    color: v.$color-text;
+  }
+}
+
+.qel__field {
+  display: block;
+  margin-bottom: v.$space-3;
+}
+
+.qel__label {
+  display: block;
+  font-size: 11px;
+  color: v.$color-text-muted;
+  margin-bottom: 4px;
+}
+
+.qel__input {
+  width: 100%;
+  background: v.$color-bg;
+  border: 0.5px solid v.$color-border;
+  border-radius: v.$radius-sm;
+  padding: 7px 10px;
+  font-size: 13px;
+  font-family: v.$font-body;
+  color: v.$color-text;
+  outline: none;
+  box-sizing: border-box;
+
+  &:focus {
+    border-color: v.$color-border-focus;
+  }
+
+  &--textarea {
+    resize: vertical;
+  }
+
+  &--select {
+    cursor: pointer;
+  }
+}
+
+.qel__details-done {
+  width: 100%;
+  padding: 9px;
+  margin-top: v.$space-2;
+  border-radius: v.$radius-md;
+  border: 0.5px solid v.$color-border;
+  background: none;
+  color: v.$color-text;
+  font-size: 13px;
+  cursor: pointer;
+  font-family: v.$font-body;
+  display: none;
+
+  &:hover {
+    border-color: v.$color-gold;
+  }
+}
+
+@media (max-width: 768px) {
+  .qel__sheet-backdrop {
+    display: block;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.45);
+    z-index: v.$z-modal;
+  }
+
+  .qel__details {
+    top: auto;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    width: auto !important;
+    max-height: 70vh;
+    border-left: none;
+    border-top: 0.5px solid v.$color-border;
+    border-radius: v.$radius-lg v.$radius-lg 0 0;
+    box-shadow: v.$shadow-lg;
+    z-index: calc(v.$z-modal + 1);
+  }
+
+  .qel__details-resize {
+    display: none;
+  }
+
+  .qel__details-done {
+    display: block;
+  }
+}

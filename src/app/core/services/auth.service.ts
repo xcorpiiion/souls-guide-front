@@ -59,6 +59,14 @@ export class AuthService {
     return localStorage.getItem(ACCESS_TOKEN_KEY);
   }
 
+  isAccessTokenValid(): boolean {
+    const payload = this.getTokenPayload();
+    if (!payload) return false;
+    const exp = payload['exp'] as number | undefined;
+    if (!exp) return false;
+    return Date.now() < exp * 1000;
+  }
+
   logout(): void {
     localStorage.removeItem(ACCESS_TOKEN_KEY);
     localStorage.removeItem(REFRESH_TOKEN_KEY);
@@ -92,6 +100,11 @@ export class AuthService {
   getUserId(): string | null {
     const p = this.getTokenPayload();
     return (p?.['sub'] as string) ?? (p?.['userId'] as string) ?? null;
+  }
+
+  getNickname(): string | null {
+    const p = this.getTokenPayload();
+    return (p?.['nickname'] as string) ?? (p?.['preferred_username'] as string) ?? null;
   }
 
   isGoogleUser(): boolean {

@@ -21,6 +21,7 @@ export interface CreatePersonalQuestRequest {
 export interface UpdatePersonalQuestRequest {
   title?: string;
   description?: string;
+  status?: QuestStatus;
   isPublic?: boolean;
   allowCopy?: boolean;
 }
@@ -53,6 +54,10 @@ export class PersonalQuestService {
     return this.http
       .get<QuestApi[]>(`${this.base}/users/${userId}/quests`)
       .pipe(map((list) => list.map(questApiToSummary)));
+  }
+
+  getPersonal(id: string): Observable<QuestApi> {
+    return this.http.get<QuestApi>(`${this.base}/quests/personal/${id}`);
   }
 
   updatePersonal(id: string, data: UpdatePersonalQuestRequest): Observable<QuestApi> {

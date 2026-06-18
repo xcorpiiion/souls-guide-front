@@ -38,6 +38,14 @@ export class Comunidade implements OnInit {
   protected readonly followingIds = signal<Set<number>>(new Set());
 
   protected readonly isLoggedIn = computed(() => this.authService.isLoggedIn());
+  private readonly myNickname = this.authService.getNickname();
+  private readonly myUserId = this.authService.getUserId();
+
+  protected isMe(user: { id: number; handle: string }): boolean {
+    if (this.myUserId && String(user.id) === String(this.myUserId)) return true;
+    if (this.myNickname && user.handle.toLowerCase() === this.myNickname.toLowerCase()) return true;
+    return false;
+  }
 
   private readonly search$ = new Subject<string>();
 
@@ -58,9 +66,10 @@ export class Comunidade implements OnInit {
       .subscribe((res) => {
         this.loading.set(false);
         if (res) {
-          this.users.set(res.content);
+          const filtered = this.filterSelf(res.content);
+          this.users.set(filtered);
           this.hasMore.set(!res.last);
-          this.syncFollowing(res.content);
+          this.syncFollowing(filtered);
         }
       });
   }
@@ -83,14 +92,15 @@ export class Comunidade implements OnInit {
       .listUsers(this.searchQuery(), p, 20, this.selectedGameId() ?? undefined)
       .subscribe({
         next: (res) => {
+          const filtered = this.filterSelf(res.content);
           if (p === 0) {
-            this.users.set(res.content);
+            this.users.set(filtered);
           } else {
-            this.users.update((list) => [...list, ...res.content]);
+            this.users.update((list) => [...list, ...filtered]);
           }
           this.page.set(p);
           this.hasMore.set(!res.last);
-          this.syncFollowing(res.content);
+          this.syncFollowing(filtered);
           this.loading.set(false);
           this.loadingMore.set(false);
         },
@@ -99,6 +109,11 @@ export class Comunidade implements OnInit {
           this.loadingMore.set(false);
         },
       });
+  }
+
+  private filterSelf(users: UserSummary[]): UserSummary[] {
+    if (!this.myNickname) return users;
+    return users.filter((u) => u.handle.toLowerCase() !== this.myNickname!.toLowerCase());
   }
 
   private syncFollowing(users: UserSummary[]): void {

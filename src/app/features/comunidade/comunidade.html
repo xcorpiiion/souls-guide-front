@@ -78,7 +78,7 @@
               <span class="cm__game-badge">{{ user.favoriteGame }}</span>
             }
 
-            @if (isLoggedIn()) {
+            @if (isLoggedIn() && !isMe(user)) {
               <button
                 class="cm__follow-btn"
                 [class.cm__follow-btn--active]="isFollowing(user.id)"

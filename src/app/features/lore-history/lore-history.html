@@ -1,6 +1,15 @@
 <section class="qh">
   <header class="qh__header">
-    <a class="qh__back" [routerLink]="['/lore', loreId]">
+    <a
+      class="qh__back"
+      [routerLink]="
+        context === 'profile'
+          ? ['/profile', 'lore', loreId]
+          : context === 'usuario'
+            ? ['/usuarios', handle, 'lore', loreId]
+            : ['/lore', loreId]
+      "
+    >
       <i class="ti ti-arrow-left" aria-hidden="true"></i> voltar para o artigo
     </a>
     <div>

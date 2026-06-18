@@ -1,0 +1,55 @@
+<div class="gfd" [class.gfd--open]="open()">
+  <button
+    type="button"
+    class="gfd__toggle"
+    [class.gfd__toggle--active]="selected() !== ''"
+    (click)="toggle(); $event.stopPropagation()"
+  >
+    <i class="ti ti-device-gamepad-2" aria-hidden="true"></i>
+    {{ label() }}
+    <i class="ti ti-chevron-down gfd__arrow" aria-hidden="true"></i>
+  </button>
+
+  @if (open()) {
+    <div class="gfd__panel" (click)="$event.stopPropagation()">
+      <div class="gfd__search-wrap">
+        <i class="ti ti-search" aria-hidden="true"></i>
+        <input
+          class="gfd__search"
+          type="text"
+          placeholder="buscar jogo…"
+          [ngModel]="search()"
+          (ngModelChange)="search.set($event)"
+          autocomplete="off"
+        />
+      </div>
+      <ul class="gfd__list">
+        <li>
+          <button
+            type="button"
+            class="gfd__option"
+            [class.gfd__option--active]="selected() === ''"
+            (click)="select('')"
+          >
+            todos os jogos
+          </button>
+        </li>
+        @for (g of filtered(); track g) {
+          <li>
+            <button
+              type="button"
+              class="gfd__option"
+              [class.gfd__option--active]="selected() === g"
+              (click)="select(g)"
+            >
+              {{ g }}
+            </button>
+          </li>
+        }
+        @if (filtered().length === 0) {
+          <li class="gfd__empty">Nenhum jogo encontrado.</li>
+        }
+      </ul>
+    </div>
+  }
+</div>
