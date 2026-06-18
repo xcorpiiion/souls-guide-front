@@ -54,7 +54,13 @@ function createFixture(
       provideRouter([]),
       {
         provide: ActivatedRoute,
-        useValue: { snapshot: { paramMap: convertToParamMap({ gameId, questId }) } },
+        useValue: {
+          snapshot: {
+            paramMap: convertToParamMap({ gameId, questId }),
+            queryParamMap: convertToParamMap({}),
+            url: [],
+          },
+        },
       },
       { provide: QuestService, useValue: questServiceMock },
       { provide: AuthService, useValue: auth },

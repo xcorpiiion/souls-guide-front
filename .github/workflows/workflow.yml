@@ -39,6 +39,7 @@ jobs:
       - name: Run tests with coverage
         id: tests
         run: |
+          set -o pipefail
           npx ng test --coverage --watch=false 2>&1 | tee test-output.txt
           echo "TESTS_PASSED=$(grep -oP '\d+ passed' test-output.txt | tail -1)" >> $GITHUB_ENV
           echo "COVERAGE=$(grep -oP 'Lines\s+:\s+\K[\d.]+' test-output.txt | head -1)" >> $GITHUB_ENV

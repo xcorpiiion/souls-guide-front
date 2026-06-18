@@ -41,7 +41,13 @@ function createFixture(id: string, loreMock?: Partial<LoreService>): ComponentFi
       provideRouter([{ path: 'lore/:id', component: LoreEditor }]),
       {
         provide: ActivatedRoute,
-        useValue: { snapshot: { paramMap: convertToParamMap({ id }) } },
+        useValue: {
+          snapshot: {
+            paramMap: convertToParamMap({ id }),
+            queryParamMap: convertToParamMap({}),
+            url: [],
+          },
+        },
       },
       { provide: LoreService, useValue: loreServiceMock },
       { provide: GameService, useValue: { search: vi.fn(() => of([])) } },

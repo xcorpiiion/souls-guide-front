@@ -8,7 +8,14 @@ import { QuestService } from '../../core/services/quest.service';
 import { LoreService } from '../../core/services/lore.service';
 import { Game } from '../../shared/models/game.model';
 
-const MOCK_GAME: Game = { id: 1, name: 'Elden Ring', imageUrl: '', description: 'Open world RPG' };
+const MOCK_GAME: Game = {
+  id: 1,
+  name: 'Elden Ring',
+  imageUrl: '',
+  description: 'Open world RPG',
+  followerCount: 0,
+  userIsFollowing: false,
+};
 
 const emptyPage = {
   content: [],

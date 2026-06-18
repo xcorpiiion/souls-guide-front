@@ -45,6 +45,8 @@ function createFixture(gameId: string, questId?: string) {
         useValue: {
           snapshot: {
             paramMap: convertToParamMap(questId ? { gameId, questId } : { gameId }),
+            queryParamMap: convertToParamMap({}),
+            url: [],
           },
         },
       },

@@ -60,7 +60,9 @@
         <a class="home__section-link" routerLink="/quests">ver todas →</a>
       </div>
 
-      @if (filteredQuests().length === 0) {
+      @if (loading()) {
+        <app-page-loader message="Carregando quests…" />
+      } @else if (filteredQuests().length === 0) {
         <p class="home__empty">Nenhuma quest encontrada.</p>
       } @else {
         <ol class="quest-list">
@@ -95,7 +97,9 @@
         upvotes da comunidade, e o mais votado vira <strong>Canônico</strong>.
       </p>
 
-      @if (filteredLore().length === 0) {
+      @if (loading()) {
+        <app-page-loader message="Carregando lore…" />
+      } @else if (filteredLore().length === 0) {
         <p class="home__empty">Nenhum artigo encontrado.</p>
       } @else {
         <ul class="lore-list">

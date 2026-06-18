@@ -24,7 +24,13 @@ function createFixture(
       provideRouter([]),
       {
         provide: ActivatedRoute,
-        useValue: { snapshot: { paramMap: convertToParamMap({ loreId: '42' }) } },
+        useValue: {
+          snapshot: {
+            paramMap: convertToParamMap({ loreId: '42' }),
+            queryParamMap: convertToParamMap({}),
+            url: [],
+          },
+        },
       },
       { provide: LoreVersionService, useValue: versionSvcMock },
       { provide: AuthService, useValue: makeAuth(loggedIn) },

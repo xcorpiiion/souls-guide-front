@@ -31,7 +31,7 @@ const MOCK_LORE_API: LoreApi = {
 };
 
 function makeAuth(loggedIn: boolean) {
-  return { isLoggedIn: () => loggedIn } as unknown as AuthService;
+  return { isLoggedIn: () => loggedIn, getUserId: () => null } as unknown as AuthService;
 }
 
 const MOCK_LORE_WITH_FOLLOW: LoreApi = {
@@ -58,7 +58,13 @@ function createFixture(
       provideRouter([]),
       {
         provide: ActivatedRoute,
-        useValue: { snapshot: { paramMap: convertToParamMap({ id }) } },
+        useValue: {
+          snapshot: {
+            paramMap: convertToParamMap({ id }),
+            queryParamMap: convertToParamMap({}),
+            url: [],
+          },
+        },
       },
       { provide: LoreService, useValue: loreServiceMock },
       { provide: AuthService, useValue: auth },

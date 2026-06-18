@@ -222,8 +222,11 @@
     overflow: hidden;
 
     @media (max-width: 480px) {
-      width: calc(100vw - 24px);
-      right: -8px;
+      position: fixed;
+      top: v.$navbar-height;
+      left: 12px;
+      right: 12px;
+      width: auto;
     }
   }
 

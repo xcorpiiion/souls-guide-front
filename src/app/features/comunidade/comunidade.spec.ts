@@ -49,7 +49,15 @@ function createFixture(
       provideRouter([]),
       { provide: UserService, useValue: userSvcOverride ?? makeUserSvc() },
       { provide: GameService, useValue: { getFeatured: vi.fn(() => of([])) } },
-      { provide: AuthService, useValue: { isLoggedIn: signal(true), isGoogleUser: () => false } },
+      {
+        provide: AuthService,
+        useValue: {
+          isLoggedIn: signal(true),
+          isGoogleUser: () => false,
+          getNickname: () => null,
+          getUserId: () => null,
+        },
+      },
     ],
   });
   const fixture = TestBed.createComponent(Comunidade);
