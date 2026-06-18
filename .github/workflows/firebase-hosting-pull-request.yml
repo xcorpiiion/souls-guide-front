@@ -37,7 +37,7 @@ jobs:
         run: npm run lint
 
       - name: Run tests
-        run: npx ng test --watch=false --browsers=ChromeHeadless
+        run: npx ng test --watch=false
 
       - name: Build
         run: npm run build
