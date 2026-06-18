@@ -126,6 +126,12 @@
   display: flex;
   gap: 0;
   margin-top: 18px;
+  overflow-x: auto;
+  scrollbar-width: none;
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
 }
 
 .pf__tab {
@@ -137,6 +143,8 @@
   border-bottom: 2px solid transparent;
   background: transparent;
   cursor: pointer;
+  white-space: nowrap;
+  flex-shrink: 0;
   transition:
     color 0.12s,
     border-color 0.12s;
@@ -148,6 +156,11 @@
   &--active {
     color: v.$color-gold;
     border-bottom-color: v.$color-gold;
+  }
+
+  @media (max-width: 480px) {
+    padding: 10px 14px;
+    font-size: 13px;
   }
 }
 
