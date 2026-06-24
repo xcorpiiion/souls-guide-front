@@ -10,10 +10,11 @@ import { ActivatedRoute, RouterLink } from '@angular/router';
 import { AuthService } from '../../core/services/auth.service';
 import { QuestVersionService, QuestVersion } from '../../core/services/quest-version.service';
 import { ToastService } from '../../shared/components/toast/toast.service';
+import { PageLoader } from '../../shared/components/page-loader/page-loader';
 
 @Component({
   selector: 'app-quest-history',
-  imports: [RouterLink],
+  imports: [RouterLink, PageLoader],
   templateUrl: './quest-history.html',
   styleUrl: './quest-history.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

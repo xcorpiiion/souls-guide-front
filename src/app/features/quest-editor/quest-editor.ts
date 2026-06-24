@@ -14,6 +14,7 @@ import { PersonalQuestService } from '../../core/services/personal-quest.service
 import { HasUnsavedChanges } from '../../core/guards/unsaved-changes.guard';
 import { ToastService } from '../../shared/components/toast/toast.service';
 import { GraphSnapshot, QuestEditorList } from './quest-editor-list/quest-editor-list';
+import { PageLoader } from '../../shared/components/page-loader/page-loader';
 
 function makeId(prefix: string): string {
   return `${prefix}-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 5)}`;
@@ -21,7 +22,7 @@ function makeId(prefix: string): string {
 
 @Component({
   selector: 'app-quest-editor',
-  imports: [FormsModule, RouterLink, QuestEditorList],
+  imports: [FormsModule, RouterLink, QuestEditorList, PageLoader],
   templateUrl: './quest-editor.html',
   styleUrl: './quest-editor.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

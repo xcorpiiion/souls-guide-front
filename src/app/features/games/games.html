@@ -23,7 +23,7 @@
   }
 
   @if (loading()) {
-    <p class="games__loading">Carregando…</p>
+    <app-page-loader message="Carregando jogos…" />
   } @else if (games().length === 0) {
     <p class="games__empty">Nenhum jogo encontrado.</p>
   } @else {

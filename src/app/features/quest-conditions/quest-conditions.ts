@@ -23,10 +23,11 @@ import {
   NodeOption,
   NodeSelectorPanel,
 } from '../../shared/components/node-selector-panel/node-selector-panel';
+import { PageLoader } from '../../shared/components/page-loader/page-loader';
 
 @Component({
   selector: 'app-quest-conditions',
-  imports: [RouterLink, NodeSelectorPanel],
+  imports: [RouterLink, NodeSelectorPanel, PageLoader],
   templateUrl: './quest-conditions.html',
   styleUrl: './quest-conditions.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

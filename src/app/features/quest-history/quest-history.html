@@ -38,7 +38,7 @@
   </header>
 
   @if (loading()) {
-    <p class="qh__loading">Carregando histórico…</p>
+    <app-page-loader message="Carregando histórico…" />
   } @else if (versions().length === 0) {
     <div class="qh__empty">
       <i class="ti ti-git-branch qh__empty-icon" aria-hidden="true"></i>

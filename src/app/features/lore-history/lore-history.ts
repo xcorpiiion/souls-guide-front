@@ -10,10 +10,11 @@ import { ActivatedRoute, RouterLink } from '@angular/router';
 import { AuthService } from '../../core/services/auth.service';
 import { LoreVersionService, LoreVersion } from '../../core/services/lore-version.service';
 import { ToastService } from '../../shared/components/toast/toast.service';
+import { PageLoader } from '../../shared/components/page-loader/page-loader';
 
 @Component({
   selector: 'app-lore-history',
-  imports: [RouterLink],
+  imports: [RouterLink, PageLoader],
   templateUrl: './lore-history.html',
   styleUrl: './lore-history.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

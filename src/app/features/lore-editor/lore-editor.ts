@@ -14,13 +14,14 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { LoreService } from '../../core/services/lore.service';
 import { PersonalLoreService } from '../../core/services/personal-lore.service';
 import { GameService } from '../../core/services/game.service';
+import { PageLoader } from '../../shared/components/page-loader/page-loader';
 import { GameSummary } from '../../shared/models/game.model';
 import { LoreType, LoreTypeApi } from '../lore-create/lore-create';
 import { HasUnsavedChanges } from '../../core/guards/unsaved-changes.guard';
 
 @Component({
   selector: 'app-lore-editor',
-  imports: [ReactiveFormsModule, RouterLink],
+  imports: [ReactiveFormsModule, RouterLink, PageLoader],
   templateUrl: './lore-editor.html',
   styleUrl: './lore-editor.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

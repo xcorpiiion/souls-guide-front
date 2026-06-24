@@ -22,7 +22,7 @@
   </header>
 
   @if (loading()) {
-    <p class="qh__loading">Carregando histórico…</p>
+    <app-page-loader message="Carregando histórico…" />
   } @else {
     @for (v of versions(); track v.versionNumber) {
       @if (v.status === 'reverted' && $index > 0 && versions()[$index - 1].status !== 'reverted') {

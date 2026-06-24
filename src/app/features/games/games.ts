@@ -12,12 +12,13 @@ import { Subject, debounceTime, distinctUntilChanged, switchMap } from 'rxjs';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { GameSummary } from '../../shared/models/game.model';
 import { GameService } from '../../core/services/game.service';
+import { PageLoader } from '../../shared/components/page-loader/page-loader';
 
 const PAGE_SIZE = 12;
 
 @Component({
   selector: 'app-games',
-  imports: [RouterLink, FormsModule],
+  imports: [RouterLink, FormsModule, PageLoader],
   templateUrl: './games.html',
   styleUrl: './games.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
