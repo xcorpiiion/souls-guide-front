@@ -48,6 +48,7 @@ export class QuestConditions implements OnInit {
   protected readonly saving = signal(false);
 
   protected readonly editingId = signal<string | null>(null);
+  protected readonly expandedConditionId = signal<string | null>(null);
   protected readonly selectedTriggerIds = signal<Set<string>>(new Set());
   protected readonly selectedAffectedNodeIds = signal<Set<string>>(new Set());
   /** Quest dos nós afetados (HIDE/REVEAL) ou quest do final travado (FORCE_ENDING). */
@@ -211,6 +212,18 @@ export class QuestConditions implements OnInit {
         },
         error: () => this.toast.error('Erro', 'Não foi possível excluir a condição.'),
       });
+  }
+
+  protected toggleExpand(id: string): void {
+    this.expandedConditionId.update((cur) => (cur === id ? null : id));
+  }
+
+  protected questColorClass(questId: string | null): string {
+    const PALETTE = ['a', 'b', 'c', 'd', 'e', 'f'];
+    if (!questId) return 'a';
+    let h = 0;
+    for (let i = 0; i < questId.length; i++) h = (h * 31 + questId.charCodeAt(i)) & 0xffff;
+    return PALETTE[h % PALETTE.length];
   }
 
   protected questTitle(questId: string): string {

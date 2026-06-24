@@ -124,45 +124,106 @@
           <p class="qc__empty">Nenhuma condição cadastrada para este jogo ainda.</p>
         }
 
-        @for (condition of conditions(); track condition.id) {
-          <div class="qc__card">
-            <div class="qc__card-header">
-              <span class="qc__card-effect qc__card-effect--{{ condition.effect.toLowerCase() }}">
-                {{ effectLabel(condition.effect) }}
-              </span>
-              <div class="qc__card-actions">
-                <button type="button" (click)="startEdit(condition)" title="editar">
-                  <i class="ti ti-edit" aria-hidden="true"></i>
-                </button>
-                <button type="button" (click)="deleteCondition(condition)" title="excluir">
-                  <i class="ti ti-trash" aria-hidden="true"></i>
-                </button>
+        <div class="qc__cond-list">
+          @for (condition of conditions(); track condition.id) {
+            <div
+              class="qc__cond-row"
+              [class.qc__cond-row--open]="expandedConditionId() === condition.id"
+            >
+              <div
+                class="qc__cond-head"
+                role="button"
+                tabindex="0"
+                (click)="toggleExpand(condition.id)"
+                (keyup.enter)="toggleExpand(condition.id)"
+                (keyup.space)="toggleExpand(condition.id)"
+              >
+                <i class="ti ti-chevron-down qc__cond-chevron" aria-hidden="true"></i>
+                <span class="qc__cond-pill qc__cond-pill--{{ condition.effect.toLowerCase() }}">
+                  {{ effectLabel(condition.effect) }}
+                </span>
+                <div class="qc__cond-info">
+                  <div class="qc__cond-quests">
+                    @if (condition.triggerQuestTitle) {
+                      <span
+                        class="qc__quest-chip qc__quest-chip--{{
+                          questColorClass(condition.triggerQuestId)
+                        }}"
+                        >{{ condition.triggerQuestTitle }}</span
+                      >
+                    }
+                    @if (
+                      condition.affectedQuestTitle &&
+                      condition.affectedQuestTitle !== condition.triggerQuestTitle
+                    ) {
+                      <span
+                        class="qc__quest-chip qc__quest-chip--{{
+                          questColorClass(condition.affectedQuestId)
+                        }}"
+                        >{{ condition.affectedQuestTitle }}</span
+                      >
+                    }
+                  </div>
+                  <span class="qc__cond-affected">
+                    @if (condition.effect === 'FORCE_ENDING') {
+                      final travado em {{ condition.affectedQuestTitle }}
+                    } @else {
+                      {{ condition.affectedNodeLabels.join(', ') }}
+                    }
+                  </span>
+                </div>
+                <div class="qc__cond-meta">
+                  <span class="qc__cond-meta-tag">
+                    {{ condition.triggerNodeIds.length }}
+                    gatilho{{ condition.triggerNodeIds.length !== 1 ? 's' : '' }}
+                  </span>
+                  @if (condition.isSpoiler) {
+                    <span class="qc__cond-spoiler">
+                      <i class="ti ti-eye-off" aria-hidden="true"></i> espoiler
+                    </span>
+                  }
+                </div>
+                <div class="qc__cond-actions">
+                  <button
+                    type="button"
+                    title="editar"
+                    (click)="startEdit(condition); $event.stopPropagation()"
+                  >
+                    <i class="ti ti-edit" aria-hidden="true"></i>
+                  </button>
+                  <button
+                    type="button"
+                    title="excluir"
+                    (click)="deleteCondition(condition); $event.stopPropagation()"
+                  >
+                    <i class="ti ti-trash" aria-hidden="true"></i>
+                  </button>
+                </div>
               </div>
+
+              @if (expandedConditionId() === condition.id) {
+                <div class="qc__cond-detail">
+                  <div class="qc__cond-detail-row">
+                    <span class="qc__cond-detail-label">gatilho</span>
+                    <span class="qc__cond-detail-val">
+                      {{ condition.triggerQuestTitle }} ·
+                      {{ condition.triggerNodeIds.length }} etapa(s)
+                    </span>
+                  </div>
+                  <div class="qc__cond-detail-row">
+                    <span class="qc__cond-detail-label">descrição</span>
+                    <span class="qc__cond-detail-val">{{ condition.description }}</span>
+                  </div>
+                  @if (condition.isSpoiler) {
+                    <div class="qc__cond-detail-spoiler">
+                      <i class="ti ti-eye-off" aria-hidden="true"></i> marcado como espoiler
+                    </div>
+                  }
+                </div>
+              }
             </div>
-            @if (condition.effect === 'FORCE_ENDING') {
-              <p class="qc__card-affected">
-                final travado em: <strong>{{ condition.affectedQuestTitle }}</strong>
-              </p>
-            } @else {
-              <p class="qc__card-affected">
-                afeta {{ condition.affectedNodeIds.length }} etapa(s):
-                @for (id of condition.affectedNodeIds; track id; let last = $last) {
-                  <strong>{{ nodeLabel(id) }}</strong
-                  >{{ last ? '' : ', ' }}
-                }
-              </p>
-            }
-            <p class="qc__card-triggers">
-              gatilhos: {{ condition.triggerNodeIds.length }} etapa(s)
-            </p>
-            @if (condition.isSpoiler) {
-              <span class="qc__card-spoiler-badge">
-                <i class="ti ti-eye-off" aria-hidden="true"></i> espoiler
-              </span>
-            }
-            <p class="qc__card-description">{{ condition.description }}</p>
-          </div>
-        }
+          }
+        </div>
       </section>
     </div>
   }

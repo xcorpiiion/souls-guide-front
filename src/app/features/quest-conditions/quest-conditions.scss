@@ -212,6 +212,221 @@
   font-style: italic;
 }
 
+.qc__cond-list {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.qc__cond-row {
+  border: 1px solid v.$color-border;
+  border-radius: v.$radius-md;
+  overflow: hidden;
+  transition: border-color 0.15s;
+
+  &:hover {
+    border-color: rgba(v.$color-gold, 0.25);
+  }
+
+  &--open {
+    border-color: rgba(v.$color-gold, 0.2);
+  }
+}
+
+.qc__cond-head {
+  display: flex;
+  align-items: stretch;
+  cursor: pointer;
+  gap: 10px;
+  padding: 10px 12px;
+}
+
+.qc__cond-chevron {
+  font-size: 13px;
+  color: v.$color-text-faint;
+  align-self: center;
+  flex-shrink: 0;
+  transition: transform 0.2s;
+
+  .qc__cond-row--open & {
+    transform: rotate(180deg);
+  }
+}
+
+.qc__cond-pill {
+  font-size: 11px;
+  font-weight: 500;
+  padding: 3px 8px;
+  border-radius: v.$radius-full;
+  flex-shrink: 0;
+  align-self: center;
+  white-space: nowrap;
+
+  &--hide {
+    background: rgba(232, 80, 80, 0.1);
+    color: #e85050;
+    border: 0.5px solid rgba(232, 80, 80, 0.35);
+  }
+
+  &--reveal {
+    background: rgba(31, 170, 100, 0.1);
+    color: #1faa64;
+    border: 0.5px solid rgba(31, 170, 100, 0.35);
+  }
+
+  &--force_ending {
+    background: rgba(v.$color-gold, 0.1);
+    color: v.$color-gold;
+    border: 0.5px solid rgba(v.$color-gold, 0.35);
+  }
+}
+
+.qc__cond-info {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  flex: 1;
+  min-width: 0;
+}
+
+.qc__cond-quests {
+  display: flex;
+  gap: 5px;
+  flex-wrap: wrap;
+}
+
+.qc__quest-chip {
+  font-size: 12px;
+  font-weight: 500;
+  padding: 2px 9px;
+  border-radius: v.$radius-full;
+  white-space: nowrap;
+
+  &--a {
+    background: rgba(29, 158, 117, 0.1);
+    color: #1d9e75;
+    border: 0.5px solid rgba(29, 158, 117, 0.3);
+  }
+  &--b {
+    background: rgba(127, 119, 221, 0.1);
+    color: #7f77dd;
+    border: 0.5px solid rgba(127, 119, 221, 0.3);
+  }
+  &--c {
+    background: rgba(216, 90, 48, 0.1);
+    color: #d85a30;
+    border: 0.5px solid rgba(216, 90, 48, 0.3);
+  }
+  &--d {
+    background: rgba(201, 168, 76, 0.1);
+    color: v.$color-gold;
+    border: 0.5px solid rgba(201, 168, 76, 0.3);
+  }
+  &--e {
+    background: rgba(55, 138, 221, 0.1);
+    color: #378add;
+    border: 0.5px solid rgba(55, 138, 221, 0.3);
+  }
+  &--f {
+    background: rgba(212, 83, 126, 0.1);
+    color: #d4537e;
+    border: 0.5px solid rgba(212, 83, 126, 0.3);
+  }
+}
+
+.qc__cond-affected {
+  font-size: 12px;
+  color: v.$color-text-muted;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.qc__cond-meta {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  justify-content: center;
+  gap: 5px;
+  flex-shrink: 0;
+}
+
+.qc__cond-meta-tag {
+  font-size: 11px;
+  color: v.$color-text-faint;
+  white-space: nowrap;
+}
+
+.qc__cond-spoiler {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 10px;
+  color: v.$color-text-faint;
+}
+
+.qc__cond-actions {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  flex-shrink: 0;
+  border-left: 1px solid v.$color-border;
+  padding-left: 10px;
+
+  button {
+    background: none;
+    border: none;
+    color: v.$color-text-faint;
+    cursor: pointer;
+    padding: 5px 6px;
+    border-radius: v.$radius-sm;
+    font-size: 15px;
+    transition: color 0.15s;
+
+    &:hover {
+      color: v.$color-text;
+    }
+
+    &:last-child:hover {
+      color: #e85050;
+    }
+  }
+}
+
+.qc__cond-detail {
+  border-top: 1px solid v.$color-border;
+  padding: 10px 12px 14px 36px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.qc__cond-detail-row {
+  display: flex;
+  gap: 8px;
+  font-size: 12px;
+}
+
+.qc__cond-detail-label {
+  color: v.$color-text-faint;
+  flex-shrink: 0;
+  width: 62px;
+}
+
+.qc__cond-detail-val {
+  color: v.$color-text-muted;
+  line-height: 1.6;
+}
+
+.qc__cond-detail-spoiler {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  color: v.$color-text-faint;
+  margin-top: 2px;
+}
+
 .qc__card {
   border: 1px solid v.$color-border;
   border-radius: v.$radius-md;
