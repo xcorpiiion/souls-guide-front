@@ -13,13 +13,13 @@
         Você está visualizando a <strong>v{{ previewVersion() }}</strong> — esta pode não ser a
         versão atual.
         @if (context === 'profile') {
-          <a [routerLink]="['/profile', 'quests', questId, 'history']">ver histórico completo</a>
+          <a [routerLink]="['/profile', 'quests', questId(), 'history']">ver histórico completo</a>
         } @else if (context === 'usuario') {
-          <a [routerLink]="['/usuarios', handle, 'quests', questId, 'history']"
+          <a [routerLink]="['/usuarios', handle, 'quests', questId(), 'history']"
             >ver histórico completo</a
           >
         } @else {
-          <a [routerLink]="['/games', gameId(), 'quests', questId, 'history']"
+          <a [routerLink]="['/games', gameId(), 'quests', questId(), 'history']"
             >ver histórico completo</a
           >
         }
@@ -240,6 +240,9 @@
             [edges]="snapshotEdges() ?? q.edges"
             [completedNodeIds]="previewVersion() ? emptySet : completedNodeIds()"
             [togglingNodeId]="previewVersion() ? null : togglingNodeId()"
+            [blockedNodeIds]="blockedNodeIds()"
+            [blockedNodeReasons]="blockedNodeReasons()"
+            [triggerNodeConditions]="triggerNodeConditions()"
             [gameId]="gameId()"
             (nodeDoneToggle)="toggleNodeDone($event)"
           />
@@ -247,7 +250,7 @@
       </div>
     </div>
     <div class="quest-detail__comments">
-      <app-comment-section targetKind="quest" [targetId]="questId" />
+      <app-comment-section targetKind="quest" [targetId]="questId()" />
     </div>
   </div>
 

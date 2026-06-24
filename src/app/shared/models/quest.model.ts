@@ -1,6 +1,7 @@
 export type QuestStatus = 'TEORIA' | 'CONSOLIDADO' | 'CANONICO';
 export type QuestNodeType = 'start' | 'end' | 'task' | 'gateway' | 'external-quest';
 export type QuestEndingType = 'positive' | 'tragic' | 'neutral';
+export type QuestNodeStatus = 'VISIVEL' | 'BLOQUEADA';
 
 export interface QuestNode {
   id: string;
@@ -14,6 +15,7 @@ export interface QuestNode {
   linkedQuestId?: string | null;
   linkedQuestName?: string | null;
   linkedNodeLabel?: string | null;
+  status?: QuestNodeStatus;
 }
 
 export interface QuestEdge {
@@ -56,6 +58,7 @@ export interface QuestApi {
   forkCount?: number;
   endingCount?: number;
   // condições entre quests
+  /** true somente quando TODOS os nós da quest estão bloqueados. */
   hidden?: boolean;
   hiddenReason?: string | null;
   hiddenIsSpoiler?: boolean;

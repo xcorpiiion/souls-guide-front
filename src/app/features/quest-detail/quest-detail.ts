@@ -6,7 +6,10 @@ import {
   OnInit,
   signal,
   computed,
+  DestroyRef,
 } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { switchMap } from 'rxjs/operators';
 import { RouterLink, ActivatedRoute, Router } from '@angular/router';
 import {
   QuestDetailData,
@@ -15,6 +18,7 @@ import {
   questApiToSummary,
 } from '../../shared/models/quest.model';
 import { QuestService } from '../../core/services/quest.service';
+import { QuestConditionService } from '../../core/services/quest-condition.service';
 import { QuestProgressService } from '../../core/services/quest-progress.service';
 import { QuestVersionService } from '../../core/services/quest-version.service';
 import { PersonalQuestService } from '../../core/services/personal-quest.service';
@@ -24,7 +28,7 @@ import {
   CopyConfirmEvent,
 } from '../../shared/components/copy-to-profile-modal/copy-to-profile-modal';
 import { CommentSection } from '../../shared/components/comment-section/comment-section';
-import { QuestChecklist } from './quest-checklist/quest-checklist';
+import { QuestChecklist, TriggerEffect } from './quest-checklist/quest-checklist';
 import { ToastService } from '../../shared/components/toast/toast.service';
 import { HttpErrorResponse } from '@angular/common/http';
 import { PageLoader } from '../../shared/components/page-loader/page-loader';
@@ -40,14 +44,17 @@ export class QuestDetail implements OnInit {
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly questService = inject(QuestService);
+  private readonly conditionService = inject(QuestConditionService);
   private readonly progressService = inject(QuestProgressService);
   private readonly versionService = inject(QuestVersionService);
   private readonly personalQuestService = inject(PersonalQuestService);
   protected readonly auth = inject(AuthService);
   private readonly toast = inject(ToastService);
 
+  private readonly destroyRef = inject(DestroyRef);
+
   protected readonly gameId = signal<string>(this.route.snapshot.paramMap.get('gameId') ?? '');
-  protected readonly questId: string = this.route.snapshot.paramMap.get('questId') ?? '';
+  protected readonly questId = signal<string>(this.route.snapshot.paramMap.get('questId') ?? '');
   protected readonly handle: string = this.route.snapshot.paramMap.get('handle') ?? '';
   protected readonly context: 'game' | 'profile' | 'usuario' = this.route.snapshot.paramMap.has(
     'gameId',
@@ -90,6 +97,16 @@ export class QuestDetail implements OnInit {
     (this.quest()?.nodes ?? []).filter((n) => n.type === 'task'),
   );
 
+  protected readonly blockedNodeIds = computed(
+    () =>
+      new Set((this.quest()?.nodes ?? []).filter((n) => n.status === 'BLOQUEADA').map((n) => n.id)),
+  );
+
+  protected readonly blockedNodeReasons = signal<
+    Map<string, { questTitle: string; effect: 'HIDE' | 'REVEAL' }>
+  >(new Map());
+  protected readonly triggerNodeConditions = signal<Map<string, TriggerEffect[]>>(new Map());
+
   protected readonly canEdit = computed(() => {
     const q = this.quest();
     if (!q || !this.auth.isLoggedIn()) return false;
@@ -113,65 +130,138 @@ export class QuestDetail implements OnInit {
   );
 
   ngOnInit(): void {
-    this.questService.get(this.questId).subscribe({
-      next: (api) => {
-        const summary = questApiToSummary(api);
-        if (!this.gameId()) this.gameId.set(String(api.gameId));
-        this.quest.set({
-          ...summary,
-          nodes: (api.nodes ?? []).map((n) => ({ ...n, id: String(n.id) })),
-          edges: (api.edges ?? []).map((e) => ({
-            ...e,
-            id: String(e.id),
-            from: String(e.from),
-            to: String(e.to),
-          })),
-          relatedQuests: api.relatedQuests ?? [],
-        });
-        this.likeCount.set(api.likeCount ?? 0);
-        this.userHasLiked.set(api.userHasLiked ?? false);
-        this.followerCount.set(api.followerCount ?? 0);
-        this.userIsFollowing.set(api.userIsFollowing ?? false);
-        this.loading.set(false);
-
-        const ver = this.previewVersion();
-        if (ver !== null) {
-          this.snapshotLoading.set(true);
-          this.versionService.getSnapshot(this.questId, ver).subscribe({
-            next: (snap) => {
-              if (snap.nodes.length === 0) {
-                this.snapshotUnavailable.set(true);
-              } else {
-                this.snapshotNodes.set(snap.nodes.map((n) => ({ ...n, id: String(n.id) })));
-                this.snapshotEdges.set(
-                  snap.edges.map((e) => ({
-                    ...e,
-                    id: String(e.id),
-                    from: String(e.from),
-                    to: String(e.to),
-                  })),
-                );
-              }
-              this.snapshotLoading.set(false);
-            },
-            error: () => this.snapshotLoading.set(false),
+    this.route.paramMap
+      .pipe(
+        takeUntilDestroyed(this.destroyRef),
+        switchMap((params) => {
+          const questId = params.get('questId') ?? '';
+          const gameId = params.get('gameId') ?? '';
+          this.questId.set(questId);
+          if (gameId) this.gameId.set(gameId);
+          this.resetState();
+          return this.questService.get(questId);
+        }),
+      )
+      .subscribe({
+        next: (api) => {
+          const questId = this.questId();
+          const summary = questApiToSummary(api);
+          if (!this.gameId()) this.gameId.set(String(api.gameId));
+          this.quest.set({
+            ...summary,
+            nodes: (api.nodes ?? []).map((n) => ({ ...n, id: String(n.id) })),
+            edges: (api.edges ?? []).map((e) => ({
+              ...e,
+              id: String(e.id),
+              from: String(e.from),
+              to: String(e.to),
+            })),
+            relatedQuests: api.relatedQuests ?? [],
           });
-        }
+          this.likeCount.set(api.likeCount ?? 0);
+          this.userHasLiked.set(api.userHasLiked ?? false);
+          this.followerCount.set(api.followerCount ?? 0);
+          this.userIsFollowing.set(api.userIsFollowing ?? false);
+          this.loading.set(false);
 
-        if (this.auth.isLoggedIn()) {
-          this.progressService.getProgress(this.questId).subscribe({
-            next: (p) => this.completedNodeIds.set(new Set(p.completedNodeIds)),
-            error: () => {
-              /* sem progresso ainda — silenciado */
-            },
-          });
-        }
-      },
-      error: (err: HttpErrorResponse) => {
-        this.error.set(err.status === 403 ? 'Este conteúdo é privado.' : 'Quest não encontrada.');
-        this.loading.set(false);
-      },
-    });
+          const ver = this.previewVersion();
+          if (ver !== null) {
+            this.snapshotLoading.set(true);
+            this.versionService.getSnapshot(questId, ver).subscribe({
+              next: (snap) => {
+                if (snap.nodes.length === 0) {
+                  this.snapshotUnavailable.set(true);
+                } else {
+                  this.snapshotNodes.set(snap.nodes.map((n) => ({ ...n, id: String(n.id) })));
+                  this.snapshotEdges.set(
+                    snap.edges.map((e) => ({
+                      ...e,
+                      id: String(e.id),
+                      from: String(e.from),
+                      to: String(e.to),
+                    })),
+                  );
+                }
+                this.snapshotLoading.set(false);
+              },
+              error: () => this.snapshotLoading.set(false),
+            });
+          }
+
+          if (this.auth.isLoggedIn()) {
+            this.progressService.getProgress(questId).subscribe({
+              next: (p) => this.completedNodeIds.set(new Set(p.completedNodeIds)),
+              error: () => {
+                /* sem progresso ainda */
+              },
+            });
+          }
+
+          const gId = this.gameId();
+          if (gId) {
+            this.conditionService.listByGame(gId).subscribe({
+              next: (conditions) => {
+                const reasonMap = new Map<
+                  string,
+                  { questTitle: string; effect: 'HIDE' | 'REVEAL' }
+                >();
+                const triggerMap = new Map<string, TriggerEffect[]>();
+                for (const c of conditions) {
+                  if (
+                    (c.effect === 'HIDE' || c.effect === 'REVEAL') &&
+                    c.affectedNodeIds.length &&
+                    c.triggerQuestTitle
+                  ) {
+                    for (const nodeId of c.affectedNodeIds) {
+                      reasonMap.set(nodeId, { questTitle: c.triggerQuestTitle, effect: c.effect });
+                    }
+                  }
+                  if (c.affectedQuestTitle && c.affectedQuestId) {
+                    const effect: TriggerEffect = {
+                      effect: c.effect,
+                      affectedQuestTitle: c.affectedQuestTitle,
+                      affectedQuestId: c.affectedQuestId,
+                    };
+                    for (const nodeId of c.triggerNodeIds) {
+                      const existing = triggerMap.get(nodeId) ?? [];
+                      triggerMap.set(nodeId, [...existing, effect]);
+                    }
+                  }
+                }
+                this.blockedNodeReasons.set(reasonMap);
+                this.triggerNodeConditions.set(triggerMap);
+              },
+              error: () => {
+                /* silenciado */
+              },
+            });
+          }
+        },
+        error: (err: HttpErrorResponse) => {
+          this.error.set(err.status === 403 ? 'Este conteúdo é privado.' : 'Quest não encontrada.');
+          this.loading.set(false);
+        },
+      });
+  }
+
+  private resetState(): void {
+    this.loading.set(true);
+    this.error.set(null);
+    this.quest.set(null);
+    this.completedNodeIds.set(new Set());
+    this.togglingNodeId.set(null);
+    this.snapshotNodes.set(null);
+    this.snapshotEdges.set(null);
+    this.snapshotUnavailable.set(false);
+    this.snapshotLoading.set(false);
+    this.likeCount.set(0);
+    this.userHasLiked.set(false);
+    this.followerCount.set(0);
+    this.userIsFollowing.set(false);
+    this.showSharePopover.set(false);
+    this.hiddenReasonRevealed.set(false);
+    this.blockedNodeReasons.set(new Map());
+    this.triggerNodeConditions.set(new Map());
   }
 
   protected toggleNodeDone(nodeId: string): void {
@@ -179,8 +269,8 @@ export class QuestDetail implements OnInit {
     this.togglingNodeId.set(nodeId);
     const isDone = this.completedNodeIds().has(nodeId);
     const action = isDone
-      ? this.progressService.unmarkNodeDone(this.questId, nodeId)
-      : this.progressService.markNodeDone(this.questId, nodeId);
+      ? this.progressService.unmarkNodeDone(this.questId(), nodeId)
+      : this.progressService.markNodeDone(this.questId(), nodeId);
 
     action.subscribe({
       next: (p) => {
@@ -192,7 +282,7 @@ export class QuestDetail implements OnInit {
   }
 
   protected resetProgress(): void {
-    this.progressService.resetProgress(this.questId).subscribe({
+    this.progressService.resetProgress(this.questId()).subscribe({
       next: () => this.completedNodeIds.set(new Set()),
     });
   }
@@ -204,7 +294,7 @@ export class QuestDetail implements OnInit {
 
   protected onCopyConfirm(event: CopyConfirmEvent): void {
     this.copying.set(true);
-    this.personalQuestService.copyToProfile(this.questId, event.replaceExistingId).subscribe({
+    this.personalQuestService.copyToProfile(this.questId(), event.replaceExistingId).subscribe({
       next: (created) => {
         this.copying.set(false);
         this.showCopyModal.set(false);
@@ -233,8 +323,8 @@ export class QuestDetail implements OnInit {
     this.following.set(true);
     const following = this.userIsFollowing();
     const action = following
-      ? this.questService.unfollow(this.questId)
-      : this.questService.follow(this.questId);
+      ? this.questService.unfollow(this.questId())
+      : this.questService.follow(this.questId());
     action.subscribe({
       next: (res) => {
         this.followerCount.set(res.followerCount);
@@ -269,8 +359,8 @@ export class QuestDetail implements OnInit {
     this.liking.set(true);
     const liked = this.userHasLiked();
     const action = liked
-      ? this.questService.unlike(this.questId)
-      : this.questService.like(this.questId);
+      ? this.questService.unlike(this.questId())
+      : this.questService.like(this.questId());
     action.subscribe({
       next: (res) => {
         this.likeCount.set(res.likeCount);

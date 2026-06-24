@@ -180,6 +180,11 @@
   &::-webkit-scrollbar {
     display: none;
   }
+
+  @media (max-width: 600px) {
+    width: 100%;
+    padding-bottom: v.$space-1;
+  }
 }
 
 .quest-detail__btn {
@@ -300,7 +305,7 @@
   @media (max-width: 768px) {
     border-right: none;
     border-bottom: 1px solid v.$color-border;
-    padding: v.$space-4 v.$space-4 v.$space-6;
+    padding: v.$space-4 0 v.$space-6;
   }
 }
 

@@ -1,4 +1,4 @@
-<div class="ck">
+<div class="ck" [class.ck--has-selection]="selectedId()">
   <!-- ══ Lista com spine ═══════════════════════════════════════════════════════ -->
   <div class="ck__list">
     <p class="ck__list-label">etapas da quest</p>
@@ -45,17 +45,69 @@
                 </span>
               }
             </div>
+          } @else if (blockedNodeIds().has(entry.node.id)) {
+            <div
+              class="ck__node-card ck__node-card--blocked"
+              [class.ck__node-card--blocked-reveal]="
+                blockedReason(entry.node.id)?.effect === 'REVEAL'
+              "
+              [class.ck__node-card--blocked-hide]="blockedReason(entry.node.id)?.effect === 'HIDE'"
+            >
+              <div class="ck__blocked-icon"><i class="ti ti-lock" aria-hidden="true"></i></div>
+              <div class="ck__blocked-body">
+                <span class="ck__step-title">{{ entry.node.label }}</span>
+                <div class="ck__blocked-sub">
+                  <span
+                    class="ck__blocked-badge"
+                    [class.ck__blocked-badge--reveal]="
+                      blockedReason(entry.node.id)?.effect === 'REVEAL'
+                    "
+                    [class.ck__blocked-badge--hide]="
+                      blockedReason(entry.node.id)?.effect === 'HIDE'
+                    "
+                    [class.ck__blocked-badge--unknown]="!blockedReason(entry.node.id)"
+                    >{{
+                      blockedReason(entry.node.id)?.effect === 'HIDE'
+                        ? 'inacessível'
+                        : 'pré-requisito'
+                    }}</span
+                  >
+                  <span>{{
+                    blockedReason(entry.node.id)?.effect === 'HIDE'
+                      ? 'fechado por:'
+                      : 'complete primeiro:'
+                  }}</span>
+                  <span class="ck__blocked-quest">{{
+                    blockedReason(entry.node.id)?.questTitle ?? 'outra quest'
+                  }}</span>
+                </div>
+              </div>
+            </div>
           } @else {
             <div
               class="ck__node-card"
               [class.ck__node-card--active]="selectedId() === entry.node.id"
               [class.ck__node-card--done]="completedNodeIds().has(entry.node.id)"
+              [class.ck__node-card--trigger]="triggerNodeConditions().has(entry.node.id)"
               (click)="select(entry.node.id)"
               role="button"
               tabindex="0"
               (keydown.enter)="select(entry.node.id)"
             >
-              <span class="ck__step-title">{{ entry.node.label }}</span>
+              <div class="ck__card-header-row">
+                <span class="ck__step-title">{{ entry.node.label }}</span>
+                @if (triggerNodeConditions().has(entry.node.id)) {
+                  <span class="ck__trigger-badge">
+                    <i class="ti ti-bolt" aria-hidden="true"></i>
+                    {{ triggerNodeConditions().get(entry.node.id)!.length }}
+                    {{
+                      triggerNodeConditions().get(entry.node.id)!.length === 1
+                        ? 'condição'
+                        : 'condições'
+                    }}
+                  </span>
+                }
+              </div>
               @if (entry.node.sublabel) {
                 <span class="ck__step-sub">{{ entry.node.sublabel }}</span>
               }
@@ -63,6 +115,30 @@
                 <span class="ck__done-badge">
                   <i class="ti ti-check" aria-hidden="true" style="font-size: 10px"></i> concluído
                 </span>
+              }
+              @if (triggerNodeConditions().has(entry.node.id)) {
+                <div class="ck__trigger-panel">
+                  <p class="ck__trigger-panel-label">este nó desencadeia</p>
+                  @for (t of triggerNodeConditions().get(entry.node.id)!; track t.affectedQuestId) {
+                    <div class="ck__trigger-row">
+                      <span
+                        class="ck__trigger-effect ck__trigger-effect--{{ t.effect.toLowerCase() }}"
+                      >
+                        {{ effectLabel(t.effect) }}
+                      </span>
+                      <span class="ck__trigger-quest">{{ t.affectedQuestTitle }}</span>
+                      <a
+                        class="ck__trigger-link"
+                        role="button"
+                        tabindex="0"
+                        (click)="goToQuest(t.affectedQuestId, $event)"
+                        (keydown.enter)="goToQuest(t.affectedQuestId, $event)"
+                      >
+                        <i class="ti ti-arrow-right" aria-hidden="true"></i> ver
+                      </a>
+                    </div>
+                  }
+                </div>
               }
             </div>
           }
@@ -111,42 +187,60 @@
                         {{ opt.firstNode.sublabel ?? opt.firstNode.label }}
                       </div>
                       <div class="ck__branch-steps">
-                        <div
-                          class="ck__branch-node"
-                          [class.ck__branch-node--active]="selectedId() === opt.firstNode.id"
-                          [class.ck__branch-node--done]="completedNodeIds().has(opt.firstNode.id)"
-                          (click)="select(opt.firstNode.id)"
-                          role="button"
-                          tabindex="0"
-                          (keydown.enter)="select(opt.firstNode.id)"
-                        >
-                          <span class="ck__step-title">{{ opt.firstNode.label }}</span>
-                          @if (opt.firstNode.sublabel) {
-                            <span class="ck__step-sub">{{ opt.firstNode.sublabel }}</span>
-                          }
-                          @if (completedNodeIds().has(opt.firstNode.id)) {
-                            <span class="ck__done-badge">
-                              <i class="ti ti-check" aria-hidden="true" style="font-size: 10px"></i>
-                              concluído
-                            </span>
-                          }
-                        </div>
-                        @for (sub of opt.subSteps; track sub.id) {
-                          <div class="ck__branch-arrow" aria-hidden="true">↓</div>
+                        @if (blockedNodeIds().has(opt.firstNode.id)) {
+                          <div
+                            class="ck__branch-node ck__node-card--blocked"
+                            [class.ck__node-card--blocked-reveal]="
+                              blockedReason(opt.firstNode.id)?.effect === 'REVEAL'
+                            "
+                            [class.ck__node-card--blocked-hide]="
+                              blockedReason(opt.firstNode.id)?.effect === 'HIDE'
+                            "
+                          >
+                            <div class="ck__blocked-icon">
+                              <i class="ti ti-lock" aria-hidden="true"></i>
+                            </div>
+                            <div class="ck__blocked-body">
+                              <span class="ck__step-title">{{ opt.firstNode.label }}</span>
+                              <div class="ck__blocked-sub">
+                                <span
+                                  class="ck__blocked-badge"
+                                  [class.ck__blocked-badge--reveal]="
+                                    blockedReason(opt.firstNode.id)?.effect === 'REVEAL'
+                                  "
+                                  [class.ck__blocked-badge--hide]="
+                                    blockedReason(opt.firstNode.id)?.effect === 'HIDE'
+                                  "
+                                  [class.ck__blocked-badge--unknown]="
+                                    !blockedReason(opt.firstNode.id)
+                                  "
+                                  >{{
+                                    blockedReason(opt.firstNode.id)?.effect === 'HIDE'
+                                      ? 'inacessível'
+                                      : 'pré-requisito'
+                                  }}</span
+                                >
+                                <span class="ck__blocked-quest">{{
+                                  blockedReason(opt.firstNode.id)?.questTitle ?? 'outra quest'
+                                }}</span>
+                              </div>
+                            </div>
+                          </div>
+                        } @else {
                           <div
                             class="ck__branch-node"
-                            [class.ck__branch-node--active]="selectedId() === sub.id"
-                            [class.ck__branch-node--done]="completedNodeIds().has(sub.id)"
-                            (click)="select(sub.id)"
+                            [class.ck__branch-node--active]="selectedId() === opt.firstNode.id"
+                            [class.ck__branch-node--done]="completedNodeIds().has(opt.firstNode.id)"
+                            (click)="select(opt.firstNode.id)"
                             role="button"
                             tabindex="0"
-                            (keydown.enter)="select(sub.id)"
+                            (keydown.enter)="select(opt.firstNode.id)"
                           >
-                            <span class="ck__step-title">{{ sub.label }}</span>
-                            @if (sub.sublabel) {
-                              <span class="ck__step-sub">{{ sub.sublabel }}</span>
+                            <span class="ck__step-title">{{ opt.firstNode.label }}</span>
+                            @if (opt.firstNode.sublabel) {
+                              <span class="ck__step-sub">{{ opt.firstNode.sublabel }}</span>
                             }
-                            @if (completedNodeIds().has(sub.id)) {
+                            @if (completedNodeIds().has(opt.firstNode.id)) {
                               <span class="ck__done-badge">
                                 <i
                                   class="ti ti-check"
@@ -157,6 +251,72 @@
                               </span>
                             }
                           </div>
+                        }
+                        @for (sub of opt.subSteps; track sub.id) {
+                          <div class="ck__branch-arrow" aria-hidden="true">↓</div>
+                          @if (blockedNodeIds().has(sub.id)) {
+                            <div
+                              class="ck__branch-node ck__node-card--blocked"
+                              [class.ck__node-card--blocked-reveal]="
+                                blockedReason(sub.id)?.effect === 'REVEAL'
+                              "
+                              [class.ck__node-card--blocked-hide]="
+                                blockedReason(sub.id)?.effect === 'HIDE'
+                              "
+                            >
+                              <div class="ck__blocked-icon">
+                                <i class="ti ti-lock" aria-hidden="true"></i>
+                              </div>
+                              <div class="ck__blocked-body">
+                                <span class="ck__step-title">{{ sub.label }}</span>
+                                <div class="ck__blocked-sub">
+                                  <span
+                                    class="ck__blocked-badge"
+                                    [class.ck__blocked-badge--reveal]="
+                                      blockedReason(sub.id)?.effect === 'REVEAL'
+                                    "
+                                    [class.ck__blocked-badge--hide]="
+                                      blockedReason(sub.id)?.effect === 'HIDE'
+                                    "
+                                    [class.ck__blocked-badge--unknown]="!blockedReason(sub.id)"
+                                    >{{
+                                      blockedReason(sub.id)?.effect === 'HIDE'
+                                        ? 'inacessível'
+                                        : 'pré-requisito'
+                                    }}</span
+                                  >
+                                  <span class="ck__blocked-quest">{{
+                                    blockedReason(sub.id)?.questTitle ?? 'outra quest'
+                                  }}</span>
+                                </div>
+                              </div>
+                            </div>
+                          } @else {
+                            <div
+                              class="ck__branch-node"
+                              [class.ck__branch-node--active]="selectedId() === sub.id"
+                              [class.ck__branch-node--done]="completedNodeIds().has(sub.id)"
+                              (click)="select(sub.id)"
+                              role="button"
+                              tabindex="0"
+                              (keydown.enter)="select(sub.id)"
+                            >
+                              <span class="ck__step-title">{{ sub.label }}</span>
+                              @if (sub.sublabel) {
+                                <span class="ck__step-sub">{{ sub.sublabel }}</span>
+                              }
+                              @if (completedNodeIds().has(sub.id)) {
+                                <span class="ck__done-badge">
+                                  <i
+                                    class="ti ti-check"
+                                    aria-hidden="true"
+                                    style="font-size: 10px"
+                                  ></i>
+                                  concluído
+                                </span>
+                              }
+                            </div>
+                          }
                         }
                       </div>
                     </div>
@@ -180,35 +340,115 @@
                         }
                       </div>
                       <div class="ck__stack-nodes">
-                        <div
-                          class="ck__branch-node"
-                          [class.ck__branch-node--active]="selectedId() === opt.firstNode.id"
-                          [class.ck__branch-node--done]="completedNodeIds().has(opt.firstNode.id)"
-                          (click)="select(opt.firstNode.id)"
-                          role="button"
-                          tabindex="0"
-                          (keydown.enter)="select(opt.firstNode.id)"
-                        >
-                          <span class="ck__step-title">{{ opt.firstNode.label }}</span>
-                          @if (opt.firstNode.sublabel) {
-                            <span class="ck__step-sub">{{ opt.firstNode.sublabel }}</span>
-                          }
-                        </div>
-                        @for (sub of opt.subSteps; track sub.id) {
+                        @if (blockedNodeIds().has(opt.firstNode.id)) {
                           <div
-                            class="ck__branch-node ck__branch-node--sub"
-                            [class.ck__branch-node--active]="selectedId() === sub.id"
-                            [class.ck__branch-node--done]="completedNodeIds().has(sub.id)"
-                            (click)="select(sub.id)"
+                            class="ck__branch-node ck__node-card--blocked"
+                            [class.ck__node-card--blocked-reveal]="
+                              blockedReason(opt.firstNode.id)?.effect === 'REVEAL'
+                            "
+                            [class.ck__node-card--blocked-hide]="
+                              blockedReason(opt.firstNode.id)?.effect === 'HIDE'
+                            "
+                          >
+                            <div class="ck__blocked-icon">
+                              <i class="ti ti-lock" aria-hidden="true"></i>
+                            </div>
+                            <div class="ck__blocked-body">
+                              <span class="ck__step-title">{{ opt.firstNode.label }}</span>
+                              <div class="ck__blocked-sub">
+                                <span
+                                  class="ck__blocked-badge"
+                                  [class.ck__blocked-badge--reveal]="
+                                    blockedReason(opt.firstNode.id)?.effect === 'REVEAL'
+                                  "
+                                  [class.ck__blocked-badge--hide]="
+                                    blockedReason(opt.firstNode.id)?.effect === 'HIDE'
+                                  "
+                                  [class.ck__blocked-badge--unknown]="
+                                    !blockedReason(opt.firstNode.id)
+                                  "
+                                  >{{
+                                    blockedReason(opt.firstNode.id)?.effect === 'HIDE'
+                                      ? 'inacessível'
+                                      : 'pré-requisito'
+                                  }}</span
+                                >
+                                <span class="ck__blocked-quest">{{
+                                  blockedReason(opt.firstNode.id)?.questTitle ?? 'outra quest'
+                                }}</span>
+                              </div>
+                            </div>
+                          </div>
+                        } @else {
+                          <div
+                            class="ck__branch-node"
+                            [class.ck__branch-node--active]="selectedId() === opt.firstNode.id"
+                            [class.ck__branch-node--done]="completedNodeIds().has(opt.firstNode.id)"
+                            (click)="select(opt.firstNode.id)"
                             role="button"
                             tabindex="0"
-                            (keydown.enter)="select(sub.id)"
+                            (keydown.enter)="select(opt.firstNode.id)"
                           >
-                            <span class="ck__step-title">{{ sub.label }}</span>
-                            @if (sub.sublabel) {
-                              <span class="ck__step-sub">{{ sub.sublabel }}</span>
+                            <span class="ck__step-title">{{ opt.firstNode.label }}</span>
+                            @if (opt.firstNode.sublabel) {
+                              <span class="ck__step-sub">{{ opt.firstNode.sublabel }}</span>
                             }
                           </div>
+                        }
+                        @for (sub of opt.subSteps; track sub.id) {
+                          @if (blockedNodeIds().has(sub.id)) {
+                            <div
+                              class="ck__branch-node ck__node-card--blocked"
+                              [class.ck__node-card--blocked-reveal]="
+                                blockedReason(sub.id)?.effect === 'REVEAL'
+                              "
+                              [class.ck__node-card--blocked-hide]="
+                                blockedReason(sub.id)?.effect === 'HIDE'
+                              "
+                            >
+                              <div class="ck__blocked-icon">
+                                <i class="ti ti-lock" aria-hidden="true"></i>
+                              </div>
+                              <div class="ck__blocked-body">
+                                <span class="ck__step-title">{{ sub.label }}</span>
+                                <div class="ck__blocked-sub">
+                                  <span
+                                    class="ck__blocked-badge"
+                                    [class.ck__blocked-badge--reveal]="
+                                      blockedReason(sub.id)?.effect === 'REVEAL'
+                                    "
+                                    [class.ck__blocked-badge--hide]="
+                                      blockedReason(sub.id)?.effect === 'HIDE'
+                                    "
+                                    [class.ck__blocked-badge--unknown]="!blockedReason(sub.id)"
+                                    >{{
+                                      blockedReason(sub.id)?.effect === 'HIDE'
+                                        ? 'inacessível'
+                                        : 'pré-requisito'
+                                    }}</span
+                                  >
+                                  <span class="ck__blocked-quest">{{
+                                    blockedReason(sub.id)?.questTitle ?? 'outra quest'
+                                  }}</span>
+                                </div>
+                              </div>
+                            </div>
+                          } @else {
+                            <div
+                              class="ck__branch-node ck__branch-node--sub"
+                              [class.ck__branch-node--active]="selectedId() === sub.id"
+                              [class.ck__branch-node--done]="completedNodeIds().has(sub.id)"
+                              (click)="select(sub.id)"
+                              role="button"
+                              tabindex="0"
+                              (keydown.enter)="select(sub.id)"
+                            >
+                              <span class="ck__step-title">{{ sub.label }}</span>
+                              @if (sub.sublabel) {
+                                <span class="ck__step-sub">{{ sub.sublabel }}</span>
+                              }
+                            </div>
+                          }
                         }
                       </div>
                     </div>

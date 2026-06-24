@@ -13,6 +13,9 @@
     grid-template-columns: 1fr;
     height: auto;
     overflow: visible;
+    border-radius: 0;
+    border-left: none;
+    border-right: none;
   }
 }
 
@@ -26,9 +29,10 @@
 
   @media (max-width: 640px) {
     height: auto;
-    max-height: 60vh;
+    max-height: none;
     border-right: none;
     border-bottom: 1px solid v.$color-border;
+    padding: v.$space-3 0;
   }
   scrollbar-color: v.$color-border transparent;
 
@@ -55,6 +59,10 @@
   display: flex;
   gap: 0;
   padding: 0 v.$space-5 0 20px;
+
+  @media (max-width: 640px) {
+    padding: 0 v.$space-4 0 16px;
+  }
 }
 
 // ─── Spine ────────────────────────────────────────────────────────────────────
@@ -123,6 +131,14 @@
   }
 }
 
+// ─── Card header row (title + trigger badge) ──────────────────────────────────
+.ck__card-header-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+}
+
 // ─── Node card (step task) ────────────────────────────────────────────────────
 .ck__node-card {
   flex: 1;
@@ -158,6 +174,50 @@
     border-color: rgba(31, 170, 100, 0.4);
     background: rgba(31, 170, 100, 0.04);
   }
+
+  &--trigger {
+    border-color: rgba(83, 74, 183, 0.35);
+  }
+
+  &--blocked {
+    cursor: default;
+    opacity: 0.78;
+    border-style: dashed;
+    display: flex;
+    flex-direction: row;
+    align-items: flex-start;
+    gap: 12px;
+
+    &:hover {
+      border-color: v.$color-border;
+      background: v.$color-bg-surface;
+    }
+
+    .ck__step-title {
+      color: v.$color-text-muted;
+      font-size: 14px;
+    }
+  }
+
+  &--blocked-reveal {
+    border-color: rgba(15, 110, 86, 0.4);
+    background: rgba(15, 110, 86, 0.04);
+
+    &:hover {
+      border-color: rgba(15, 110, 86, 0.4);
+      background: rgba(15, 110, 86, 0.04);
+    }
+  }
+
+  &--blocked-hide {
+    border-color: rgba(163, 45, 45, 0.35);
+    background: rgba(163, 45, 45, 0.04);
+
+    &:hover {
+      border-color: rgba(163, 45, 45, 0.35);
+      background: rgba(163, 45, 45, 0.04);
+    }
+  }
 }
 
 // ─── Boundary labels (start / end) ────────────────────────────────────────────
@@ -184,6 +244,10 @@
   font-weight: 500;
   color: v.$color-text;
   line-height: 1.35;
+
+  @media (max-width: 640px) {
+    font-size: 14px;
+  }
 }
 
 .ck__step-sub {
@@ -198,6 +262,186 @@
   font-size: 10px;
   color: #1faa64;
   margin-top: 2px;
+}
+
+// ─── Trigger badge (no canto do card) ─────────────────────────────────────────
+.ck__trigger-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  padding: 2px 8px;
+  border-radius: 20px;
+  background: rgba(83, 74, 183, 0.1);
+  color: #534ab7;
+  border: 0.5px solid rgba(83, 74, 183, 0.3);
+  flex-shrink: 0;
+  white-space: nowrap;
+
+  i {
+    font-size: 11px;
+  }
+}
+
+// ─── Trigger panel (inline no card) ───────────────────────────────────────────
+.ck__trigger-panel {
+  margin-top: 10px;
+  border: 0.5px solid v.$color-border;
+  border-radius: v.$radius-md;
+  background: v.$color-bg-elevated;
+  overflow: hidden;
+}
+
+.ck__trigger-panel-label {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: v.$color-text-muted;
+  font-weight: 500;
+  padding: 6px 12px;
+  border-bottom: 0.5px solid v.$color-border;
+}
+
+.ck__trigger-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 12px;
+  border-bottom: 0.5px solid v.$color-border;
+
+  &:last-child {
+    border-bottom: none;
+  }
+}
+
+.ck__trigger-effect {
+  font-size: 10px;
+  padding: 2px 7px;
+  border-radius: 20px;
+  flex-shrink: 0;
+
+  &--reveal {
+    background: rgba(15, 110, 86, 0.1);
+    color: #0f6e56;
+    border: 0.5px solid rgba(15, 110, 86, 0.3);
+  }
+
+  &--hide {
+    background: rgba(232, 80, 80, 0.1);
+    color: #e85050;
+    border: 0.5px solid rgba(232, 80, 80, 0.3);
+  }
+
+  &--force_ending {
+    background: rgba(200, 160, 74, 0.1);
+    color: v.$color-gold;
+    border: 0.5px solid rgba(200, 160, 74, 0.3);
+  }
+}
+
+.ck__trigger-quest {
+  font-size: 12px;
+  color: v.$color-text;
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ck__trigger-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 11px;
+  color: #534ab7;
+  text-decoration: none;
+  flex-shrink: 0;
+
+  &:hover {
+    text-decoration: underline;
+  }
+
+  i {
+    font-size: 12px;
+  }
+}
+
+// ─── Blocked node layout ──────────────────────────────────────────────────────
+.ck__blocked-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  font-size: 14px;
+
+  .ck__node-card--blocked-reveal & {
+    border: 1px solid rgba(15, 110, 86, 0.3);
+    background: rgba(15, 110, 86, 0.1);
+    color: #0f6e56;
+  }
+
+  .ck__node-card--blocked-hide & {
+    border: 1px solid rgba(163, 45, 45, 0.3);
+    background: rgba(163, 45, 45, 0.08);
+    color: #a32d2d;
+  }
+
+  .ck__node-card--blocked:not(.ck__node-card--blocked-reveal):not(.ck__node-card--blocked-hide) & {
+    border: 1px solid v.$color-border;
+    background: v.$color-bg-elevated;
+    color: v.$color-text-muted;
+  }
+}
+
+.ck__blocked-body {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.ck__blocked-sub {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 5px;
+  font-size: 12px;
+  color: v.$color-text-muted;
+}
+
+.ck__blocked-badge {
+  font-size: 10px;
+  padding: 2px 7px;
+  border-radius: 20px;
+  flex-shrink: 0;
+
+  &--reveal {
+    background: rgba(15, 110, 86, 0.12);
+    color: #0f6e56;
+    border: 0.5px solid rgba(15, 110, 86, 0.25);
+  }
+
+  &--hide {
+    background: rgba(163, 45, 45, 0.1);
+    color: #a32d2d;
+    border: 0.5px solid rgba(163, 45, 45, 0.25);
+  }
+
+  &--unknown {
+    background: v.$color-bg-elevated;
+    color: v.$color-text-muted;
+    border: 0.5px solid v.$color-border;
+  }
+}
+
+.ck__blocked-quest {
+  font-weight: 500;
+  color: v.$color-text;
 }
 
 .ck__end-badge {
@@ -418,7 +662,12 @@
 
   @media (max-width: 640px) {
     height: auto;
-    min-height: 200px;
+    min-height: 0;
+    display: none;
+
+    .ck--has-selection & {
+      display: block;
+    }
   }
   scrollbar-color: v.$color-border transparent;
 

@@ -327,9 +327,29 @@ export class QuestEditorList {
     const ctx = tailContext(this.nodes(), this.edges());
     if (!ctx) return;
     this.pushUndo();
+    const gateway = makeNode('gateway', 'bifurcação');
     const b1 = makeNode('task', 'ramo 1');
     const b2 = makeNode('task', 'ramo 2');
-    this.emit([...this.nodes(), b1, b2], rewire(this.edges(), ctx, [b1.id, b2.id]));
+
+    // Remove arestas que iam direto para o ponto de convergência (se houver)
+    const newEdges = ctx.convergesTo
+      ? this.edges().filter((e) => e.to !== ctx.convergesTo)
+      : [...this.edges()];
+
+    // Últimos nós existentes → gateway
+    for (const s of ctx.sourceIds) {
+      newEdges.push({ id: makeId('e'), from: s, to: gateway.id });
+    }
+    // Gateway → ramos
+    newEdges.push({ id: makeId('e'), from: gateway.id, to: b1.id });
+    newEdges.push({ id: makeId('e'), from: gateway.id, to: b2.id });
+    // Ramos → ponto de convergência (se houver)
+    if (ctx.convergesTo) {
+      newEdges.push({ id: makeId('e'), from: b1.id, to: ctx.convergesTo });
+      newEdges.push({ id: makeId('e'), from: b2.id, to: ctx.convergesTo });
+    }
+
+    this.emit([...this.nodes(), gateway, b1, b2], newEdges);
   }
 
   protected addBranch(fork: ForkEntry): void {

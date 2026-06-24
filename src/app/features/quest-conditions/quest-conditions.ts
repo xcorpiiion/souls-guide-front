@@ -8,7 +8,7 @@ import {
 } from '@angular/core';
 import { RouterLink, ActivatedRoute } from '@angular/router';
 import { forkJoin, of } from 'rxjs';
-import { catchError, switchMap } from 'rxjs/operators';
+import { catchError, filter, switchMap } from 'rxjs/operators';
 import { QuestService } from '../../core/services/quest.service';
 import { QuestConditionService } from '../../core/services/quest-condition.service';
 import { ConfirmService } from '../../core/services/confirm.service';
@@ -19,18 +19,14 @@ import {
   QuestCondition,
   QuestConditionRequest,
 } from '../../shared/models/quest-condition.model';
-
-interface NodeOption {
-  questId: string;
-  questTitle: string;
-  nodeId: string;
-  nodeLabel: string;
-  nodeType: string;
-}
+import {
+  NodeOption,
+  NodeSelectorPanel,
+} from '../../shared/components/node-selector-panel/node-selector-panel';
 
 @Component({
   selector: 'app-quest-conditions',
-  imports: [RouterLink],
+  imports: [RouterLink, NodeSelectorPanel],
   templateUrl: './quest-conditions.html',
   styleUrl: './quest-conditions.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -52,6 +48,8 @@ export class QuestConditions implements OnInit {
 
   protected readonly editingId = signal<string | null>(null);
   protected readonly selectedTriggerIds = signal<Set<string>>(new Set());
+  protected readonly selectedAffectedNodeIds = signal<Set<string>>(new Set());
+  /** Quest dos nós afetados (HIDE/REVEAL) ou quest do final travado (FORCE_ENDING). */
   protected readonly affectedQuestId = signal<string>('');
   protected readonly effect = signal<ConditionEffect>('HIDE');
   protected readonly endingNodeId = signal<string>('');
@@ -64,26 +62,27 @@ export class QuestConditions implements OnInit {
     { value: 'FORCE_ENDING', label: 'sinalizar um final travado' },
   ];
 
-  protected readonly nodeOptionsByQuest = computed(() => {
-    const map = new Map<string, { questTitle: string; nodes: NodeOption[] }>();
-    for (const opt of this.nodeOptions()) {
-      if (!map.has(opt.questId)) map.set(opt.questId, { questTitle: opt.questTitle, nodes: [] });
-      map.get(opt.questId)!.nodes.push(opt);
-    }
-    return [...map.entries()].map(([questId, v]) => ({ questId, ...v }));
-  });
-
   protected readonly endingNodeOptions = computed(() =>
     this.nodeOptions().filter((n) => n.questId === this.affectedQuestId() && n.nodeType === 'end'),
   );
 
-  protected readonly formValid = computed(
-    () =>
-      this.selectedTriggerIds().size > 0 &&
-      !!this.affectedQuestId() &&
-      this.description().trim().length > 0 &&
-      (this.effect() !== 'FORCE_ENDING' || !!this.endingNodeId()),
-  );
+  /** Para HIDE/REVEAL: questId derivado do primeiro nó afetado selecionado. */
+  protected readonly derivedAffectedQuestId = computed(() => {
+    const firstNodeId = [...this.selectedAffectedNodeIds()][0];
+    if (!firstNodeId) return null;
+    return this.nodeOptions().find((n) => n.nodeId === firstNodeId)?.questId ?? null;
+  });
+
+  protected readonly formValid = computed(() => {
+    const effect = this.effect();
+    const hasAffected =
+      effect === 'FORCE_ENDING'
+        ? !!this.affectedQuestId() && !!this.endingNodeId()
+        : this.selectedAffectedNodeIds().size > 0 && !!this.derivedAffectedQuestId();
+    return (
+      this.selectedTriggerIds().size > 0 && hasAffected && this.description().trim().length > 0
+    );
+  });
 
   ngOnInit(): void {
     this.questService.list(0, 100, undefined, this.gameId).subscribe({
@@ -135,22 +134,10 @@ export class QuestConditions implements OnInit {
     });
   }
 
-  protected toggleTrigger(nodeId: string): void {
-    this.selectedTriggerIds.update((s) => {
-      const next = new Set(s);
-      if (next.has(nodeId)) next.delete(nodeId);
-      else next.add(nodeId);
-      return next;
-    });
-  }
-
-  protected isTriggerSelected(nodeId: string): boolean {
-    return this.selectedTriggerIds().has(nodeId);
-  }
-
   protected startCreate(): void {
     this.editingId.set(null);
     this.selectedTriggerIds.set(new Set());
+    this.selectedAffectedNodeIds.set(new Set());
     this.affectedQuestId.set('');
     this.effect.set('HIDE');
     this.endingNodeId.set('');
@@ -161,7 +148,8 @@ export class QuestConditions implements OnInit {
   protected startEdit(condition: QuestCondition): void {
     this.editingId.set(condition.id);
     this.selectedTriggerIds.set(new Set(condition.triggerNodeIds));
-    this.affectedQuestId.set(condition.affectedQuestId);
+    this.selectedAffectedNodeIds.set(new Set(condition.affectedNodeIds));
+    this.affectedQuestId.set(condition.affectedQuestId ?? '');
     this.effect.set(condition.effect);
     this.endingNodeId.set(condition.endingNodeId ?? '');
     this.description.set(condition.description);
@@ -171,11 +159,16 @@ export class QuestConditions implements OnInit {
   protected save(): void {
     if (!this.formValid() || this.saving()) return;
     this.saving.set(true);
+    const isForceEnding = this.effect() === 'FORCE_ENDING';
+    const questId = isForceEnding
+      ? Number(this.affectedQuestId())
+      : Number(this.derivedAffectedQuestId());
     const request: QuestConditionRequest = {
       triggerNodeIds: [...this.selectedTriggerIds()],
-      affectedQuestId: Number(this.affectedQuestId()),
+      affectedNodeIds: isForceEnding ? null : [...this.selectedAffectedNodeIds()],
+      affectedQuestId: questId,
       effect: this.effect(),
-      endingNodeId: this.effect() === 'FORCE_ENDING' ? this.endingNodeId() : null,
+      endingNodeId: isForceEnding ? this.endingNodeId() : null,
       description: this.description().trim(),
       isSpoiler: this.isSpoiler(),
     };
@@ -206,10 +199,12 @@ export class QuestConditions implements OnInit {
         message: `Tem certeza que deseja excluir esta condição? "${condition.description}"`,
         confirmLabel: 'excluir',
       })
-      .pipe(switchMap((ok) => (ok ? this.conditionService.delete(condition.id) : of(null))))
+      .pipe(
+        filter((ok) => ok),
+        switchMap(() => this.conditionService.delete(condition.id)),
+      )
       .subscribe({
-        next: (result) => {
-          if (result === null) return;
+        next: () => {
           this.conditions.update((list) => list.filter((c) => c.id !== condition.id));
           this.toast.success('Condição excluída', 'A condição foi removida.');
         },
@@ -219,6 +214,10 @@ export class QuestConditions implements OnInit {
 
   protected questTitle(questId: string): string {
     return this.quests().find((q) => q.id === questId)?.title ?? questId;
+  }
+
+  protected nodeLabel(nodeId: string): string {
+    return this.nodeOptions().find((n) => n.nodeId === nodeId)?.nodeLabel ?? nodeId;
   }
 
   protected effectLabel(effect: ConditionEffect): string {

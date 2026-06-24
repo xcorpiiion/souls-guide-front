@@ -60,6 +60,7 @@ function createFixture(
             queryParamMap: convertToParamMap({}),
             url: [],
           },
+          paramMap: of(convertToParamMap({ gameId, questId })),
         },
       },
       { provide: QuestService, useValue: questServiceMock },

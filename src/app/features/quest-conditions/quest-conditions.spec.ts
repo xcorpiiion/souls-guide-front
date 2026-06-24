@@ -106,8 +106,10 @@ describe('QuestConditions', () => {
   it('formValid fica true com gatilho, quest afetada e descrição preenchidos', () => {
     const fixture = createFixture();
     const comp = fixture.componentInstance as any;
-    comp.toggleTrigger('n2');
+    comp.selectedTriggerIds.set(new Set(['n2']));
+    comp.effect.set('FORCE_ENDING');
     comp.affectedQuestId.set('45');
+    comp.endingNodeId.set('end-1');
     comp.description.set('Ranni some pra sempre.');
     expect(comp.formValid()).toBe(true);
   });

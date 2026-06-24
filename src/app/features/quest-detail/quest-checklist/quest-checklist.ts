@@ -7,9 +7,16 @@ import {
   output,
   signal,
 } from '@angular/core';
-import { RouterLink } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../../core/services/auth.service';
 import { QuestEdge, QuestNode } from '../../../shared/models/quest.model';
+import { ConditionEffect } from '../../../shared/models/quest-condition.model';
+
+export interface TriggerEffect {
+  effect: ConditionEffect;
+  affectedQuestTitle: string;
+  affectedQuestId: string;
+}
 
 export interface ForkOption {
   firstNode: QuestNode;
@@ -113,12 +120,20 @@ export function buildEntries(nodes: QuestNode[], edges: QuestEdge[]): ListEntry[
 })
 export class QuestChecklist {
   protected readonly auth = inject(AuthService);
+  private readonly router = inject(Router);
 
   readonly nodes = input<QuestNode[]>([]);
   readonly edges = input<QuestEdge[]>([]);
   readonly completedNodeIds = input<Set<string>>(new Set());
   readonly togglingNodeId = input<string | null>(null);
   readonly gameId = input<string>('');
+  readonly blockedNodeIds = input<Set<string>>(new Set());
+  /** Mapa de nodeId → motivo do bloqueio (quest e efeito). */
+  readonly blockedNodeReasons = input<
+    Map<string, { questTitle: string; effect: 'HIDE' | 'REVEAL' }>
+  >(new Map());
+  /** Mapa de nodeId → condições que este nó dispara ao ser concluído. */
+  readonly triggerNodeConditions = input<Map<string, TriggerEffect[]>>(new Map());
 
   readonly nodeSelect = output<string>();
   readonly nodeDoneToggle = output<string>();
@@ -156,6 +171,23 @@ export class QuestChecklist {
 
   protected toggleDone(nodeId: string): void {
     this.nodeDoneToggle.emit(nodeId);
+  }
+
+  protected goToQuest(questId: string, event: Event): void {
+    event.stopPropagation();
+    this.router.navigate(['/games', this.gameId(), 'quests', questId]);
+  }
+
+  protected blockedReason(
+    nodeId: string,
+  ): { questTitle: string; effect: 'HIDE' | 'REVEAL' } | null {
+    return this.blockedNodeReasons().get(nodeId) ?? null;
+  }
+
+  protected effectLabel(effect: ConditionEffect): string {
+    if (effect === 'REVEAL') return 'revela';
+    if (effect === 'HIDE') return 'oculta';
+    return 'trava final em';
   }
 
   protected endingLabel(type: string | null | undefined): string {

@@ -22,39 +22,34 @@
 
         <div class="qc__field">
           <span class="qc__label">gatilhos — TODAS estas etapas precisam estar concluídas</span>
-          <div class="qc__triggers">
-            @for (group of nodeOptionsByQuest(); track group.questId) {
-              <div class="qc__trigger-group">
-                <span class="qc__trigger-quest">{{ group.questTitle }}</span>
-                @for (node of group.nodes; track node.nodeId) {
-                  <label class="qc__trigger-option">
-                    <input
-                      type="checkbox"
-                      [checked]="isTriggerSelected(node.nodeId)"
-                      (change)="toggleTrigger(node.nodeId)"
-                    />
-                    {{ node.nodeLabel }}
-                    <span class="qc__trigger-type">{{ node.nodeType }}</span>
-                  </label>
-                }
-              </div>
-            }
-          </div>
+          <app-node-selector-panel [options]="nodeOptions()" [(selectedIds)]="selectedTriggerIds" />
         </div>
 
-        <label class="qc__field">
-          <span class="qc__label">quest afetada</span>
-          <select
-            class="qc__input qc__input--select"
-            [value]="affectedQuestId()"
-            (change)="affectedQuestId.set($any($event.target).value)"
-          >
-            <option value="">— selecione —</option>
-            @for (q of quests(); track q.id) {
-              <option [value]="q.id">{{ q.title }}</option>
-            }
-          </select>
-        </label>
+        @if (effect() !== 'FORCE_ENDING') {
+          <div class="qc__field">
+            <span class="qc__label">etapas afetadas — nós que serão ocultados ou revelados</span>
+            <app-node-selector-panel
+              [options]="nodeOptions()"
+              [(selectedIds)]="selectedAffectedNodeIds"
+            />
+          </div>
+        }
+
+        @if (effect() === 'FORCE_ENDING') {
+          <label class="qc__field">
+            <span class="qc__label">quest com o final travado</span>
+            <select
+              class="qc__input qc__input--select"
+              [value]="affectedQuestId()"
+              (change)="affectedQuestId.set($any($event.target).value)"
+            >
+              <option value="">— selecione —</option>
+              @for (q of quests(); track q.id) {
+                <option [value]="q.id">{{ q.title }}</option>
+              }
+            </select>
+          </label>
+        }
 
         <label class="qc__field">
           <span class="qc__label">efeito</span>
@@ -144,9 +139,19 @@
                 </button>
               </div>
             </div>
-            <p class="qc__card-affected">
-              afeta: <strong>{{ condition.affectedQuestTitle }}</strong>
-            </p>
+            @if (condition.effect === 'FORCE_ENDING') {
+              <p class="qc__card-affected">
+                final travado em: <strong>{{ condition.affectedQuestTitle }}</strong>
+              </p>
+            } @else {
+              <p class="qc__card-affected">
+                afeta {{ condition.affectedNodeIds.length }} etapa(s):
+                @for (id of condition.affectedNodeIds; track id; let last = $last) {
+                  <strong>{{ nodeLabel(id) }}</strong
+                  >{{ last ? '' : ', ' }}
+                }
+              </p>
+            }
             <p class="qc__card-triggers">
               gatilhos: {{ condition.triggerNodeIds.length }} etapa(s)
             </p>

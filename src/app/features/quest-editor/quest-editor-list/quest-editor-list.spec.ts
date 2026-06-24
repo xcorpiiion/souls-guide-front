@@ -75,11 +75,22 @@ describe('QuestEditorList', () => {
     let emitted: { nodes: QuestNode[]; edges: QuestEdge[] } | undefined;
     comp.graphChange.subscribe((v: any) => (emitted = v));
     comp.addFork();
-    expect(emitted!.nodes.length).toBe(4);
-    const branches = emitted!.nodes.filter((n) => n.id !== 'start' && n.id !== 'end');
+    // start + end + gateway + 2 ramos = 5
+    expect(emitted!.nodes.length).toBe(5);
+    const gateway = emitted!.nodes.find((n) => n.type === 'gateway')!;
+    expect(gateway).toBeTruthy();
+    const branches = emitted!.nodes.filter((n) => n.type === 'task');
     expect(branches.length).toBe(2);
+    // start → gateway
+    expect(emitted!.edges).toContainEqual({
+      id: expect.any(String),
+      from: 'start',
+      to: gateway.id,
+    });
     for (const b of branches) {
-      expect(emitted!.edges).toContainEqual({ id: expect.any(String), from: 'start', to: b.id });
+      // gateway → ramo
+      expect(emitted!.edges).toContainEqual({ id: expect.any(String), from: gateway.id, to: b.id });
+      // ramo → end
       expect(emitted!.edges).toContainEqual({ id: expect.any(String), from: b.id, to: 'end' });
     }
   });

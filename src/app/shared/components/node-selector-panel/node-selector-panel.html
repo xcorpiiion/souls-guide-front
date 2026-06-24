@@ -1,0 +1,81 @@
+<div class="nsp">
+  <div class="nsp__panels">
+    <!-- painel esquerdo: lista de quests com busca -->
+    <div class="nsp__left">
+      <div class="nsp__search-wrap">
+        <i class="ti ti-search nsp__search-icon" aria-hidden="true"></i>
+        <input
+          class="nsp__search"
+          type="text"
+          placeholder="buscar quest…"
+          [ngModel]="questSearch()"
+          (ngModelChange)="questSearch.set($event)"
+        />
+      </div>
+
+      <div class="nsp__quest-list" role="listbox" aria-label="quests">
+        @for (group of filteredGroups(); track group.questId) {
+          <button
+            class="nsp__quest-row"
+            [class.nsp__quest-row--active]="activeQuestId() === group.questId"
+            type="button"
+            (click)="selectQuest(group.questId)"
+          >
+            <span class="nsp__quest-title">{{ group.questTitle }}</span>
+            <span class="nsp__quest-count">{{ group.nodes.length }}</span>
+          </button>
+        }
+        @if (filteredGroups().length === 0) {
+          <p class="nsp__empty">nenhuma quest encontrada</p>
+        }
+      </div>
+    </div>
+
+    <!-- painel direito: nós da quest selecionada -->
+    <div class="nsp__right">
+      @if (activeQuestId()) {
+        <div class="nsp__right-header">
+          <span class="nsp__right-title">{{ activeQuestTitle() }}</span>
+        </div>
+        <div class="nsp__node-list">
+          @for (node of activeNodes(); track node.nodeId) {
+            <label class="nsp__node-row" [class.nsp__node-row--checked]="isSelected(node.nodeId)">
+              <input
+                type="checkbox"
+                class="nsp__checkbox"
+                [checked]="isSelected(node.nodeId)"
+                (change)="toggle(node.nodeId)"
+              />
+              <span class="nsp__node-label">{{ node.nodeLabel }}</span>
+              <span class="nsp__badge">{{ node.nodeType }}</span>
+            </label>
+          }
+        </div>
+      } @else {
+        <div class="nsp__placeholder">
+          <i class="ti ti-hand-click" aria-hidden="true"></i>
+          <span>selecione uma quest</span>
+        </div>
+      }
+    </div>
+  </div>
+
+  <!-- tags das etapas selecionadas -->
+  @if (selectedList().length > 0) {
+    <div class="nsp__tags" aria-label="etapas selecionadas">
+      @for (item of selectedList(); track item.nodeId) {
+        <span class="nsp__tag">
+          {{ item.nodeLabel }}
+          <button
+            type="button"
+            class="nsp__tag-remove"
+            (click)="remove(item.nodeId)"
+            aria-label="remover"
+          >
+            <i class="ti ti-x" aria-hidden="true"></i>
+          </button>
+        </span>
+      }
+    </div>
+  }
+</div>
