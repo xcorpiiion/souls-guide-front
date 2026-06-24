@@ -8,6 +8,7 @@
         class="login__tab"
         type="button"
         [class.login__tab--active]="activeTab() === 'login'"
+        [disabled]="loading()"
         (click)="setTab('login')"
       >
         Entrar
@@ -16,6 +17,7 @@
         class="login__tab"
         type="button"
         [class.login__tab--active]="activeTab() === 'signup'"
+        [disabled]="loading()"
         (click)="setTab('signup')"
       >
         Criar conta
@@ -126,6 +128,8 @@
 
     <div class="login__divider"><span>ou</span></div>
 
-    <div id="google-btn" class="login__google-btn"></div>
+    <div class="login__google-wrap" [class.login__google-wrap--disabled]="loading()">
+      <div id="google-btn" class="login__google-btn"></div>
+    </div>
   </div>
 </div>

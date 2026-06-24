@@ -45,6 +45,18 @@
   }
 }
 
+.login__google-wrap {
+  position: relative;
+
+  &--disabled::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    cursor: not-allowed;
+    z-index: 1;
+  }
+}
+
 .login__google-btn {
   width: 100%;
   display: flex;

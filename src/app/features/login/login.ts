@@ -75,8 +75,9 @@ export class Login implements OnInit {
     if (this.loginForm.invalid) return;
     this.loading.set(true);
     this.errorMsg.set(null);
+    this.loginForm.disable();
 
-    const { email, password } = this.loginForm.value;
+    const { email, password } = this.loginForm.getRawValue();
     this.auth.login({ email: email!, password: password! }).subscribe({
       next: (tokens) => {
         this.auth.saveTokens(tokens);
@@ -85,6 +86,7 @@ export class Login implements OnInit {
       error: () => {
         this.errorMsg.set('Email ou senha inválidos.');
         this.loading.set(false);
+        this.loginForm.enable();
       },
     });
   }
@@ -99,8 +101,9 @@ export class Login implements OnInit {
     if (this.signupForm.invalid) return;
     this.loading.set(true);
     this.errorMsg.set(null);
+    this.signupForm.disable();
 
-    const { name, nickname, email, password } = this.signupForm.value;
+    const { name, nickname, email, password } = this.signupForm.getRawValue();
     this.auth
       .signup({ name: name!, nickname: nickname!, email: email!, password: password! })
       .subscribe({
@@ -111,11 +114,14 @@ export class Login implements OnInit {
         error: () => {
           this.errorMsg.set('Não foi possível criar a conta. O email pode já estar em uso.');
           this.loading.set(false);
+          this.signupForm.enable();
         },
       });
   }
 
   private handleGoogleResponse(response: google.accounts.id.CredentialResponse): void {
+    this.loading.set(true);
+    this.errorMsg.set(null);
     this.auth.loginWithGoogle(response.credential).subscribe({
       next: (tokens) => {
         this.auth.saveTokens(tokens);
@@ -123,6 +129,7 @@ export class Login implements OnInit {
       },
       error: () => {
         this.errorMsg.set('Falha no login com Google.');
+        this.loading.set(false);
       },
     });
   }
