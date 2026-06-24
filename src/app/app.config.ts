@@ -6,6 +6,7 @@ import {
 } from '@angular/core';
 import { provideHttpClient, withFetch, withInterceptors } from '@angular/common/http';
 import { authInterceptor } from './core/interceptors/auth.interceptor';
+import { loadingBarInterceptor } from './core/interceptors/loading-bar.interceptor';
 import { provideRouter, Router, withComponentInputBinding } from '@angular/router';
 import * as Sentry from '@sentry/angular';
 import { routes } from './app.routes';
@@ -16,7 +17,7 @@ initSentry();
 export const appConfig: ApplicationConfig = {
   providers: [
     provideZonelessChangeDetection(),
-    provideHttpClient(withFetch(), withInterceptors([authInterceptor])),
+    provideHttpClient(withFetch(), withInterceptors([loadingBarInterceptor, authInterceptor])),
     provideRouter(routes, withComponentInputBinding()),
     { provide: ErrorHandler, useValue: Sentry.createErrorHandler() },
     { provide: Sentry.TraceService, deps: [Router] },

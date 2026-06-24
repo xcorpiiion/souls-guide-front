@@ -1,0 +1,32 @@
+@use 'styles/variables' as v;
+
+.loading-bar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 9999;
+  height: 3px;
+  overflow: hidden;
+  pointer-events: none;
+
+  &__fill {
+    height: 100%;
+    width: 100%;
+    background: var(--color-accent);
+    transform-origin: left center;
+    animation: loading-bar-slide 1.4s ease-in-out infinite;
+  }
+}
+
+@keyframes loading-bar-slide {
+  0% {
+    transform: translateX(-100%) scaleX(0.3);
+  }
+  50% {
+    transform: translateX(0%) scaleX(0.6);
+  }
+  100% {
+    transform: translateX(100%) scaleX(0.3);
+  }
+}
