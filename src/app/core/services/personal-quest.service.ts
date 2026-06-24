@@ -73,6 +73,13 @@ export class PersonalQuestService {
     return this.http.post<QuestApi>(`${this.base}/quests/${questId}/copy-to-profile`, body);
   }
 
+  copyAllFromGame(gameId: string): Observable<{ copied: number; skipped: number }> {
+    return this.http.post<{ copied: number; skipped: number }>(
+      `${this.base}/games/${gameId}/quests/copy-all-to-profile`,
+      {},
+    );
+  }
+
   like(id: string): Observable<LikeResponse> {
     return this.http.post<LikeResponse>(`${this.base}/quests/personal/${id}/like`, {});
   }

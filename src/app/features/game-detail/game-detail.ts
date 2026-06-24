@@ -9,6 +9,7 @@ import {
   signal,
 } from '@angular/core';
 import { RouterLink, ActivatedRoute } from '@angular/router';
+import { filter, switchMap } from 'rxjs/operators';
 import { Game, gameToSummary, GameSummary } from '../../shared/models/game.model';
 import { QuestStatus, QuestSummary } from '../../shared/models/quest.model';
 import { LoreSummary } from '../../shared/models/lore-article.model';
@@ -16,6 +17,9 @@ import { GameService } from '../../core/services/game.service';
 import { QuestService } from '../../core/services/quest.service';
 import { LoreService } from '../../core/services/lore.service';
 import { AuthService } from '../../core/services/auth.service';
+import { PersonalQuestService } from '../../core/services/personal-quest.service';
+import { ConfirmService } from '../../core/services/confirm.service';
+import { ToastService } from '../../shared/components/toast/toast.service';
 import { PageLoader } from '../../shared/components/page-loader/page-loader';
 
 type Tab = 'quests' | 'lore' | 'contributors';
@@ -38,6 +42,9 @@ export class GameDetail implements OnInit {
   private readonly gameService = inject(GameService);
   private readonly questService = inject(QuestService);
   private readonly loreService = inject(LoreService);
+  private readonly personalQuestService = inject(PersonalQuestService);
+  private readonly confirm = inject(ConfirmService);
+  private readonly toast = inject(ToastService);
   private readonly el = inject(ElementRef);
   readonly auth = inject(AuthService);
 
@@ -55,6 +62,7 @@ export class GameDetail implements OnInit {
   protected readonly activeFilter = signal<QuestFilter>('todos');
   protected readonly showHidden = signal(false);
   protected readonly showContribMenu = signal(false);
+  protected readonly copyingAll = signal(false);
 
   protected readonly filters: FilterOption[] = [
     { value: 'todos', label: 'todos' },
@@ -64,6 +72,10 @@ export class GameDetail implements OnInit {
   ];
 
   protected readonly hiddenCount = computed(() => this.quests().filter((q) => q.hidden).length);
+
+  protected readonly copyableQuests = computed(() =>
+    this.quests().filter((q) => !q.isOwner && !q.isPersonal),
+  );
 
   protected readonly filteredQuests = computed(() => {
     const filter = this.activeFilter();
@@ -147,6 +159,41 @@ export class GameDetail implements OnInit {
     if (!host.contains(e.target as Node)) {
       this.showContribMenu.set(false);
     }
+  }
+
+  protected copyAll(): void {
+    if (!this.copyableQuests().length || this.copyingAll()) return;
+
+    this.confirm
+      .ask({
+        title: 'Copiar todas as quests',
+        message: `Deseja copiar ${this.copyableQuests().length} quest(s) deste jogo para o seu perfil?`,
+        confirmLabel: 'copiar todas',
+      })
+      .pipe(
+        filter((ok) => ok),
+        switchMap(() => {
+          this.copyingAll.set(true);
+          return this.personalQuestService.copyAllFromGame(this.gameId);
+        }),
+      )
+      .subscribe({
+        next: ({ copied, skipped }) => {
+          this.copyingAll.set(false);
+          if (copied > 0) {
+            this.toast.success(
+              'Quests copiadas',
+              `${copied} quest(s) copiada(s) para o seu perfil.${skipped ? ` ${skipped} já existia(m).` : ''}`,
+            );
+          } else {
+            this.toast.info('Nada novo', 'Todas as quests já estavam no seu perfil.');
+          }
+        },
+        error: () => {
+          this.copyingAll.set(false);
+          this.toast.error('Erro', 'Não foi possível copiar as quests.');
+        },
+      });
   }
 
   protected trackById(_: number, item: { id: string }): string {

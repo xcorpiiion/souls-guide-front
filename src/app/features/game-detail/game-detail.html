@@ -215,6 +215,21 @@
           <a class="game-detail__add-card" [routerLink]="['/games', g.id, 'quests', 'new']"
             >+ adicionar quest</a
           >
+          @if (auth.isLoggedIn() && copyableQuests().length > 0) {
+            <button
+              class="game-detail__copy-all-btn"
+              type="button"
+              [disabled]="copyingAll()"
+              (click)="copyAll()"
+            >
+              @if (copyingAll()) {
+                <i class="ti ti-loader-2 game-detail__spin" aria-hidden="true"></i> copiando…
+              } @else {
+                <i class="ti ti-copy" aria-hidden="true"></i>
+                copiar todas ({{ copyableQuests().length }})
+              }
+            </button>
+          }
           <a class="game-detail__conditions-link" [routerLink]="['/games', g.id, 'conditions']">
             <i class="ti ti-git-branch" aria-hidden="true"></i> gerenciar condições
           </a>

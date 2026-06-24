@@ -485,6 +485,34 @@ $game-colors: (
   align-items: stretch;
 }
 
+.game-detail__copy-all-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: v.$space-4;
+  border: 1px solid v.$color-border;
+  border-radius: v.$radius-lg;
+  background: transparent;
+  font-family: v.$font-body;
+  font-size: v.$font-size-sm;
+  color: v.$color-text-muted;
+  white-space: nowrap;
+  cursor: pointer;
+  transition:
+    border-color v.$transition-fast,
+    color v.$transition-fast;
+
+  @include m.on-hover {
+    border-color: v.$color-border-focus;
+    color: v.$color-text;
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: default;
+  }
+}
+
 .game-detail__conditions-link {
   display: flex;
   align-items: center;
