@@ -15,6 +15,7 @@ export interface QuestNode {
   linkedQuestId?: string | null;
   linkedQuestName?: string | null;
   linkedNodeLabel?: string | null;
+  /** Backend envia por nó para usuários autenticados. Ausente = VISIVEL. */
   status?: QuestNodeStatus;
 }
 

@@ -149,7 +149,11 @@ export class QuestDetail implements OnInit {
           if (!this.gameId()) this.gameId.set(String(api.gameId));
           this.quest.set({
             ...summary,
-            nodes: (api.nodes ?? []).map((n) => ({ ...n, id: String(n.id) })),
+            nodes: (api.nodes ?? []).map((n) => ({
+              ...n,
+              id: String(n.id),
+              status: n.status ?? 'VISIVEL',
+            })),
             edges: (api.edges ?? []).map((e) => ({
               ...e,
               id: String(e.id),
@@ -172,7 +176,13 @@ export class QuestDetail implements OnInit {
                 if (snap.nodes.length === 0) {
                   this.snapshotUnavailable.set(true);
                 } else {
-                  this.snapshotNodes.set(snap.nodes.map((n) => ({ ...n, id: String(n.id) })));
+                  this.snapshotNodes.set(
+                    snap.nodes.map((n) => ({
+                      ...n,
+                      id: String(n.id),
+                      status: n.status ?? 'VISIVEL',
+                    })),
+                  );
                   this.snapshotEdges.set(
                     snap.edges.map((e) => ({
                       ...e,

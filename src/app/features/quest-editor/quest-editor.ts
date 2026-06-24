@@ -84,7 +84,9 @@ export class QuestEditor implements OnInit, HasUnsavedChanges {
     this.title.set(api.title);
     this.description.set(api.description ?? '');
     this.questStatus.set(api.status ?? 'TEORIA');
-    this.nodes.set((api.nodes ?? []).map((n) => ({ ...n, id: String(n.id) })));
+    this.nodes.set(
+      (api.nodes ?? []).map((n) => ({ ...n, id: String(n.id), status: n.status ?? 'VISIVEL' })),
+    );
     this.edges.set(
       (api.edges ?? []).map((e) => ({
         ...e,
