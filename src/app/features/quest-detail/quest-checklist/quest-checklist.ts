@@ -130,7 +130,7 @@ export class QuestChecklist {
   readonly blockedNodeIds = input<Set<string>>(new Set());
   /** Mapa de nodeId → motivo do bloqueio (quest e efeito). */
   readonly blockedNodeReasons = input<
-    Map<string, { questTitle: string; effect: 'HIDE' | 'REVEAL' }>
+    Map<string, { questTitle: string; questId: string | null; effect: 'HIDE' | 'REVEAL' }>
   >(new Map());
   /** Mapa de nodeId → condições que este nó dispara ao ser concluído. */
   readonly triggerNodeConditions = input<Map<string, TriggerEffect[]>>(new Map());
@@ -180,7 +180,7 @@ export class QuestChecklist {
 
   protected blockedReason(
     nodeId: string,
-  ): { questTitle: string; effect: 'HIDE' | 'REVEAL' } | null {
+  ): { questTitle: string; questId: string | null; effect: 'HIDE' | 'REVEAL' } | null {
     return this.blockedNodeReasons().get(nodeId) ?? null;
   }
 

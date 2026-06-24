@@ -11,6 +11,8 @@ export interface QuestConditionApi {
   affectedQuestTitle: string | null;
   /** Título da quest que possui os nós gatilho. */
   triggerQuestTitle: string | null;
+  /** ID da quest que possui os nós gatilho. */
+  triggerQuestId: number | null;
   effect: ConditionEffect;
   endingNodeId: string | null;
   description: string;
@@ -27,6 +29,8 @@ export interface QuestCondition {
   affectedQuestTitle: string | null;
   /** Título da quest que possui os nós gatilho. */
   triggerQuestTitle: string | null;
+  /** ID da quest que possui os nós gatilho. */
+  triggerQuestId: string | null;
   effect: ConditionEffect;
   endingNodeId: string | null;
   description: string;
@@ -54,6 +58,7 @@ export function questConditionApiToModel(c: QuestConditionApi): QuestCondition {
     affectedQuestId: c.affectedQuestId != null ? String(c.affectedQuestId) : null,
     affectedQuestTitle: c.affectedQuestTitle,
     triggerQuestTitle: c.triggerQuestTitle ?? null,
+    triggerQuestId: c.triggerQuestId != null ? String(c.triggerQuestId) : null,
     effect: c.effect,
     endingNodeId: c.endingNodeId,
     description: c.description,

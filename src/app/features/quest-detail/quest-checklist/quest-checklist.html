@@ -80,6 +80,13 @@
                   <span class="ck__blocked-quest">{{
                     blockedReason(entry.node.id)?.questTitle ?? 'outra quest'
                   }}</span>
+                  @if (blockedReason(entry.node.id)?.questId) {
+                    <a
+                      class="ck__trigger-link"
+                      (click)="goToQuest(blockedReason(entry.node.id)!.questId!, $event)"
+                      >ver</a
+                    >
+                  }
                 </div>
               </div>
             </div>
@@ -223,6 +230,15 @@
                                 <span class="ck__blocked-quest">{{
                                   blockedReason(opt.firstNode.id)?.questTitle ?? 'outra quest'
                                 }}</span>
+                                @if (blockedReason(opt.firstNode.id)?.questId) {
+                                  <a
+                                    class="ck__trigger-link"
+                                    (click)="
+                                      goToQuest(blockedReason(opt.firstNode.id)!.questId!, $event)
+                                    "
+                                    >ver</a
+                                  >
+                                }
                               </div>
                             </div>
                           </div>
@@ -288,6 +304,13 @@
                                   <span class="ck__blocked-quest">{{
                                     blockedReason(sub.id)?.questTitle ?? 'outra quest'
                                   }}</span>
+                                  @if (blockedReason(sub.id)?.questId) {
+                                    <a
+                                      class="ck__trigger-link"
+                                      (click)="goToQuest(blockedReason(sub.id)!.questId!, $event)"
+                                      >ver</a
+                                    >
+                                  }
                                 </div>
                               </div>
                             </div>
@@ -376,6 +399,15 @@
                                 <span class="ck__blocked-quest">{{
                                   blockedReason(opt.firstNode.id)?.questTitle ?? 'outra quest'
                                 }}</span>
+                                @if (blockedReason(opt.firstNode.id)?.questId) {
+                                  <a
+                                    class="ck__trigger-link"
+                                    (click)="
+                                      goToQuest(blockedReason(opt.firstNode.id)!.questId!, $event)
+                                    "
+                                    >ver</a
+                                  >
+                                }
                               </div>
                             </div>
                           </div>
@@ -430,6 +462,13 @@
                                   <span class="ck__blocked-quest">{{
                                     blockedReason(sub.id)?.questTitle ?? 'outra quest'
                                   }}</span>
+                                  @if (blockedReason(sub.id)?.questId) {
+                                    <a
+                                      class="ck__trigger-link"
+                                      (click)="goToQuest(blockedReason(sub.id)!.questId!, $event)"
+                                      >ver</a
+                                    >
+                                  }
                                 </div>
                               </div>
                             </div>

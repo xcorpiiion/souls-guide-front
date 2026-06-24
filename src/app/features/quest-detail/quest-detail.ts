@@ -103,7 +103,7 @@ export class QuestDetail implements OnInit {
   );
 
   protected readonly blockedNodeReasons = signal<
-    Map<string, { questTitle: string; effect: 'HIDE' | 'REVEAL' }>
+    Map<string, { questTitle: string; questId: string | null; effect: 'HIDE' | 'REVEAL' }>
   >(new Map());
   protected readonly triggerNodeConditions = signal<Map<string, TriggerEffect[]>>(new Map());
 
@@ -203,7 +203,7 @@ export class QuestDetail implements OnInit {
               next: (conditions) => {
                 const reasonMap = new Map<
                   string,
-                  { questTitle: string; effect: 'HIDE' | 'REVEAL' }
+                  { questTitle: string; questId: string | null; effect: 'HIDE' | 'REVEAL' }
                 >();
                 const triggerMap = new Map<string, TriggerEffect[]>();
                 for (const c of conditions) {
@@ -213,7 +213,11 @@ export class QuestDetail implements OnInit {
                     c.triggerQuestTitle
                   ) {
                     for (const nodeId of c.affectedNodeIds) {
-                      reasonMap.set(nodeId, { questTitle: c.triggerQuestTitle, effect: c.effect });
+                      reasonMap.set(nodeId, {
+                        questTitle: c.triggerQuestTitle,
+                        questId: c.triggerQuestId,
+                        effect: c.effect,
+                      });
                     }
                   }
                   if (c.affectedQuestTitle && c.affectedQuestId) {
