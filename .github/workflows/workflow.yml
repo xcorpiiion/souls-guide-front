@@ -124,9 +124,10 @@ jobs:
       - name: Deploy to DEV channel
         env:
           FIREBASE_SA: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_SOULSGUIDE_F2B59 }}
+          GOOGLE_APPLICATION_CREDENTIALS: /tmp/sa.json
         run: |
           printf '%s' "$FIREBASE_SA" > /tmp/sa.json
-          GOOGLE_APPLICATION_CREDENTIALS=/tmp/sa.json npx firebase-tools hosting:channel:deploy dev --project soulsguide-f2b59 --only hosting
+          npx firebase-tools hosting:channel:deploy dev --project soulsguide-f2b59 --only hosting
 
       - name: Deploy Summary
         run: |
@@ -156,9 +157,10 @@ jobs:
       - name: Deploy to PROD (live channel)
         env:
           FIREBASE_SA: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_SOULSGUIDE_F2B59 }}
+          GOOGLE_APPLICATION_CREDENTIALS: /tmp/sa.json
         run: |
           printf '%s' "$FIREBASE_SA" > /tmp/sa.json
-          GOOGLE_APPLICATION_CREDENTIALS=/tmp/sa.json npx firebase-tools deploy --project soulsguide-f2b59 --only hosting
+          npx firebase-tools deploy --project soulsguide-f2b59 --only hosting
 
       - name: Deploy Summary
         run: |
