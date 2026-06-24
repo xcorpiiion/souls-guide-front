@@ -56,41 +56,43 @@
               <div class="ck__blocked-icon"><i class="ti ti-lock" aria-hidden="true"></i></div>
               <div class="ck__blocked-body">
                 <span class="ck__step-title">{{ entry.node.label }}</span>
-                <div class="ck__blocked-sub">
-                  <span
-                    class="ck__blocked-badge"
-                    [class.ck__blocked-badge--reveal]="
-                      blockedReason(entry.node.id)?.effect === 'REVEAL'
-                    "
-                    [class.ck__blocked-badge--hide]="
+                @if (!conditionsLoading()) {
+                  <div class="ck__blocked-sub">
+                    <span
+                      class="ck__blocked-badge"
+                      [class.ck__blocked-badge--reveal]="
+                        blockedReason(entry.node.id)?.effect === 'REVEAL'
+                      "
+                      [class.ck__blocked-badge--hide]="
+                        blockedReason(entry.node.id)?.effect === 'HIDE'
+                      "
+                      [class.ck__blocked-badge--unknown]="!blockedReason(entry.node.id)"
+                      >{{
+                        blockedReason(entry.node.id)?.effect === 'HIDE'
+                          ? 'inacessível'
+                          : 'pré-requisito'
+                      }}</span
+                    >
+                    <span>{{
                       blockedReason(entry.node.id)?.effect === 'HIDE'
-                    "
-                    [class.ck__blocked-badge--unknown]="!blockedReason(entry.node.id)"
-                    >{{
-                      blockedReason(entry.node.id)?.effect === 'HIDE'
-                        ? 'inacessível'
-                        : 'pré-requisito'
-                    }}</span
-                  >
-                  <span>{{
-                    blockedReason(entry.node.id)?.effect === 'HIDE'
-                      ? 'fechado por:'
-                      : 'complete primeiro:'
-                  }}</span>
-                  <span class="ck__blocked-quest">{{
-                    blockedReason(entry.node.id)?.questTitle ?? 'outra quest'
-                  }}</span>
-                </div>
-                @if (blockedReason(entry.node.id)?.questId) {
-                  <a
-                    class="ck__blocked-link"
-                    role="button"
-                    tabindex="0"
-                    (click)="goToQuest(blockedReason(entry.node.id)!.questId!, $event)"
-                    (keydown.enter)="goToQuest(blockedReason(entry.node.id)!.questId!, $event)"
-                  >
-                    <i class="ti ti-arrow-right" aria-hidden="true"></i> ver quest
-                  </a>
+                        ? 'fechado por:'
+                        : 'complete primeiro:'
+                    }}</span>
+                    <span class="ck__blocked-quest">{{
+                      blockedReason(entry.node.id)?.questTitle ?? 'outra quest'
+                    }}</span>
+                  </div>
+                  @if (blockedReason(entry.node.id)?.questId) {
+                    <a
+                      class="ck__blocked-link"
+                      role="button"
+                      tabindex="0"
+                      (click)="goToQuest(blockedReason(entry.node.id)!.questId!, $event)"
+                      (keydown.enter)="goToQuest(blockedReason(entry.node.id)!.questId!, $event)"
+                    >
+                      <i class="ti ti-arrow-right" aria-hidden="true"></i> ver quest
+                    </a>
+                  }
                 }
               </div>
             </div>
@@ -219,42 +221,44 @@
                             </div>
                             <div class="ck__blocked-body">
                               <span class="ck__step-title">{{ opt.firstNode.label }}</span>
-                              <div class="ck__blocked-sub">
-                                <span
-                                  class="ck__blocked-badge"
-                                  [class.ck__blocked-badge--reveal]="
-                                    blockedReason(opt.firstNode.id)?.effect === 'REVEAL'
-                                  "
-                                  [class.ck__blocked-badge--hide]="
-                                    blockedReason(opt.firstNode.id)?.effect === 'HIDE'
-                                  "
-                                  [class.ck__blocked-badge--unknown]="
-                                    !blockedReason(opt.firstNode.id)
-                                  "
-                                  >{{
-                                    blockedReason(opt.firstNode.id)?.effect === 'HIDE'
-                                      ? 'inacessível'
-                                      : 'pré-requisito'
-                                  }}</span
-                                >
-                                <span class="ck__blocked-quest">{{
-                                  blockedReason(opt.firstNode.id)?.questTitle ?? 'outra quest'
-                                }}</span>
-                              </div>
-                              @if (blockedReason(opt.firstNode.id)?.questId) {
-                                <a
-                                  class="ck__blocked-link"
-                                  role="button"
-                                  tabindex="0"
-                                  (click)="
-                                    goToQuest(blockedReason(opt.firstNode.id)!.questId!, $event)
-                                  "
-                                  (keydown.enter)="
-                                    goToQuest(blockedReason(opt.firstNode.id)!.questId!, $event)
-                                  "
-                                >
-                                  <i class="ti ti-arrow-right" aria-hidden="true"></i> ver quest
-                                </a>
+                              @if (!conditionsLoading()) {
+                                <div class="ck__blocked-sub">
+                                  <span
+                                    class="ck__blocked-badge"
+                                    [class.ck__blocked-badge--reveal]="
+                                      blockedReason(opt.firstNode.id)?.effect === 'REVEAL'
+                                    "
+                                    [class.ck__blocked-badge--hide]="
+                                      blockedReason(opt.firstNode.id)?.effect === 'HIDE'
+                                    "
+                                    [class.ck__blocked-badge--unknown]="
+                                      !blockedReason(opt.firstNode.id)
+                                    "
+                                    >{{
+                                      blockedReason(opt.firstNode.id)?.effect === 'HIDE'
+                                        ? 'inacessível'
+                                        : 'pré-requisito'
+                                    }}</span
+                                  >
+                                  <span class="ck__blocked-quest">{{
+                                    blockedReason(opt.firstNode.id)?.questTitle ?? 'outra quest'
+                                  }}</span>
+                                </div>
+                                @if (blockedReason(opt.firstNode.id)?.questId) {
+                                  <a
+                                    class="ck__blocked-link"
+                                    role="button"
+                                    tabindex="0"
+                                    (click)="
+                                      goToQuest(blockedReason(opt.firstNode.id)!.questId!, $event)
+                                    "
+                                    (keydown.enter)="
+                                      goToQuest(blockedReason(opt.firstNode.id)!.questId!, $event)
+                                    "
+                                  >
+                                    <i class="ti ti-arrow-right" aria-hidden="true"></i> ver quest
+                                  </a>
+                                }
                               }
                             </div>
                           </div>
@@ -301,38 +305,40 @@
                               </div>
                               <div class="ck__blocked-body">
                                 <span class="ck__step-title">{{ sub.label }}</span>
-                                <div class="ck__blocked-sub">
-                                  <span
-                                    class="ck__blocked-badge"
-                                    [class.ck__blocked-badge--reveal]="
-                                      blockedReason(sub.id)?.effect === 'REVEAL'
-                                    "
-                                    [class.ck__blocked-badge--hide]="
-                                      blockedReason(sub.id)?.effect === 'HIDE'
-                                    "
-                                    [class.ck__blocked-badge--unknown]="!blockedReason(sub.id)"
-                                    >{{
-                                      blockedReason(sub.id)?.effect === 'HIDE'
-                                        ? 'inacessível'
-                                        : 'pré-requisito'
-                                    }}</span
-                                  >
-                                  <span class="ck__blocked-quest">{{
-                                    blockedReason(sub.id)?.questTitle ?? 'outra quest'
-                                  }}</span>
-                                </div>
-                                @if (blockedReason(sub.id)?.questId) {
-                                  <a
-                                    class="ck__blocked-link"
-                                    role="button"
-                                    tabindex="0"
-                                    (click)="goToQuest(blockedReason(sub.id)!.questId!, $event)"
-                                    (keydown.enter)="
-                                      goToQuest(blockedReason(sub.id)!.questId!, $event)
-                                    "
-                                  >
-                                    <i class="ti ti-arrow-right" aria-hidden="true"></i> ver quest
-                                  </a>
+                                @if (!conditionsLoading()) {
+                                  <div class="ck__blocked-sub">
+                                    <span
+                                      class="ck__blocked-badge"
+                                      [class.ck__blocked-badge--reveal]="
+                                        blockedReason(sub.id)?.effect === 'REVEAL'
+                                      "
+                                      [class.ck__blocked-badge--hide]="
+                                        blockedReason(sub.id)?.effect === 'HIDE'
+                                      "
+                                      [class.ck__blocked-badge--unknown]="!blockedReason(sub.id)"
+                                      >{{
+                                        blockedReason(sub.id)?.effect === 'HIDE'
+                                          ? 'inacessível'
+                                          : 'pré-requisito'
+                                      }}</span
+                                    >
+                                    <span class="ck__blocked-quest">{{
+                                      blockedReason(sub.id)?.questTitle ?? 'outra quest'
+                                    }}</span>
+                                  </div>
+                                  @if (blockedReason(sub.id)?.questId) {
+                                    <a
+                                      class="ck__blocked-link"
+                                      role="button"
+                                      tabindex="0"
+                                      (click)="goToQuest(blockedReason(sub.id)!.questId!, $event)"
+                                      (keydown.enter)="
+                                        goToQuest(blockedReason(sub.id)!.questId!, $event)
+                                      "
+                                    >
+                                      <i class="ti ti-arrow-right" aria-hidden="true"></i> ver quest
+                                    </a>
+                                  }
                                 }
                               </div>
                             </div>
@@ -400,42 +406,44 @@
                             </div>
                             <div class="ck__blocked-body">
                               <span class="ck__step-title">{{ opt.firstNode.label }}</span>
-                              <div class="ck__blocked-sub">
-                                <span
-                                  class="ck__blocked-badge"
-                                  [class.ck__blocked-badge--reveal]="
-                                    blockedReason(opt.firstNode.id)?.effect === 'REVEAL'
-                                  "
-                                  [class.ck__blocked-badge--hide]="
-                                    blockedReason(opt.firstNode.id)?.effect === 'HIDE'
-                                  "
-                                  [class.ck__blocked-badge--unknown]="
-                                    !blockedReason(opt.firstNode.id)
-                                  "
-                                  >{{
-                                    blockedReason(opt.firstNode.id)?.effect === 'HIDE'
-                                      ? 'inacessível'
-                                      : 'pré-requisito'
-                                  }}</span
-                                >
-                                <span class="ck__blocked-quest">{{
-                                  blockedReason(opt.firstNode.id)?.questTitle ?? 'outra quest'
-                                }}</span>
-                              </div>
-                              @if (blockedReason(opt.firstNode.id)?.questId) {
-                                <a
-                                  class="ck__blocked-link"
-                                  role="button"
-                                  tabindex="0"
-                                  (click)="
-                                    goToQuest(blockedReason(opt.firstNode.id)!.questId!, $event)
-                                  "
-                                  (keydown.enter)="
-                                    goToQuest(blockedReason(opt.firstNode.id)!.questId!, $event)
-                                  "
-                                >
-                                  <i class="ti ti-arrow-right" aria-hidden="true"></i> ver quest
-                                </a>
+                              @if (!conditionsLoading()) {
+                                <div class="ck__blocked-sub">
+                                  <span
+                                    class="ck__blocked-badge"
+                                    [class.ck__blocked-badge--reveal]="
+                                      blockedReason(opt.firstNode.id)?.effect === 'REVEAL'
+                                    "
+                                    [class.ck__blocked-badge--hide]="
+                                      blockedReason(opt.firstNode.id)?.effect === 'HIDE'
+                                    "
+                                    [class.ck__blocked-badge--unknown]="
+                                      !blockedReason(opt.firstNode.id)
+                                    "
+                                    >{{
+                                      blockedReason(opt.firstNode.id)?.effect === 'HIDE'
+                                        ? 'inacessível'
+                                        : 'pré-requisito'
+                                    }}</span
+                                  >
+                                  <span class="ck__blocked-quest">{{
+                                    blockedReason(opt.firstNode.id)?.questTitle ?? 'outra quest'
+                                  }}</span>
+                                </div>
+                                @if (blockedReason(opt.firstNode.id)?.questId) {
+                                  <a
+                                    class="ck__blocked-link"
+                                    role="button"
+                                    tabindex="0"
+                                    (click)="
+                                      goToQuest(blockedReason(opt.firstNode.id)!.questId!, $event)
+                                    "
+                                    (keydown.enter)="
+                                      goToQuest(blockedReason(opt.firstNode.id)!.questId!, $event)
+                                    "
+                                  >
+                                    <i class="ti ti-arrow-right" aria-hidden="true"></i> ver quest
+                                  </a>
+                                }
                               }
                             </div>
                           </div>
@@ -471,38 +479,40 @@
                               </div>
                               <div class="ck__blocked-body">
                                 <span class="ck__step-title">{{ sub.label }}</span>
-                                <div class="ck__blocked-sub">
-                                  <span
-                                    class="ck__blocked-badge"
-                                    [class.ck__blocked-badge--reveal]="
-                                      blockedReason(sub.id)?.effect === 'REVEAL'
-                                    "
-                                    [class.ck__blocked-badge--hide]="
-                                      blockedReason(sub.id)?.effect === 'HIDE'
-                                    "
-                                    [class.ck__blocked-badge--unknown]="!blockedReason(sub.id)"
-                                    >{{
-                                      blockedReason(sub.id)?.effect === 'HIDE'
-                                        ? 'inacessível'
-                                        : 'pré-requisito'
-                                    }}</span
-                                  >
-                                  <span class="ck__blocked-quest">{{
-                                    blockedReason(sub.id)?.questTitle ?? 'outra quest'
-                                  }}</span>
-                                </div>
-                                @if (blockedReason(sub.id)?.questId) {
-                                  <a
-                                    class="ck__blocked-link"
-                                    role="button"
-                                    tabindex="0"
-                                    (click)="goToQuest(blockedReason(sub.id)!.questId!, $event)"
-                                    (keydown.enter)="
-                                      goToQuest(blockedReason(sub.id)!.questId!, $event)
-                                    "
-                                  >
-                                    <i class="ti ti-arrow-right" aria-hidden="true"></i> ver quest
-                                  </a>
+                                @if (!conditionsLoading()) {
+                                  <div class="ck__blocked-sub">
+                                    <span
+                                      class="ck__blocked-badge"
+                                      [class.ck__blocked-badge--reveal]="
+                                        blockedReason(sub.id)?.effect === 'REVEAL'
+                                      "
+                                      [class.ck__blocked-badge--hide]="
+                                        blockedReason(sub.id)?.effect === 'HIDE'
+                                      "
+                                      [class.ck__blocked-badge--unknown]="!blockedReason(sub.id)"
+                                      >{{
+                                        blockedReason(sub.id)?.effect === 'HIDE'
+                                          ? 'inacessível'
+                                          : 'pré-requisito'
+                                      }}</span
+                                    >
+                                    <span class="ck__blocked-quest">{{
+                                      blockedReason(sub.id)?.questTitle ?? 'outra quest'
+                                    }}</span>
+                                  </div>
+                                  @if (blockedReason(sub.id)?.questId) {
+                                    <a
+                                      class="ck__blocked-link"
+                                      role="button"
+                                      tabindex="0"
+                                      (click)="goToQuest(blockedReason(sub.id)!.questId!, $event)"
+                                      (keydown.enter)="
+                                        goToQuest(blockedReason(sub.id)!.questId!, $event)
+                                      "
+                                    >
+                                      <i class="ti ti-arrow-right" aria-hidden="true"></i> ver quest
+                                    </a>
+                                  }
                                 }
                               </div>
                             </div>

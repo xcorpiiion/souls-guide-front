@@ -106,6 +106,7 @@ export class QuestDetail implements OnInit {
     Map<string, { questTitle: string; questId: string | null; effect: 'HIDE' | 'REVEAL' }>
   >(new Map());
   protected readonly triggerNodeConditions = signal<Map<string, TriggerEffect[]>>(new Map());
+  protected readonly conditionsLoading = signal(false);
 
   protected readonly canEdit = computed(() => {
     const q = this.quest();
@@ -209,6 +210,7 @@ export class QuestDetail implements OnInit {
 
           const gId = this.gameId();
           if (gId) {
+            this.conditionsLoading.set(true);
             this.conditionService.listByGame(gId).subscribe({
               next: (conditions) => {
                 const reasonMap = new Map<
@@ -245,9 +247,10 @@ export class QuestDetail implements OnInit {
                 }
                 this.blockedNodeReasons.set(reasonMap);
                 this.triggerNodeConditions.set(triggerMap);
+                this.conditionsLoading.set(false);
               },
               error: () => {
-                /* silenciado */
+                this.conditionsLoading.set(false);
               },
             });
           }
@@ -277,6 +280,7 @@ export class QuestDetail implements OnInit {
     this.hiddenReasonRevealed.set(false);
     this.blockedNodeReasons.set(new Map());
     this.triggerNodeConditions.set(new Map());
+    this.conditionsLoading.set(false);
   }
 
   protected toggleNodeDone(nodeId: string): void {

@@ -136,6 +136,8 @@ export class QuestChecklist {
   >(new Map());
   /** Mapa de nodeId → condições que este nó dispara ao ser concluído. */
   readonly triggerNodeConditions = input<Map<string, TriggerEffect[]>>(new Map());
+  /** true enquanto conditionService.listByGame ainda não retornou. */
+  readonly conditionsLoading = input<boolean>(false);
 
   readonly nodeSelect = output<string>();
   readonly nodeDoneToggle = output<string>();
