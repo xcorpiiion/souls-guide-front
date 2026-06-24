@@ -121,13 +121,13 @@ jobs:
           name: dist
           path: dist/soulguide/browser
 
-      - name: Deploy to DEV channel
-        uses: FirebaseExtended/action-hosting-deploy@v0
+      - name: Authenticate to Google
+        uses: google-github-actions/auth@v2
         with:
-          repoToken: ${{ secrets.GITHUB_TOKEN }}
-          firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_SOULSGUIDE_F2B59 }}
-          channelId: dev
-          projectId: soulsguide-f2b59
+          credentials_json: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_SOULSGUIDE_F2B59 }}
+
+      - name: Deploy to DEV channel
+        run: npx firebase-tools hosting:channel:deploy dev --project soulsguide-f2b59 --only hosting
 
       - name: Deploy Summary
         run: |
@@ -154,13 +154,13 @@ jobs:
           name: dist
           path: dist/soulguide/browser
 
-      - name: Deploy to PROD (live channel)
-        uses: FirebaseExtended/action-hosting-deploy@v0
+      - name: Authenticate to Google
+        uses: google-github-actions/auth@v2
         with:
-          repoToken: ${{ secrets.GITHUB_TOKEN }}
-          firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_SOULSGUIDE_F2B59 }}
-          channelId: live
-          projectId: soulsguide-f2b59
+          credentials_json: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_SOULSGUIDE_F2B59 }}
+
+      - name: Deploy to PROD (live channel)
+        run: npx firebase-tools deploy --project soulsguide-f2b59 --only hosting
 
       - name: Deploy Summary
         run: |
