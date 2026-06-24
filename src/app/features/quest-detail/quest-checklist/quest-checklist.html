@@ -83,7 +83,10 @@
                   @if (blockedReason(entry.node.id)?.questId) {
                     <a
                       class="ck__trigger-link"
+                      role="button"
+                      tabindex="0"
                       (click)="goToQuest(blockedReason(entry.node.id)!.questId!, $event)"
+                      (keydown.enter)="goToQuest(blockedReason(entry.node.id)!.questId!, $event)"
                       >ver</a
                     >
                   }
@@ -239,7 +242,12 @@
                                 @if (blockedReason(opt.firstNode.id)?.questId) {
                                   <a
                                     class="ck__trigger-link"
+                                    role="button"
+                                    tabindex="0"
                                     (click)="
+                                      goToQuest(blockedReason(opt.firstNode.id)!.questId!, $event)
+                                    "
+                                    (keydown.enter)="
                                       goToQuest(blockedReason(opt.firstNode.id)!.questId!, $event)
                                     "
                                     >ver</a
@@ -313,7 +321,12 @@
                                   @if (blockedReason(sub.id)?.questId) {
                                     <a
                                       class="ck__trigger-link"
+                                      role="button"
+                                      tabindex="0"
                                       (click)="goToQuest(blockedReason(sub.id)!.questId!, $event)"
+                                      (keydown.enter)="
+                                        goToQuest(blockedReason(sub.id)!.questId!, $event)
+                                      "
                                       >ver</a
                                     >
                                   }
@@ -408,7 +421,12 @@
                                 @if (blockedReason(opt.firstNode.id)?.questId) {
                                   <a
                                     class="ck__trigger-link"
+                                    role="button"
+                                    tabindex="0"
                                     (click)="
+                                      goToQuest(blockedReason(opt.firstNode.id)!.questId!, $event)
+                                    "
+                                    (keydown.enter)="
                                       goToQuest(blockedReason(opt.firstNode.id)!.questId!, $event)
                                     "
                                     >ver</a
@@ -471,7 +489,12 @@
                                   @if (blockedReason(sub.id)?.questId) {
                                     <a
                                       class="ck__trigger-link"
+                                      role="button"
+                                      tabindex="0"
                                       (click)="goToQuest(blockedReason(sub.id)!.questId!, $event)"
+                                      (keydown.enter)="
+                                        goToQuest(blockedReason(sub.id)!.questId!, $event)
+                                      "
                                       >ver</a
                                     >
                                   }
