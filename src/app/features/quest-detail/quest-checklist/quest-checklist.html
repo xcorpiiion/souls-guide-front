@@ -80,17 +80,18 @@
                   <span class="ck__blocked-quest">{{
                     blockedReason(entry.node.id)?.questTitle ?? 'outra quest'
                   }}</span>
-                  @if (blockedReason(entry.node.id)?.questId) {
-                    <a
-                      class="ck__trigger-link"
-                      role="button"
-                      tabindex="0"
-                      (click)="goToQuest(blockedReason(entry.node.id)!.questId!, $event)"
-                      (keydown.enter)="goToQuest(blockedReason(entry.node.id)!.questId!, $event)"
-                      >ver</a
-                    >
-                  }
                 </div>
+                @if (blockedReason(entry.node.id)?.questId) {
+                  <a
+                    class="ck__blocked-link"
+                    role="button"
+                    tabindex="0"
+                    (click)="goToQuest(blockedReason(entry.node.id)!.questId!, $event)"
+                    (keydown.enter)="goToQuest(blockedReason(entry.node.id)!.questId!, $event)"
+                  >
+                    <i class="ti ti-arrow-right" aria-hidden="true"></i> ver quest
+                  </a>
+                }
               </div>
             </div>
           } @else {
@@ -239,21 +240,22 @@
                                 <span class="ck__blocked-quest">{{
                                   blockedReason(opt.firstNode.id)?.questTitle ?? 'outra quest'
                                 }}</span>
-                                @if (blockedReason(opt.firstNode.id)?.questId) {
-                                  <a
-                                    class="ck__trigger-link"
-                                    role="button"
-                                    tabindex="0"
-                                    (click)="
-                                      goToQuest(blockedReason(opt.firstNode.id)!.questId!, $event)
-                                    "
-                                    (keydown.enter)="
-                                      goToQuest(blockedReason(opt.firstNode.id)!.questId!, $event)
-                                    "
-                                    >ver</a
-                                  >
-                                }
                               </div>
+                              @if (blockedReason(opt.firstNode.id)?.questId) {
+                                <a
+                                  class="ck__blocked-link"
+                                  role="button"
+                                  tabindex="0"
+                                  (click)="
+                                    goToQuest(blockedReason(opt.firstNode.id)!.questId!, $event)
+                                  "
+                                  (keydown.enter)="
+                                    goToQuest(blockedReason(opt.firstNode.id)!.questId!, $event)
+                                  "
+                                >
+                                  <i class="ti ti-arrow-right" aria-hidden="true"></i> ver quest
+                                </a>
+                              }
                             </div>
                           </div>
                         } @else {
@@ -318,19 +320,20 @@
                                   <span class="ck__blocked-quest">{{
                                     blockedReason(sub.id)?.questTitle ?? 'outra quest'
                                   }}</span>
-                                  @if (blockedReason(sub.id)?.questId) {
-                                    <a
-                                      class="ck__trigger-link"
-                                      role="button"
-                                      tabindex="0"
-                                      (click)="goToQuest(blockedReason(sub.id)!.questId!, $event)"
-                                      (keydown.enter)="
-                                        goToQuest(blockedReason(sub.id)!.questId!, $event)
-                                      "
-                                      >ver</a
-                                    >
-                                  }
                                 </div>
+                                @if (blockedReason(sub.id)?.questId) {
+                                  <a
+                                    class="ck__blocked-link"
+                                    role="button"
+                                    tabindex="0"
+                                    (click)="goToQuest(blockedReason(sub.id)!.questId!, $event)"
+                                    (keydown.enter)="
+                                      goToQuest(blockedReason(sub.id)!.questId!, $event)
+                                    "
+                                  >
+                                    <i class="ti ti-arrow-right" aria-hidden="true"></i> ver quest
+                                  </a>
+                                }
                               </div>
                             </div>
                           } @else {
@@ -418,21 +421,22 @@
                                 <span class="ck__blocked-quest">{{
                                   blockedReason(opt.firstNode.id)?.questTitle ?? 'outra quest'
                                 }}</span>
-                                @if (blockedReason(opt.firstNode.id)?.questId) {
-                                  <a
-                                    class="ck__trigger-link"
-                                    role="button"
-                                    tabindex="0"
-                                    (click)="
-                                      goToQuest(blockedReason(opt.firstNode.id)!.questId!, $event)
-                                    "
-                                    (keydown.enter)="
-                                      goToQuest(blockedReason(opt.firstNode.id)!.questId!, $event)
-                                    "
-                                    >ver</a
-                                  >
-                                }
                               </div>
+                              @if (blockedReason(opt.firstNode.id)?.questId) {
+                                <a
+                                  class="ck__blocked-link"
+                                  role="button"
+                                  tabindex="0"
+                                  (click)="
+                                    goToQuest(blockedReason(opt.firstNode.id)!.questId!, $event)
+                                  "
+                                  (keydown.enter)="
+                                    goToQuest(blockedReason(opt.firstNode.id)!.questId!, $event)
+                                  "
+                                >
+                                  <i class="ti ti-arrow-right" aria-hidden="true"></i> ver quest
+                                </a>
+                              }
                             </div>
                           </div>
                         } @else {
@@ -486,19 +490,20 @@
                                   <span class="ck__blocked-quest">{{
                                     blockedReason(sub.id)?.questTitle ?? 'outra quest'
                                   }}</span>
-                                  @if (blockedReason(sub.id)?.questId) {
-                                    <a
-                                      class="ck__trigger-link"
-                                      role="button"
-                                      tabindex="0"
-                                      (click)="goToQuest(blockedReason(sub.id)!.questId!, $event)"
-                                      (keydown.enter)="
-                                        goToQuest(blockedReason(sub.id)!.questId!, $event)
-                                      "
-                                      >ver</a
-                                    >
-                                  }
                                 </div>
+                                @if (blockedReason(sub.id)?.questId) {
+                                  <a
+                                    class="ck__blocked-link"
+                                    role="button"
+                                    tabindex="0"
+                                    (click)="goToQuest(blockedReason(sub.id)!.questId!, $event)"
+                                    (keydown.enter)="
+                                      goToQuest(blockedReason(sub.id)!.questId!, $event)
+                                    "
+                                  >
+                                    <i class="ti ti-arrow-right" aria-hidden="true"></i> ver quest
+                                  </a>
+                                }
                               </div>
                             </div>
                           } @else {

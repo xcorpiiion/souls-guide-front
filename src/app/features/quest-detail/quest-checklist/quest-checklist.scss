@@ -461,6 +461,28 @@
   color: v.$color-text;
 }
 
+.ck__blocked-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: 4px;
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--color-accent);
+  text-decoration: none;
+  cursor: pointer;
+  opacity: 0.9;
+
+  i {
+    font-size: 12px;
+  }
+
+  &:hover {
+    opacity: 1;
+    text-decoration: underline;
+  }
+}
+
 .ck__end-badge {
   display: inline-block;
   font-size: 10px;
