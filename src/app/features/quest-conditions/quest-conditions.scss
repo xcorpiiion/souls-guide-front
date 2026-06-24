@@ -212,6 +212,38 @@
   font-style: italic;
 }
 
+.qc__list-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: v.$space-3;
+  margin-bottom: v.$space-4;
+
+  .qc__form-title {
+    margin: 0;
+  }
+}
+
+.qc__search {
+  background: v.$color-bg-elevated;
+  border: 1px solid v.$color-border;
+  border-radius: v.$radius-sm;
+  color: v.$color-text;
+  font-family: v.$font-body;
+  font-size: v.$font-size-xs;
+  padding: 5px 10px;
+  outline: none;
+  width: 160px;
+
+  &:focus {
+    border-color: rgba(v.$color-gold, 0.5);
+  }
+
+  &::placeholder {
+    color: v.$color-text-faint;
+  }
+}
+
 .qc__cond-list {
   display: flex;
   flex-direction: column;

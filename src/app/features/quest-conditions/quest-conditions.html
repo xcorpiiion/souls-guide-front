@@ -118,14 +118,25 @@
       </section>
 
       <section class="qc__list">
-        <h2 class="qc__form-title">condições cadastradas · {{ conditions().length }}</h2>
+        <div class="qc__list-header">
+          <h2 class="qc__form-title">condições cadastradas · {{ conditions().length }}</h2>
+          <input
+            class="qc__search"
+            type="search"
+            placeholder="buscar…"
+            [value]="searchQuery()"
+            (input)="searchQuery.set($any($event.target).value)"
+          />
+        </div>
 
         @if (conditions().length === 0) {
           <p class="qc__empty">Nenhuma condição cadastrada para este jogo ainda.</p>
+        } @else if (filteredConditions().length === 0) {
+          <p class="qc__empty">Nenhuma condição encontrada para "{{ searchQuery() }}".</p>
         }
 
         <div class="qc__cond-list">
-          @for (condition of conditions(); track condition.id) {
+          @for (condition of filteredConditions(); track condition.id) {
             <div
               class="qc__cond-row"
               [class.qc__cond-row--open]="expandedConditionId() === condition.id"

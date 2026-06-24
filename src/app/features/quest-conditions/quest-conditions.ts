@@ -49,6 +49,19 @@ export class QuestConditions implements OnInit {
 
   protected readonly editingId = signal<string | null>(null);
   protected readonly expandedConditionId = signal<string | null>(null);
+  protected readonly searchQuery = signal('');
+
+  protected readonly filteredConditions = computed(() => {
+    const q = this.searchQuery().toLowerCase().trim();
+    if (!q) return this.conditions();
+    return this.conditions().filter(
+      (c) =>
+        c.triggerQuestTitle?.toLowerCase().includes(q) ||
+        c.affectedQuestTitle?.toLowerCase().includes(q) ||
+        c.affectedNodeLabels.some((l) => l.toLowerCase().includes(q)) ||
+        c.description.toLowerCase().includes(q),
+    );
+  });
   protected readonly selectedTriggerIds = signal<Set<string>>(new Set());
   protected readonly selectedAffectedNodeIds = signal<Set<string>>(new Set());
   /** Quest dos nós afetados (HIDE/REVEAL) ou quest do final travado (FORCE_ENDING). */
