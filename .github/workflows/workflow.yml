@@ -121,13 +121,12 @@ jobs:
           name: dist
           path: dist/soulguide/browser
 
-      - name: Authenticate to Google
-        uses: google-github-actions/auth@v2
-        with:
-          credentials_json: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_SOULSGUIDE_F2B59 }}
-
       - name: Deploy to DEV channel
-        run: npx firebase-tools hosting:channel:deploy dev --project soulsguide-f2b59 --only hosting --use-application-default-credentials
+        env:
+          GOOGLE_APPLICATION_CREDENTIALS: /tmp/sa.json
+        run: |
+          echo '${{ secrets.FIREBASE_SERVICE_ACCOUNT_SOULSGUIDE_F2B59 }}' > /tmp/sa.json
+          npx firebase-tools hosting:channel:deploy dev --project soulsguide-f2b59 --only hosting
 
       - name: Deploy Summary
         run: |
@@ -154,13 +153,12 @@ jobs:
           name: dist
           path: dist/soulguide/browser
 
-      - name: Authenticate to Google
-        uses: google-github-actions/auth@v2
-        with:
-          credentials_json: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_SOULSGUIDE_F2B59 }}
-
       - name: Deploy to PROD (live channel)
-        run: npx firebase-tools deploy --project soulsguide-f2b59 --only hosting --use-application-default-credentials
+        env:
+          GOOGLE_APPLICATION_CREDENTIALS: /tmp/sa.json
+        run: |
+          echo '${{ secrets.FIREBASE_SERVICE_ACCOUNT_SOULSGUIDE_F2B59 }}' > /tmp/sa.json
+          npx firebase-tools deploy --project soulsguide-f2b59 --only hosting
 
       - name: Deploy Summary
         run: |
