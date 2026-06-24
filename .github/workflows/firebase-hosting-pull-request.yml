@@ -74,4 +74,5 @@ jobs:
           npx firebase-tools hosting:channel:deploy pr-${PR_NUMBER} \
             --project soulsguide-f2b59 \
             --only hosting \
-            --expires 7d
+            --expires 7d \
+            --use-application-default-credentials
