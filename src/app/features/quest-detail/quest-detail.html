@@ -165,6 +165,14 @@
             </button>
             <div class="quest-detail__share-wrap"></div>
           }
+          @if (canEdit() && !q.isPersonal) {
+            <a
+              class="quest-detail__btn quest-detail__btn--ghost"
+              [routerLink]="['/games', gameId(), 'conditions']"
+            >
+              <i class="ti ti-git-branch" aria-hidden="true"></i> condições
+            </a>
+          }
           @if (canEdit()) {
             <a
               class="quest-detail__btn quest-detail__btn--accent"

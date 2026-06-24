@@ -20,14 +20,6 @@
         {{ isEdit ? 'edição' : 'criação' }}
       </span>
 
-      <a
-        class="qe__conditions-link"
-        [routerLink]="['/games', gameId, 'conditions']"
-        title="gerenciar condições entre quests deste jogo"
-      >
-        <i class="ti ti-git-branch" aria-hidden="true"></i> condições
-      </a>
-
       <button class="qe__cancel-btn" type="button" (click)="cancel()">cancelar</button>
 
       <button class="qe__save-btn" type="button" (click)="saveQuest()" [disabled]="loading()">
