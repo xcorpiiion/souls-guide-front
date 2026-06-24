@@ -225,6 +225,7 @@ export class QuestDetail implements OnInit {
                       effect: c.effect,
                       affectedQuestTitle: c.affectedQuestTitle,
                       affectedQuestId: c.affectedQuestId,
+                      affectedNodeLabels: c.affectedNodeLabels ?? [],
                     };
                     for (const nodeId of c.triggerNodeIds) {
                       const existing = triggerMap.get(nodeId) ?? [];

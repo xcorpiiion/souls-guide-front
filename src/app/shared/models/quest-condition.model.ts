@@ -13,6 +13,8 @@ export interface QuestConditionApi {
   triggerQuestTitle: string | null;
   /** ID da quest que possui os nós gatilho. */
   triggerQuestId: number | null;
+  /** Labels dos nós afetados (HIDE/REVEAL), paralelo a affectedNodeIds. */
+  affectedNodeLabels: string[] | null;
   effect: ConditionEffect;
   endingNodeId: string | null;
   description: string;
@@ -31,6 +33,8 @@ export interface QuestCondition {
   triggerQuestTitle: string | null;
   /** ID da quest que possui os nós gatilho. */
   triggerQuestId: string | null;
+  /** Labels dos nós afetados (HIDE/REVEAL), paralelo a affectedNodeIds. */
+  affectedNodeLabels: string[];
   effect: ConditionEffect;
   endingNodeId: string | null;
   description: string;
@@ -59,6 +63,7 @@ export function questConditionApiToModel(c: QuestConditionApi): QuestCondition {
     affectedQuestTitle: c.affectedQuestTitle,
     triggerQuestTitle: c.triggerQuestTitle ?? null,
     triggerQuestId: c.triggerQuestId != null ? String(c.triggerQuestId) : null,
+    affectedNodeLabels: c.affectedNodeLabels ?? [],
     effect: c.effect,
     endingNodeId: c.endingNodeId,
     description: c.description,

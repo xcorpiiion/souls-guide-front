@@ -16,6 +16,8 @@ export interface TriggerEffect {
   effect: ConditionEffect;
   affectedQuestTitle: string;
   affectedQuestId: string;
+  /** Labels dos nós afetados por esta condição (ex: ["Parish Avenue / Mural Terrace"]). */
+  affectedNodeLabels: string[];
 }
 
 export interface ForkOption {

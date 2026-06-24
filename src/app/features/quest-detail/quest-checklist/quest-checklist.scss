@@ -342,6 +342,23 @@
 .ck__trigger-quest {
   font-size: 12px;
   color: v.$color-text;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.ck__trigger-node-sep {
+  font-size: 11px;
+  color: v.$color-text-muted;
+  flex-shrink: 0;
+}
+
+.ck__trigger-node-labels {
+  font-size: 12px;
+  color: v.$color-text-muted;
+  font-style: italic;
   flex: 1;
   min-width: 0;
   overflow: hidden;

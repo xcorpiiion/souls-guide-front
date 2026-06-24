@@ -134,6 +134,12 @@
                         {{ effectLabel(t.effect) }}
                       </span>
                       <span class="ck__trigger-quest">{{ t.affectedQuestTitle }}</span>
+                      @if (t.affectedNodeLabels.length) {
+                        <span class="ck__trigger-node-sep">→</span>
+                        <span class="ck__trigger-node-labels">{{
+                          t.affectedNodeLabels.join(', ')
+                        }}</span>
+                      }
                       <a
                         class="ck__trigger-link"
                         role="button"
