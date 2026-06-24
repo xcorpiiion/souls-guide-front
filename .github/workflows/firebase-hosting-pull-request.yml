@@ -65,11 +65,11 @@ jobs:
 
       - name: Deploy preview channel
         env:
-          GOOGLE_APPLICATION_CREDENTIALS: /tmp/sa.json
+          FIREBASE_SA: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_SOULSGUIDE_F2B59 }}
         run: |
-          echo '${{ secrets.FIREBASE_SERVICE_ACCOUNT_SOULSGUIDE_F2B59 }}' > /tmp/sa.json
+          printf '%s' "$FIREBASE_SA" > /tmp/sa.json
           PR_NUMBER=${{ github.event.pull_request.number }}
-          npx firebase-tools hosting:channel:deploy pr-${PR_NUMBER} \
+          GOOGLE_APPLICATION_CREDENTIALS=/tmp/sa.json npx firebase-tools hosting:channel:deploy pr-${PR_NUMBER} \
             --project soulsguide-f2b59 \
             --only hosting \
             --expires 7d
