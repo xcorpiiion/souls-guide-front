@@ -32,6 +32,11 @@ export const routes: Routes = [
     canActivate: [authGuard],
   },
   {
+    path: 'games/:id/quest-map',
+    loadComponent: () =>
+      import('./features/quest-map-organizer/quest-map-organizer').then((m) => m.QuestMapOrganizer),
+  },
+  {
     path: 'login',
     loadComponent: () => import('./features/login/login').then((m) => m.Login),
   },

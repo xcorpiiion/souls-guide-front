@@ -233,6 +233,11 @@
           <a class="game-detail__conditions-link" [routerLink]="['/games', g.id, 'conditions']">
             <i class="ti ti-git-branch" aria-hidden="true"></i> gerenciar condições
           </a>
+          @if (auth.isLoggedIn()) {
+            <a class="game-detail__conditions-link" [routerLink]="['/games', g.id, 'quest-map']">
+              <i class="ti ti-map-2" aria-hidden="true"></i> organizar rota
+            </a>
+          }
         </div>
       </div>
     }
