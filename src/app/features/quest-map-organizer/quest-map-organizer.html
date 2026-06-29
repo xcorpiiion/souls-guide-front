@@ -368,6 +368,13 @@
   </div>
 }
 
+@if (saving()) {
+  <div class="qmo__fullscreen-overlay" aria-live="assertive" aria-label="Salvando rota…">
+    <i class="ti ti-loader-2 qmo__fullscreen-overlay-spin" aria-hidden="true"></i>
+    <span>salvando rota…</span>
+  </div>
+}
+
 @if (pendingRemove(); as pr) {
   <app-confirm-modal
     [title]="pr.type === 'section' ? 'Remover área?' : 'Remover quest?'"
