@@ -27,8 +27,19 @@ import {
   groupByNpc,
 } from '../../shared/models/quest-map.model';
 import { ConfirmModal } from '../../shared/components/confirm-modal/confirm-modal';
-import { QuestNode } from '../../shared/models/quest.model';
+import { QuestNode, QuestEdge } from '../../shared/models/quest.model';
 import { PageLoader } from '../../shared/components/page-loader/page-loader';
+
+interface PickerBranch {
+  headerNode: QuestNode; // primeiro nó do ramo (ex: "ramo 1")
+  subNodes: QuestNode[]; // nós subsequentes do ramo (ex: "nova etapa 1")
+}
+
+interface PickerNodeGroup {
+  gatewayLabel: string | null; // null = nós de nível superior
+  topNodes: QuestNode[]; // usado quando gatewayLabel === null
+  branches: PickerBranch[]; // usado quando gatewayLabel !== null
+}
 
 type PickerStep = 'phase' | 'questline' | 'quest';
 
@@ -90,7 +101,7 @@ export class QuestMapOrganizer implements OnInit {
   }
 
   protected readonly loadingNodes = signal(false);
-  protected readonly pickerNodes = signal<QuestNode[]>([]);
+  protected readonly pickerGroups = signal<PickerNodeGroup[]>([]);
 
   /** Conjunto de pares "questId|questTitle" já adicionados em qualquer seção */
   protected readonly usedEntryKeys = computed(() => {
@@ -223,6 +234,12 @@ export class QuestMapOrganizer implements OnInit {
     return groupByNpc(entries);
   }
 
+  protected isAvailableNode(node: QuestNode): boolean {
+    const p = this.picker();
+    if (!p?.questlineId) return false;
+    return !this.usedEntryKeys().has(`${p.questlineId}|${node.label}`);
+  }
+
   protected questlineInitials(title: string | undefined): string {
     if (!title) return '?';
     return title
@@ -234,7 +251,7 @@ export class QuestMapOrganizer implements OnInit {
   }
 
   protected openPicker(sectionId: number | string): void {
-    this.pickerNodes.set([]);
+    this.pickerGroups.set([]);
     this.picker.set({
       sectionId,
       step: 'questline',
@@ -247,7 +264,7 @@ export class QuestMapOrganizer implements OnInit {
 
   protected closePicker(): void {
     this.picker.set(null);
-    this.pickerNodes.set([]);
+    this.pickerGroups.set([]);
   }
 
   protected selectQuestline(id: string, title: string): void {
@@ -255,18 +272,73 @@ export class QuestMapOrganizer implements OnInit {
       p ? { ...p, questlineId: id, questlineTitle: title, step: 'quest' } : p,
     );
     this.loadingNodes.set(true);
-    this.pickerNodes.set([]);
+    this.pickerGroups.set([]);
     this.questService
       .get(id)
       .pipe(catchError(() => of(null)))
       .subscribe((q) => {
         const used = this.usedEntryKeys();
-        const nodes = (q?.nodes ?? []).filter(
-          (n) => n.type === 'task' && !used.has(`${id}|${n.label}`),
-        );
-        this.pickerNodes.set(nodes);
+        this.pickerGroups.set(this.buildPickerGroups(q?.nodes ?? [], q?.edges ?? [], used, id));
         this.loadingNodes.set(false);
       });
+  }
+
+  private buildPickerGroups(
+    nodes: QuestNode[],
+    edges: QuestEdge[],
+    used: Set<string>,
+    questlineId: string,
+  ): PickerNodeGroup[] {
+    const nodeMap = new Map(nodes.map((n) => [n.id, n]));
+    const gateways = nodes.filter((n) => n.type === 'gateway');
+    const isAvailable = (n: QuestNode) => !used.has(`${questlineId}|${n.label}`);
+
+    // BFS a partir de um nó (exclusive), retorna tasks alcançáveis sem atravessar gateways
+    const bfsFrom = (startId: string): QuestNode[] => {
+      const visited = new Set<string>([startId]);
+      const queue = edges.filter((e) => e.from === startId).map((e) => e.to);
+      const result: QuestNode[] = [];
+      while (queue.length) {
+        const id = queue.shift()!;
+        if (visited.has(id)) continue;
+        visited.add(id);
+        const n = nodeMap.get(id);
+        if (!n) continue;
+        if (n.type === 'task') result.push(n);
+        if (n.type !== 'gateway')
+          edges.filter((e) => e.from === id).forEach((e) => queue.push(e.to));
+      }
+      return result;
+    };
+
+    // IDs de todos os tasks alcançáveis por algum gateway
+    const inGateway = new Set<string>();
+    for (const gw of gateways) bfsFrom(gw.id).forEach((n) => inGateway.add(n.id));
+
+    const groups: PickerNodeGroup[] = [];
+
+    // Tarefas fora de qualquer gateway
+    const topNodes = nodes.filter(
+      (n) => n.type === 'task' && !inGateway.has(n.id) && isAvailable(n),
+    );
+    if (topNodes.length) groups.push({ gatewayLabel: null, topNodes, branches: [] });
+
+    // Um grupo por gateway, um branch por aresta de saída
+    for (const gw of gateways) {
+      const branches: PickerBranch[] = edges
+        .filter((e) => e.from === gw.id)
+        .map((e) => nodeMap.get(e.to))
+        .filter((n): n is QuestNode => !!n && n.type === 'task')
+        .map((headerNode) => ({
+          headerNode,
+          subNodes: bfsFrom(headerNode.id).filter(isAvailable),
+        }))
+        .filter((b) => isAvailable(b.headerNode) || b.subNodes.length > 0);
+
+      if (branches.length) groups.push({ gatewayLabel: gw.label, topNodes: [], branches });
+    }
+
+    return groups;
   }
 
   protected backToQuestlineStep(): void {
@@ -275,7 +347,7 @@ export class QuestMapOrganizer implements OnInit {
         ? { ...p, step: 'questline', questlineId: null, questlineTitle: null, questTitle: null }
         : p,
     );
-    this.pickerNodes.set([]);
+    this.pickerGroups.set([]);
   }
 
   protected selectQuestNode(nodeLabel: string): void {
@@ -304,7 +376,7 @@ export class QuestMapOrganizer implements OnInit {
       s.map((x) => (x.id === p.sectionId ? { ...x, entries: [...x.entries, entry] } : x)),
     );
     this.picker.set(null);
-    this.pickerNodes.set([]);
+    this.pickerGroups.set([]);
   }
 
   protected navigateToQuest(questId: string): void {

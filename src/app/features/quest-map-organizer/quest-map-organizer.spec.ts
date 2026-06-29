@@ -40,10 +40,15 @@ const MOCK_QUEST_DETAIL: Partial<QuestApi> = {
   nodes: [
     { id: 'n1', type: 'start', label: 'Início' },
     { id: 'n2', type: 'task', label: 'Falar com Stone' },
-    { id: 'n3', type: 'task', label: 'Entregar o artefato' },
-    { id: 'n4', type: 'end', label: 'Fim' },
+    { id: 'n3', type: 'gateway', label: 'Bifurcação: ajudar ou trair?' },
+    { id: 'n4', type: 'task', label: 'Entregar o artefato' },
+    { id: 'n5', type: 'end', label: 'Fim' },
   ],
-  edges: [],
+  edges: [
+    { id: 'e1', from: 'n1', to: 'n2' },
+    { id: 'e2', from: 'n2', to: 'n3' },
+    { id: 'e3', from: 'n3', to: 'n4' }, // gateway → task (branch)
+  ],
   relatedQuests: [],
 } as unknown as Partial<QuestApi>;
 
@@ -161,8 +166,15 @@ describe('QuestMapOrganizer', () => {
     expect(component['picker']()?.step).toBe('quest');
     expect(component['picker']()?.questlineId).toBe('1');
     expect(component['picker']()?.questlineTitle).toBe('A Última Promessa');
-    expect(component['pickerNodes']().length).toBe(2);
-    expect(component['pickerNodes']()[0].label).toBe('Falar com Stone');
+    // top-level tasks (no gateway parent)
+    const groups = component['pickerGroups']();
+    expect(groups.length).toBeGreaterThan(0);
+    const topLevel = groups.find((g) => g.gatewayLabel === null);
+    expect(topLevel?.nodes[0].label).toBe('Falar com Stone');
+    // gateway group
+    const gatewayGroup = groups.find((g) => g.gatewayLabel === 'Bifurcação: ajudar ou trair?');
+    expect(gatewayGroup).toBeDefined();
+    expect(gatewayGroup?.nodes[0].label).toBe('Entregar o artefato');
   });
 
   it('should advance to phase step after selecting quest node', () => {
