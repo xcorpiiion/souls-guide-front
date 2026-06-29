@@ -42,6 +42,7 @@ export interface QuestApi {
   userId: string;
   gameId: number;
   gameName: string;
+  npcName?: string | null;
   nodes: QuestNode[];
   edges: QuestEdge[];
   relatedQuests: QuestRelatedLink[];
@@ -70,6 +71,7 @@ export interface QuestSummary {
   title: string;
   gameId: string;
   gameName: string;
+  npcName?: string | null;
   stepCount: number;
   forkCount: number;
   endingCount: number;
@@ -106,6 +108,7 @@ export function questApiToSummary(q: QuestApi): QuestSummary {
     description: q.description,
     gameId: String(q.gameId),
     gameName: q.gameName,
+    npcName: q.npcName ?? null,
     stepCount: q.stepCount ?? q.nodes?.filter((n) => n.type === 'task').length ?? 0,
     forkCount: q.forkCount ?? q.nodes?.filter((n) => n.type === 'gateway').length ?? 0,
     endingCount: q.endingCount ?? q.nodes?.filter((n) => n.type === 'end').length ?? 0,

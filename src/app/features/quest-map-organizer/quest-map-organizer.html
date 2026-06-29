@@ -11,8 +11,8 @@
         <h1 class="qmo__title"><i class="ti ti-map-2" aria-hidden="true"></i> rota de quests</h1>
         <p class="qmo__subtitle">
           @if (auth.isLoggedIn()) {
-            organize as quests por área e indique em que parte de cada quest o jogador estará
-            naquele mapa.
+            organize as quests por área — escolha o personagem, selecione a quest e marque em que
+            etapa ela acontece naquele mapa.
           } @else {
             veja a ordem sugerida pela comunidade para cada área do jogo. faça login para
             contribuir.
@@ -44,7 +44,7 @@
       <div class="qmo__layout">
         <div class="qmo__main">
           <div class="qmo__sections">
-            @for (section of sections(); track section.id; let si = $index) {
+            @for (section of sections(); track section.id) {
               <div class="qmo__section" [class.qmo__section--open]="isSectionOpen(section.id)">
                 <div
                   class="qmo__section-head"
@@ -56,20 +56,35 @@
                 >
                   <i class="ti ti-chevron-down qmo__section-chevron" aria-hidden="true"></i>
 
-                  @if (auth.isLoggedIn()) {
+                  @if (auth.isLoggedIn() && editingSectionId() === section.id) {
                     <input
-                      class="qmo__section-name"
+                      class="qmo__section-name qmo__section-name--editing"
                       type="text"
                       placeholder="nome do mapa / área…"
                       [value]="section.name"
                       (input)="updateSectionName(section.id, $any($event.target).value)"
                       (click)="$event.stopPropagation()"
+                      (blur)="stopEditingSection()"
+                      (keyup.enter)="stopEditingSection()"
+                      (keyup.escape)="stopEditingSection()"
                       aria-label="nome do mapa"
+                      #sectionNameInput
                     />
                   } @else {
-                    <span class="qmo__section-name qmo__section-name--readonly">{{
-                      section.name || 'sem nome'
-                    }}</span>
+                    <span class="qmo__section-name qmo__section-name--readonly">
+                      {{ section.name || 'sem nome' }}
+                    </span>
+                    @if (auth.isLoggedIn()) {
+                      <button
+                        class="qmo__section-edit"
+                        type="button"
+                        title="renomear área"
+                        aria-label="renomear área"
+                        (click)="startEditingSection(section.id, $event)"
+                      >
+                        <i class="ti ti-pencil" aria-hidden="true"></i>
+                      </button>
+                    }
                   }
 
                   <span class="qmo__section-count">
@@ -82,7 +97,7 @@
                       type="button"
                       title="remover área"
                       aria-label="remover área"
-                      (click)="removeSection(section.id); $event.stopPropagation()"
+                      (click)="confirmRemoveSection(section.id, section.name, $event)"
                     >
                       <i class="ti ti-trash" aria-hidden="true"></i>
                     </button>
@@ -91,70 +106,166 @@
 
                 @if (isSectionOpen(section.id)) {
                   <div class="qmo__section-body">
-                    @for (entry of section.entries; track entry.questId) {
-                      <div class="qmo__entry">
-                        <span class="qmo__entry-dot qmo__entry-dot--{{ entry.phase }}"></span>
-                        <span class="qmo__entry-title">{{ entry.questTitle }}</span>
-                        <span class="qmo__entry-tag qmo__entry-tag--{{ entry.phase }}">
-                          {{ phaseLabels[entry.phase] }}
-                        </span>
-                        <button
-                          class="qmo__entry-link"
-                          type="button"
-                          title="abrir quest"
-                          aria-label="abrir quest"
-                          (click)="navigateToQuest(entry.questId)"
-                        >
-                          <i class="ti ti-external-link" aria-hidden="true"></i>
-                        </button>
-                        @if (auth.isLoggedIn()) {
-                          <button
-                            class="qmo__entry-remove"
-                            type="button"
-                            title="remover"
-                            aria-label="remover do mapa"
-                            (click)="removeEntry(section.id, entry.questId)"
-                          >
-                            <i class="ti ti-x" aria-hidden="true"></i>
-                          </button>
-                        }
-                      </div>
-                    }
-
                     @if (!section.entries.length) {
                       <div class="qmo__entry-empty">nenhuma quest adicionada ainda.</div>
+                    }
+
+                    @for (group of groupByQuestline(section.entries); track group.npcName) {
+                      <div class="qmo__npc-block">
+                        <div class="qmo__npc-head">
+                          <div class="qmo__npc-avatar" aria-hidden="true">
+                            {{ questlineInitials(group.npcName) }}
+                          </div>
+                          <span class="qmo__npc-name">{{ group.npcName }}</span>
+                          <span class="qmo__npc-count"
+                            >{{ group.entries.length }} quest{{
+                              group.entries.length !== 1 ? 's' : ''
+                            }}</span
+                          >
+                        </div>
+                        <div class="qmo__npc-entries">
+                          @for (entry of group.entries; track entry.questTitle) {
+                            @let ph = entry.phase;
+                            <div class="qmo__entry">
+                              <span class="qmo__entry-dot qmo__entry-dot--{{ ph }}"></span>
+                              <span class="qmo__entry-title">{{ entry.questTitle }}</span>
+                              <span class="qmo__entry-tag qmo__entry-tag--{{ ph }}">
+                                {{ phaseLabels[ph] }}
+                              </span>
+                              <button
+                                class="qmo__entry-link"
+                                type="button"
+                                title="abrir quest"
+                                aria-label="abrir quest"
+                                (click)="navigateToQuest(entry.questId)"
+                              >
+                                <i class="ti ti-external-link" aria-hidden="true"></i>
+                              </button>
+                              @if (auth.isLoggedIn()) {
+                                <button
+                                  class="qmo__entry-remove"
+                                  type="button"
+                                  title="remover"
+                                  aria-label="remover do mapa"
+                                  (click)="
+                                    confirmRemoveEntry(section.id, entry.questId, entry.questTitle)
+                                  "
+                                >
+                                  <i class="ti ti-x" aria-hidden="true"></i>
+                                </button>
+                              }
+                            </div>
+                          }
+                        </div>
+                      </div>
                     }
 
                     @if (auth.isLoggedIn()) {
                       @if (picker()?.sectionId === section.id) {
                         <div class="qmo__picker">
-                          @if (picker()!.step === 'quest') {
-                            <p class="qmo__picker-label">selecione a quest</p>
+                          <!-- Etapa 1: Linha de quest -->
+                          @if (picker()!.step === 'questline') {
+                            <p class="qmo__picker-label">
+                              <i class="ti ti-sword" aria-hidden="true"></i>
+                              selecione a linha de quest
+                            </p>
                             <div class="qmo__picker-list">
                               @for (q of availableForPicker(); track q.id) {
                                 <button
                                   class="qmo__picker-quest"
                                   type="button"
-                                  (click)="selectQuest(q.id, q.title)"
+                                  (click)="selectQuestline(q.id, q.title)"
                                 >
                                   <span class="qmo__picker-quest-title">{{ q.title }}</span>
                                   <span class="qmo__picker-quest-meta">{{ q.stepCount }} nós</span>
                                 </button>
                               }
                               @if (!availableForPicker().length) {
-                                <p class="qmo__picker-empty">todas as quests já foram mapeadas.</p>
+                                <p class="qmo__picker-empty">
+                                  todas as linhas de quest já foram adicionadas.
+                                </p>
                               }
                             </div>
-                          } @else {
+                            <div class="qmo__picker-actions">
+                              <button
+                                class="qmo__picker-cancel"
+                                type="button"
+                                (click)="closePicker()"
+                              >
+                                cancelar
+                              </button>
+                            </div>
+                          }
+
+                          <!-- Etapa 2: Quest (node) dentro da linha -->
+                          @if (picker()!.step === 'quest') {
+                            <p class="qmo__picker-label">
+                              <button
+                                class="qmo__picker-back"
+                                type="button"
+                                (click)="backToQuestlineStep()"
+                                aria-label="voltar"
+                              >
+                                <i class="ti ti-arrow-left" aria-hidden="true"></i>
+                              </button>
+                              <span class="qmo__picker-npc-chip">{{
+                                picker()!.questlineTitle
+                              }}</span>
+                              — selecione a quest
+                            </p>
+                            @if (loadingNodes()) {
+                              <p class="qmo__picker-empty">carregando quests…</p>
+                            } @else {
+                              <div class="qmo__picker-list">
+                                @for (node of pickerNodes(); track node.id) {
+                                  <button
+                                    class="qmo__picker-quest"
+                                    type="button"
+                                    (click)="selectQuestNode(node.label)"
+                                  >
+                                    <span class="qmo__picker-quest-title">{{ node.label }}</span>
+                                    @if (node.sublabel) {
+                                      <span class="qmo__picker-quest-meta">{{
+                                        node.sublabel
+                                      }}</span>
+                                    }
+                                  </button>
+                                }
+                                @if (!pickerNodes().length) {
+                                  <p class="qmo__picker-empty">
+                                    esta linha de quest não tem passos cadastrados.
+                                  </p>
+                                }
+                              </div>
+                            }
+                            <div class="qmo__picker-actions">
+                              <button
+                                class="qmo__picker-cancel"
+                                type="button"
+                                (click)="closePicker()"
+                              >
+                                cancelar
+                              </button>
+                            </div>
+                          }
+
+                          <!-- Etapa 3: Fase nesta área -->
+                          @if (picker()!.step === 'phase') {
                             <p class="qmo__picker-label">
                               <button
                                 class="qmo__picker-back"
                                 type="button"
                                 (click)="backToQuestStep()"
+                                aria-label="voltar"
                               >
                                 <i class="ti ti-arrow-left" aria-hidden="true"></i>
                               </button>
-                              <strong>{{ picker()!.questTitle }}</strong> — etapa nesta área
+                              <span class="qmo__picker-npc-chip">{{
+                                picker()!.questlineTitle
+                              }}</span>
+                              —
+                              <span class="qmo__picker-quest-chip">{{ picker()!.questTitle }}</span>
+                              — fase nesta área
                             </p>
                             <div class="qmo__picker-phases">
                               @for (ph of phases; track ph) {
@@ -248,11 +359,26 @@
 
           <div class="qmo__sidebar-card qmo__sidebar-card--hint">
             <i class="ti ti-info-circle" aria-hidden="true"></i>
-            clique em <i class="ti ti-external-link" aria-hidden="true"></i> em qualquer quest para
-            abrir o guia e marcar seu progresso.
+            clique em <i class="ti ti-external-link" aria-hidden="true"></i> para abrir o guia da
+            quest e marcar seu progresso.
           </div>
         </aside>
       </div>
     }
   </div>
+}
+
+@if (pendingRemove(); as pr) {
+  <app-confirm-modal
+    [title]="pr.type === 'section' ? 'Remover área?' : 'Remover quest?'"
+    [message]="
+      pr.type === 'section'
+        ? 'A área &quot;' + pr.label + '&quot; e todas as quests dentro dela serão removidas.'
+        : '&quot;' + pr.label + '&quot; será removida desta área.'
+    "
+    confirmLabel="Remover"
+    cancelLabel="Cancelar"
+    (confirmed)="onRemoveConfirmed()"
+    (cancelled)="onRemoveCancelled()"
+  ></app-confirm-modal>
 }

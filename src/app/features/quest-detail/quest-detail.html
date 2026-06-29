@@ -185,6 +185,15 @@
               >+ editar</a
             >
           }
+          @if (!q.isPersonal && context === 'game') {
+            <a
+              class="quest-detail__btn quest-detail__btn--ghost"
+              [routerLink]="['/games', gameId(), 'quest-map']"
+              title="ver rota de quests"
+            >
+              <i class="ti ti-map-2" aria-hidden="true"></i> rota
+            </a>
+          }
         </div>
       </div>
 

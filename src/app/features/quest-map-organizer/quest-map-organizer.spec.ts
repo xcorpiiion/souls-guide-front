@@ -4,6 +4,7 @@ import { describe, beforeEach, it, expect, vi } from 'vitest';
 import { of } from 'rxjs';
 import { QuestMapOrganizer } from './quest-map-organizer';
 import { QuestService } from '../../core/services/quest.service';
+import { QuestApi } from '../../shared/models/quest.model';
 import { QuestMapService } from '../../core/services/quest-map.service';
 import { ToastService } from '../../shared/components/toast/toast.service';
 import { GameQuestMapResponse } from '../../shared/models/quest-map.model';
@@ -11,7 +12,7 @@ import { GameQuestMapResponse } from '../../shared/models/quest-map.model';
 const MOCK_QUESTS = [
   {
     id: '1',
-    title: 'Stone',
+    title: 'A Última Promessa',
     gameId: 'g1',
     stepCount: 3,
     forkCount: 0,
@@ -22,7 +23,7 @@ const MOCK_QUESTS = [
   },
   {
     id: '2',
-    title: 'Shirley',
+    title: 'Rastros da Cidade Velha',
     gameId: 'g1',
     stepCount: 5,
     forkCount: 1,
@@ -32,6 +33,19 @@ const MOCK_QUESTS = [
     author: null,
   },
 ];
+
+const MOCK_QUEST_DETAIL: Partial<QuestApi> = {
+  id: 1,
+  title: 'A Última Promessa',
+  nodes: [
+    { id: 'n1', type: 'start', label: 'Início' },
+    { id: 'n2', type: 'task', label: 'Falar com Stone' },
+    { id: 'n3', type: 'task', label: 'Entregar o artefato' },
+    { id: 'n4', type: 'end', label: 'Fim' },
+  ],
+  edges: [],
+  relatedQuests: [],
+} as unknown as Partial<QuestApi>;
 
 const EMPTY_MAP: GameQuestMapResponse = { gameId: 1, sections: [] };
 
@@ -55,6 +69,7 @@ function setup(mapResponse: GameQuestMapResponse = EMPTY_MAP): ComponentFixture<
         useValue: {
           list: () =>
             of({ content: MOCK_QUESTS, totalElements: 2, totalPages: 1, number: 0, size: 100 }),
+          get: () => of(MOCK_QUEST_DETAIL),
         },
       },
       { provide: QuestMapService, useValue: questMapSvc },
@@ -65,6 +80,22 @@ function setup(mapResponse: GameQuestMapResponse = EMPTY_MAP): ComponentFixture<
   const fixture = TestBed.createComponent(QuestMapOrganizer);
   fixture.detectChanges();
   return fixture;
+}
+
+/** Helper: percorre o picker de 3 etapas (questline → quest node → phase) */
+function fillPicker(
+  component: QuestMapOrganizer,
+  sectionId: number | string,
+  questlineId: string,
+  questlineTitle: string,
+  nodeLabel: string,
+  phase: 'inicio' | 'meio' | 'fim' | 'full',
+) {
+  component['openPicker'](sectionId);
+  component['selectQuestline'](questlineId, questlineTitle);
+  component['selectQuestNode'](nodeLabel);
+  component['selectPhase'](phase);
+  component['confirmPick']();
 }
 
 describe('QuestMapOrganizer', () => {
@@ -96,113 +127,164 @@ describe('QuestMapOrganizer', () => {
     expect(String(component['sections']()[0].id).startsWith('local-')).toBe(true);
   });
 
-  it('should remove a section', () => {
+  it('should remove a section after confirmation', () => {
     component['addSection']();
     const id = component['sections']()[0].id;
-    component['removeSection'](id);
+    component['confirmRemoveSection'](id, 'Limgrave', new MouseEvent('click'));
+    expect(component['pendingRemove']()?.type).toBe('section');
+    component['onRemoveConfirmed']();
     expect(component['sections']().length).toBe(0);
+    expect(component['pendingRemove']()).toBeNull();
   });
 
-  it('should open picker for a section', () => {
+  it('should cancel section removal', () => {
+    component['addSection']();
+    const id = component['sections']()[0].id;
+    component['confirmRemoveSection'](id, 'Limgrave', new MouseEvent('click'));
+    component['onRemoveCancelled']();
+    expect(component['sections']().length).toBe(1);
+    expect(component['pendingRemove']()).toBeNull();
+  });
+
+  it('should open picker at questline step', () => {
     component['addSection']();
     const id = component['sections']()[0].id;
     component['openPicker'](id);
     expect(component['picker']()?.sectionId).toBe(id);
+    expect(component['picker']()?.step).toBe('questline');
+  });
+
+  it('should advance to quest step and load nodes after selecting questline', () => {
+    component['addSection']();
+    component['openPicker'](component['sections']()[0].id);
+    component['selectQuestline']('1', 'A Última Promessa');
     expect(component['picker']()?.step).toBe('quest');
+    expect(component['picker']()?.questlineId).toBe('1');
+    expect(component['picker']()?.questlineTitle).toBe('A Última Promessa');
+    expect(component['pickerNodes']().length).toBe(2);
+    expect(component['pickerNodes']()[0].label).toBe('Falar com Stone');
   });
 
-  it('should advance picker to phase step after selecting quest', () => {
+  it('should advance to phase step after selecting quest node', () => {
     component['addSection']();
     component['openPicker'](component['sections']()[0].id);
-    component['selectQuest']('1', 'Stone');
+    component['selectQuestline']('1', 'A Última Promessa');
+    component['selectQuestNode']('Falar com Stone');
     expect(component['picker']()?.step).toBe('phase');
-    expect(component['picker']()?.questId).toBe('1');
-    expect(component['picker']()?.questTitle).toBe('Stone');
+    expect(component['picker']()?.questTitle).toBe('Falar com Stone');
   });
 
-  it('should go back to quest step', () => {
+  it('should show all available questlines', () => {
     component['addSection']();
     component['openPicker'](component['sections']()[0].id);
-    component['selectQuest']('1', 'Stone');
+    expect(component['availableForPicker']().length).toBe(2);
+  });
+
+  it('should go back to questline step from quest step', () => {
+    component['addSection']();
+    component['openPicker'](component['sections']()[0].id);
+    component['selectQuestline']('1', 'A Última Promessa');
+    component['backToQuestlineStep']();
+    expect(component['picker']()?.step).toBe('questline');
+    expect(component['picker']()?.questlineId).toBeNull();
+  });
+
+  it('should go back to quest step from phase step', () => {
+    component['addSection']();
+    component['openPicker'](component['sections']()[0].id);
+    component['selectQuestline']('1', 'A Última Promessa');
+    component['selectQuestNode']('Falar com Stone');
     component['backToQuestStep']();
     expect(component['picker']()?.step).toBe('quest');
-    expect(component['picker']()?.questId).toBeNull();
+    expect(component['picker']()?.questTitle).toBeNull();
   });
 
-  it('should add entry after confirming pick', () => {
+  it('should add entry after completing all 3 steps', () => {
     component['addSection']();
     const id = component['sections']()[0].id;
-    component['openPicker'](id);
-    component['selectQuest']('1', 'Stone');
-    component['selectPhase']('inicio');
-    component['confirmPick']();
+    fillPicker(component, id, '1', 'A Última Promessa', 'Falar com Stone', 'inicio');
     expect(component['sections']()[0].entries.length).toBe(1);
-    expect(component['sections']()[0].entries[0].questId).toBe('1');
-    expect(component['sections']()[0].entries[0].phase).toBe('inicio');
+    const entry = component['sections']()[0].entries[0];
+    expect(entry.questId).toBe('1');
+    expect(entry.npcName).toBe('A Última Promessa');
+    expect(entry.questTitle).toBe('Falar com Stone');
+    expect(entry.phase).toBe('inicio');
     expect(component['picker']()).toBeNull();
-  });
-
-  it('should count placed quests', () => {
-    component['addSection']();
-    const id = component['sections']()[0].id;
-    component['openPicker'](id);
-    component['selectQuest']('1', 'Stone');
-    component['selectPhase']('full');
-    component['confirmPick']();
-    expect(component['placedCount']()).toBe(1);
-  });
-
-  it('should exclude placed quests from available picker list', () => {
-    component['addSection']();
-    const id = component['sections']()[0].id;
-    component['openPicker'](id);
-    component['selectQuest']('1', 'Stone');
-    component['selectPhase']('full');
-    component['confirmPick']();
-    const available = component['availableForPicker']();
-    expect(available.find((q) => q.id === '1')).toBeUndefined();
-    expect(available.length).toBe(1);
-  });
-
-  it('should remove entry from section', () => {
-    component['addSection']();
-    const id = component['sections']()[0].id;
-    component['openPicker'](id);
-    component['selectQuest']('1', 'Stone');
-    component['selectPhase']('inicio');
-    component['confirmPick']();
-    component['removeEntry'](id, '1');
-    expect(component['sections']()[0].entries.length).toBe(0);
-  });
-
-  it('should update section name', () => {
-    component['addSection']();
-    const id = component['sections']()[0].id;
-    component['updateSectionName'](id, 'Havenswell');
-    expect(component['sections']()[0].name).toBe('Havenswell');
-  });
-
-  it('should replace local ids with numeric ids after save', () => {
-    mockSaveResult = {
-      gameId: 1,
-      sections: [{ id: 99, name: 'Havenswell', order: 0, entries: [] }],
-    };
-    component['addSection']();
-    const localId = component['sections']()[0].id;
-    component['updateSectionName'](localId, 'Havenswell');
-    component['save']();
-    expect(component['sections']()[0].id).toBe(99);
-    expect(TOAST_MOCK.success).toHaveBeenCalled();
   });
 
   it('should not confirm pick without phase selected', () => {
     component['addSection']();
     const id = component['sections']()[0].id;
     component['openPicker'](id);
-    component['selectQuest']('1', 'Stone');
+    component['selectQuestline']('1', 'A Última Promessa');
+    component['selectQuestNode']('Falar com Stone');
     component['confirmPick']();
     expect(component['sections']()[0].entries.length).toBe(0);
     expect(component['picker']()).not.toBeNull();
+  });
+
+  it('should count placed quests', () => {
+    component['addSection']();
+    const id = component['sections']()[0].id;
+    fillPicker(component, id, '1', 'A Última Promessa', 'Falar com Stone', 'full');
+    expect(component['placedCount']()).toBe(1);
+  });
+
+  it('should track used entry keys by questId+nodeLabel', () => {
+    component['addSection']();
+    const id = component['sections']()[0].id;
+    fillPicker(component, id, '1', 'A Última Promessa', 'Falar com Stone', 'full');
+    const keys = component['usedEntryKeys']();
+    expect(keys.has('1|Falar com Stone')).toBe(true);
+  });
+
+  it('should still show questline in picker after one node is placed', () => {
+    component['addSection']();
+    const id = component['sections']()[0].id;
+    fillPicker(component, id, '1', 'A Última Promessa', 'Falar com Stone', 'full');
+    // questline '1' still appears since it has other nodes
+    const available = component['availableForPicker']();
+    expect(available.find((q) => q.id === '1')).toBeDefined();
+    expect(available.length).toBe(2);
+  });
+
+  it('should remove entry from section after confirmation', () => {
+    component['addSection']();
+    const id = component['sections']()[0].id;
+    fillPicker(component, id, '1', 'A Última Promessa', 'Falar com Stone', 'inicio');
+    component['confirmRemoveEntry'](id, '1', 'Falar com Stone');
+    expect(component['pendingRemove']()?.type).toBe('entry');
+    component['onRemoveConfirmed']();
+    expect(component['sections']()[0].entries.length).toBe(0);
+    expect(component['pendingRemove']()).toBeNull();
+  });
+
+  it('should update section name', () => {
+    component['addSection']();
+    const id = component['sections']()[0].id;
+    component['updateSectionName'](id, 'Limgrave');
+    expect(component['sections']()[0].name).toBe('Limgrave');
+  });
+
+  it('should replace local ids with numeric ids after save', () => {
+    mockSaveResult = {
+      gameId: 1,
+      sections: [{ id: 99, name: 'Limgrave', order: 0, entries: [] }],
+    };
+    component['addSection']();
+    const localId = component['sections']()[0].id;
+    component['updateSectionName'](localId, 'Limgrave');
+    component['save']();
+    expect(component['sections']()[0].id).toBe(99);
+    expect(TOAST_MOCK.success).toHaveBeenCalled();
+  });
+
+  it('should store questline title in npcName for grouping display', () => {
+    component['addSection']();
+    const id = component['sections']()[0].id;
+    fillPicker(component, id, '1', 'A Última Promessa', 'Falar com Stone', 'inicio');
+    const entry = component['sections']()[0].entries[0];
+    expect(entry.npcName).toBe('A Última Promessa');
   });
 });
 
@@ -215,7 +297,9 @@ describe('QuestMapOrganizer — with existing map', () => {
           id: 10,
           name: 'Limgrave',
           order: 0,
-          entries: [{ questId: 1, questTitle: 'Stone', phase: 'inicio', order: 0 }],
+          entries: [
+            { questId: 1, questTitle: 'Stone', npcName: 'Stone', phase: 'inicio', order: 0 },
+          ],
         },
       ],
     };
@@ -224,5 +308,6 @@ describe('QuestMapOrganizer — with existing map', () => {
     expect(component['sections']().length).toBe(1);
     expect(component['sections']()[0].id).toBe(10);
     expect(component['sections']()[0].entries[0].questId).toBe('1');
+    expect(component['sections']()[0].entries[0].npcName).toBe('Stone');
   });
 });

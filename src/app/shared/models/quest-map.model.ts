@@ -7,11 +7,12 @@ export const QUEST_MAP_PHASE_LABELS: Record<QuestMapPhase, string> = {
   full: 'completa',
 };
 
-// ─── API shapes (contrato real do backend) ───────────────────────────────────
+// ─── API shapes ──────────────────────────────────────────────────────────────
 
 export interface MapEntryResponse {
   questId: number;
   questTitle: string;
+  npcName: string;
   phase: QuestMapPhase;
   order: number;
 }
@@ -30,6 +31,7 @@ export interface GameQuestMapResponse {
 
 export interface MapEntryRequest {
   questId: number;
+  npcName: string;
   phase: QuestMapPhase;
   order: number;
 }
@@ -50,7 +52,14 @@ export interface GameQuestMapRequest {
 export interface MapEntryLocal {
   questId: string;
   questTitle: string;
+  npcName: string;
   phase: QuestMapPhase;
+}
+
+/** Agrupamento para exibição na seção: um NPC com suas quests */
+export interface NpcGroup {
+  npcName: string;
+  entries: MapEntryLocal[];
 }
 
 export interface MapSectionLocal {
@@ -69,6 +78,7 @@ export function responseToLocal(response: GameQuestMapResponse): MapSectionLocal
     entries: s.entries.map((e) => ({
       questId: String(e.questId),
       questTitle: e.questTitle,
+      npcName: e.npcName,
       phase: e.phase,
     })),
   }));
@@ -82,9 +92,24 @@ export function localToRequest(sections: MapSectionLocal[]): GameQuestMapRequest
       order: si,
       entries: s.entries.map((e, ei) => ({
         questId: Number(e.questId),
+        npcName: e.npcName,
         phase: e.phase,
         order: ei,
       })),
     })),
   };
+}
+
+/** Agrupa as entradas de uma seção por npcName para exibição */
+export function groupByNpc(entries: MapEntryLocal[]): NpcGroup[] {
+  const map = new Map<string, MapEntryLocal[]>();
+  for (const e of entries) {
+    const list = map.get(e.npcName) ?? [];
+    list.push(e);
+    map.set(e.npcName, list);
+  }
+  return Array.from(map.entries()).map(([npcName, npcEntries]) => ({
+    npcName,
+    entries: npcEntries,
+  }));
 }

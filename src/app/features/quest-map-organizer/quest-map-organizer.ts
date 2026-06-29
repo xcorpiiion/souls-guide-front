@@ -1,13 +1,16 @@
 import {
   ChangeDetectionStrategy,
   Component,
+  ElementRef,
   OnInit,
+  ViewChild,
   computed,
+  effect,
   inject,
   signal,
 } from '@angular/core';
-import { RouterLink, ActivatedRoute, Router } from '@angular/router';
 import { catchError, of } from 'rxjs';
+import { RouterLink, ActivatedRoute, Router } from '@angular/router';
 import { QuestService } from '../../core/services/quest.service';
 import { QuestMapService } from '../../core/services/quest-map.service';
 import { AuthService } from '../../core/services/auth.service';
@@ -16,26 +19,32 @@ import { QuestSummary } from '../../shared/models/quest.model';
 import {
   MapSectionLocal,
   MapEntryLocal,
+  NpcGroup,
   QuestMapPhase,
   QUEST_MAP_PHASE_LABELS,
   responseToLocal,
   localToRequest,
+  groupByNpc,
 } from '../../shared/models/quest-map.model';
+import { ConfirmModal } from '../../shared/components/confirm-modal/confirm-modal';
+import { QuestNode } from '../../shared/models/quest.model';
 import { PageLoader } from '../../shared/components/page-loader/page-loader';
 
-type PickerStep = 'quest' | 'phase';
+type PickerStep = 'phase' | 'questline' | 'quest';
 
 interface PickerState {
   sectionId: number | string;
   step: PickerStep;
-  questId: string | null;
-  questTitle: string | null;
   phase: QuestMapPhase | null;
+  questlineId: string | null;
+  questlineTitle: string | null;
+  /** label do node selecionado na etapa 3 */
+  questTitle: string | null;
 }
 
 @Component({
   selector: 'app-quest-map-organizer',
-  imports: [RouterLink, PageLoader],
+  imports: [RouterLink, PageLoader, ConfirmModal],
   templateUrl: './quest-map-organizer.html',
   styleUrl: './quest-map-organizer.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -61,13 +70,38 @@ export class QuestMapOrganizer implements OnInit {
   protected readonly phases: QuestMapPhase[] = ['inicio', 'meio', 'fim', 'full'];
   protected readonly phaseLabels = QUEST_MAP_PHASE_LABELS;
 
-  protected readonly usedQuestIds = computed(() => {
-    const ids = new Set<string>();
-    this.sections().forEach((s) => s.entries.forEach((e) => ids.add(e.questId)));
-    return ids;
+  protected readonly editingSectionId = signal<number | string | null>(null);
+
+  protected readonly pendingRemove = signal<{
+    type: 'section' | 'entry';
+    sectionId: number | string;
+    questId?: string;
+    label: string;
+  } | null>(null);
+
+  @ViewChild('sectionNameInput') private sectionNameInputRef?: ElementRef<HTMLInputElement>;
+
+  constructor() {
+    effect(() => {
+      if (this.editingSectionId() !== null) {
+        setTimeout(() => this.sectionNameInputRef?.nativeElement?.focus(), 0);
+      }
+    });
+  }
+
+  protected readonly loadingNodes = signal(false);
+  protected readonly pickerNodes = signal<QuestNode[]>([]);
+
+  /** Conjunto de pares "questId|questTitle" já adicionados em qualquer seção */
+  protected readonly usedEntryKeys = computed(() => {
+    const keys = new Set<string>();
+    this.sections().forEach((s) =>
+      s.entries.forEach((e) => keys.add(`${e.questId}|${e.questTitle}`)),
+    );
+    return keys;
   });
 
-  protected readonly placedCount = computed(() => this.usedQuestIds().size);
+  protected readonly placedCount = computed(() => this.usedEntryKeys().size);
   protected readonly totalCount = computed(() => this.quests().length);
 
   protected readonly progressPct = computed(() => {
@@ -75,9 +109,12 @@ export class QuestMapOrganizer implements OnInit {
     return total > 0 ? Math.round((this.placedCount() / total) * 100) : 0;
   });
 
-  protected readonly availableForPicker = computed(() =>
-    this.quests().filter((q) => !this.usedQuestIds().has(q.id)),
-  );
+  /** Questlines ainda disponíveis: remove apenas as que não têm mais nenhum nó livre */
+  protected readonly availableForPicker = computed(() => {
+    // Sem picker aberto ou ainda na etapa de questline: mostra todas as questlines
+    // A filtragem de nós individuais já usados acontece dentro de pickerNodes (etapa 'quest')
+    return this.quests();
+  });
 
   ngOnInit(): void {
     this.questService.list(0, 100, undefined, this.gameId).subscribe({
@@ -126,7 +163,12 @@ export class QuestMapOrganizer implements OnInit {
     this.expandedIds.update((s) => new Set([...s, tempId]));
   }
 
-  protected removeSection(id: number | string): void {
+  protected confirmRemoveSection(id: number | string, name: string, event: Event): void {
+    event.stopPropagation();
+    this.pendingRemove.set({ type: 'section', sectionId: id, label: name || 'sem nome' });
+  }
+
+  private doRemoveSection(id: number | string): void {
     this.sections.update((s) => s.filter((x) => x.id !== id));
     this.expandedIds.update((s) => {
       const next = new Set(s);
@@ -140,7 +182,24 @@ export class QuestMapOrganizer implements OnInit {
     this.sections.update((s) => s.map((x) => (x.id === id ? { ...x, name } : x)));
   }
 
-  protected removeEntry(sectionId: number | string, questId: string): void {
+  protected startEditingSection(id: number | string, event: Event): void {
+    event.stopPropagation();
+    this.editingSectionId.set(id);
+  }
+
+  protected stopEditingSection(): void {
+    this.editingSectionId.set(null);
+  }
+
+  protected confirmRemoveEntry(
+    sectionId: number | string,
+    questId: string,
+    questTitle: string,
+  ): void {
+    this.pendingRemove.set({ type: 'entry', sectionId, questId, label: questTitle });
+  }
+
+  private doRemoveEntry(sectionId: number | string, questId: string): void {
     this.sections.update((s) =>
       s.map((x) =>
         x.id === sectionId ? { ...x, entries: x.entries.filter((e) => e.questId !== questId) } : x,
@@ -148,22 +207,83 @@ export class QuestMapOrganizer implements OnInit {
     );
   }
 
+  protected onRemoveConfirmed(): void {
+    const p = this.pendingRemove();
+    if (!p) return;
+    if (p.type === 'section') this.doRemoveSection(p.sectionId);
+    else if (p.type === 'entry' && p.questId) this.doRemoveEntry(p.sectionId, p.questId);
+    this.pendingRemove.set(null);
+  }
+
+  protected onRemoveCancelled(): void {
+    this.pendingRemove.set(null);
+  }
+
+  protected groupByQuestline(entries: MapEntryLocal[]): NpcGroup[] {
+    return groupByNpc(entries);
+  }
+
+  protected questlineInitials(title: string | undefined): string {
+    if (!title) return '?';
+    return title
+      .split(' ')
+      .slice(0, 2)
+      .map((w) => w[0])
+      .join('')
+      .toUpperCase();
+  }
+
   protected openPicker(sectionId: number | string): void {
-    this.picker.set({ sectionId, step: 'quest', questId: null, questTitle: null, phase: null });
+    this.pickerNodes.set([]);
+    this.picker.set({
+      sectionId,
+      step: 'questline',
+      phase: null,
+      questlineId: null,
+      questlineTitle: null,
+      questTitle: null,
+    });
   }
 
   protected closePicker(): void {
     this.picker.set(null);
+    this.pickerNodes.set([]);
   }
 
-  protected selectQuest(questId: string, questTitle: string): void {
-    this.picker.update((p) => (p ? { ...p, step: 'phase', questId, questTitle } : p));
+  protected selectQuestline(id: string, title: string): void {
+    this.picker.update((p) =>
+      p ? { ...p, questlineId: id, questlineTitle: title, step: 'quest' } : p,
+    );
+    this.loadingNodes.set(true);
+    this.pickerNodes.set([]);
+    this.questService
+      .get(id)
+      .pipe(catchError(() => of(null)))
+      .subscribe((q) => {
+        const used = this.usedEntryKeys();
+        const nodes = (q?.nodes ?? []).filter(
+          (n) => n.type === 'task' && !used.has(`${id}|${n.label}`),
+        );
+        this.pickerNodes.set(nodes);
+        this.loadingNodes.set(false);
+      });
+  }
+
+  protected backToQuestlineStep(): void {
+    this.picker.update((p) =>
+      p
+        ? { ...p, step: 'questline', questlineId: null, questlineTitle: null, questTitle: null }
+        : p,
+    );
+    this.pickerNodes.set([]);
+  }
+
+  protected selectQuestNode(nodeLabel: string): void {
+    this.picker.update((p) => (p ? { ...p, questTitle: nodeLabel, step: 'phase' } : p));
   }
 
   protected backToQuestStep(): void {
-    this.picker.update((p) =>
-      p ? { ...p, step: 'quest', questId: null, questTitle: null, phase: null } : p,
-    );
+    this.picker.update((p) => (p ? { ...p, step: 'quest', questTitle: null, phase: null } : p));
   }
 
   protected selectPhase(phase: QuestMapPhase): void {
@@ -172,13 +292,19 @@ export class QuestMapOrganizer implements OnInit {
 
   protected confirmPick(): void {
     const p = this.picker();
-    if (!p?.questId || !p.phase || !p.questTitle) return;
+    if (!p?.questlineId || !p.questlineTitle || !p.questTitle || !p.phase) return;
 
-    const entry: MapEntryLocal = { questId: p.questId, questTitle: p.questTitle, phase: p.phase };
+    const entry: MapEntryLocal = {
+      questId: p.questlineId,
+      questTitle: p.questTitle,
+      npcName: p.questlineTitle,
+      phase: p.phase,
+    };
     this.sections.update((s) =>
       s.map((x) => (x.id === p.sectionId ? { ...x, entries: [...x.entries, entry] } : x)),
     );
     this.picker.set(null);
+    this.pickerNodes.set([]);
   }
 
   protected navigateToQuest(questId: string): void {
@@ -192,7 +318,6 @@ export class QuestMapOrganizer implements OnInit {
     this.questMapService.saveMap(this.gameId, localToRequest(this.sections())).subscribe({
       next: (res) => {
         this.saving.set(false);
-        // Substitui as seções com os ids reais vindos do backend (seções novas ganham id numérico)
         const saved = responseToLocal(res);
         this.sections.set(saved);
         this.expandedIds.set(new Set(saved.map((s) => s.id)));
