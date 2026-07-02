@@ -147,12 +147,12 @@
                             ></i>
                           }
                           <span class="qmo__entry-dot qmo__entry-dot--{{ ph }}"></span>
-                          @if (entry.npcName && entry.questTitle !== entry.npcName) {
-                            <span class="qmo__entry-npc">{{ entry.npcName }}</span>
-                          }
-                          <span class="qmo__entry-title">{{
-                            entry.questTitle || entry.npcName
-                          }}</span>
+                          <span class="qmo__entry-title">
+                            {{ entry.questTitle }}
+                            @if (entry.nodeTitle) {
+                              <span class="qmo__entry-node"> — {{ entry.nodeTitle }}</span>
+                            }
+                          </span>
                           <span class="qmo__entry-tag qmo__entry-tag--{{ ph }}">
                             {{ phaseLabels[ph] }}
                           </span>
@@ -172,7 +172,13 @@
                               title="remover"
                               aria-label="remover do mapa"
                               (click)="
-                                confirmRemoveEntry(section.id, entry.questId, entry.questTitle)
+                                confirmRemoveEntry(
+                                  section.id,
+                                  entry.questId,
+                                  entry.nodeId,
+                                  entry.questTitle +
+                                    (entry.nodeTitle ? ' — ' + entry.nodeTitle : '')
+                                )
                               "
                             >
                               <i class="ti ti-x" aria-hidden="true"></i>
@@ -258,7 +264,12 @@
                                             <button
                                               class="qmo__picker-quest qmo__picker-quest--sub"
                                               type="button"
-                                              (click)="selectQuestNode(branch.headerNode.label)"
+                                              (click)="
+                                                selectQuestNode(
+                                                  branch.headerNode.id,
+                                                  branch.headerNode.label
+                                                )
+                                              "
                                             >
                                               <span class="qmo__picker-quest-title">{{
                                                 branch.headerNode.label
@@ -269,7 +280,7 @@
                                             <button
                                               class="qmo__picker-quest qmo__picker-quest--sub"
                                               type="button"
-                                              (click)="selectQuestNode(node.label)"
+                                              (click)="selectQuestNode(node.id, node.label)"
                                             >
                                               <span class="qmo__picker-quest-title">{{
                                                 node.label
@@ -290,7 +301,7 @@
                                       <button
                                         class="qmo__picker-quest"
                                         type="button"
-                                        (click)="selectQuestNode(node.label)"
+                                        (click)="selectQuestNode(node.id, node.label)"
                                       >
                                         <span class="qmo__picker-quest-title">{{
                                           node.label
@@ -337,7 +348,9 @@
                                 picker()!.questlineTitle
                               }}</span>
                               —
-                              <span class="qmo__picker-quest-chip">{{ picker()!.questTitle }}</span>
+                              <span class="qmo__picker-quest-chip">{{
+                                picker()!.questNodeLabel
+                              }}</span>
                               — fase nesta área
                             </p>
                             <div class="qmo__picker-phases">

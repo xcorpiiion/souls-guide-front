@@ -38,14 +38,14 @@ import { QuestNode, QuestEdge } from '../../shared/models/quest.model';
 import { PageLoader } from '../../shared/components/page-loader/page-loader';
 
 interface PickerBranch {
-  headerNode: QuestNode; // primeiro nó do ramo (ex: "ramo 1")
-  subNodes: QuestNode[]; // nós subsequentes do ramo (ex: "nova etapa 1")
+  headerNode: QuestNode;
+  subNodes: QuestNode[];
 }
 
 interface PickerNodeGroup {
-  gatewayLabel: string | null; // null = nós de nível superior
-  topNodes: QuestNode[]; // usado quando gatewayLabel === null
-  branches: PickerBranch[]; // usado quando gatewayLabel !== null
+  gatewayLabel: string | null;
+  topNodes: QuestNode[];
+  branches: PickerBranch[];
 }
 
 type PickerStep = 'phase' | 'questline' | 'quest';
@@ -56,8 +56,10 @@ interface PickerState {
   phase: QuestMapPhase | null;
   questlineId: string | null;
   questlineTitle: string | null;
-  /** label do node selecionado na etapa 3 */
-  questTitle: string | null;
+  /** ID do nó selecionado na etapa 2 */
+  questNodeId: string | null;
+  /** Label do nó para exibição */
+  questNodeLabel: string | null;
 }
 
 @Component({
@@ -94,6 +96,7 @@ export class QuestMapOrganizer implements OnInit {
     type: 'section' | 'entry';
     sectionId: number | string;
     questId?: string;
+    nodeId?: string | null;
     label: string;
   } | null>(null);
 
@@ -110,11 +113,11 @@ export class QuestMapOrganizer implements OnInit {
   protected readonly loadingNodes = signal(false);
   protected readonly pickerGroups = signal<PickerNodeGroup[]>([]);
 
-  /** Conjunto de pares "questId|questTitle" já adicionados em qualquer seção */
+  /** Conjunto de pares "questId|nodeId" já adicionados em qualquer seção */
   protected readonly usedEntryKeys = computed(() => {
     const keys = new Set<string>();
     this.sections().forEach((s) =>
-      s.entries.forEach((e) => keys.add(`${e.questId}|${e.questTitle}`)),
+      s.entries.forEach((e) => keys.add(`${e.questId}|${e.nodeId ?? ''}`)),
     );
     return keys;
   });
@@ -127,12 +130,7 @@ export class QuestMapOrganizer implements OnInit {
     return total > 0 ? Math.round((this.placedCount() / total) * 100) : 0;
   });
 
-  /** Questlines ainda disponíveis: remove apenas as que não têm mais nenhum nó livre */
-  protected readonly availableForPicker = computed(() => {
-    // Sem picker aberto ou ainda na etapa de questline: mostra todas as questlines
-    // A filtragem de nós individuais já usados acontece dentro de pickerNodes (etapa 'quest')
-    return this.quests();
-  });
+  protected readonly availableForPicker = computed(() => this.quests());
 
   ngOnInit(): void {
     this.questService.list(0, 100, undefined, this.gameId).subscribe({
@@ -212,15 +210,21 @@ export class QuestMapOrganizer implements OnInit {
   protected confirmRemoveEntry(
     sectionId: number | string,
     questId: string,
-    questTitle: string,
+    nodeId: string | null,
+    label: string,
   ): void {
-    this.pendingRemove.set({ type: 'entry', sectionId, questId, label: questTitle });
+    this.pendingRemove.set({ type: 'entry', sectionId, questId, nodeId, label });
   }
 
-  private doRemoveEntry(sectionId: number | string, questId: string): void {
+  private doRemoveEntry(sectionId: number | string, questId: string, nodeId: string | null): void {
     this.sections.update((s) =>
       s.map((x) =>
-        x.id === sectionId ? { ...x, entries: x.entries.filter((e) => e.questId !== questId) } : x,
+        x.id === sectionId
+          ? {
+              ...x,
+              entries: x.entries.filter((e) => !(e.questId === questId && e.nodeId === nodeId)),
+            }
+          : x,
       ),
     );
   }
@@ -229,31 +233,13 @@ export class QuestMapOrganizer implements OnInit {
     const p = this.pendingRemove();
     if (!p) return;
     if (p.type === 'section') this.doRemoveSection(p.sectionId);
-    else if (p.type === 'entry' && p.questId) this.doRemoveEntry(p.sectionId, p.questId);
+    else if (p.type === 'entry' && p.questId)
+      this.doRemoveEntry(p.sectionId, p.questId, p.nodeId ?? null);
     this.pendingRemove.set(null);
   }
 
   protected onRemoveCancelled(): void {
     this.pendingRemove.set(null);
-  }
-
-  protected dropSection(event: CdkDragDrop<MapSectionLocal[]>): void {
-    this.sections.update((list) => {
-      const next = [...list];
-      moveItemInArray(next, event.previousIndex, event.currentIndex);
-      return next;
-    });
-  }
-
-  protected dropEntry(sectionId: number | string, event: CdkDragDrop<MapEntryLocal[]>): void {
-    this.sections.update((list) =>
-      list.map((s) => {
-        if (s.id !== sectionId) return s;
-        const next = [...s.entries];
-        moveItemInArray(next, event.previousIndex, event.currentIndex);
-        return { ...s, entries: next };
-      }),
-    );
   }
 
   protected groupByQuestline(entries: MapEntryLocal[]): NpcGroup[] {
@@ -263,7 +249,7 @@ export class QuestMapOrganizer implements OnInit {
   protected isAvailableNode(node: QuestNode): boolean {
     const p = this.picker();
     if (!p?.questlineId) return false;
-    return !this.usedEntryKeys().has(`${p.questlineId}|${node.label}`);
+    return !this.usedEntryKeys().has(`${p.questlineId}|${node.id}`);
   }
 
   protected questlineInitials(title: string | undefined): string {
@@ -284,7 +270,8 @@ export class QuestMapOrganizer implements OnInit {
       phase: null,
       questlineId: null,
       questlineTitle: null,
-      questTitle: null,
+      questNodeId: null,
+      questNodeLabel: null,
     });
   }
 
@@ -317,9 +304,8 @@ export class QuestMapOrganizer implements OnInit {
   ): PickerNodeGroup[] {
     const nodeMap = new Map(nodes.map((n) => [n.id, n]));
     const gateways = nodes.filter((n) => n.type === 'gateway');
-    const isAvailable = (n: QuestNode) => !used.has(`${questlineId}|${n.label}`);
+    const isAvailable = (n: QuestNode) => !used.has(`${questlineId}|${n.id}`);
 
-    // BFS a partir de um nó (exclusive), retorna tasks alcançáveis sem atravessar gateways
     const bfsFrom = (startId: string): QuestNode[] => {
       const visited = new Set<string>([startId]);
       const queue = edges.filter((e) => e.from === startId).map((e) => e.to);
@@ -337,19 +323,16 @@ export class QuestMapOrganizer implements OnInit {
       return result;
     };
 
-    // IDs de todos os tasks alcançáveis por algum gateway
     const inGateway = new Set<string>();
     for (const gw of gateways) bfsFrom(gw.id).forEach((n) => inGateway.add(n.id));
 
     const groups: PickerNodeGroup[] = [];
 
-    // Tarefas fora de qualquer gateway
     const topNodes = nodes.filter(
       (n) => n.type === 'task' && !inGateway.has(n.id) && isAvailable(n),
     );
     if (topNodes.length) groups.push({ gatewayLabel: null, topNodes, branches: [] });
 
-    // Um grupo por gateway, um branch por aresta de saída
     for (const gw of gateways) {
       const branches: PickerBranch[] = edges
         .filter((e) => e.from === gw.id)
@@ -370,18 +353,29 @@ export class QuestMapOrganizer implements OnInit {
   protected backToQuestlineStep(): void {
     this.picker.update((p) =>
       p
-        ? { ...p, step: 'questline', questlineId: null, questlineTitle: null, questTitle: null }
+        ? {
+            ...p,
+            step: 'questline',
+            questlineId: null,
+            questlineTitle: null,
+            questNodeId: null,
+            questNodeLabel: null,
+          }
         : p,
     );
     this.pickerGroups.set([]);
   }
 
-  protected selectQuestNode(nodeLabel: string): void {
-    this.picker.update((p) => (p ? { ...p, questTitle: nodeLabel, step: 'phase' } : p));
+  protected selectQuestNode(nodeId: string, nodeLabel: string): void {
+    this.picker.update((p) =>
+      p ? { ...p, questNodeId: nodeId, questNodeLabel: nodeLabel, step: 'phase' } : p,
+    );
   }
 
   protected backToQuestStep(): void {
-    this.picker.update((p) => (p ? { ...p, step: 'quest', questTitle: null, phase: null } : p));
+    this.picker.update((p) =>
+      p ? { ...p, step: 'quest', questNodeId: null, questNodeLabel: null, phase: null } : p,
+    );
   }
 
   protected selectPhase(phase: QuestMapPhase): void {
@@ -390,12 +384,13 @@ export class QuestMapOrganizer implements OnInit {
 
   protected confirmPick(): void {
     const p = this.picker();
-    if (!p?.questlineId || !p.questlineTitle || !p.questTitle || !p.phase) return;
+    if (!p?.questlineId || !p.questlineTitle || !p.questNodeId || !p.phase) return;
 
     const entry: MapEntryLocal = {
       questId: p.questlineId,
-      questTitle: p.questTitle,
-      npcName: p.questlineTitle,
+      questTitle: p.questlineTitle,
+      nodeId: p.questNodeId,
+      nodeTitle: p.questNodeLabel,
       phase: p.phase,
     };
     this.sections.update((s) =>
@@ -403,6 +398,27 @@ export class QuestMapOrganizer implements OnInit {
     );
     this.picker.set(null);
     this.pickerGroups.set([]);
+  }
+
+  protected dropSection(event: CdkDragDrop<MapSectionLocal[]>): void {
+    if (event.previousIndex === event.currentIndex) return;
+    this.sections.update((s) => {
+      const next = [...s];
+      moveItemInArray(next, event.previousIndex, event.currentIndex);
+      return next;
+    });
+  }
+
+  protected dropEntry(sectionId: number | string, event: CdkDragDrop<MapEntryLocal[]>): void {
+    if (event.previousIndex === event.currentIndex) return;
+    this.sections.update((s) =>
+      s.map((x) => {
+        if (x.id !== sectionId) return x;
+        const entries = [...x.entries];
+        moveItemInArray(entries, event.previousIndex, event.currentIndex);
+        return { ...x, entries };
+      }),
+    );
   }
 
   protected navigateToQuest(questId: string): void {

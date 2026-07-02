@@ -12,7 +12,8 @@ export const QUEST_MAP_PHASE_LABELS: Record<QuestMapPhase, string> = {
 export interface MapEntryResponse {
   questId: number;
   questTitle: string;
-  npcName: string;
+  nodeId: number | null;
+  nodeTitle: string | null;
   phase: QuestMapPhase;
   order: number;
 }
@@ -31,8 +32,7 @@ export interface GameQuestMapResponse {
 
 export interface MapEntryRequest {
   questId: number;
-  questTitle: string;
-  npcName: string;
+  nodeId: number | null;
   phase: QuestMapPhase;
   order: number;
 }
@@ -53,11 +53,12 @@ export interface GameQuestMapRequest {
 export interface MapEntryLocal {
   questId: string;
   questTitle: string;
-  npcName: string;
+  nodeId: string | null;
+  nodeTitle: string | null;
   phase: QuestMapPhase;
 }
 
-/** Agrupamento para exibição na seção: um NPC com suas quests */
+/** Agrupamento para exibição na seção: uma questline com suas entradas */
 export interface NpcGroup {
   npcName: string;
   entries: MapEntryLocal[];
@@ -78,8 +79,9 @@ export function responseToLocal(response: GameQuestMapResponse): MapSectionLocal
     name: s.name,
     entries: s.entries.map((e) => ({
       questId: String(e.questId),
-      questTitle: e.questTitle || e.npcName,
-      npcName: e.npcName,
+      questTitle: e.questTitle,
+      nodeId: e.nodeId != null ? String(e.nodeId) : null,
+      nodeTitle: e.nodeTitle ?? null,
       phase: e.phase,
     })),
   }));
@@ -93,8 +95,7 @@ export function localToRequest(sections: MapSectionLocal[]): GameQuestMapRequest
       order: si,
       entries: s.entries.map((e, ei) => ({
         questId: Number(e.questId),
-        questTitle: e.questTitle || e.npcName,
-        npcName: e.npcName,
+        nodeId: e.nodeId != null ? Number(e.nodeId) : null,
         phase: e.phase,
         order: ei,
       })),
@@ -102,13 +103,13 @@ export function localToRequest(sections: MapSectionLocal[]): GameQuestMapRequest
   };
 }
 
-/** Agrupa as entradas de uma seção por npcName para exibição */
+/** Agrupa as entradas de uma seção por questTitle para exibição */
 export function groupByNpc(entries: MapEntryLocal[]): NpcGroup[] {
   const map = new Map<string, MapEntryLocal[]>();
   for (const e of entries) {
-    const list = map.get(e.npcName) ?? [];
+    const list = map.get(e.questTitle) ?? [];
     list.push(e);
-    map.set(e.npcName, list);
+    map.set(e.questTitle, list);
   }
   return Array.from(map.entries()).map(([npcName, npcEntries]) => ({
     npcName,
