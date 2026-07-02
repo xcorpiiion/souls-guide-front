@@ -99,10 +99,19 @@ export function buildEntries(nodes: QuestNode[], edges: QuestEdge[]): ListEntry[
 
     if (children.length > 1) {
       const conv = findConvergence(children, adj);
-      const options: ForkOption[] = children.map((childId) => {
-        const branch = collectBranch(childId, conv, adj, nodeMap);
-        return { firstNode: branch[0] ?? nodeMap.get(childId)!, subSteps: branch.slice(1) };
-      });
+      const options: ForkOption[] = children
+        .map((childId) => {
+          const branch = collectBranch(childId, conv, adj, nodeMap);
+          const firstNode = branch[0] ?? nodeMap.get(childId);
+          if (!firstNode) return null;
+          return { firstNode, subSteps: branch.slice(1) };
+        })
+        .filter((o): o is ForkOption => o !== null);
+      if (!options.length) {
+        result.push({ kind: 'step', node });
+        cur = children[0] ?? null;
+        continue;
+      }
       result.push({ kind: 'fork', id: cur, options, convergesTo: conv });
       cur = conv;
     } else {

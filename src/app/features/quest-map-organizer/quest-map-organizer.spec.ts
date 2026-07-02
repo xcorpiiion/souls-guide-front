@@ -170,11 +170,11 @@ describe('QuestMapOrganizer', () => {
     const groups = component['pickerGroups']();
     expect(groups.length).toBeGreaterThan(0);
     const topLevel = groups.find((g) => g.gatewayLabel === null);
-    expect(topLevel?.nodes[0].label).toBe('Falar com Stone');
+    expect(topLevel?.topNodes[0].label).toBe('Falar com Stone');
     // gateway group
     const gatewayGroup = groups.find((g) => g.gatewayLabel === 'Bifurcação: ajudar ou trair?');
     expect(gatewayGroup).toBeDefined();
-    expect(gatewayGroup?.nodes[0].label).toBe('Entregar o artefato');
+    expect(gatewayGroup?.branches[0].headerNode.label).toBe('Entregar o artefato');
   });
 
   it('should advance to phase step after selecting quest node', () => {
