@@ -283,3 +283,34 @@
     appearance: auto;
   }
 }
+
+// ─── save overlay ──────────────────────────────────────────────────────────────
+.qe__fullscreen-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(4px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  z-index: 9999;
+  color: v.$color-text;
+  font-size: 14px;
+}
+
+.qe__fullscreen-overlay-spin {
+  font-size: 32px;
+  animation: qe-spin 0.8s linear infinite;
+}
+
+.qe__spin {
+  animation: qe-spin 0.8s linear infinite;
+}
+
+@keyframes qe-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}

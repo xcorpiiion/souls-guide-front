@@ -39,6 +39,7 @@ export class QuestEditor implements OnInit, HasUnsavedChanges {
   protected readonly isEdit = !!this.questId;
   private readonly isPersonal = this.route.snapshot.queryParamMap.get('personal') === 'true';
   protected readonly loading = signal(false);
+  protected readonly saving = signal(false);
   private readonly isDirty = signal(false);
 
   // ─── quest metadata ───────────────────────────────────────────────────────
@@ -117,6 +118,8 @@ export class QuestEditor implements OnInit, HasUnsavedChanges {
   }
 
   protected saveQuest(): void {
+    if (this.saving()) return;
+    this.saving.set(true);
     const communityRequest = {
       title: this.title() || 'Nova Quest',
       description: this.description(),
@@ -137,6 +140,7 @@ export class QuestEditor implements OnInit, HasUnsavedChanges {
         : this.questService.update(this.questId, communityRequest);
       save$.subscribe({
         next: () => {
+          this.saving.set(false);
           this.isDirty.set(false);
           if (this.isPersonal) {
             this.router.navigate(['/profile']);
@@ -145,6 +149,7 @@ export class QuestEditor implements OnInit, HasUnsavedChanges {
           }
         },
         error: (err) => {
+          this.saving.set(false);
           if (err.status === 403) {
             this.toast.error(
               'Acesso negado',
@@ -158,10 +163,14 @@ export class QuestEditor implements OnInit, HasUnsavedChanges {
     } else {
       this.questService.create(communityRequest).subscribe({
         next: (created) => {
+          this.saving.set(false);
           this.isDirty.set(false);
           this.router.navigate(['/games', this.gameId, 'quests', created.id]);
         },
-        error: () => this.toast.error('Erro', 'Não foi possível criar a quest. Tente novamente.'),
+        error: () => {
+          this.saving.set(false);
+          this.toast.error('Erro', 'Não foi possível criar a quest. Tente novamente.');
+        },
       });
     }
   }

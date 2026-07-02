@@ -22,9 +22,17 @@
 
       <button class="qe__cancel-btn" type="button" (click)="cancel()">cancelar</button>
 
-      <button class="qe__save-btn" type="button" (click)="saveQuest()" [disabled]="loading()">
-        <i class="ti ti-device-floppy"></i>
-        {{ loading() ? 'carregando…' : 'salvar' }}
+      <button
+        class="qe__save-btn"
+        type="button"
+        (click)="saveQuest()"
+        [disabled]="loading() || saving()"
+      >
+        @if (saving()) {
+          <i class="ti ti-loader-2 qe__spin"></i> salvando…
+        } @else {
+          <i class="ti ti-device-floppy"></i> salvar
+        }
       </button>
     </div>
   </header>
@@ -67,3 +75,10 @@
     />
   </div>
 </div>
+
+@if (saving()) {
+  <div class="qe__fullscreen-overlay" aria-live="assertive" aria-label="Salvando quest…">
+    <i class="ti ti-loader-2 qe__fullscreen-overlay-spin" aria-hidden="true"></i>
+    <span>salvando quest…</span>
+  </div>
+}
