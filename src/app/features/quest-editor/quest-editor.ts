@@ -7,7 +7,7 @@ import {
   signal,
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { QuestApi, QuestEdge, QuestNode, QuestStatus } from '../../shared/models/quest.model';
 import { QuestService } from '../../core/services/quest.service';
 import { PersonalQuestService } from '../../core/services/personal-quest.service';
@@ -22,7 +22,7 @@ function makeId(prefix: string): string {
 
 @Component({
   selector: 'app-quest-editor',
-  imports: [FormsModule, RouterLink, QuestEditorList, PageLoader],
+  imports: [FormsModule, QuestEditorList, PageLoader],
   templateUrl: './quest-editor.html',
   styleUrl: './quest-editor.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

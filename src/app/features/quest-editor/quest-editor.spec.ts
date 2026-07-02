@@ -1,7 +1,7 @@
 import { TestBed } from '@angular/core/testing';
 import { ActivatedRoute, convertToParamMap, provideRouter } from '@angular/router';
 import { describe, beforeEach, it, expect, vi } from 'vitest';
-import { of } from 'rxjs';
+import { of, Subject } from 'rxjs';
 import { QuestEditor } from './quest-editor';
 import { QUESTS_DETAIL } from '../quest-detail/quest-detail.mocks';
 import { QuestService } from '../../core/services/quest.service';
@@ -126,5 +126,27 @@ describe('QuestEditor', () => {
     questServiceMock.update.mockReturnValue(of(MOCK_QUEST_API));
     comp.saveQuest();
     expect(questServiceMock.update).toHaveBeenCalledWith('er-q1', expect.any(Object));
+  });
+
+  it('saving fica true durante o save e false após completar', () => {
+    const { fixture, questServiceMock } = createFixture('elden-ring', 'er-q1');
+    const comp = fixture.componentInstance as any;
+    questServiceMock.update.mockReturnValue(of(MOCK_QUEST_API));
+    expect(comp.saving()).toBe(false);
+    comp.saveQuest();
+    // after sync resolution via of(), saving should be false again
+    expect(comp.saving()).toBe(false);
+  });
+
+  it('saveQuest não envia segunda requisição enquanto já está salvando', () => {
+    const { fixture, questServiceMock } = createFixture('elden-ring', 'er-q1');
+    const comp = fixture.componentInstance as any;
+    const subject = new Subject();
+    questServiceMock.update.mockReturnValue(subject.asObservable());
+    comp.saveQuest(); // first call — stays pending
+    expect(comp.saving()).toBe(true);
+    comp.saveQuest(); // second call — should be ignored
+    comp.saveQuest(); // third call — should be ignored
+    expect(questServiceMock.update).toHaveBeenCalledTimes(1);
   });
 });
