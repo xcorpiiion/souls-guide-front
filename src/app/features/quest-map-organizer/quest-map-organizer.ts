@@ -95,7 +95,7 @@ export class QuestMapOrganizer implements OnInit {
   protected readonly pendingRemove = signal<{
     type: 'section' | 'entry';
     sectionId: number | string;
-    questId?: string;
+    questId?: string | null;
     nodeId?: string | null;
     label: string;
   } | null>(null);
@@ -121,6 +121,10 @@ export class QuestMapOrganizer implements OnInit {
     );
     return keys;
   });
+
+  protected readonly hasOrphanedEntries = computed(() =>
+    this.sections().some((s) => s.entries.some((e) => e.questId === null)),
+  );
 
   protected readonly placedCount = computed(() => this.usedEntryKeys().size);
   protected readonly totalCount = computed(() => this.quests().length);
@@ -209,14 +213,18 @@ export class QuestMapOrganizer implements OnInit {
 
   protected confirmRemoveEntry(
     sectionId: number | string,
-    questId: string,
+    questId: string | null,
     nodeId: string | null,
     label: string,
   ): void {
     this.pendingRemove.set({ type: 'entry', sectionId, questId, nodeId, label });
   }
 
-  private doRemoveEntry(sectionId: number | string, questId: string, nodeId: string | null): void {
+  private doRemoveEntry(
+    sectionId: number | string,
+    questId: string | null,
+    nodeId: string | null,
+  ): void {
     this.sections.update((s) =>
       s.map((x) =>
         x.id === sectionId
@@ -233,8 +241,8 @@ export class QuestMapOrganizer implements OnInit {
     const p = this.pendingRemove();
     if (!p) return;
     if (p.type === 'section') this.doRemoveSection(p.sectionId);
-    else if (p.type === 'entry' && p.questId)
-      this.doRemoveEntry(p.sectionId, p.questId, p.nodeId ?? null);
+    else if (p.type === 'entry')
+      this.doRemoveEntry(p.sectionId, p.questId ?? null, p.nodeId ?? null);
     this.pendingRemove.set(null);
   }
 
@@ -418,6 +426,12 @@ export class QuestMapOrganizer implements OnInit {
         moveItemInArray(entries, event.previousIndex, event.currentIndex);
         return { ...x, entries };
       }),
+    );
+  }
+
+  protected clearOrphanedEntries(): void {
+    this.sections.update((s) =>
+      s.map((x) => ({ ...x, entries: x.entries.filter((e) => e.questId !== null) })),
     );
   }
 

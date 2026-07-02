@@ -325,3 +325,61 @@ describe('QuestMapOrganizer — with existing map', () => {
     expect(entry.nodeTitle).toBe('Falar com Stone');
   });
 });
+
+describe('QuestMapOrganizer — entradas órfãs', () => {
+  const mapWithOrphan: GameQuestMapResponse = {
+    gameId: 1,
+    sections: [
+      {
+        id: 10,
+        name: 'Limgrave',
+        order: 0,
+        entries: [
+          {
+            questId: 1,
+            questTitle: 'A Última Promessa',
+            nodeId: null,
+            nodeTitle: null,
+            phase: 'inicio',
+            order: 0,
+          },
+          {
+            questId: null,
+            questTitle: null,
+            nodeId: null,
+            nodeTitle: null,
+            phase: 'meio',
+            order: 1,
+          },
+        ],
+      },
+    ],
+  };
+
+  it('deve mapear questId null para null local', () => {
+    const fixture = setup(mapWithOrphan);
+    const component = fixture.componentInstance;
+    const orphan = component['sections']()[0].entries[1];
+    expect(orphan.questId).toBeNull();
+    expect(orphan.questTitle).toBeNull();
+  });
+
+  it('hasOrphanedEntries retorna true quando há órfãs', () => {
+    const fixture = setup(mapWithOrphan);
+    expect(fixture.componentInstance['hasOrphanedEntries']()).toBe(true);
+  });
+
+  it('hasOrphanedEntries retorna false sem órfãs', () => {
+    const fixture = setup();
+    expect(fixture.componentInstance['hasOrphanedEntries']()).toBe(false);
+  });
+
+  it('clearOrphanedEntries remove apenas as entradas com questId null', () => {
+    const fixture = setup(mapWithOrphan);
+    const component = fixture.componentInstance;
+    expect(component['sections']()[0].entries.length).toBe(2);
+    component['clearOrphanedEntries']();
+    expect(component['sections']()[0].entries.length).toBe(1);
+    expect(component['sections']()[0].entries[0].questId).toBe('1');
+  });
+});

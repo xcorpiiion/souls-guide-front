@@ -20,13 +20,25 @@
         </p>
       </div>
       @if (auth.isLoggedIn()) {
-        <button class="qmo__save-btn" type="button" [disabled]="saving()" (click)="save()">
-          @if (saving()) {
-            <i class="ti ti-loader-2 qmo__spin" aria-hidden="true"></i> salvando…
-          } @else {
-            <i class="ti ti-device-floppy" aria-hidden="true"></i> salvar rota
+        <div class="qmo__header-actions">
+          @if (hasOrphanedEntries()) {
+            <button
+              class="qmo__clear-orphans-btn"
+              type="button"
+              (click)="clearOrphanedEntries()"
+              title="Remover entradas cujas quests foram deletadas"
+            >
+              <i class="ti ti-trash" aria-hidden="true"></i> limpar itens removidos
+            </button>
           }
-        </button>
+          <button class="qmo__save-btn" type="button" [disabled]="saving()" (click)="save()">
+            @if (saving()) {
+              <i class="ti ti-loader-2 qmo__spin" aria-hidden="true"></i> salvando…
+            } @else {
+              <i class="ti ti-device-floppy" aria-hidden="true"></i> salvar rota
+            }
+          </button>
+        </div>
       }
     </div>
 
@@ -147,24 +159,33 @@
                             ></i>
                           }
                           <span class="qmo__entry-dot qmo__entry-dot--{{ ph }}"></span>
-                          <span class="qmo__entry-title">
-                            {{ entry.questTitle }}
-                            @if (entry.nodeTitle) {
-                              <span class="qmo__entry-node"> — {{ entry.nodeTitle }}</span>
-                            }
-                          </span>
+                          @if (entry.questId === null) {
+                            <span class="qmo__entry-title qmo__entry-title--orphan">
+                              <i class="ti ti-alert-triangle" aria-hidden="true"></i>
+                              Quest removida
+                            </span>
+                          } @else {
+                            <span class="qmo__entry-title">
+                              {{ entry.questTitle }}
+                              @if (entry.nodeTitle) {
+                                <span class="qmo__entry-node"> — {{ entry.nodeTitle }}</span>
+                              }
+                            </span>
+                          }
                           <span class="qmo__entry-tag qmo__entry-tag--{{ ph }}">
                             {{ phaseLabels[ph] }}
                           </span>
-                          <button
-                            class="qmo__entry-link"
-                            type="button"
-                            title="abrir quest"
-                            aria-label="abrir quest"
-                            (click)="navigateToQuest(entry.questId)"
-                          >
-                            <i class="ti ti-external-link" aria-hidden="true"></i>
-                          </button>
+                          @if (entry.questId !== null) {
+                            <button
+                              class="qmo__entry-link"
+                              type="button"
+                              title="abrir quest"
+                              aria-label="abrir quest"
+                              (click)="navigateToQuest(entry.questId!)"
+                            >
+                              <i class="ti ti-external-link" aria-hidden="true"></i>
+                            </button>
+                          }
                           @if (auth.isLoggedIn()) {
                             <button
                               class="qmo__entry-remove"
@@ -176,8 +197,10 @@
                                   section.id,
                                   entry.questId,
                                   entry.nodeId,
-                                  entry.questTitle +
-                                    (entry.nodeTitle ? ' — ' + entry.nodeTitle : '')
+                                  entry.questTitle
+                                    ? entry.questTitle +
+                                        (entry.nodeTitle ? ' — ' + entry.nodeTitle : '')
+                                    : 'Quest removida'
                                 )
                               "
                             >

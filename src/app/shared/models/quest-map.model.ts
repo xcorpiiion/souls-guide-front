@@ -10,8 +10,8 @@ export const QUEST_MAP_PHASE_LABELS: Record<QuestMapPhase, string> = {
 // ─── API shapes ──────────────────────────────────────────────────────────────
 
 export interface MapEntryResponse {
-  questId: number;
-  questTitle: string;
+  questId: number | null;
+  questTitle: string | null;
   nodeId: number | null;
   nodeTitle: string | null;
   phase: QuestMapPhase;
@@ -51,8 +51,9 @@ export interface GameQuestMapRequest {
 // ─── Modelos internos do componente ─────────────────────────────────────────
 
 export interface MapEntryLocal {
-  questId: string;
-  questTitle: string;
+  /** null quando a quest referenciada foi deletada no backend */
+  questId: string | null;
+  questTitle: string | null;
   nodeId: string | null;
   nodeTitle: string | null;
   phase: QuestMapPhase;
@@ -78,7 +79,7 @@ export function responseToLocal(response: GameQuestMapResponse): MapSectionLocal
     id: s.id,
     name: s.name,
     entries: s.entries.map((e) => ({
-      questId: String(e.questId),
+      questId: e.questId != null ? String(e.questId) : null,
       questTitle: e.questTitle,
       nodeId: e.nodeId != null ? String(e.nodeId) : null,
       nodeTitle: e.nodeTitle ?? null,
@@ -93,12 +94,14 @@ export function localToRequest(sections: MapSectionLocal[]): GameQuestMapRequest
       id: typeof s.id === 'number' ? s.id : null,
       name: s.name,
       order: si,
-      entries: s.entries.map((e, ei) => ({
-        questId: Number(e.questId),
-        nodeId: e.nodeId != null ? Number(e.nodeId) : null,
-        phase: e.phase,
-        order: ei,
-      })),
+      entries: s.entries
+        .filter((e) => e.questId !== null)
+        .map((e, ei) => ({
+          questId: Number(e.questId),
+          nodeId: e.nodeId != null ? Number(e.nodeId) : null,
+          phase: e.phase,
+          order: ei,
+        })),
     })),
   };
 }
@@ -107,9 +110,10 @@ export function localToRequest(sections: MapSectionLocal[]): GameQuestMapRequest
 export function groupByNpc(entries: MapEntryLocal[]): NpcGroup[] {
   const map = new Map<string, MapEntryLocal[]>();
   for (const e of entries) {
-    const list = map.get(e.questTitle) ?? [];
+    const key = e.questTitle ?? '';
+    const list = map.get(key) ?? [];
     list.push(e);
-    map.set(e.questTitle, list);
+    map.set(key, list);
   }
   return Array.from(map.entries()).map(([npcName, npcEntries]) => ({
     npcName,
