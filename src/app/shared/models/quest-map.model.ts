@@ -31,6 +31,7 @@ export interface GameQuestMapResponse {
 
 export interface MapEntryRequest {
   questId: number;
+  questTitle: string;
   npcName: string;
   phase: QuestMapPhase;
   order: number;
@@ -77,7 +78,7 @@ export function responseToLocal(response: GameQuestMapResponse): MapSectionLocal
     name: s.name,
     entries: s.entries.map((e) => ({
       questId: String(e.questId),
-      questTitle: e.questTitle,
+      questTitle: e.questTitle || e.npcName,
       npcName: e.npcName,
       phase: e.phase,
     })),
@@ -92,6 +93,7 @@ export function localToRequest(sections: MapSectionLocal[]): GameQuestMapRequest
       order: si,
       entries: s.entries.map((e, ei) => ({
         questId: Number(e.questId),
+        questTitle: e.questTitle || e.npcName,
         npcName: e.npcName,
         phase: e.phase,
         order: ei,

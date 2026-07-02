@@ -147,8 +147,12 @@
                             ></i>
                           }
                           <span class="qmo__entry-dot qmo__entry-dot--{{ ph }}"></span>
-                          <span class="qmo__entry-npc">{{ entry.npcName }}</span>
-                          <span class="qmo__entry-title">{{ entry.questTitle }}</span>
+                          @if (entry.npcName && entry.questTitle !== entry.npcName) {
+                            <span class="qmo__entry-npc">{{ entry.npcName }}</span>
+                          }
+                          <span class="qmo__entry-title">{{
+                            entry.questTitle || entry.npcName
+                          }}</span>
                           <span class="qmo__entry-tag qmo__entry-tag--{{ ph }}">
                             {{ phaseLabels[ph] }}
                           </span>
