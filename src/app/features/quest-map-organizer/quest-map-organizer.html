@@ -43,9 +43,20 @@
     @if (sections().length || auth.isLoggedIn()) {
       <div class="qmo__layout">
         <div class="qmo__main">
-          <div class="qmo__sections">
+          <div
+            class="qmo__sections"
+            cdkDropList
+            [cdkDropListData]="sections()"
+            (cdkDropListDropped)="dropSection($event)"
+          >
             @for (section of sections(); track section.id) {
-              <div class="qmo__section" [class.qmo__section--open]="isSectionOpen(section.id)">
+              <div
+                class="qmo__section"
+                [class.qmo__section--open]="isSectionOpen(section.id)"
+                cdkDrag
+                [cdkDragData]="section"
+                [cdkDragDisabled]="!!picker() || !auth.isLoggedIn()"
+              >
                 <div
                   class="qmo__section-head"
                   role="button"
@@ -54,6 +65,14 @@
                   (keyup.enter)="toggleSection(section.id)"
                   (keyup.space)="toggleSection(section.id)"
                 >
+                  @if (auth.isLoggedIn()) {
+                    <i
+                      class="ti ti-grip-vertical qmo__section-grip"
+                      cdkDragHandle
+                      aria-hidden="true"
+                      (click)="$event.stopPropagation()"
+                    ></i>
+                  }
                   <i class="ti ti-chevron-down qmo__section-chevron" aria-hidden="true"></i>
 
                   @if (auth.isLoggedIn() && editingSectionId() === section.id) {
@@ -110,55 +129,54 @@
                       <div class="qmo__entry-empty">nenhuma quest adicionada ainda.</div>
                     }
 
-                    @for (group of groupByQuestline(section.entries); track group.npcName) {
-                      <div class="qmo__npc-block">
-                        <div class="qmo__npc-head">
-                          <div class="qmo__npc-avatar" aria-hidden="true">
-                            {{ questlineInitials(group.npcName) }}
-                          </div>
-                          <span class="qmo__npc-name">{{ group.npcName }}</span>
-                          <span class="qmo__npc-count"
-                            >{{ group.entries.length }} quest{{
-                              group.entries.length !== 1 ? 's' : ''
-                            }}</span
+                    <div
+                      class="qmo__entry-list"
+                      cdkDropList
+                      [cdkDropListData]="section.entries"
+                      (cdkDropListDropped)="dropEntry(section.id, $event)"
+                      [cdkDropListDisabled]="!auth.isLoggedIn()"
+                    >
+                      @for (entry of section.entries; track entry.questTitle) {
+                        @let ph = entry.phase;
+                        <div class="qmo__entry" cdkDrag [cdkDragData]="entry">
+                          @if (auth.isLoggedIn()) {
+                            <i
+                              class="ti ti-grip-vertical qmo__entry-grip"
+                              cdkDragHandle
+                              aria-hidden="true"
+                            ></i>
+                          }
+                          <span class="qmo__entry-dot qmo__entry-dot--{{ ph }}"></span>
+                          <span class="qmo__entry-npc">{{ entry.npcName }}</span>
+                          <span class="qmo__entry-title">{{ entry.questTitle }}</span>
+                          <span class="qmo__entry-tag qmo__entry-tag--{{ ph }}">
+                            {{ phaseLabels[ph] }}
+                          </span>
+                          <button
+                            class="qmo__entry-link"
+                            type="button"
+                            title="abrir quest"
+                            aria-label="abrir quest"
+                            (click)="navigateToQuest(entry.questId)"
                           >
-                        </div>
-                        <div class="qmo__npc-entries">
-                          @for (entry of group.entries; track entry.questTitle) {
-                            @let ph = entry.phase;
-                            <div class="qmo__entry">
-                              <span class="qmo__entry-dot qmo__entry-dot--{{ ph }}"></span>
-                              <span class="qmo__entry-title">{{ entry.questTitle }}</span>
-                              <span class="qmo__entry-tag qmo__entry-tag--{{ ph }}">
-                                {{ phaseLabels[ph] }}
-                              </span>
-                              <button
-                                class="qmo__entry-link"
-                                type="button"
-                                title="abrir quest"
-                                aria-label="abrir quest"
-                                (click)="navigateToQuest(entry.questId)"
-                              >
-                                <i class="ti ti-external-link" aria-hidden="true"></i>
-                              </button>
-                              @if (auth.isLoggedIn()) {
-                                <button
-                                  class="qmo__entry-remove"
-                                  type="button"
-                                  title="remover"
-                                  aria-label="remover do mapa"
-                                  (click)="
-                                    confirmRemoveEntry(section.id, entry.questId, entry.questTitle)
-                                  "
-                                >
-                                  <i class="ti ti-x" aria-hidden="true"></i>
-                                </button>
-                              }
-                            </div>
+                            <i class="ti ti-external-link" aria-hidden="true"></i>
+                          </button>
+                          @if (auth.isLoggedIn()) {
+                            <button
+                              class="qmo__entry-remove"
+                              type="button"
+                              title="remover"
+                              aria-label="remover do mapa"
+                              (click)="
+                                confirmRemoveEntry(section.id, entry.questId, entry.questTitle)
+                              "
+                            >
+                              <i class="ti ti-x" aria-hidden="true"></i>
+                            </button>
                           }
                         </div>
-                      </div>
-                    }
+                      }
+                    </div>
 
                     @if (auth.isLoggedIn()) {
                       @if (picker()?.sectionId === section.id) {

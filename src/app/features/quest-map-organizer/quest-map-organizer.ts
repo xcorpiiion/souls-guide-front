@@ -11,6 +11,13 @@ import {
 } from '@angular/core';
 import { catchError, of } from 'rxjs';
 import { RouterLink, ActivatedRoute, Router } from '@angular/router';
+import {
+  CdkDragDrop,
+  CdkDropList,
+  CdkDrag,
+  CdkDragHandle,
+  moveItemInArray,
+} from '@angular/cdk/drag-drop';
 import { QuestService } from '../../core/services/quest.service';
 import { QuestMapService } from '../../core/services/quest-map.service';
 import { AuthService } from '../../core/services/auth.service';
@@ -55,7 +62,7 @@ interface PickerState {
 
 @Component({
   selector: 'app-quest-map-organizer',
-  imports: [RouterLink, PageLoader, ConfirmModal],
+  imports: [RouterLink, PageLoader, ConfirmModal, CdkDropList, CdkDrag, CdkDragHandle],
   templateUrl: './quest-map-organizer.html',
   styleUrl: './quest-map-organizer.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -228,6 +235,25 @@ export class QuestMapOrganizer implements OnInit {
 
   protected onRemoveCancelled(): void {
     this.pendingRemove.set(null);
+  }
+
+  protected dropSection(event: CdkDragDrop<MapSectionLocal[]>): void {
+    this.sections.update((list) => {
+      const next = [...list];
+      moveItemInArray(next, event.previousIndex, event.currentIndex);
+      return next;
+    });
+  }
+
+  protected dropEntry(sectionId: number | string, event: CdkDragDrop<MapEntryLocal[]>): void {
+    this.sections.update((list) =>
+      list.map((s) => {
+        if (s.id !== sectionId) return s;
+        const next = [...s.entries];
+        moveItemInArray(next, event.previousIndex, event.currentIndex);
+        return { ...s, entries: next };
+      }),
+    );
   }
 
   protected groupByQuestline(entries: MapEntryLocal[]): NpcGroup[] {

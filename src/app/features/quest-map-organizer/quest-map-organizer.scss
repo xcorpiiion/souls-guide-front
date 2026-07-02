@@ -304,7 +304,67 @@
   padding-left: v.$space-8;
 }
 
+// ─── Drag handles ────────────────────────────────────────────────────────────
+
+.qmo__section-grip {
+  color: v.$color-text-faint;
+  font-size: 14px;
+  cursor: grab;
+  flex-shrink: 0;
+  opacity: 0;
+  transition: opacity 0.15s;
+
+  .qmo__section-head:hover & {
+    opacity: 0.5;
+  }
+
+  &:active {
+    cursor: grabbing;
+  }
+}
+
+.qmo__entry-grip {
+  color: v.$color-text-faint;
+  font-size: 13px;
+  cursor: grab;
+  flex-shrink: 0;
+  opacity: 0;
+  transition: opacity 0.15s;
+
+  .qmo__entry:hover & {
+    opacity: 0.5;
+  }
+
+  &:active {
+    cursor: grabbing;
+  }
+}
+
+// CDK drag-drop states
+.cdk-drag-animating {
+  transition: transform 250ms cubic-bezier(0, 0, 0.2, 1);
+}
+
+.qmo__sections.cdk-drop-list-dragging .qmo__section:not(.cdk-drag-placeholder) {
+  transition: transform 250ms cubic-bezier(0, 0, 0.2, 1);
+}
+
+.qmo__entry-list.cdk-drop-list-dragging .qmo__entry:not(.cdk-drag-placeholder) {
+  transition: transform 250ms cubic-bezier(0, 0, 0.2, 1);
+}
+
+.cdk-drag-placeholder {
+  opacity: 0.3;
+}
+
 // ─── Entries ─────────────────────────────────────────────────────────────────
+
+.qmo__entry-list {
+  display: flex;
+  flex-direction: column;
+  gap: v.$space-1;
+  margin-bottom: v.$space-2;
+}
 
 .qmo__entry {
   display: flex;
@@ -314,6 +374,17 @@
   border-radius: v.$radius-md;
   border: 1px solid v.$color-border;
   background: v.$color-bg-surface;
+}
+
+.qmo__entry-npc {
+  font-size: 10px;
+  color: v.$color-text-faint;
+  background: rgba(255, 255, 255, 0.05);
+  border: 0.5px solid v.$color-border;
+  border-radius: v.$radius-full;
+  padding: 1px 6px;
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .qmo__entry-dot {
