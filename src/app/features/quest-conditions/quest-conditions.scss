@@ -48,7 +48,7 @@
   grid-template-columns: 1fr 1fr;
   gap: v.$space-6;
 
-  @media (max-width: 900px) {
+  @media (max-width: 1024px) {
     grid-template-columns: 1fr;
   }
 }
