@@ -1,5 +1,10 @@
 @use 'styles/variables' as v;
 
+// Container query: reage ao tamanho do próprio componente, não do viewport
+.nsp {
+  container-type: inline-size;
+}
+
 .nsp__panels {
   display: grid;
   grid-template-columns: minmax(130px, 180px) 1fr;
@@ -7,11 +12,19 @@
   border-radius: v.$radius-md;
   overflow: hidden;
   height: 280px;
+}
 
-  @media (max-width: 480px) {
+// Abaixo de 420px de largura do componente, empilha verticalmente
+@container (max-width: 420px) {
+  .nsp__panels {
     grid-template-columns: 1fr;
-    grid-template-rows: 140px 1fr;
-    height: 400px;
+    grid-template-rows: 160px 1fr;
+    height: 380px;
+  }
+
+  .nsp__left {
+    border-right: none;
+    border-bottom: 1px solid v.$color-border;
   }
 }
 
@@ -20,11 +33,6 @@
   display: flex;
   flex-direction: column;
   overflow: hidden;
-
-  @media (max-width: 480px) {
-    border-right: none;
-    border-bottom: 1px solid v.$color-border;
-  }
 }
 
 .nsp__search-wrap {
