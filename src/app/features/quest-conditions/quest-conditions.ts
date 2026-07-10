@@ -74,6 +74,12 @@ export class QuestConditions implements OnInit {
     { value: 'FORCE_ENDING', label: 'sinalizar um final travado' },
   ];
 
+  protected readonly affectedNodeOptions = computed(() =>
+    this.effect() === 'FORCE_ENDING'
+      ? this.nodeOptions().filter((n) => n.nodeType === 'end')
+      : this.nodeOptions(),
+  );
+
   /** questId derivado do primeiro nó afetado selecionado (HIDE/REVEAL/FORCE_ENDING). */
   protected readonly derivedAffectedQuestId = computed(() => {
     const firstNodeId = [...this.selectedAffectedNodeIds()][0];
