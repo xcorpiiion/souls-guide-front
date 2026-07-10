@@ -165,6 +165,9 @@
   flex: 1;
   font-size: v.$font-size-sm;
   color: v.$color-text;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .nsp__badge {
