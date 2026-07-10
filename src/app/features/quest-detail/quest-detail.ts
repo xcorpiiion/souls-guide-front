@@ -105,6 +105,9 @@ export class QuestDetail implements OnInit {
   protected readonly blockedNodeReasons = signal<
     Map<string, { questTitle: string; questId: string | null; effect: 'HIDE' | 'REVEAL' }>
   >(new Map());
+  protected readonly forceEndingNodeReasons = signal<
+    Map<string, { questTitle: string; questId: string | null }>
+  >(new Map());
   protected readonly triggerNodeConditions = signal<Map<string, TriggerEffect[]>>(new Map());
   protected readonly conditionsLoading = signal(false);
 
@@ -217,6 +220,10 @@ export class QuestDetail implements OnInit {
                   string,
                   { questTitle: string; questId: string | null; effect: 'HIDE' | 'REVEAL' }
                 >();
+                const forceEndingMap = new Map<
+                  string,
+                  { questTitle: string; questId: string | null }
+                >();
                 const triggerMap = new Map<string, TriggerEffect[]>();
                 for (const c of conditions) {
                   if (
@@ -232,6 +239,12 @@ export class QuestDetail implements OnInit {
                       });
                     }
                   }
+                  if (c.effect === 'FORCE_ENDING' && c.endingNodeId && c.triggerQuestTitle) {
+                    forceEndingMap.set(c.endingNodeId, {
+                      questTitle: c.triggerQuestTitle,
+                      questId: c.triggerQuestId,
+                    });
+                  }
                   if (c.affectedQuestTitle && c.affectedQuestId) {
                     const effect: TriggerEffect = {
                       effect: c.effect,
@@ -246,6 +259,7 @@ export class QuestDetail implements OnInit {
                   }
                 }
                 this.blockedNodeReasons.set(reasonMap);
+                this.forceEndingNodeReasons.set(forceEndingMap);
                 this.triggerNodeConditions.set(triggerMap);
                 this.conditionsLoading.set(false);
               },
@@ -279,6 +293,7 @@ export class QuestDetail implements OnInit {
     this.showSharePopover.set(false);
     this.hiddenReasonRevealed.set(false);
     this.blockedNodeReasons.set(new Map());
+    this.forceEndingNodeReasons.set(new Map());
     this.triggerNodeConditions.set(new Map());
     this.conditionsLoading.set(false);
   }

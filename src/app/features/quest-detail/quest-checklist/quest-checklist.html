@@ -129,6 +129,26 @@
                   <i class="ti ti-check" aria-hidden="true" style="font-size: 10px"></i> concluído
                 </span>
               }
+              @if (!conditionsLoading() && forceEndingReason(entry.node.id); as fe) {
+                <div class="ck__force-ending-warning">
+                  <span class="ck__blocked-badge ck__blocked-badge--force-ending">
+                    <i class="ti ti-lock" aria-hidden="true"></i> final travado
+                  </span>
+                  <span class="ck__blocked-sub-text">pode ser bloqueado por:</span>
+                  <span class="ck__blocked-quest">{{ fe.questTitle }}</span>
+                  @if (fe.questId) {
+                    <a
+                      class="ck__blocked-link"
+                      role="button"
+                      tabindex="0"
+                      (click)="goToQuest(fe.questId!, $event)"
+                      (keydown.enter)="goToQuest(fe.questId!, $event)"
+                    >
+                      <i class="ti ti-arrow-right" aria-hidden="true"></i> ver quest
+                    </a>
+                  }
+                </div>
+              }
               @if (triggerNodeConditions().has(entry.node.id)) {
                 <div class="ck__trigger-panel">
                   <p class="ck__trigger-panel-label">este nó desencadeia</p>

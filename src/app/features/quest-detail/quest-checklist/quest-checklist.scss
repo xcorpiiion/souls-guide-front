@@ -454,6 +454,28 @@
     color: v.$color-text-muted;
     border: 0.5px solid v.$color-border;
   }
+
+  &--force-ending {
+    background: rgba(v.$color-warning, 0.1);
+    color: v.$color-warning;
+    border: 0.5px solid rgba(v.$color-warning, 0.3);
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+  }
+}
+
+.ck__force-ending-warning {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 6px;
+  font-size: 12px;
+}
+
+.ck__blocked-sub-text {
+  color: v.$color-text-muted;
 }
 
 .ck__blocked-quest {

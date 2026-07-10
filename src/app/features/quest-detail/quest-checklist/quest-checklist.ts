@@ -143,6 +143,10 @@ export class QuestChecklist {
   readonly blockedNodeReasons = input<
     Map<string, { questTitle: string; questId: string | null; effect: 'HIDE' | 'REVEAL' }>
   >(new Map());
+  /** Mapa de endingNodeId → quest gatilho que trava este final (FORCE_ENDING). */
+  readonly forceEndingNodeReasons = input<
+    Map<string, { questTitle: string; questId: string | null }>
+  >(new Map());
   /** Mapa de nodeId → condições que este nó dispara ao ser concluído. */
   readonly triggerNodeConditions = input<Map<string, TriggerEffect[]>>(new Map());
   /** true enquanto conditionService.listByGame ainda não retornou. */
@@ -195,6 +199,12 @@ export class QuestChecklist {
     nodeId: string,
   ): { questTitle: string; questId: string | null; effect: 'HIDE' | 'REVEAL' } | null {
     return this.blockedNodeReasons().get(nodeId) ?? null;
+  }
+
+  protected forceEndingReason(
+    nodeId: string,
+  ): { questTitle: string; questId: string | null } | null {
+    return this.forceEndingNodeReasons().get(nodeId) ?? null;
   }
 
   protected effectLabel(effect: ConditionEffect): string {
