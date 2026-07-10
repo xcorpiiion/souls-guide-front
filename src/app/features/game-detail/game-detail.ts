@@ -56,6 +56,7 @@ export class GameDetail implements OnInit {
   protected readonly gameFollowing = signal(false);
   protected readonly togglingFollow = signal(false);
   protected readonly quests = signal<QuestSummary[]>([]);
+  protected readonly questsLoading = signal(true);
   protected readonly loreArticles = signal<LoreSummary[]>([]);
 
   protected readonly activeTab = signal<Tab>('quests');
@@ -98,7 +99,11 @@ export class GameDetail implements OnInit {
     });
 
     this.questService.list(0, 50).subscribe({
-      next: (page) => this.quests.set(page.content.filter((q) => q.gameId === this.gameId)),
+      next: (page) => {
+        this.quests.set(page.content.filter((q) => q.gameId === this.gameId));
+        this.questsLoading.set(false);
+      },
+      error: () => this.questsLoading.set(false),
     });
 
     this.loreService.list(0, 50).subscribe({

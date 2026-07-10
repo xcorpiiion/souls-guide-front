@@ -206,7 +206,13 @@
               </div>
             </li>
           }
-          @if (filteredQuests().length === 0) {
+          @if (questsLoading()) {
+            <li class="game-detail__quest-empty game-detail__quest-empty--loading">
+              <span class="game-detail__quest-skeleton"></span>
+              <span class="game-detail__quest-skeleton game-detail__quest-skeleton--sm"></span>
+              <span class="game-detail__quest-skeleton"></span>
+            </li>
+          } @else if (filteredQuests().length === 0) {
             <li class="game-detail__quest-empty">Nenhuma quest com esse status ainda.</li>
           }
         </ul>

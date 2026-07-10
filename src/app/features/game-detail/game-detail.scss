@@ -460,6 +460,40 @@ $game-colors: (
   padding: v.$space-4 0;
 }
 
+.game-detail__quest-empty--loading {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: v.$space-3 0;
+  font-style: normal;
+  list-style: none;
+}
+
+@keyframes shimmer {
+  0% {
+    opacity: 0.4;
+  }
+  50% {
+    opacity: 0.8;
+  }
+  100% {
+    opacity: 0.4;
+  }
+}
+
+.game-detail__quest-skeleton {
+  display: block;
+  height: 44px;
+  border-radius: v.$radius-md;
+  background: v.$color-bg-elevated;
+  animation: shimmer 1.4s ease-in-out infinite;
+
+  &--sm {
+    height: 44px;
+    width: 60%;
+  }
+}
+
 .game-detail__add-card {
   @include m.reset-button;
   flex: 1;
