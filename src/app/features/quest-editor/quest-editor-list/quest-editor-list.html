@@ -257,40 +257,38 @@
       </label>
     }
 
-    @if (step.type !== 'end') {
-      <label class="qel__field">
-        <span class="qel__label">descrição</span>
-        <textarea
-          class="qel__input qel__input--textarea"
-          rows="3"
-          placeholder="opcional"
-          [value]="step.description ?? ''"
-          (input)="updateStepDescription($any($event.target).value)"
-        ></textarea>
-      </label>
+    <label class="qel__field">
+      <span class="qel__label">descrição</span>
+      <textarea
+        class="qel__input qel__input--textarea"
+        rows="3"
+        placeholder="opcional"
+        [value]="step.description ?? ''"
+        (input)="updateStepDescription($any($event.target).value)"
+      ></textarea>
+    </label>
 
-      <label class="qel__field">
-        <span class="qel__label">localização</span>
-        <input
-          class="qel__input"
-          type="text"
-          placeholder="opcional"
-          [value]="step.location ?? ''"
-          (input)="updateStepLocation($any($event.target).value)"
-        />
-      </label>
+    <label class="qel__field">
+      <span class="qel__label">localização</span>
+      <input
+        class="qel__input"
+        type="text"
+        placeholder="opcional"
+        [value]="step.location ?? ''"
+        (input)="updateStepLocation($any($event.target).value)"
+      />
+    </label>
 
-      <label class="qel__field">
-        <span class="qel__label">tags (vírgula)</span>
-        <input
-          class="qel__input"
-          type="text"
-          placeholder="ex: npc, boss"
-          [value]="stepTagsString(step)"
-          (input)="updateStepTags($any($event.target).value)"
-        />
-      </label>
-    }
+    <label class="qel__field">
+      <span class="qel__label">tags (vírgula)</span>
+      <input
+        class="qel__input"
+        type="text"
+        placeholder="ex: npc, boss"
+        [value]="stepTagsString(step)"
+        (input)="updateStepTags($any($event.target).value)"
+      />
+    </label>
 
     <button class="qel__details-done" type="button" (click)="closeDetails()">concluído</button>
   </aside>

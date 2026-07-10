@@ -32,17 +32,41 @@
           </div>
 
           <!-- conteúdo -->
-          @if (entry.node.type === 'start' || entry.node.type === 'end') {
-            <div
-              class="ck__boundary-label"
-              [class.ck__boundary-label--start]="entry.node.type === 'start'"
-              [class.ck__boundary-label--end]="entry.node.type === 'end'"
-            >
+          @if (entry.node.type === 'start') {
+            <div class="ck__boundary-label ck__boundary-label--start">
               {{ entry.node.label }}
-              @if (entry.node.type === 'end') {
+            </div>
+          } @else if (entry.node.type === 'end') {
+            <div class="ck__node-card ck__node-card--end">
+              <div class="ck__card-header-row">
+                <span class="ck__step-title">{{ entry.node.label }}</span>
                 <span class="ck__end-badge ck__end-badge--{{ entry.node.endingType ?? 'neutral' }}">
+                  <i class="ti ti-flag" aria-hidden="true" style="font-size: 10px"></i>
                   {{ endingLabel(entry.node.endingType) }}
                 </span>
+              </div>
+              @if (entry.node.sublabel) {
+                <span class="ck__step-sub">{{ entry.node.sublabel }}</span>
+              }
+              @if (!conditionsLoading() && forceEndingReason(entry.node.id); as fe) {
+                <div class="ck__force-ending-warning">
+                  <span class="ck__blocked-badge ck__blocked-badge--force-ending">
+                    <i class="ti ti-lock" aria-hidden="true"></i> final travado
+                  </span>
+                  <span class="ck__blocked-sub-text">pode ser bloqueado por:</span>
+                  <span class="ck__blocked-quest">{{ fe.questTitle }}</span>
+                  @if (fe.questId) {
+                    <a
+                      class="ck__blocked-link"
+                      role="button"
+                      tabindex="0"
+                      (click)="goToQuest(fe.questId!, $event)"
+                      (keydown.enter)="goToQuest(fe.questId!, $event)"
+                    >
+                      <i class="ti ti-arrow-right" aria-hidden="true"></i> ver quest
+                    </a>
+                  }
+                </div>
               }
             </div>
           } @else if (blockedNodeIds().has(entry.node.id)) {
