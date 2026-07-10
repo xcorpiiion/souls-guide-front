@@ -25,31 +25,19 @@
           <app-node-selector-panel [options]="nodeOptions()" [(selectedIds)]="selectedTriggerIds" />
         </div>
 
-        @if (effect() !== 'FORCE_ENDING') {
-          <div class="qc__field">
-            <span class="qc__label">etapas afetadas — nós que serão ocultados ou revelados</span>
-            <app-node-selector-panel
-              [options]="nodeOptions()"
-              [(selectedIds)]="selectedAffectedNodeIds"
-            />
-          </div>
-        }
-
-        @if (effect() === 'FORCE_ENDING') {
-          <label class="qc__field">
-            <span class="qc__label">quest com o final travado</span>
-            <select
-              class="qc__input qc__input--select"
-              [value]="affectedQuestId()"
-              (change)="affectedQuestId.set($any($event.target).value)"
-            >
-              <option value="">— selecione —</option>
-              @for (q of quests(); track q.id) {
-                <option [value]="q.id">{{ q.title }}</option>
-              }
-            </select>
-          </label>
-        }
+        <div class="qc__field">
+          <span class="qc__label">
+            @if (effect() === 'FORCE_ENDING') {
+              nó do final travado — selecione o nó que representa o final bloqueado
+            } @else {
+              etapas afetadas — nós que serão ocultados ou revelados
+            }
+          </span>
+          <app-node-selector-panel
+            [options]="nodeOptions()"
+            [(selectedIds)]="selectedAffectedNodeIds"
+          />
+        </div>
 
         <label class="qc__field">
           <span class="qc__label">efeito</span>
@@ -63,22 +51,6 @@
             }
           </select>
         </label>
-
-        @if (effect() === 'FORCE_ENDING') {
-          <label class="qc__field">
-            <span class="qc__label">final travado</span>
-            <select
-              class="qc__input qc__input--select"
-              [value]="endingNodeId()"
-              (change)="endingNodeId.set($any($event.target).value)"
-            >
-              <option value="">— selecione um final da quest afetada —</option>
-              @for (n of endingNodeOptions(); track n.nodeId) {
-                <option [value]="n.nodeId">{{ n.nodeLabel }}</option>
-              }
-            </select>
-          </label>
-        }
 
         <label class="qc__field">
           <span class="qc__label">descrição (explicação narrativa)</span>

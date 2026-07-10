@@ -103,13 +103,21 @@ describe('QuestConditions', () => {
     expect(fixture.componentInstance['formValid']()).toBe(false);
   });
 
-  it('formValid fica true com gatilho, quest afetada e descrição preenchidos', () => {
+  it('formValid fica true com gatilho, nó afetado e descrição preenchidos', () => {
+    const fixture = createFixture();
+    const comp = fixture.componentInstance as any;
+    comp.selectedTriggerIds.set(new Set(['n2']));
+    comp.selectedAffectedNodeIds.set(new Set(['n3']));
+    comp.description.set('Ranni some pra sempre.');
+    expect(comp.formValid()).toBe(true);
+  });
+
+  it('formValid fica true para FORCE_ENDING com nó de final selecionado', () => {
     const fixture = createFixture();
     const comp = fixture.componentInstance as any;
     comp.selectedTriggerIds.set(new Set(['n2']));
     comp.effect.set('FORCE_ENDING');
-    comp.affectedQuestId.set('45');
-    comp.endingNodeId.set('end-1');
+    comp.selectedAffectedNodeIds.set(new Set(['n3']));
     comp.description.set('Ranni some pra sempre.');
     expect(comp.formValid()).toBe(true);
   });

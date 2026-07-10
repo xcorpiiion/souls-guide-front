@@ -64,10 +64,7 @@ export class QuestConditions implements OnInit {
   });
   protected readonly selectedTriggerIds = signal<Set<string>>(new Set());
   protected readonly selectedAffectedNodeIds = signal<Set<string>>(new Set());
-  /** Quest dos nós afetados (HIDE/REVEAL) ou quest do final travado (FORCE_ENDING). */
-  protected readonly affectedQuestId = signal<string>('');
   protected readonly effect = signal<ConditionEffect>('HIDE');
-  protected readonly endingNodeId = signal<string>('');
   protected readonly description = signal('');
   protected readonly isSpoiler = signal(true);
 
@@ -77,11 +74,7 @@ export class QuestConditions implements OnInit {
     { value: 'FORCE_ENDING', label: 'sinalizar um final travado' },
   ];
 
-  protected readonly endingNodeOptions = computed(() =>
-    this.nodeOptions().filter((n) => n.questId === this.affectedQuestId() && n.nodeType === 'end'),
-  );
-
-  /** Para HIDE/REVEAL: questId derivado do primeiro nó afetado selecionado. */
+  /** questId derivado do primeiro nó afetado selecionado (HIDE/REVEAL/FORCE_ENDING). */
   protected readonly derivedAffectedQuestId = computed(() => {
     const firstNodeId = [...this.selectedAffectedNodeIds()][0];
     if (!firstNodeId) return null;
@@ -89,11 +82,7 @@ export class QuestConditions implements OnInit {
   });
 
   protected readonly formValid = computed(() => {
-    const effect = this.effect();
-    const hasAffected =
-      effect === 'FORCE_ENDING'
-        ? !!this.affectedQuestId() && !!this.endingNodeId()
-        : this.selectedAffectedNodeIds().size > 0 && !!this.derivedAffectedQuestId();
+    const hasAffected = this.selectedAffectedNodeIds().size > 0 && !!this.derivedAffectedQuestId();
     return (
       this.selectedTriggerIds().size > 0 && hasAffected && this.description().trim().length > 0
     );
@@ -153,9 +142,7 @@ export class QuestConditions implements OnInit {
     this.editingId.set(null);
     this.selectedTriggerIds.set(new Set());
     this.selectedAffectedNodeIds.set(new Set());
-    this.affectedQuestId.set('');
     this.effect.set('HIDE');
-    this.endingNodeId.set('');
     this.description.set('');
     this.isSpoiler.set(true);
   }
@@ -163,10 +150,13 @@ export class QuestConditions implements OnInit {
   protected startEdit(condition: QuestCondition): void {
     this.editingId.set(condition.id);
     this.selectedTriggerIds.set(new Set(condition.triggerNodeIds));
-    this.selectedAffectedNodeIds.set(new Set(condition.affectedNodeIds));
-    this.affectedQuestId.set(condition.affectedQuestId ?? '');
+    // Para FORCE_ENDING o endingNodeId é o "nó afetado"
+    const affectedNodes =
+      condition.effect === 'FORCE_ENDING' && condition.endingNodeId
+        ? [condition.endingNodeId]
+        : condition.affectedNodeIds;
+    this.selectedAffectedNodeIds.set(new Set(affectedNodes));
     this.effect.set(condition.effect);
-    this.endingNodeId.set(condition.endingNodeId ?? '');
     this.description.set(condition.description);
     this.isSpoiler.set(condition.isSpoiler);
   }
@@ -175,15 +165,13 @@ export class QuestConditions implements OnInit {
     if (!this.formValid() || this.saving()) return;
     this.saving.set(true);
     const isForceEnding = this.effect() === 'FORCE_ENDING';
-    const questId = isForceEnding
-      ? Number(this.affectedQuestId())
-      : Number(this.derivedAffectedQuestId());
+    const affectedNodes = [...this.selectedAffectedNodeIds()];
     const request: QuestConditionRequest = {
       triggerNodeIds: [...this.selectedTriggerIds()],
-      affectedNodeIds: isForceEnding ? null : [...this.selectedAffectedNodeIds()],
-      affectedQuestId: questId,
+      affectedNodeIds: isForceEnding ? null : affectedNodes,
+      affectedQuestId: Number(this.derivedAffectedQuestId()),
       effect: this.effect(),
-      endingNodeId: isForceEnding ? this.endingNodeId() : null,
+      endingNodeId: isForceEnding ? (affectedNodes[0] ?? null) : null,
       description: this.description().trim(),
       isSpoiler: this.isSpoiler(),
     };
