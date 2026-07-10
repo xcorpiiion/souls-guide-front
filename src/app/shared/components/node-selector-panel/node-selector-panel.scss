@@ -14,8 +14,8 @@
   height: 280px;
 }
 
-// Abaixo de 560px de largura do componente, empilha verticalmente
-@container (max-width: 560px) {
+// Abaixo de 360px de largura do componente, empilha verticalmente
+@container (max-width: 360px) {
   .nsp__panels {
     grid-template-columns: 1fr;
     grid-template-rows: 160px 1fr;
