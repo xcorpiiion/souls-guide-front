@@ -173,7 +173,7 @@ export class QuestMapOrganizer implements OnInit {
           }));
           this.sections.set(loaded);
           this.expandedIds.set(new Set(loaded.map((s) => s.id)));
-          if (this.auth.isLoggedIn()) this.loadProgress(loaded);
+          this.loadProgress(loaded);
         }
         this.loading.set(false);
       });
