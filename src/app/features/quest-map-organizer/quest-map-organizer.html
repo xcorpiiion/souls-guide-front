@@ -172,6 +172,26 @@
                               }
                             </span>
                           }
+                          @if (auth.isLoggedIn() && entry.questId) {
+                            @let prog = questProgress(entry.questId);
+                            @if (isQuestCompleted(entry.questId)) {
+                              <span
+                                class="qmo__entry-progress qmo__entry-progress--done"
+                                title="Quest concluída"
+                              >
+                                <i class="ti ti-circle-check-filled" aria-hidden="true"></i>
+                              </span>
+                            } @else if (prog && prog.completedNodes > 0) {
+                              <span
+                                class="qmo__entry-progress qmo__entry-progress--partial"
+                                title="{{ prog.completedNodes }}/{{
+                                  prog.totalNodes
+                                }} etapas concluídas"
+                              >
+                                {{ prog.completedNodes }}/{{ prog.totalNodes }}
+                              </span>
+                            }
+                          }
                           <span class="qmo__entry-tag qmo__entry-tag--{{ ph }}">
                             {{ phaseLabels[ph] }}
                           </span>

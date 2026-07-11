@@ -9,7 +9,7 @@ import {
   inject,
   signal,
 } from '@angular/core';
-import { catchError, of } from 'rxjs';
+import { catchError, forkJoin, of } from 'rxjs';
 import { RouterLink, ActivatedRoute, Router } from '@angular/router';
 import {
   CdkDragDrop,
@@ -20,8 +20,10 @@ import {
 } from '@angular/cdk/drag-drop';
 import { QuestService } from '../../core/services/quest.service';
 import { QuestMapService } from '../../core/services/quest-map.service';
+import { QuestProgressService } from '../../core/services/quest-progress.service';
 import { AuthService } from '../../core/services/auth.service';
 import { ToastService } from '../../shared/components/toast/toast.service';
+import { UserProgress } from '../../shared/models/user-progress.model';
 import { QuestSummary } from '../../shared/models/quest.model';
 import {
   MapSectionLocal,
@@ -63,6 +65,7 @@ export class QuestMapOrganizer implements OnInit {
   private readonly router = inject(Router);
   private readonly questService = inject(QuestService);
   private readonly questMapService = inject(QuestMapService);
+  private readonly questProgressService = inject(QuestProgressService);
   private readonly toast = inject(ToastService);
   readonly auth = inject(AuthService);
 
@@ -133,6 +136,17 @@ export class QuestMapOrganizer implements OnInit {
 
   protected readonly availableForPicker = computed(() => this.quests());
 
+  protected readonly progressMap = signal<Map<string, UserProgress>>(new Map());
+
+  protected questProgress(questId: string | null): UserProgress | null {
+    return questId ? (this.progressMap().get(questId) ?? null) : null;
+  }
+
+  protected isQuestCompleted(questId: string | null): boolean {
+    const p = this.questProgress(questId);
+    return !!p && p.totalNodes > 0 && p.completedNodes === p.totalNodes;
+  }
+
   ngOnInit(): void {
     this.questService.list(0, 100, undefined, this.gameId).subscribe({
       next: (page) => {
@@ -159,9 +173,32 @@ export class QuestMapOrganizer implements OnInit {
           }));
           this.sections.set(loaded);
           this.expandedIds.set(new Set(loaded.map((s) => s.id)));
+          if (this.auth.isLoggedIn()) this.loadProgress(loaded);
         }
         this.loading.set(false);
       });
+  }
+
+  private loadProgress(sections: MapSectionLocal[]): void {
+    const ids = [
+      ...new Set(
+        sections.flatMap((s) => s.entries.map((e) => e.questId)).filter((id): id is string => !!id),
+      ),
+    ];
+    if (!ids.length) return;
+    const requests = Object.fromEntries(
+      ids.map((id) => [
+        id,
+        this.questProgressService.getProgress(id).pipe(catchError(() => of(null))),
+      ]),
+    );
+    forkJoin(requests).subscribe((results) => {
+      const map = new Map<string, UserProgress>();
+      for (const [id, progress] of Object.entries(results)) {
+        if (progress) map.set(id, progress as UserProgress);
+      }
+      this.progressMap.set(map);
+    });
   }
 
   protected isSectionOpen(id: number | string): boolean {

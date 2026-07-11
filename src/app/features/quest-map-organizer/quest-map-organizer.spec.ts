@@ -6,8 +6,10 @@ import { QuestMapOrganizer } from './quest-map-organizer';
 import { QuestService } from '../../core/services/quest.service';
 import { QuestNode } from '../../shared/models/quest.model';
 import { QuestMapService } from '../../core/services/quest-map.service';
+import { QuestProgressService } from '../../core/services/quest-progress.service';
 import { ToastService } from '../../shared/components/toast/toast.service';
 import { GameQuestMapResponse } from '../../shared/models/quest-map.model';
+import { UserProgress } from '../../shared/models/user-progress.model';
 
 const MOCK_QUESTS = [
   {
@@ -47,6 +49,7 @@ const EMPTY_MAP: GameQuestMapResponse = { gameId: 1, sections: [] };
 const TOAST_MOCK = { success: vi.fn(), error: vi.fn(), info: vi.fn(), warning: vi.fn() };
 
 let mockSaveResult: GameQuestMapResponse = EMPTY_MAP;
+let mockProgressResult: UserProgress | null = null;
 
 function setup(mapResponse: GameQuestMapResponse = EMPTY_MAP): ComponentFixture<QuestMapOrganizer> {
   TestBed.configureTestingModule({
@@ -65,6 +68,10 @@ function setup(mapResponse: GameQuestMapResponse = EMPTY_MAP): ComponentFixture<
       {
         provide: QuestMapService,
         useValue: { getMap: () => of(mapResponse), saveMap: () => of(mockSaveResult) },
+      },
+      {
+        provide: QuestProgressService,
+        useValue: { getProgress: () => (mockProgressResult ? of(mockProgressResult) : of(null)) },
       },
       { provide: ToastService, useValue: TOAST_MOCK },
     ],
@@ -99,6 +106,7 @@ describe('QuestMapOrganizer', () => {
     TestBed.resetTestingModule();
     vi.clearAllMocks();
     mockSaveResult = EMPTY_MAP;
+    mockProgressResult = null;
   });
 
   it('should create', () => {
@@ -268,6 +276,27 @@ describe('QuestMapOrganizer', () => {
     expect(comp['sections']()[0].name).toBe('Limgrave');
   });
 
+  it('isQuestCompleted retorna false quando não há progresso', () => {
+    const { componentInstance: comp } = setup();
+    expect(comp['isQuestCompleted']('1')).toBe(false);
+  });
+
+  it('isQuestCompleted retorna false quando quest está em andamento', () => {
+    mockProgressResult = {
+      questId: '1',
+      completedNodeIds: ['n2'],
+      totalNodes: 4,
+      completedNodes: 1,
+    };
+    const { componentInstance: comp } = setup();
+    expect(comp['isQuestCompleted']('1')).toBe(false);
+  });
+
+  it('questProgress retorna null para questId null', () => {
+    const { componentInstance: comp } = setup();
+    expect(comp['questProgress'](null)).toBeNull();
+  });
+
   it('should replace local ids with numeric ids after save', () => {
     mockSaveResult = { gameId: 1, sections: [{ id: 99, name: 'Limgrave', order: 0, entries: [] }] };
     const { componentInstance: comp } = setup();
@@ -285,6 +314,7 @@ describe('QuestMapOrganizer — with existing map', () => {
     TestBed.resetTestingModule();
     vi.clearAllMocks();
     mockSaveResult = EMPTY_MAP;
+    mockProgressResult = null;
   });
 
   it('should load sections from existing map response', () => {
