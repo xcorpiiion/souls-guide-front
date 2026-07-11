@@ -34,21 +34,10 @@ import {
   groupByNpc,
 } from '../../shared/models/quest-map.model';
 import { ConfirmModal } from '../../shared/components/confirm-modal/confirm-modal';
-import { QuestNode, QuestEdge } from '../../shared/models/quest.model';
+import { QuestNode } from '../../shared/models/quest.model';
 import { PageLoader } from '../../shared/components/page-loader/page-loader';
 
-interface PickerBranch {
-  headerNode: QuestNode;
-  subNodes: QuestNode[];
-}
-
-interface PickerNodeGroup {
-  gatewayLabel: string | null;
-  topNodes: QuestNode[];
-  branches: PickerBranch[];
-}
-
-type PickerStep = 'phase' | 'questline' | 'quest';
+type PickerStep = 'questline' | 'details';
 
 interface PickerState {
   sectionId: number | string;
@@ -111,7 +100,7 @@ export class QuestMapOrganizer implements OnInit {
   }
 
   protected readonly loadingNodes = signal(false);
-  protected readonly pickerGroups = signal<PickerNodeGroup[]>([]);
+  protected readonly pickerNodes = signal<QuestNode[]>([]);
 
   /** Conjunto de pares "questId|nodeId" já adicionados em qualquer seção */
   protected readonly usedEntryKeys = computed(() => {
@@ -152,7 +141,14 @@ export class QuestMapOrganizer implements OnInit {
       .pipe(catchError(() => of(null)))
       .subscribe((res) => {
         if (res?.sections?.length) {
-          const loaded = responseToLocal(res);
+          const questTitleMap = new Map(this.quests().map((q) => [q.id, q.title]));
+          const loaded = responseToLocal(res).map((s) => ({
+            ...s,
+            entries: s.entries.map((e) => ({
+              ...e,
+              questTitle: (e.questId && questTitleMap.get(e.questId)) || e.questTitle,
+            })),
+          }));
           this.sections.set(loaded);
           this.expandedIds.set(new Set(loaded.map((s) => s.id)));
         }
@@ -271,7 +267,7 @@ export class QuestMapOrganizer implements OnInit {
   }
 
   protected openPicker(sectionId: number | string): void {
-    this.pickerGroups.set([]);
+    this.pickerNodes.set([]);
     this.picker.set({
       sectionId,
       step: 'questline',
@@ -285,77 +281,32 @@ export class QuestMapOrganizer implements OnInit {
 
   protected closePicker(): void {
     this.picker.set(null);
-    this.pickerGroups.set([]);
+    this.pickerNodes.set([]);
   }
 
   protected selectQuestline(id: string, title: string): void {
     this.picker.update((p) =>
-      p ? { ...p, questlineId: id, questlineTitle: title, step: 'quest' } : p,
+      p
+        ? {
+            ...p,
+            questlineId: id,
+            questlineTitle: title,
+            step: 'details',
+            questNodeId: null,
+            questNodeLabel: null,
+            phase: null,
+          }
+        : p,
     );
     this.loadingNodes.set(true);
-    this.pickerGroups.set([]);
+    this.pickerNodes.set([]);
     this.questService
-      .get(id)
-      .pipe(catchError(() => of(null)))
-      .subscribe((q) => {
-        const used = this.usedEntryKeys();
-        this.pickerGroups.set(this.buildPickerGroups(q?.nodes ?? [], q?.edges ?? [], used, id));
+      .listNodes(id)
+      .pipe(catchError(() => of([] as QuestNode[])))
+      .subscribe((nodes) => {
+        this.pickerNodes.set(nodes.filter((n) => n.type !== 'start'));
         this.loadingNodes.set(false);
       });
-  }
-
-  private buildPickerGroups(
-    nodes: QuestNode[],
-    edges: QuestEdge[],
-    used: Set<string>,
-    questlineId: string,
-  ): PickerNodeGroup[] {
-    const nodeMap = new Map(nodes.map((n) => [n.id, n]));
-    const gateways = nodes.filter((n) => n.type === 'gateway');
-    const isAvailable = (n: QuestNode) => !used.has(`${questlineId}|${n.id}`);
-
-    const bfsFrom = (startId: string): QuestNode[] => {
-      const visited = new Set<string>([startId]);
-      const queue = edges.filter((e) => e.from === startId).map((e) => e.to);
-      const result: QuestNode[] = [];
-      while (queue.length) {
-        const id = queue.shift()!;
-        if (visited.has(id)) continue;
-        visited.add(id);
-        const n = nodeMap.get(id);
-        if (!n) continue;
-        if (n.type === 'task') result.push(n);
-        if (n.type !== 'gateway')
-          edges.filter((e) => e.from === id).forEach((e) => queue.push(e.to));
-      }
-      return result;
-    };
-
-    const inGateway = new Set<string>();
-    for (const gw of gateways) bfsFrom(gw.id).forEach((n) => inGateway.add(n.id));
-
-    const groups: PickerNodeGroup[] = [];
-
-    const topNodes = nodes.filter(
-      (n) => n.type === 'task' && !inGateway.has(n.id) && isAvailable(n),
-    );
-    if (topNodes.length) groups.push({ gatewayLabel: null, topNodes, branches: [] });
-
-    for (const gw of gateways) {
-      const branches: PickerBranch[] = edges
-        .filter((e) => e.from === gw.id)
-        .map((e) => nodeMap.get(e.to))
-        .filter((n): n is QuestNode => !!n && n.type === 'task')
-        .map((headerNode) => ({
-          headerNode,
-          subNodes: bfsFrom(headerNode.id).filter(isAvailable),
-        }))
-        .filter((b) => isAvailable(b.headerNode) || b.subNodes.length > 0);
-
-      if (branches.length) groups.push({ gatewayLabel: gw.label, topNodes: [], branches });
-    }
-
-    return groups;
   }
 
   protected backToQuestlineStep(): void {
@@ -368,21 +319,18 @@ export class QuestMapOrganizer implements OnInit {
             questlineTitle: null,
             questNodeId: null,
             questNodeLabel: null,
+            phase: null,
           }
         : p,
     );
-    this.pickerGroups.set([]);
+    this.pickerNodes.set([]);
   }
 
-  protected selectQuestNode(nodeId: string, nodeLabel: string): void {
+  protected setPickerNode(event: Event): void {
+    const nodeId = (event.target as HTMLSelectElement).value;
+    const node = this.pickerNodes().find((n) => n.id === nodeId) ?? null;
     this.picker.update((p) =>
-      p ? { ...p, questNodeId: nodeId, questNodeLabel: nodeLabel, step: 'phase' } : p,
-    );
-  }
-
-  protected backToQuestStep(): void {
-    this.picker.update((p) =>
-      p ? { ...p, step: 'quest', questNodeId: null, questNodeLabel: null, phase: null } : p,
+      p ? { ...p, questNodeId: node?.id ?? null, questNodeLabel: node?.label ?? null } : p,
     );
   }
 
@@ -392,7 +340,7 @@ export class QuestMapOrganizer implements OnInit {
 
   protected confirmPick(): void {
     const p = this.picker();
-    if (!p?.questlineId || !p.questlineTitle || !p.questNodeId || !p.phase) return;
+    if (!p?.questlineId || !p.questlineTitle || !p.phase) return;
 
     const entry: MapEntryLocal = {
       questId: p.questlineId,
@@ -405,7 +353,7 @@ export class QuestMapOrganizer implements OnInit {
       s.map((x) => (x.id === p.sectionId ? { ...x, entries: [...x.entries, entry] } : x)),
     );
     this.picker.set(null);
-    this.pickerGroups.set([]);
+    this.pickerNodes.set([]);
   }
 
   protected dropSection(event: CdkDragDrop<MapSectionLocal[]>): void {
@@ -446,7 +394,14 @@ export class QuestMapOrganizer implements OnInit {
     this.questMapService.saveMap(this.gameId, localToRequest(this.sections())).subscribe({
       next: (res) => {
         this.saving.set(false);
-        const saved = responseToLocal(res);
+        const questTitleMap = new Map(this.quests().map((q) => [q.id, q.title]));
+        const saved = responseToLocal(res).map((s) => ({
+          ...s,
+          entries: s.entries.map((e) => ({
+            ...e,
+            questTitle: (e.questId && questTitleMap.get(e.questId)) || e.questTitle,
+          })),
+        }));
         this.sections.set(saved);
         this.expandedIds.set(new Set(saved.map((s) => s.id)));
         this.toast.success('Rota salva', 'A organização do mapa foi salva com sucesso.');

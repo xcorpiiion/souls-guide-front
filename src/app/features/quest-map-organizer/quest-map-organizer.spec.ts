@@ -4,7 +4,7 @@ import { describe, beforeEach, it, expect, vi } from 'vitest';
 import { of } from 'rxjs';
 import { QuestMapOrganizer } from './quest-map-organizer';
 import { QuestService } from '../../core/services/quest.service';
-import { QuestApi } from '../../shared/models/quest.model';
+import { QuestNode } from '../../shared/models/quest.model';
 import { QuestMapService } from '../../core/services/quest-map.service';
 import { ToastService } from '../../shared/components/toast/toast.service';
 import { GameQuestMapResponse } from '../../shared/models/quest-map.model';
@@ -34,23 +34,13 @@ const MOCK_QUESTS = [
   },
 ];
 
-const MOCK_QUEST_DETAIL: Partial<QuestApi> = {
-  id: 1,
-  title: 'A Última Promessa',
-  nodes: [
-    { id: 'n1', type: 'start', label: 'Início' },
-    { id: 'n2', type: 'task', label: 'Falar com Stone' },
-    { id: 'n3', type: 'gateway', label: 'Bifurcação: ajudar ou trair?' },
-    { id: 'n4', type: 'task', label: 'Entregar o artefato' },
-    { id: 'n5', type: 'end', label: 'Fim' },
-  ],
-  edges: [
-    { id: 'e1', from: 'n1', to: 'n2' },
-    { id: 'e2', from: 'n2', to: 'n3' },
-    { id: 'e3', from: 'n3', to: 'n4' },
-  ],
-  relatedQuests: [],
-} as unknown as Partial<QuestApi>;
+const MOCK_NODES: QuestNode[] = [
+  { id: 'n1', type: 'start', label: 'Início' },
+  { id: 'n2', type: 'task', label: 'Falar com Stone' },
+  { id: 'n3', type: 'gateway', label: 'Bifurcação: ajudar ou trair?' },
+  { id: 'n4', type: 'task', label: 'Entregar o artefato' },
+  { id: 'n5', type: 'end', label: 'Fim' },
+];
 
 const EMPTY_MAP: GameQuestMapResponse = { gameId: 1, sections: [] };
 
@@ -74,7 +64,7 @@ function setup(mapResponse: GameQuestMapResponse = EMPTY_MAP): ComponentFixture<
         useValue: {
           list: () =>
             of({ content: MOCK_QUESTS, totalElements: 2, totalPages: 1, number: 0, size: 100 }),
-          get: () => of(MOCK_QUEST_DETAIL),
+          listNodes: () => of(MOCK_NODES),
         },
       },
       { provide: QuestMapService, useValue: questMapSvc },
@@ -87,19 +77,23 @@ function setup(mapResponse: GameQuestMapResponse = EMPTY_MAP): ComponentFixture<
   return fixture;
 }
 
-/** Helper: percorre o picker de 3 etapas (questline → quest node → phase) */
+/** Helper: percorre o picker de 2 etapas (questline → details com nó opcional + phase) */
 function fillPicker(
   component: QuestMapOrganizer,
   sectionId: number | string,
   questlineId: string,
   questlineTitle: string,
-  nodeId: string,
-  nodeLabel: string,
+  nodeId: string | null,
+  nodeLabel: string | null,
   phase: 'inicio' | 'meio' | 'fim' | 'full',
 ) {
   component['openPicker'](sectionId);
   component['selectQuestline'](questlineId, questlineTitle);
-  component['selectQuestNode'](nodeId, nodeLabel);
+  if (nodeId && nodeLabel) {
+    component['picker'].update((p) =>
+      p ? { ...p, questNodeId: nodeId, questNodeLabel: nodeLabel } : p,
+    );
+  }
   component['selectPhase'](phase);
   component['confirmPick']();
 }
@@ -160,30 +154,18 @@ describe('QuestMapOrganizer', () => {
     expect(component['picker']()?.step).toBe('questline');
   });
 
-  it('should advance to quest step and load nodes after selecting questline', () => {
+  it('should advance to details step and load nodes after selecting questline', () => {
     component['addSection']();
     component['openPicker'](component['sections']()[0].id);
     component['selectQuestline']('1', 'A Última Promessa');
-    expect(component['picker']()?.step).toBe('quest');
+    expect(component['picker']()?.step).toBe('details');
     expect(component['picker']()?.questlineId).toBe('1');
     expect(component['picker']()?.questlineTitle).toBe('A Última Promessa');
-    const groups = component['pickerGroups']();
-    expect(groups.length).toBeGreaterThan(0);
-    const topLevel = groups.find((g) => g.gatewayLabel === null);
-    expect(topLevel?.topNodes[0].label).toBe('Falar com Stone');
-    const gatewayGroup = groups.find((g) => g.gatewayLabel === 'Bifurcação: ajudar ou trair?');
-    expect(gatewayGroup).toBeDefined();
-    expect(gatewayGroup?.branches[0].headerNode.label).toBe('Entregar o artefato');
-  });
-
-  it('should advance to phase step after selecting quest node', () => {
-    component['addSection']();
-    component['openPicker'](component['sections']()[0].id);
-    component['selectQuestline']('1', 'A Última Promessa');
-    component['selectQuestNode']('n2', 'Falar com Stone');
-    expect(component['picker']()?.step).toBe('phase');
-    expect(component['picker']()?.questNodeLabel).toBe('Falar com Stone');
-    expect(component['picker']()?.questNodeId).toBe('n2');
+    // start node filtered out → 4 nodes
+    const nodes = component['pickerNodes']();
+    expect(nodes.length).toBe(4);
+    expect(nodes.some((n) => n.label === 'Falar com Stone')).toBe(true);
+    expect(nodes.some((n) => n.type === 'start')).toBe(false);
   });
 
   it('should show all available questlines', () => {
@@ -192,7 +174,7 @@ describe('QuestMapOrganizer', () => {
     expect(component['availableForPicker']().length).toBe(2);
   });
 
-  it('should go back to questline step from quest step', () => {
+  it('should go back to questline step from details step', () => {
     component['addSection']();
     component['openPicker'](component['sections']()[0].id);
     component['selectQuestline']('1', 'A Última Promessa');
@@ -201,17 +183,7 @@ describe('QuestMapOrganizer', () => {
     expect(component['picker']()?.questlineId).toBeNull();
   });
 
-  it('should go back to quest step from phase step', () => {
-    component['addSection']();
-    component['openPicker'](component['sections']()[0].id);
-    component['selectQuestline']('1', 'A Última Promessa');
-    component['selectQuestNode']('n2', 'Falar com Stone');
-    component['backToQuestStep']();
-    expect(component['picker']()?.step).toBe('quest');
-    expect(component['picker']()?.questNodeId).toBeNull();
-  });
-
-  it('should add entry after completing all 3 steps', () => {
+  it('should add entry with node after completing 2 steps', () => {
     component['addSection']();
     const id = component['sections']()[0].id;
     fillPicker(component, id, '1', 'A Última Promessa', 'n2', 'Falar com Stone', 'inicio');
@@ -225,12 +197,23 @@ describe('QuestMapOrganizer', () => {
     expect(component['picker']()).toBeNull();
   });
 
+  it('should add entry without node (nodeId null)', () => {
+    component['addSection']();
+    const id = component['sections']()[0].id;
+    fillPicker(component, id, '1', 'A Última Promessa', null, null, 'full');
+    expect(component['sections']()[0].entries.length).toBe(1);
+    const entry = component['sections']()[0].entries[0];
+    expect(entry.questId).toBe('1');
+    expect(entry.nodeId).toBeNull();
+    expect(entry.nodeTitle).toBeNull();
+    expect(entry.phase).toBe('full');
+  });
+
   it('should not confirm pick without phase selected', () => {
     component['addSection']();
     const id = component['sections']()[0].id;
     component['openPicker'](id);
     component['selectQuestline']('1', 'A Última Promessa');
-    component['selectQuestNode']('n2', 'Falar com Stone');
     component['confirmPick']();
     expect(component['sections']()[0].entries.length).toBe(0);
     expect(component['picker']()).not.toBeNull();

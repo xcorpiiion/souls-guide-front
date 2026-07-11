@@ -53,6 +53,10 @@ export class QuestService {
     return this.http.get<QuestApi>(`${this.base}/${id}`);
   }
 
+  listNodes(questId: string): Observable<QuestNode[]> {
+    return this.http.get<QuestNode[]>(`${this.base}/${questId}/nodes`);
+  }
+
   create(request: QuestRequest): Observable<QuestApi> {
     return this.http.post<QuestApi>(this.base, request);
   }

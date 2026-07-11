@@ -214,7 +214,7 @@
                     @if (auth.isLoggedIn()) {
                       @if (picker()?.sectionId === section.id) {
                         <div class="qmo__picker">
-                          <!-- Etapa 1: Linha de quest -->
+                          <!-- Etapa 1: Selecionar quest -->
                           @if (picker()!.step === 'questline') {
                             <p class="qmo__picker-label">
                               <i class="ti ti-sword" aria-hidden="true"></i>
@@ -248,8 +248,8 @@
                             </div>
                           }
 
-                          <!-- Etapa 2: Quest (node) dentro da linha -->
-                          @if (picker()!.step === 'quest') {
+                          <!-- Etapa 2: Nó opcional + fase -->
+                          @if (picker()!.step === 'details') {
                             <p class="qmo__picker-label">
                               <button
                                 class="qmo__picker-back"
@@ -262,120 +262,32 @@
                               <span class="qmo__picker-npc-chip">{{
                                 picker()!.questlineTitle
                               }}</span>
-                              — selecione a quest
                             </p>
-                            @if (loadingNodes()) {
-                              <p class="qmo__picker-empty">carregando quests…</p>
-                            } @else {
-                              <div class="qmo__picker-list">
-                                @for (group of pickerGroups(); track group.gatewayLabel) {
-                                  @if (group.gatewayLabel) {
-                                    <!-- Cabeçalho do gateway -->
-                                    <div class="qmo__picker-gateway-header">
-                                      <i class="ti ti-git-fork" aria-hidden="true"></i>
-                                      {{ group.gatewayLabel }}
-                                    </div>
-                                    <!-- Ramos do gateway -->
-                                    @for (branch of group.branches; track branch.headerNode.id) {
-                                      <div class="qmo__picker-branch">
-                                        <div class="qmo__picker-branch-header">
-                                          <i class="ti ti-arrow-right" aria-hidden="true"></i>
-                                          {{ branch.headerNode.label }}
-                                        </div>
-                                        <div class="qmo__picker-branch-nodes">
-                                          @if (isAvailableNode(branch.headerNode)) {
-                                            <button
-                                              class="qmo__picker-quest qmo__picker-quest--sub"
-                                              type="button"
-                                              (click)="
-                                                selectQuestNode(
-                                                  branch.headerNode.id,
-                                                  branch.headerNode.label
-                                                )
-                                              "
-                                            >
-                                              <span class="qmo__picker-quest-title">{{
-                                                branch.headerNode.label
-                                              }}</span>
-                                            </button>
-                                          }
-                                          @for (node of branch.subNodes; track node.id) {
-                                            <button
-                                              class="qmo__picker-quest qmo__picker-quest--sub"
-                                              type="button"
-                                              (click)="selectQuestNode(node.id, node.label)"
-                                            >
-                                              <span class="qmo__picker-quest-title">{{
-                                                node.label
-                                              }}</span>
-                                              @if (node.sublabel) {
-                                                <span class="qmo__picker-quest-meta">{{
-                                                  node.sublabel
-                                                }}</span>
-                                              }
-                                            </button>
-                                          }
-                                        </div>
-                                      </div>
-                                    }
-                                  } @else {
-                                    <!-- Tarefas de nível superior (sem gateway) -->
-                                    @for (node of group.topNodes; track node.id) {
-                                      <button
-                                        class="qmo__picker-quest"
-                                        type="button"
-                                        (click)="selectQuestNode(node.id, node.label)"
-                                      >
-                                        <span class="qmo__picker-quest-title">{{
-                                          node.label
-                                        }}</span>
-                                        @if (node.sublabel) {
-                                          <span class="qmo__picker-quest-meta">{{
-                                            node.sublabel
-                                          }}</span>
-                                        }
-                                      </button>
-                                    }
-                                  }
-                                }
-                                @if (!pickerGroups().length) {
-                                  <p class="qmo__picker-empty">
-                                    esta linha de quest não tem passos cadastrados.
-                                  </p>
-                                }
-                              </div>
-                            }
-                            <div class="qmo__picker-actions">
-                              <button
-                                class="qmo__picker-cancel"
-                                type="button"
-                                (click)="closePicker()"
-                              >
-                                cancelar
-                              </button>
-                            </div>
-                          }
 
-                          <!-- Etapa 3: Fase nesta área -->
-                          @if (picker()!.step === 'phase') {
-                            <p class="qmo__picker-label">
-                              <button
-                                class="qmo__picker-back"
-                                type="button"
-                                (click)="backToQuestStep()"
-                                aria-label="voltar"
-                              >
-                                <i class="ti ti-arrow-left" aria-hidden="true"></i>
-                              </button>
-                              <span class="qmo__picker-npc-chip">{{
-                                picker()!.questlineTitle
-                              }}</span>
-                              —
-                              <span class="qmo__picker-quest-chip">{{
-                                picker()!.questNodeLabel
-                              }}</span>
-                              — fase nesta área
-                            </p>
+                            <label class="qmo__picker-node-field">
+                              <span class="qmo__picker-node-label">
+                                etapa específica
+                                <span class="qmo__picker-optional">(opcional)</span>
+                              </span>
+                              @if (loadingNodes()) {
+                                <select class="qmo__picker-node-select" disabled>
+                                  <option>carregando…</option>
+                                </select>
+                              } @else {
+                                <select
+                                  class="qmo__picker-node-select"
+                                  [value]="picker()!.questNodeId ?? ''"
+                                  (change)="setPickerNode($event)"
+                                >
+                                  <option value="">— sem etapa específica —</option>
+                                  @for (n of pickerNodes(); track n.id) {
+                                    <option [value]="n.id">{{ n.label }}</option>
+                                  }
+                                </select>
+                              }
+                            </label>
+
+                            <p class="qmo__picker-phase-label">fase nesta área</p>
                             <div class="qmo__picker-phases">
                               @for (ph of phases; track ph) {
                                 <button
