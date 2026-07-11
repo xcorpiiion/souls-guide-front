@@ -115,7 +115,15 @@ export class QuestMapOrganizer implements OnInit {
     this.sections().some((s) => s.entries.some((e) => e.questId === null)),
   );
 
-  protected readonly placedCount = computed(() => this.usedEntryKeys().size);
+  protected readonly placedCount = computed(() => {
+    const ids = new Set<string>();
+    this.sections().forEach((s) =>
+      s.entries.forEach((e) => {
+        if (e.questId) ids.add(e.questId);
+      }),
+    );
+    return ids.size;
+  });
   protected readonly totalCount = computed(() => this.quests().length);
 
   protected readonly progressPct = computed(() => {
