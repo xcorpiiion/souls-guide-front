@@ -264,17 +264,18 @@
                               }}</span>
                             </p>
 
-                            <label class="qmo__picker-node-field">
-                              <span class="qmo__picker-node-label">
+                            <div class="qmo__picker-node-field">
+                              <label class="qmo__picker-node-label" for="picker-node-select">
                                 etapa específica
                                 <span class="qmo__picker-optional">(opcional)</span>
-                              </span>
+                              </label>
                               @if (loadingNodes()) {
                                 <select class="qmo__picker-node-select" disabled>
                                   <option>carregando…</option>
                                 </select>
                               } @else {
                                 <select
+                                  id="picker-node-select"
                                   class="qmo__picker-node-select"
                                   [value]="picker()!.questNodeId ?? ''"
                                   (change)="setPickerNode($event)"
@@ -285,7 +286,7 @@
                                   }
                                 </select>
                               }
-                            </label>
+                            </div>
 
                             <p class="qmo__picker-phase-label">fase nesta área</p>
                             <div class="qmo__picker-phases">
