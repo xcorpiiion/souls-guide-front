@@ -173,7 +173,6 @@
                             </span>
                           }
                           @if (auth.isLoggedIn() && entry.questId) {
-                            @let prog = questProgress(entry.questId);
                             @if (isQuestCompleted(entry.questId)) {
                               <span
                                 class="qmo__entry-progress qmo__entry-progress--done"
@@ -181,14 +180,14 @@
                               >
                                 <i class="ti ti-circle-check-filled" aria-hidden="true"></i>
                               </span>
-                            } @else if (prog && prog.completedNodes > 0) {
+                            } @else if (completedSteps(entry.questId) > 0) {
                               <span
                                 class="qmo__entry-progress qmo__entry-progress--partial"
-                                title="{{ prog.completedNodes }}/{{
-                                  prog.totalNodes
+                                title="{{ completedSteps(entry.questId) }}/{{
+                                  totalSteps(entry.questId)
                                 }} etapas concluídas"
                               >
-                                {{ prog.completedNodes }}/{{ prog.totalNodes }}
+                                {{ completedSteps(entry.questId) }}/{{ totalSteps(entry.questId) }}
                               </span>
                             }
                           }

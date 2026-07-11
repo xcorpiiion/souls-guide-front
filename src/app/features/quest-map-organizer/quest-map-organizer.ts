@@ -144,7 +144,17 @@ export class QuestMapOrganizer implements OnInit {
 
   protected isQuestCompleted(questId: string | null): boolean {
     const p = this.questProgress(questId);
-    return !!p && p.totalNodes > 0 && p.completedNodes === p.totalNodes;
+    if (!p || !p.completedNodeIds.length) return false;
+    const quest = this.quests().find((q) => q.id === questId);
+    return !!quest && p.completedNodeIds.length >= quest.stepCount;
+  }
+
+  protected completedSteps(questId: string | null): number {
+    return this.questProgress(questId)?.completedNodeIds.length ?? 0;
+  }
+
+  protected totalSteps(questId: string | null): number {
+    return this.quests().find((q) => q.id === questId)?.stepCount ?? 0;
   }
 
   ngOnInit(): void {

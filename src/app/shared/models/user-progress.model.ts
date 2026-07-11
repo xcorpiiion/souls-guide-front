@@ -1,6 +1,6 @@
 export interface UserProgress {
   questId: string;
   completedNodeIds: string[];
-  totalNodes: number;
-  completedNodes: number;
+  totalNodes?: number;
+  completedNodes?: number;
 }
