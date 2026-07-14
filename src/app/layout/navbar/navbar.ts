@@ -32,6 +32,7 @@ export class Navbar implements OnInit {
     { path: '/home', label: 'Início' },
     { path: '/games', label: 'Jogos' },
     { path: '/quests', label: 'Quests' },
+    { path: '/rotas', label: 'Rotas' },
     { path: '/lore', label: 'Lore' },
     { path: '/comunidade', label: 'Comunidade' },
     { path: '/profile', label: 'Perfil' },

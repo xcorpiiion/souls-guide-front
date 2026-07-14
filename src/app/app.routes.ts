@@ -67,6 +67,10 @@ export const routes: Routes = [
     loadComponent: () => import('./features/quests/quests').then((m) => m.Quests),
   },
   {
+    path: 'rotas',
+    loadComponent: () => import('./features/rotas/rotas').then((m) => m.Rotas),
+  },
+  {
     path: 'lore',
     loadComponent: () => import('./features/lore/lore').then((m) => m.Lore),
   },
