@@ -14,7 +14,6 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { GameService } from '../../core/services/game.service';
 import { GameSummary } from '../../shared/models/game.model';
 import { AuthService } from '../../core/services/auth.service';
-import { PageLoader } from '../../shared/components/page-loader/page-loader';
 
 type SortOption = '' | 'quests' | 'contributors';
 
@@ -28,7 +27,7 @@ const PAGE_SIZE = 18;
 
 @Component({
   selector: 'app-rotas',
-  imports: [RouterLink, FormsModule, PageLoader],
+  imports: [RouterLink, FormsModule],
   templateUrl: './rotas.html',
   styleUrl: './rotas.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
