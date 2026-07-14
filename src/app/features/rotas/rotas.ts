@@ -16,6 +16,14 @@ import { GameSummary } from '../../shared/models/game.model';
 import { AuthService } from '../../core/services/auth.service';
 import { PageLoader } from '../../shared/components/page-loader/page-loader';
 
+type SortOption = '' | 'quests' | 'contributors';
+
+const SORT_FILTERS: { id: SortOption; label: string }[] = [
+  { id: '', label: 'todos' },
+  { id: 'quests', label: 'mais quests' },
+  { id: 'contributors', label: 'mais contribuidores' },
+];
+
 const PAGE_SIZE = 18;
 
 @Component({
@@ -30,17 +38,27 @@ export class Rotas implements OnInit {
   private readonly destroyRef = inject(DestroyRef);
   readonly auth = inject(AuthService);
 
+  protected readonly sortFilters = SORT_FILTERS;
+  protected readonly skeletonItems = Array.from({ length: PAGE_SIZE });
+
   protected readonly loading = signal(true);
   protected readonly games = signal<GameSummary[]>([]);
   protected readonly totalElements = signal(0);
   protected readonly totalPages = signal(0);
   protected readonly currentPage = signal(0);
   protected readonly searchTerm = signal('');
-  protected readonly skeletonItems = Array.from({ length: PAGE_SIZE });
+  protected readonly sortFilter = signal<SortOption>('');
 
   private readonly load$ = new Subject<{ q: string; page: number }>();
 
-  protected readonly filteredCount = computed(() => this.totalElements());
+  protected readonly displayGames = computed(() => {
+    const sort = this.sortFilter();
+    const list = [...this.games()];
+    if (sort === 'quests') return list.sort((a, b) => b.questCount - a.questCount);
+    if (sort === 'contributors')
+      return list.sort((a, b) => b.contributorsCount - a.contributorsCount);
+    return list;
+  });
 
   ngOnInit(): void {
     this.load$
@@ -74,6 +92,10 @@ export class Rotas implements OnInit {
     this.searchTerm.set(term);
     this.currentPage.set(0);
     this.emit(0);
+  }
+
+  protected setSortFilter(sort: SortOption): void {
+    this.sortFilter.set(sort);
   }
 
   protected goToPage(page: number): void {

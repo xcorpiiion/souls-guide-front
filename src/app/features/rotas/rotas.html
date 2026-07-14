@@ -21,6 +21,19 @@
           aria-label="Buscar jogo"
         />
       </div>
+
+      <div class="rt__filter-row">
+        @for (f of sortFilters; track f.id) {
+          <button
+            class="rt__chip"
+            [class.rt__chip--active]="sortFilter() === f.id"
+            type="button"
+            (click)="setSortFilter(f.id)"
+          >
+            {{ f.label }}
+          </button>
+        }
+      </div>
     </div>
   </header>
 
@@ -37,9 +50,9 @@
           </div>
         }
       </div>
-    } @else if (games().length) {
+    } @else if (displayGames().length) {
       <div class="rt__grid">
-        @for (game of games(); track game.id) {
+        @for (game of displayGames(); track game.id) {
           <a class="rt__card" [routerLink]="['/games', game.id, 'quest-map']">
             <div class="rt__card-banner">
               <span class="rt__card-short">{{ game.shortName }}</span>

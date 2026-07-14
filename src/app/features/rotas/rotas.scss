@@ -92,6 +92,41 @@
   }
 }
 
+// ─── filter row ───────────────────────────────────────────────────────────────
+
+.rt__filter-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: v.$space-2;
+  margin-top: v.$space-3;
+}
+
+.rt__chip {
+  padding: 4px 14px;
+  border-radius: v.$radius-full;
+  border: 1px solid v.$color-border;
+  background: transparent;
+  color: v.$color-text-muted;
+  font-family: v.$font-body;
+  font-size: v.$font-size-sm;
+  cursor: pointer;
+  transition:
+    border-color 0.12s,
+    color 0.12s,
+    background 0.12s;
+
+  &:hover:not(.rt__chip--active) {
+    border-color: v.$color-text-faint;
+    color: v.$color-text;
+  }
+
+  &--active {
+    border-color: v.$color-gold;
+    color: v.$color-gold;
+    background: rgba(v.$color-gold, 0.08);
+  }
+}
+
 // ─── body ─────────────────────────────────────────────────────────────────────
 
 .rt__body {
