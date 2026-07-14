@@ -148,8 +148,25 @@ export class QuestMapOrganizer implements OnInit, HasUnsavedChanges {
   protected readonly availableForPicker = computed(() => this.quests());
 
   hasUnsavedChanges(): boolean {
-    return this.isDirty();
+    return this.isEditing() && this.isDirty();
   }
+
+  protected startEditing(): void {
+    this.snapshot = JSON.parse(JSON.stringify(this.sections()));
+    this.isEditing.set(true);
+  }
+
+  protected cancelEditing(): void {
+    this.sections.set(this.snapshot);
+    this.isDirty.set(false);
+    this.isEditing.set(false);
+    this.picker.set(null);
+    this.pickerNodes.set([]);
+    this.editingSectionId.set(null);
+  }
+
+  protected readonly isEditing = signal(false);
+  private snapshot: MapSectionLocal[] = [];
 
   protected readonly activeQuestId = signal<string | null>(null);
   protected readonly progressMap = signal<Map<string, UserProgress>>(new Map());
@@ -490,6 +507,7 @@ export class QuestMapOrganizer implements OnInit, HasUnsavedChanges {
       next: (res) => {
         this.saving.set(false);
         this.isDirty.set(false);
+        this.isEditing.set(false);
         const questTitleMap = new Map(this.quests().map((q) => [q.id, q.title]));
         const saved = responseToLocal(res).map((s) => ({
           ...s,

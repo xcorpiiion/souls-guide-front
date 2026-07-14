@@ -105,6 +105,46 @@
   }
 }
 
+.qmo__edit-btn {
+  display: flex;
+  align-items: center;
+  gap: v.$space-2;
+  background: transparent;
+  border: 1px solid v.$color-border;
+  border-radius: v.$radius-sm;
+  color: v.$color-text-muted;
+  font-family: v.$font-body;
+  font-size: v.$font-size-sm;
+  padding: 8px 16px;
+  cursor: pointer;
+  white-space: nowrap;
+
+  &:hover {
+    border-color: v.$color-gold;
+    color: v.$color-gold;
+  }
+}
+
+.qmo__cancel-btn {
+  display: flex;
+  align-items: center;
+  gap: v.$space-2;
+  background: transparent;
+  border: 1px solid v.$color-border;
+  border-radius: v.$radius-sm;
+  color: v.$color-text-muted;
+  font-family: v.$font-body;
+  font-size: v.$font-size-sm;
+  padding: 8px 16px;
+  cursor: pointer;
+  white-space: nowrap;
+
+  &:hover {
+    border-color: v.$color-ember;
+    color: v.$color-ember;
+  }
+}
+
 .qmo__spin {
   animation: qmo-spin 0.8s linear infinite;
 }

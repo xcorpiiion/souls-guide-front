@@ -10,9 +10,12 @@
       <div class="qmo__header-info">
         <h1 class="qmo__title"><i class="ti ti-map-2" aria-hidden="true"></i> rota de quests</h1>
         <p class="qmo__subtitle">
-          @if (auth.isLoggedIn()) {
+          @if (auth.isLoggedIn() && isEditing()) {
             organize as quests por área — escolha o personagem, selecione a quest e marque em que
             etapa ela acontece naquele mapa.
+          } @else if (auth.isLoggedIn()) {
+            veja a rota organizada pela comunidade. clique em
+            <strong>editar rota</strong> para fazer alterações.
           } @else {
             veja a ordem sugerida pela comunidade para cada área do jogo. faça login para
             contribuir.
@@ -21,23 +24,32 @@
       </div>
       @if (auth.isLoggedIn()) {
         <div class="qmo__header-actions">
-          @if (hasOrphanedEntries()) {
-            <button
-              class="qmo__clear-orphans-btn"
-              type="button"
-              (click)="clearOrphanedEntries()"
-              title="Remover entradas cujas quests foram deletadas"
-            >
-              <i class="ti ti-trash" aria-hidden="true"></i> limpar itens removidos
+          @if (isEditing()) {
+            @if (hasOrphanedEntries()) {
+              <button
+                class="qmo__clear-orphans-btn"
+                type="button"
+                (click)="clearOrphanedEntries()"
+                title="Remover entradas cujas quests foram deletadas"
+              >
+                <i class="ti ti-trash" aria-hidden="true"></i> limpar itens removidos
+              </button>
+            }
+            <button class="qmo__cancel-btn" type="button" (click)="cancelEditing()">
+              <i class="ti ti-x" aria-hidden="true"></i> cancelar
+            </button>
+            <button class="qmo__save-btn" type="button" [disabled]="saving()" (click)="save()">
+              @if (saving()) {
+                <i class="ti ti-loader-2 qmo__spin" aria-hidden="true"></i> salvando…
+              } @else {
+                <i class="ti ti-device-floppy" aria-hidden="true"></i> salvar rota
+              }
+            </button>
+          } @else {
+            <button class="qmo__edit-btn" type="button" (click)="startEditing()">
+              <i class="ti ti-pencil" aria-hidden="true"></i> editar rota
             </button>
           }
-          <button class="qmo__save-btn" type="button" [disabled]="saving()" (click)="save()">
-            @if (saving()) {
-              <i class="ti ti-loader-2 qmo__spin" aria-hidden="true"></i> salvando…
-            } @else {
-              <i class="ti ti-device-floppy" aria-hidden="true"></i> salvar rota
-            }
-          </button>
         </div>
       }
     </div>
@@ -67,7 +79,7 @@
                 [class.qmo__section--open]="isSectionOpen(section.id)"
                 cdkDrag
                 [cdkDragData]="section"
-                [cdkDragDisabled]="!!picker() || !auth.isLoggedIn()"
+                [cdkDragDisabled]="!!picker() || !auth.isLoggedIn() || !isEditing()"
               >
                 <div
                   class="qmo__section-head"
@@ -77,7 +89,7 @@
                   (keyup.enter)="toggleSection(section.id)"
                   (keyup.space)="toggleSection(section.id)"
                 >
-                  @if (auth.isLoggedIn()) {
+                  @if (auth.isLoggedIn() && isEditing()) {
                     <i
                       class="ti ti-grip-vertical qmo__section-grip"
                       cdkDragHandle
@@ -87,7 +99,7 @@
                   }
                   <i class="ti ti-chevron-down qmo__section-chevron" aria-hidden="true"></i>
 
-                  @if (auth.isLoggedIn() && editingSectionId() === section.id) {
+                  @if (auth.isLoggedIn() && isEditing() && editingSectionId() === section.id) {
                     <input
                       class="qmo__section-name qmo__section-name--editing"
                       type="text"
@@ -105,7 +117,7 @@
                     <span class="qmo__section-name qmo__section-name--readonly">
                       {{ section.name || 'sem nome' }}
                     </span>
-                    @if (auth.isLoggedIn()) {
+                    @if (auth.isLoggedIn() && isEditing()) {
                       <button
                         class="qmo__section-edit"
                         type="button"
@@ -122,7 +134,7 @@
                     {{ section.entries.length }} quest{{ section.entries.length !== 1 ? 's' : '' }}
                   </span>
 
-                  @if (auth.isLoggedIn()) {
+                  @if (auth.isLoggedIn() && isEditing()) {
                     <button
                       class="qmo__section-delete"
                       type="button"
@@ -146,7 +158,7 @@
                       cdkDropList
                       [cdkDropListData]="section.entries"
                       (cdkDropListDropped)="dropEntry(section.id, $event)"
-                      [cdkDropListDisabled]="!auth.isLoggedIn()"
+                      [cdkDropListDisabled]="!auth.isLoggedIn() || !isEditing()"
                     >
                       @for (entry of section.entries; track entry.questTitle) {
                         @let ph = entry.phase;
@@ -163,7 +175,7 @@
                           cdkDrag
                           [cdkDragData]="entry"
                         >
-                          @if (auth.isLoggedIn()) {
+                          @if (auth.isLoggedIn() && isEditing()) {
                             <i
                               class="ti ti-grip-vertical qmo__entry-grip"
                               cdkDragHandle
@@ -217,7 +229,7 @@
                               <i class="ti ti-info-circle" aria-hidden="true"></i>
                             </button>
                           }
-                          @if (auth.isLoggedIn()) {
+                          @if (auth.isLoggedIn() && isEditing()) {
                             <button
                               class="qmo__entry-remove"
                               type="button"
@@ -242,7 +254,7 @@
                       }
                     </div>
 
-                    @if (auth.isLoggedIn()) {
+                    @if (auth.isLoggedIn() && isEditing()) {
                       @if (picker()?.sectionId === section.id) {
                         <div class="qmo__picker">
                           <!-- Etapa 1: Selecionar quest -->
@@ -367,7 +379,7 @@
             }
           </div>
 
-          @if (auth.isLoggedIn()) {
+          @if (auth.isLoggedIn() && isEditing()) {
             <button class="qmo__add-section" type="button" (click)="addSection()">
               <i class="ti ti-plus" aria-hidden="true"></i> nova área / mapa
             </button>
@@ -412,8 +424,8 @@
 
           <div class="qmo__sidebar-card qmo__sidebar-card--hint">
             <i class="ti ti-info-circle" aria-hidden="true"></i>
-            clique em <i class="ti ti-external-link" aria-hidden="true"></i> para abrir o guia da
-            quest e marcar seu progresso.
+            clique em <i class="ti ti-info-circle" aria-hidden="true"></i> em qualquer quest para
+            ver detalhes e marcar etapas como concluídas.
           </div>
         </aside>
       </div>
