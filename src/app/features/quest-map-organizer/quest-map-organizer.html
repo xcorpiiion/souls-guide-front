@@ -224,7 +224,7 @@
                               type="button"
                               title="ver detalhes da quest"
                               aria-label="ver detalhes da quest"
-                              (click)="openQuestModal(entry.questId!)"
+                              (click)="openQuestModal(entry.questId!, entry.nodeId ?? null)"
                             >
                               <i class="ti ti-info-circle" aria-hidden="true"></i>
                             </button>
@@ -440,9 +440,10 @@
   </div>
 }
 
-@if (activeQuestId(); as qid) {
+@if (activeQuest(); as aq) {
   <app-quest-map-quest-modal
-    [questId]="qid"
+    [questId]="aq.questId"
+    [nodeId]="aq.nodeId"
     [gameId]="gameId"
     (closed)="closeQuestModal()"
     (progressChanged)="onProgressChanged($event)"

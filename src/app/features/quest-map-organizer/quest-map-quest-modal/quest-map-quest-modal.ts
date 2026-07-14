@@ -15,12 +15,11 @@ import { QuestProgressService } from '../../../core/services/quest-progress.serv
 import { AuthService } from '../../../core/services/auth.service';
 import { QuestDetailData, QuestNode, questApiToSummary } from '../../../shared/models/quest.model';
 import { UserProgress } from '../../../shared/models/user-progress.model';
-import { QuestChecklist } from '../../quest-detail/quest-checklist/quest-checklist';
 import { PageLoader } from '../../../shared/components/page-loader/page-loader';
 
 @Component({
   selector: 'app-quest-map-quest-modal',
-  imports: [RouterLink, QuestChecklist, PageLoader],
+  imports: [RouterLink, PageLoader],
   templateUrl: './quest-map-quest-modal.html',
   styleUrl: './quest-map-quest-modal.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -31,6 +30,7 @@ export class QuestMapQuestModal implements OnInit {
   protected readonly auth = inject(AuthService);
 
   readonly questId = input.required<string>();
+  readonly nodeId = input<string | null>(null);
   readonly gameId = input.required<string>();
   readonly closed = output<void>();
   readonly progressChanged = output<UserProgress>();
@@ -43,6 +43,13 @@ export class QuestMapQuestModal implements OnInit {
   protected readonly taskNodes = computed<QuestNode[]>(() =>
     (this.quest()?.nodes ?? []).filter((n) => n.type === 'task'),
   );
+
+  protected readonly focusedNode = computed<QuestNode | null>(() => {
+    const nid = this.nodeId();
+    if (!nid) return null;
+    return this.quest()?.nodes.find((n) => n.id === nid) ?? null;
+  });
+
   protected readonly progressDone = computed(
     () => this.taskNodes().filter((n) => this.completedNodeIds().has(n.id)).length,
   );
@@ -83,6 +90,10 @@ export class QuestMapQuestModal implements OnInit {
       },
       error: () => this.loading.set(false),
     });
+  }
+
+  protected isNodeDone(nodeId: string): boolean {
+    return this.completedNodeIds().has(nodeId);
   }
 
   protected toggleNodeDone(nodeId: string): void {

@@ -168,7 +168,7 @@ export class QuestMapOrganizer implements OnInit, HasUnsavedChanges {
   protected readonly isEditing = signal(false);
   private snapshot: MapSectionLocal[] = [];
 
-  protected readonly activeQuestId = signal<string | null>(null);
+  protected readonly activeQuest = signal<{ questId: string; nodeId: string | null } | null>(null);
   protected readonly progressMap = signal<Map<string, UserProgress>>(new Map());
 
   protected questProgress(questId: string | null): UserProgress | null {
@@ -479,12 +479,12 @@ export class QuestMapOrganizer implements OnInit, HasUnsavedChanges {
     );
   }
 
-  protected openQuestModal(questId: string): void {
-    this.activeQuestId.set(questId);
+  protected openQuestModal(questId: string, nodeId: string | null): void {
+    this.activeQuest.set({ questId, nodeId });
   }
 
   protected closeQuestModal(): void {
-    this.activeQuestId.set(null);
+    this.activeQuest.set(null);
   }
 
   protected onProgressChanged(progress: UserProgress): void {

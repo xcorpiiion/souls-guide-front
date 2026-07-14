@@ -50,19 +50,78 @@
           <p class="qmqm__description">{{ q.description }}</p>
         }
 
-        @if (auth.isLoggedIn()) {
-          <app-quest-checklist
-            [nodes]="q.nodes"
-            [edges]="q.edges"
-            [completedNodeIds]="completedNodeIds()"
-            [togglingNodeId]="togglingNodeId()"
-            [gameId]="gameId()"
-            (nodeDoneToggle)="toggleNodeDone($event)"
-          />
+        @if (nodeId(); as nid) {
+          <!-- modo focado: mostra apenas o nó mapeado -->
+          @if (focusedNode(); as node) {
+            <div class="qmqm__focused-node">
+              <div class="qmqm__node-header">
+                <i class="ti ti-circle-check-filled qmqm__node-icon" aria-hidden="true"></i>
+                <span class="qmqm__node-label">{{ node.label }}</span>
+              </div>
+              @if (node.description) {
+                <p class="qmqm__node-desc">{{ node.description }}</p>
+              }
+              @if (auth.isLoggedIn()) {
+                <button
+                  class="qmqm__toggle-btn"
+                  [class.qmqm__toggle-btn--done]="isNodeDone(node.id)"
+                  type="button"
+                  [disabled]="togglingNodeId() === node.id"
+                  (click)="toggleNodeDone(node.id)"
+                >
+                  @if (togglingNodeId() === node.id) {
+                    <i class="ti ti-loader-2 qmqm__spin" aria-hidden="true"></i>
+                  } @else if (isNodeDone(node.id)) {
+                    <i class="ti ti-circle-check-filled" aria-hidden="true"></i>
+                    concluída
+                  } @else {
+                    <i class="ti ti-circle" aria-hidden="true"></i>
+                    marcar como concluída
+                  }
+                </button>
+              } @else {
+                <p class="qmqm__login-hint">
+                  <a [routerLink]="['/login']">Faça login</a> para marcar esta etapa como concluída.
+                </p>
+              }
+            </div>
+          } @else {
+            <p class="qmqm__no-node">Etapa não encontrada nesta quest.</p>
+          }
         } @else {
-          <p class="qmqm__login-hint">
-            <a [routerLink]="['/login']">Faça login</a> para marcar etapas como concluídas.
-          </p>
+          <!-- sem nodeId: lista simples de todos os nós de tarefa -->
+          @if (taskNodes().length > 0) {
+            @if (auth.isLoggedIn()) {
+              <ul class="qmqm__node-list">
+                @for (node of taskNodes(); track node.id) {
+                  <li class="qmqm__node-item" [class.qmqm__node-item--done]="isNodeDone(node.id)">
+                    <button
+                      class="qmqm__node-check"
+                      type="button"
+                      [disabled]="togglingNodeId() === node.id"
+                      [attr.aria-label]="
+                        (isNodeDone(node.id) ? 'Desmarcar' : 'Marcar') + ': ' + node.label
+                      "
+                      (click)="toggleNodeDone(node.id)"
+                    >
+                      @if (togglingNodeId() === node.id) {
+                        <i class="ti ti-loader-2 qmqm__spin" aria-hidden="true"></i>
+                      } @else if (isNodeDone(node.id)) {
+                        <i class="ti ti-circle-check-filled" aria-hidden="true"></i>
+                      } @else {
+                        <i class="ti ti-circle" aria-hidden="true"></i>
+                      }
+                    </button>
+                    <span class="qmqm__node-text">{{ node.label }}</span>
+                  </li>
+                }
+              </ul>
+            } @else {
+              <p class="qmqm__login-hint">
+                <a [routerLink]="['/login']">Faça login</a> para marcar etapas como concluídas.
+              </p>
+            }
+          }
         }
       }
     </div>

@@ -123,6 +123,168 @@
   line-height: 1.6;
 }
 
+// ─── focused node (single node mode) ──────────────────────────────────────────
+
+.qmqm__focused-node {
+  display: flex;
+  flex-direction: column;
+  gap: v.$space-3;
+  padding: v.$space-4;
+  background: v.$color-bg-elevated;
+  border: 1px solid v.$color-border;
+  border-radius: v.$radius-md;
+}
+
+.qmqm__node-header {
+  display: flex;
+  align-items: flex-start;
+  gap: v.$space-2;
+}
+
+.qmqm__node-icon {
+  font-size: 18px;
+  color: v.$color-text-faint;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.qmqm__node-label {
+  font-size: v.$font-size-base;
+  font-weight: 600;
+  color: v.$color-text;
+  line-height: 1.4;
+}
+
+.qmqm__node-desc {
+  font-size: v.$font-size-sm;
+  color: v.$color-text-muted;
+  margin: 0;
+  line-height: 1.5;
+}
+
+.qmqm__toggle-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: v.$space-2;
+  padding: 7px 14px;
+  border-radius: v.$radius-md;
+  border: 1px solid v.$color-border;
+  background: v.$color-bg-surface;
+  color: v.$color-text-muted;
+  font-family: v.$font-body;
+  font-size: v.$font-size-sm;
+  cursor: pointer;
+  transition:
+    border-color 0.15s,
+    color 0.15s,
+    background 0.15s;
+  align-self: flex-start;
+
+  i {
+    font-size: 16px;
+  }
+
+  &:hover:not(:disabled) {
+    border-color: #1d9e75;
+    color: #1d9e75;
+  }
+
+  &--done {
+    border-color: #1d9e75;
+    color: #1d9e75;
+    background: rgba(#1d9e75, 0.08);
+
+    &:hover:not(:disabled) {
+      background: rgba(#1d9e75, 0.04);
+      color: v.$color-text-muted;
+      border-color: v.$color-border;
+    }
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: default;
+  }
+}
+
+.qmqm__no-node {
+  font-size: v.$font-size-sm;
+  color: v.$color-text-faint;
+  font-style: italic;
+}
+
+// ─── full node list (no specific node) ────────────────────────────────────────
+
+.qmqm__node-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.qmqm__node-item {
+  display: flex;
+  align-items: center;
+  gap: v.$space-3;
+  padding: v.$space-2 v.$space-2;
+  border-radius: v.$radius-sm;
+
+  &--done .qmqm__node-text {
+    text-decoration: line-through;
+    color: v.$color-text-faint;
+  }
+}
+
+.qmqm__node-check {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 24px;
+  height: 24px;
+  border: none;
+  background: transparent;
+  color: v.$color-text-faint;
+  cursor: pointer;
+  font-size: 18px;
+  padding: 0;
+  border-radius: v.$radius-sm;
+  transition: color 0.12s;
+
+  &:hover:not(:disabled) {
+    color: #1d9e75;
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: default;
+  }
+}
+
+.qmqm__node-item--done .qmqm__node-check {
+  color: #1d9e75;
+}
+
+.qmqm__node-text {
+  font-size: v.$font-size-sm;
+  color: v.$color-text;
+  line-height: 1.4;
+}
+
+@keyframes qmqm-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.qmqm__spin {
+  animation: qmqm-spin 0.7s linear infinite;
+}
+
+// ─── login hint ────────────────────────────────────────────────────────────────
+
 .qmqm__login-hint {
   font-size: v.$font-size-sm;
   color: v.$color-text-faint;
