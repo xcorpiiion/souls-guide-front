@@ -1,0 +1,140 @@
+@use 'styles/variables' as v;
+
+.qmqm__backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.55);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 200;
+  padding: v.$space-4;
+}
+
+.qmqm__panel {
+  background: v.$color-bg-surface;
+  border: 1px solid v.$color-border;
+  border-radius: v.$radius-lg;
+  width: 100%;
+  max-width: 600px;
+  max-height: 85vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.qmqm__header {
+  display: flex;
+  flex-direction: column;
+  gap: v.$space-2;
+  padding: v.$space-4 v.$space-5;
+  border-bottom: 1px solid v.$color-border;
+  position: relative;
+}
+
+.qmqm__title-row {
+  display: flex;
+  align-items: center;
+  gap: v.$space-2;
+  padding-right: v.$space-8;
+}
+
+.qmqm__title {
+  font-size: v.$font-size-lg;
+  font-weight: 600;
+  color: v.$color-text;
+  margin: 0;
+  line-height: 1.3;
+}
+
+.qmqm__open-link {
+  color: v.$color-text-faint;
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+  font-size: 14px;
+  text-decoration: none;
+
+  &:hover {
+    color: v.$color-gold;
+  }
+}
+
+.qmqm__close {
+  position: absolute;
+  top: v.$space-4;
+  right: v.$space-4;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: v.$radius-md;
+  border: none;
+  background: transparent;
+  color: v.$color-text-faint;
+  cursor: pointer;
+  font-size: 16px;
+
+  &:hover {
+    background: v.$color-bg-elevated;
+    color: v.$color-text;
+  }
+}
+
+.qmqm__progress-row {
+  display: flex;
+  align-items: center;
+  gap: v.$space-3;
+}
+
+.qmqm__progress-label {
+  font-size: v.$font-size-xs;
+  color: v.$color-text-faint;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+.qmqm__progress-bar {
+  flex: 1;
+  height: 4px;
+  background: v.$color-border;
+  border-radius: v.$radius-full;
+  overflow: hidden;
+}
+
+.qmqm__progress-fill {
+  height: 100%;
+  background: #1d9e75;
+  border-radius: v.$radius-full;
+  transition: width 0.2s ease;
+}
+
+.qmqm__body {
+  overflow-y: auto;
+  padding: v.$space-4 v.$space-5;
+  flex: 1;
+}
+
+.qmqm__description {
+  font-size: v.$font-size-sm;
+  color: v.$color-text-muted;
+  margin: 0 0 v.$space-4;
+  line-height: 1.6;
+}
+
+.qmqm__login-hint {
+  font-size: v.$font-size-sm;
+  color: v.$color-text-faint;
+  text-align: center;
+  padding: v.$space-6 0;
+
+  a {
+    color: v.$color-gold;
+    text-decoration: none;
+
+    &:hover {
+      text-decoration: underline;
+    }
+  }
+}

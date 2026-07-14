@@ -1,0 +1,63 @@
+<div class="qmqm__backdrop" (click)="onBackdropClick($event)" role="dialog" aria-modal="true">
+  <div class="qmqm__panel">
+    <div class="qmqm__header">
+      @if (quest(); as q) {
+        <div class="qmqm__title-row">
+          <h2 class="qmqm__title">{{ q.title }}</h2>
+          <a
+            class="qmqm__open-link"
+            [routerLink]="['/games', gameId(), 'quests', questId()]"
+            title="abrir página completa da quest"
+            target="_blank"
+          >
+            <i class="ti ti-external-link" aria-hidden="true"></i>
+          </a>
+        </div>
+        @if (auth.isLoggedIn() && progressTotal() > 0) {
+          <div class="qmqm__progress-row">
+            <span class="qmqm__progress-label"
+              >{{ progressDone() }}/{{ progressTotal() }} etapas</span
+            >
+            <div
+              class="qmqm__progress-bar"
+              role="progressbar"
+              [attr.aria-valuenow]="progressPct()"
+              aria-valuemin="0"
+              aria-valuemax="100"
+            >
+              <div class="qmqm__progress-fill" [style.width.%]="progressPct()"></div>
+            </div>
+          </div>
+        }
+      }
+      <button class="qmqm__close" type="button" aria-label="fechar" (click)="close()">
+        <i class="ti ti-x" aria-hidden="true"></i>
+      </button>
+    </div>
+
+    <div class="qmqm__body">
+      @if (loading()) {
+        <app-page-loader message="Carregando quest…" />
+      } @else if (quest(); as q) {
+        @if (q.description) {
+          <p class="qmqm__description">{{ q.description }}</p>
+        }
+
+        @if (auth.isLoggedIn()) {
+          <app-quest-checklist
+            [nodes]="q.nodes"
+            [edges]="q.edges"
+            [completedNodeIds]="completedNodeIds()"
+            [togglingNodeId]="togglingNodeId()"
+            [gameId]="gameId()"
+            (nodeDoneToggle)="toggleNodeDone($event)"
+          />
+        } @else {
+          <p class="qmqm__login-hint">
+            <a [routerLink]="['/login']">Faça login</a> para marcar etapas como concluídas.
+          </p>
+        }
+      }
+    </div>
+  </div>
+</div>

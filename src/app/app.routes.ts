@@ -35,6 +35,7 @@ export const routes: Routes = [
     path: 'games/:id/quest-map',
     loadComponent: () =>
       import('./features/quest-map-organizer/quest-map-organizer').then((m) => m.QuestMapOrganizer),
+    canDeactivate: [unsavedChangesGuard],
   },
   {
     path: 'login',

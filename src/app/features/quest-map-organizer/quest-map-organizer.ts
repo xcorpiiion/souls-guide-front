@@ -10,6 +10,7 @@ import {
   signal,
 } from '@angular/core';
 import { catchError, forkJoin, of } from 'rxjs';
+import { HasUnsavedChanges } from '../../core/guards/unsaved-changes.guard';
 import { RouterLink, ActivatedRoute, Router } from '@angular/router';
 import {
   CdkDragDrop,
@@ -38,6 +39,7 @@ import {
 import { ConfirmModal } from '../../shared/components/confirm-modal/confirm-modal';
 import { QuestNode } from '../../shared/models/quest.model';
 import { PageLoader } from '../../shared/components/page-loader/page-loader';
+import { QuestMapQuestModal } from './quest-map-quest-modal/quest-map-quest-modal';
 
 type PickerStep = 'questline' | 'details';
 
@@ -55,12 +57,20 @@ interface PickerState {
 
 @Component({
   selector: 'app-quest-map-organizer',
-  imports: [RouterLink, PageLoader, ConfirmModal, CdkDropList, CdkDrag, CdkDragHandle],
+  imports: [
+    RouterLink,
+    PageLoader,
+    ConfirmModal,
+    CdkDropList,
+    CdkDrag,
+    CdkDragHandle,
+    QuestMapQuestModal,
+  ],
   templateUrl: './quest-map-organizer.html',
   styleUrl: './quest-map-organizer.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class QuestMapOrganizer implements OnInit {
+export class QuestMapOrganizer implements OnInit, HasUnsavedChanges {
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly questService = inject(QuestService);
@@ -73,6 +83,7 @@ export class QuestMapOrganizer implements OnInit {
 
   protected readonly loading = signal(true);
   protected readonly saving = signal(false);
+  private readonly isDirty = signal(false);
 
   protected readonly quests = signal<QuestSummary[]>([]);
   protected readonly sections = signal<MapSectionLocal[]>([]);
@@ -136,6 +147,11 @@ export class QuestMapOrganizer implements OnInit {
 
   protected readonly availableForPicker = computed(() => this.quests());
 
+  hasUnsavedChanges(): boolean {
+    return this.isDirty();
+  }
+
+  protected readonly activeQuestId = signal<string | null>(null);
   protected readonly progressMap = signal<Map<string, UserProgress>>(new Map());
 
   protected questProgress(questId: string | null): UserProgress | null {
@@ -183,6 +199,7 @@ export class QuestMapOrganizer implements OnInit {
           }));
           this.sections.set(loaded);
           this.expandedIds.set(new Set(loaded.map((s) => s.id)));
+          this.isDirty.set(false);
           this.loadProgress(loaded);
         }
         this.loading.set(false);
@@ -232,6 +249,7 @@ export class QuestMapOrganizer implements OnInit {
     const section: MapSectionLocal = { id: tempId, name: '', entries: [] };
     this.sections.update((s) => [...s, section]);
     this.expandedIds.update((s) => new Set([...s, tempId]));
+    this.isDirty.set(true);
   }
 
   protected confirmRemoveSection(id: number | string, name: string, event: Event): void {
@@ -240,6 +258,7 @@ export class QuestMapOrganizer implements OnInit {
   }
 
   private doRemoveSection(id: number | string): void {
+    this.isDirty.set(true);
     this.sections.update((s) => s.filter((x) => x.id !== id));
     this.expandedIds.update((s) => {
       const next = new Set(s);
@@ -251,6 +270,7 @@ export class QuestMapOrganizer implements OnInit {
 
   protected updateSectionName(id: number | string, name: string): void {
     this.sections.update((s) => s.map((x) => (x.id === id ? { ...x, name } : x)));
+    this.isDirty.set(true);
   }
 
   protected startEditingSection(id: number | string, event: Event): void {
@@ -276,6 +296,7 @@ export class QuestMapOrganizer implements OnInit {
     questId: string | null,
     nodeId: string | null,
   ): void {
+    this.isDirty.set(true);
     this.sections.update((s) =>
       s.map((x) =>
         x.id === sectionId
@@ -396,7 +417,7 @@ export class QuestMapOrganizer implements OnInit {
   protected confirmPick(): void {
     const p = this.picker();
     if (!p?.questlineId || !p.questlineTitle || !p.phase) return;
-
+    this.isDirty.set(true);
     const entry: MapEntryLocal = {
       questId: p.questlineId,
       questTitle: p.questlineTitle,
@@ -413,6 +434,7 @@ export class QuestMapOrganizer implements OnInit {
 
   protected dropSection(event: CdkDragDrop<MapSectionLocal[]>): void {
     if (event.previousIndex === event.currentIndex) return;
+    this.isDirty.set(true);
     this.sections.update((s) => {
       const next = [...s];
       moveItemInArray(next, event.previousIndex, event.currentIndex);
@@ -422,6 +444,7 @@ export class QuestMapOrganizer implements OnInit {
 
   protected dropEntry(sectionId: number | string, event: CdkDragDrop<MapEntryLocal[]>): void {
     if (event.previousIndex === event.currentIndex) return;
+    this.isDirty.set(true);
     this.sections.update((s) =>
       s.map((x) => {
         if (x.id !== sectionId) return x;
@@ -433,9 +456,26 @@ export class QuestMapOrganizer implements OnInit {
   }
 
   protected clearOrphanedEntries(): void {
+    this.isDirty.set(true);
     this.sections.update((s) =>
       s.map((x) => ({ ...x, entries: x.entries.filter((e) => e.questId !== null) })),
     );
+  }
+
+  protected openQuestModal(questId: string): void {
+    this.activeQuestId.set(questId);
+  }
+
+  protected closeQuestModal(): void {
+    this.activeQuestId.set(null);
+  }
+
+  protected onProgressChanged(progress: UserProgress): void {
+    this.progressMap.update((m) => {
+      const next = new Map(m);
+      next.set(progress.questId, progress);
+      return next;
+    });
   }
 
   protected navigateToQuest(questId: string): void {
@@ -449,6 +489,7 @@ export class QuestMapOrganizer implements OnInit {
     this.questMapService.saveMap(this.gameId, localToRequest(this.sections())).subscribe({
       next: (res) => {
         this.saving.set(false);
+        this.isDirty.set(false);
         const questTitleMap = new Map(this.quests().map((q) => [q.id, q.title]));
         const saved = responseToLocal(res).map((s) => ({
           ...s,

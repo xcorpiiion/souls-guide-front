@@ -210,11 +210,11 @@
                             <button
                               class="qmo__entry-link"
                               type="button"
-                              title="abrir quest"
-                              aria-label="abrir quest"
-                              (click)="navigateToQuest(entry.questId!)"
+                              title="ver detalhes da quest"
+                              aria-label="ver detalhes da quest"
+                              (click)="openQuestModal(entry.questId!)"
                             >
-                              <i class="ti ti-external-link" aria-hidden="true"></i>
+                              <i class="ti ti-info-circle" aria-hidden="true"></i>
                             </button>
                           }
                           @if (auth.isLoggedIn()) {
@@ -426,6 +426,15 @@
     <i class="ti ti-loader-2 qmo__fullscreen-overlay-spin" aria-hidden="true"></i>
     <span>salvando rota…</span>
   </div>
+}
+
+@if (activeQuestId(); as qid) {
+  <app-quest-map-quest-modal
+    [questId]="qid"
+    [gameId]="gameId"
+    (closed)="closeQuestModal()"
+    (progressChanged)="onProgressChanged($event)"
+  />
 }
 
 @if (pendingRemove(); as pr) {
