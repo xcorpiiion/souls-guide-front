@@ -487,6 +487,12 @@
   font-size: v.$font-size-sm;
   color: v.$color-text-muted;
 
+  &--done {
+    color: v.$color-text-faint;
+    text-decoration: line-through;
+    text-decoration-color: rgba(29, 158, 117, 0.6);
+  }
+
   &--orphan {
     display: flex;
     align-items: center;
@@ -538,6 +544,12 @@
 
   &--done {
     color: #1d9e75;
+    display: inline-flex;
+    align-items: center;
+
+    i {
+      font-size: 15px;
+    }
   }
 
   &--partial {

@@ -164,12 +164,10 @@
                         @let ph = entry.phase;
                         <div
                           class="qmo__entry"
-                          [class.qmo__entry--done]="
-                            auth.isLoggedIn() && isQuestCompleted(entry.questId)
-                          "
+                          [class.qmo__entry--done]="auth.isLoggedIn() && isEntryCompleted(entry)"
                           [class.qmo__entry--progress]="
                             auth.isLoggedIn() &&
-                            !isQuestCompleted(entry.questId) &&
+                            !isEntryCompleted(entry) &&
                             completedSteps(entry.questId) > 0
                           "
                           cdkDrag
@@ -189,7 +187,12 @@
                               Quest removida
                             </span>
                           } @else {
-                            <span class="qmo__entry-title">
+                            <span
+                              class="qmo__entry-title"
+                              [class.qmo__entry-title--done]="
+                                auth.isLoggedIn() && isEntryCompleted(entry)
+                              "
+                            >
                               {{ entry.questTitle }}
                               @if (entry.nodeTitle) {
                                 <span class="qmo__entry-node"> — {{ entry.nodeTitle }}</span>
@@ -197,12 +200,20 @@
                             </span>
                           }
                           @if (auth.isLoggedIn() && entry.questId) {
-                            @if (isQuestCompleted(entry.questId)) {
+                            @if (isEntryCompleted(entry)) {
                               <span
                                 class="qmo__entry-steps qmo__entry-steps--done"
-                                title="Quest concluída"
-                                >✓</span
-                              >
+                                [title]="
+                                  isQuestCompleted(entry.questId)
+                                    ? 'Quest concluída'
+                                    : 'Etapa concluída (' +
+                                      completedSteps(entry.questId) +
+                                      '/' +
+                                      totalSteps(entry.questId) +
+                                      ' da quest)'
+                                "
+                                ><i class="ti ti-circle-check-filled" aria-hidden="true"></i
+                              ></span>
                             } @else if (completedSteps(entry.questId) > 0) {
                               <span
                                 class="qmo__entry-steps qmo__entry-steps--partial"

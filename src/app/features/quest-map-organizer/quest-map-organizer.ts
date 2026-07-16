@@ -182,6 +182,19 @@ export class QuestMapOrganizer implements OnInit, HasUnsavedChanges {
     return !!quest && p.completedNodeIds.length >= quest.stepCount;
   }
 
+  /**
+   * Entrada apontando para um nó específico → concluída quando aquele nó foi marcado.
+   * Entrada sem nó (quest inteira) → concluída quando a quest toda foi finalizada.
+   */
+  protected isEntryCompleted(entry: MapEntryLocal): boolean {
+    if (!entry.questId) return false;
+    if (entry.nodeId) {
+      const p = this.questProgress(entry.questId);
+      return !!p && p.completedNodeIds.includes(entry.nodeId);
+    }
+    return this.isQuestCompleted(entry.questId);
+  }
+
   protected completedSteps(questId: string | null): number {
     return this.questProgress(questId)?.completedNodeIds.length ?? 0;
   }

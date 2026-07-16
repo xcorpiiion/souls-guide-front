@@ -292,6 +292,60 @@ describe('QuestMapOrganizer', () => {
     expect(comp['isQuestCompleted']('1')).toBe(false);
   });
 
+  it('isEntryCompleted retorna true quando o nó da entrada foi concluído, mesmo com a quest em andamento', () => {
+    const { componentInstance: comp } = setup();
+    comp['onProgressChanged']({ questId: '1', completedNodeIds: ['n2'] });
+    const entry = {
+      questId: '1',
+      questTitle: 'A Última Promessa',
+      nodeId: 'n2',
+      nodeTitle: 'Falar com Stone',
+      phase: 'inicio' as const,
+    };
+    expect(comp['isEntryCompleted'](entry)).toBe(true);
+    expect(comp['isQuestCompleted']('1')).toBe(false);
+  });
+
+  it('isEntryCompleted retorna false quando outro nó foi concluído, mas não o da entrada', () => {
+    const { componentInstance: comp } = setup();
+    comp['onProgressChanged']({ questId: '1', completedNodeIds: ['n4'] });
+    const entry = {
+      questId: '1',
+      questTitle: 'A Última Promessa',
+      nodeId: 'n2',
+      nodeTitle: 'Falar com Stone',
+      phase: 'inicio' as const,
+    };
+    expect(comp['isEntryCompleted'](entry)).toBe(false);
+  });
+
+  it('isEntryCompleted sem nó específico exige a quest inteira concluída', () => {
+    const { componentInstance: comp } = setup();
+    const entry = {
+      questId: '1',
+      questTitle: 'A Última Promessa',
+      nodeId: null,
+      nodeTitle: null,
+      phase: 'full' as const,
+    };
+    comp['onProgressChanged']({ questId: '1', completedNodeIds: ['n2'] });
+    expect(comp['isEntryCompleted'](entry)).toBe(false);
+    comp['onProgressChanged']({ questId: '1', completedNodeIds: ['n2', 'n4', 'n6'] });
+    expect(comp['isEntryCompleted'](entry)).toBe(true);
+  });
+
+  it('isEntryCompleted retorna false para entrada órfã (quest deletada)', () => {
+    const { componentInstance: comp } = setup();
+    const entry = {
+      questId: null,
+      questTitle: null,
+      nodeId: null,
+      nodeTitle: null,
+      phase: 'full' as const,
+    };
+    expect(comp['isEntryCompleted'](entry)).toBe(false);
+  });
+
   it('questProgress retorna null para questId null', () => {
     const { componentInstance: comp } = setup();
     expect(comp['questProgress'](null)).toBeNull();
