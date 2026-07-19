@@ -145,7 +145,16 @@ export class QuestMapOrganizer implements OnInit, HasUnsavedChanges {
     return total > 0 ? Math.round((this.placedCount() / total) * 100) : 0;
   });
 
-  protected readonly availableForPicker = computed(() => this.quests());
+  /** Quests ainda não adicionadas em nenhuma seção */
+  protected readonly availableForPicker = computed(() => {
+    const placed = new Set<string>();
+    this.sections().forEach((s) =>
+      s.entries.forEach((e) => {
+        if (e.questId) placed.add(e.questId);
+      }),
+    );
+    return this.quests().filter((q) => !placed.has(q.id));
+  });
 
   hasUnsavedChanges(): boolean {
     return this.isEditing() && this.isDirty();
