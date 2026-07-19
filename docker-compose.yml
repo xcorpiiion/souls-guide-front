@@ -1,0 +1,7 @@
+services:
+  soulguide-front:
+    build: .
+    container_name: soulguide-front
+    ports:
+      - "4200:80"
+    restart: unless-stopped
