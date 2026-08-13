@@ -159,6 +159,17 @@
             </div>
             <span class="lore-create__hint">Enter ou vírgula para adicionar</span>
           </div>
+
+          <div class="lore-create__field">
+            <app-image-uploader
+              purpose="LORE_IMAGE"
+              label="imagem de destaque"
+              hint="O retrato do personagem ou a arte do lugar. PNG, JPG ou WebP, até 5 MB."
+              [currentUrl]="coverUrl()"
+              (uploaded)="onCoverUploaded($event)"
+              (cleared)="onCoverCleared()"
+            />
+          </div>
         </div>
       </div>
 
@@ -193,8 +204,20 @@
               <button type="button" class="lore-create__tb-btn" title="citação (> texto)">
                 <i class="ti ti-blockquote"></i>
               </button>
+              <span class="lore-create__tb-sep"></span>
+              <label class="lore-create__tb-btn" title="inserir imagem no texto">
+                <i [class]="insertingImage() ? 'ti ti-loader-2' : 'ti ti-photo-plus'"></i>
+                <input
+                  type="file"
+                  accept="image/png,image/jpeg,image/webp"
+                  hidden
+                  [disabled]="insertingImage()"
+                  (change)="insertInlineImage($event, contentArea)"
+                />
+              </label>
             </div>
             <textarea
+              #contentArea
               class="lore-create__textarea"
               formControlName="content"
               placeholder="Escreva o conteúdo em Markdown..."

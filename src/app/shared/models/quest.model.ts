@@ -1,29 +1,33 @@
-export type QuestStatus = 'TEORIA' | 'CONSOLIDADO' | 'CANONICO';
+import type {
+  QuestEdgeDTO,
+  QuestGuideDTO,
+  QuestNodeDTO,
+  QuestStatus as CanonicoQuestStatus,
+} from '@xcorpiiion/canonico';
+
+// Enums do contrato — fonte da verdade: lib canonico
+export type QuestStatus = CanonicoQuestStatus;
+export type { FollowResponse } from '@xcorpiiion/canonico';
+
+// Narrowings do front sobre campos que o back-end tipa como string
 export type QuestNodeType = 'start' | 'end' | 'task' | 'gateway' | 'external-quest';
 export type QuestEndingType = 'positive' | 'tragic' | 'neutral';
 export type QuestNodeStatus = 'VISIVEL' | 'BLOQUEADA';
 
-export interface QuestNode {
-  id: string;
+export interface QuestNode extends Omit<
+  QuestNodeDTO,
+  'type' | 'endingType' | 'status' | 'linkedQuestId'
+> {
   type: QuestNodeType;
-  label: string;
-  sublabel?: string | null;
-  description?: string | null;
-  location?: string | null;
-  tags?: string[];
   endingType?: QuestEndingType | null;
-  linkedQuestId?: string | null;
-  linkedQuestName?: string | null;
-  linkedNodeLabel?: string | null;
   /** Backend envia por nó para usuários autenticados. Ausente = VISIVEL. */
   status?: QuestNodeStatus;
+  linkedQuestId?: string | null;
+  linkedNodeLabel?: string | null;
 }
 
-export interface QuestEdge {
+export interface QuestEdge extends Omit<QuestEdgeDTO, 'id'> {
   id: string;
-  from: string;
-  to: string;
-  label?: string | null;
 }
 
 export interface QuestRelatedLink {
@@ -34,36 +38,14 @@ export interface QuestRelatedLink {
 }
 
 // Shape retornado pela API em GET /quests, GET /quests/{id}
-export interface QuestApi {
-  id: number;
-  title: string;
-  description: string;
+// Base: QuestGuideDTO do canonico; campos de detalhe presentes só em GET /quests/{id}
+export interface QuestApi extends QuestGuideDTO {
   status: QuestStatus;
-  userId: string;
-  gameId: number;
-  gameName: string;
   npcName?: string | null;
-  nodes: QuestNode[];
-  edges: QuestEdge[];
-  relatedQuests: QuestRelatedLink[];
-  // campos de conteúdo de perfil
-  isPersonal: boolean;
-  ownerId: string | null;
-  isOwner: boolean;
-  isPublic: boolean;
-  allowCopy: boolean;
-  likeCount: number;
-  userHasLiked: boolean;
-  followerCount: number;
-  userIsFollowing: boolean;
-  stepCount?: number;
-  forkCount?: number;
-  endingCount?: number;
-  // condições entre quests
-  /** true somente quando TODOS os nós da quest estão bloqueados. */
-  hidden?: boolean;
-  hiddenReason?: string | null;
-  hiddenIsSpoiler?: boolean;
+  isOwner?: boolean;
+  nodes?: QuestNode[];
+  edges?: QuestEdge[];
+  relatedQuests?: QuestRelatedLink[];
 }
 
 export interface QuestSummary {
@@ -94,11 +76,6 @@ export interface QuestSummary {
   hidden?: boolean;
   hiddenReason?: string | null;
   hiddenIsSpoiler?: boolean;
-}
-
-export interface FollowResponse {
-  followerCount: number;
-  userIsFollowing: boolean;
 }
 
 export function questApiToSummary(q: QuestApi): QuestSummary {

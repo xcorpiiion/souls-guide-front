@@ -246,14 +246,14 @@ describe('QuestMapOrganizer', () => {
     expect(comp['usedEntryKeys']().has('1|n2')).toBe(true);
   });
 
-  it('should still show questline in picker after one node is placed', () => {
+  it('should hide questline from picker after it is placed in a section', () => {
     const { componentInstance: comp } = setup();
     comp['addSection']();
     const id = comp['sections']()[0].id;
     fillPicker(comp, id, '1', 'A Última Promessa', 'n2', 'Falar com Stone', 'full');
     const available = comp['availableForPicker']();
-    expect(available.find((q) => q.id === '1')).toBeDefined();
-    expect(available.length).toBe(2);
+    expect(available.find((q) => q.id === '1')).toBeUndefined();
+    expect(available.length).toBe(1);
   });
 
   it('should remove entry from section after confirmation', () => {

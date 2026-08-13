@@ -45,6 +45,12 @@ const MOCK_QUEST_API: QuestApi = {
   userHasLiked: false,
   followerCount: 0,
   userIsFollowing: false,
+  hidden: false,
+  hiddenReason: null,
+  hiddenIsSpoiler: false,
+  stepCount: 2,
+  forkCount: 0,
+  endingCount: 1,
 };
 
 const MOCK_PAGE: Page<QuestSummary> = {

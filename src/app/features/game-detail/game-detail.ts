@@ -13,16 +13,18 @@ import { filter, switchMap } from 'rxjs/operators';
 import { Game, gameToSummary, GameSummary } from '../../shared/models/game.model';
 import { QuestStatus, QuestSummary } from '../../shared/models/quest.model';
 import { LoreSummary } from '../../shared/models/lore-article.model';
+import { ENDING_KIND_LABEL, EndingSummary } from '../../shared/models/ending.model';
 import { GameService } from '../../core/services/game.service';
 import { QuestService } from '../../core/services/quest.service';
 import { LoreService } from '../../core/services/lore.service';
+import { EndingService } from '../../core/services/ending.service';
 import { AuthService } from '../../core/services/auth.service';
 import { PersonalQuestService } from '../../core/services/personal-quest.service';
 import { ConfirmService } from '../../core/services/confirm.service';
 import { ToastService } from '../../shared/components/toast/toast.service';
 import { PageLoader } from '../../shared/components/page-loader/page-loader';
 
-type Tab = 'quests' | 'lore' | 'contributors';
+type Tab = 'quests' | 'lore' | 'endings' | 'contributors';
 type QuestFilter = QuestStatus | 'todos';
 
 interface FilterOption {
@@ -42,13 +44,14 @@ export class GameDetail implements OnInit {
   private readonly gameService = inject(GameService);
   private readonly questService = inject(QuestService);
   private readonly loreService = inject(LoreService);
+  private readonly endingService = inject(EndingService);
   private readonly personalQuestService = inject(PersonalQuestService);
   private readonly confirm = inject(ConfirmService);
   private readonly toast = inject(ToastService);
   private readonly el = inject(ElementRef);
   readonly auth = inject(AuthService);
 
-  private readonly gameId = this.route.snapshot.paramMap.get('id') ?? '';
+  protected readonly gameId = this.route.snapshot.paramMap.get('id') ?? '';
 
   protected readonly loading = signal(true);
   protected readonly error = signal<string | null>(null);
@@ -58,6 +61,12 @@ export class GameDetail implements OnInit {
   protected readonly quests = signal<QuestSummary[]>([]);
   protected readonly questsLoading = signal(true);
   protected readonly loreArticles = signal<LoreSummary[]>([]);
+  protected readonly endings = signal<EndingSummary[]>([]);
+  protected readonly endingsLoading = signal(true);
+
+  protected readonly kindLabel = ENDING_KIND_LABEL;
+  /** Resumos revelados um a um — spoiler de final é o mais caro de vazar sem querer. */
+  protected readonly revealedEndingIds = signal<ReadonlySet<string>>(new Set());
 
   protected readonly activeTab = signal<Tab>('quests');
   protected readonly activeFilter = signal<QuestFilter>('todos');
@@ -109,6 +118,32 @@ export class GameDetail implements OnInit {
     this.loreService.list(0, 50).subscribe({
       next: (page) => this.loreArticles.set(page.content.filter((l) => l.gameId === this.gameId)),
     });
+
+    this.endingService.listByGame(this.gameId).subscribe({
+      next: (list) => {
+        this.endings.set(list);
+        this.endingsLoading.set(false);
+      },
+      error: () => this.endingsLoading.set(false),
+    });
+  }
+
+  protected isEndingRevealed(ending: EndingSummary): boolean {
+    return !ending.isSpoiler || this.revealedEndingIds().has(ending.id);
+  }
+
+  protected revealEnding(ending: EndingSummary): void {
+    this.revealedEndingIds.update((s) => new Set([...s, ending.id]));
+  }
+
+  protected endingProgressPercent(ending: EndingSummary): number {
+    return ending.stepCount === 0
+      ? 0
+      : Math.round((ending.completedStepCount / ending.stepCount) * 100);
+  }
+
+  protected achievedEndingsCount(): number {
+    return this.endings().filter((e) => e.userHasAchieved).length;
   }
 
   protected readonly revealedHiddenIds = signal<Set<string>>(new Set());

@@ -615,6 +615,12 @@
           </p>
         }
 
+        @if (nodeImageUrl(node); as src) {
+          <figure class="ck__node-image">
+            <img [src]="src" [alt]="node.label" loading="lazy" />
+          </figure>
+        }
+
         @if (node.tags && node.tags.length) {
           <div class="ck__node-tags">
             @for (tag of node.tags; track tag) {

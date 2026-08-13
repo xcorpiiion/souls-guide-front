@@ -28,6 +28,12 @@ const MOCK_QUEST_API: QuestApi = {
   userHasLiked: false,
   followerCount: 0,
   userIsFollowing: false,
+  hidden: false,
+  hiddenReason: null,
+  hiddenIsSpoiler: false,
+  stepCount: 0,
+  forkCount: 0,
+  endingCount: 0,
 };
 
 function createFixture(gameId: string, questId?: string) {

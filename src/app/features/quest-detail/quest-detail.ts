@@ -22,6 +22,7 @@ import { QuestConditionService } from '../../core/services/quest-condition.servi
 import { QuestProgressService } from '../../core/services/quest-progress.service';
 import { QuestVersionService } from '../../core/services/quest-version.service';
 import { PersonalQuestService } from '../../core/services/personal-quest.service';
+import { StorageService } from '../../core/services/storage.service';
 import { AuthService } from '../../core/services/auth.service';
 import {
   CopyToProfileModal,
@@ -48,6 +49,7 @@ export class QuestDetail implements OnInit {
   private readonly progressService = inject(QuestProgressService);
   private readonly versionService = inject(QuestVersionService);
   private readonly personalQuestService = inject(PersonalQuestService);
+  private readonly storage = inject(StorageService);
   protected readonly auth = inject(AuthService);
   private readonly toast = inject(ToastService);
 
@@ -86,6 +88,10 @@ export class QuestDetail implements OnInit {
   protected readonly followerCount = signal(0);
   protected readonly userIsFollowing = signal(false);
   protected readonly following = signal(false);
+
+  protected readonly coverUrl = signal<string | null>(null);
+  /** chave → URL de leitura: uma chamada cobre a capa e o grafo inteiro. */
+  protected readonly imageUrls = signal<ReadonlyMap<string, string>>(new Map());
 
   protected readonly showSharePopover = signal(false);
   protected readonly copied = signal(false);
@@ -170,6 +176,7 @@ export class QuestDetail implements OnInit {
           this.userHasLiked.set(api.userHasLiked ?? false);
           this.followerCount.set(api.followerCount ?? 0);
           this.userIsFollowing.set(api.userIsFollowing ?? false);
+          this.loadImages(questId, api.coverImageFileKey ?? null, api.nodes ?? []);
           this.loading.set(false);
 
           const ver = this.previewVersion();
@@ -276,6 +283,28 @@ export class QuestDetail implements OnInit {
       });
   }
 
+  protected imageUrl(fileKey: string | null | undefined): string | null {
+    return fileKey ? (this.imageUrls().get(fileKey) ?? null) : null;
+  }
+
+  /**
+   * Os arquivos pertencem à quest, não a cada nó — é por isso que uma listagem só
+   * resolve a capa e o grafo inteiro, em vez de uma chamada por passo.
+   */
+  private loadImages(
+    questId: string,
+    coverKey: string | null,
+    nodes: readonly { imageFileKey?: string | null }[],
+  ): void {
+    const keys = [coverKey, ...nodes.map((n) => n.imageFileKey)].filter((k): k is string => !!k);
+    if (!keys.length) return;
+
+    this.storage.resolve(keys, 'QUEST', questId).subscribe((resolved) => {
+      this.imageUrls.set(resolved);
+      if (coverKey) this.coverUrl.set(resolved.get(coverKey) ?? null);
+    });
+  }
+
   private resetState(): void {
     this.loading.set(true);
     this.error.set(null);
@@ -290,6 +319,8 @@ export class QuestDetail implements OnInit {
     this.userHasLiked.set(false);
     this.followerCount.set(0);
     this.userIsFollowing.set(false);
+    this.coverUrl.set(null);
+    this.imageUrls.set(new Map());
     this.showSharePopover.set(false);
     this.hiddenReasonRevealed.set(false);
     this.blockedNodeReasons.set(new Map());

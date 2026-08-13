@@ -11,10 +11,12 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { QuestApi, QuestEdge, QuestNode, QuestStatus } from '../../shared/models/quest.model';
 import { QuestService } from '../../core/services/quest.service';
 import { PersonalQuestService } from '../../core/services/personal-quest.service';
+import { PendingUpload, StorageService } from '../../core/services/storage.service';
 import { HasUnsavedChanges } from '../../core/guards/unsaved-changes.guard';
 import { ToastService } from '../../shared/components/toast/toast.service';
 import { GraphSnapshot, QuestEditorList } from './quest-editor-list/quest-editor-list';
 import { PageLoader } from '../../shared/components/page-loader/page-loader';
+import { ImageUploader } from '../../shared/components/image-uploader/image-uploader';
 
 function makeId(prefix: string): string {
   return `${prefix}-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 5)}`;
@@ -22,7 +24,7 @@ function makeId(prefix: string): string {
 
 @Component({
   selector: 'app-quest-editor',
-  imports: [FormsModule, QuestEditorList, PageLoader],
+  imports: [FormsModule, QuestEditorList, PageLoader, ImageUploader],
   templateUrl: './quest-editor.html',
   styleUrl: './quest-editor.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -32,6 +34,7 @@ export class QuestEditor implements OnInit, HasUnsavedChanges {
   private readonly router = inject(Router);
   private readonly questService = inject(QuestService);
   private readonly personalQuestService = inject(PersonalQuestService);
+  private readonly storage = inject(StorageService);
   private readonly toast = inject(ToastService);
 
   protected readonly gameId = this.route.snapshot.paramMap.get('gameId') ?? '';
@@ -50,6 +53,16 @@ export class QuestEditor implements OnInit, HasUnsavedChanges {
   // ─── graph state ─────────────────────────────────────────────────────────
   protected readonly nodes = signal<QuestNode[]>([]);
   protected readonly edges = signal<QuestEdge[]>([]);
+
+  // ─── imagens ─────────────────────────────────────────────────────────────
+  protected readonly coverFileKey = signal<string | null>(null);
+  protected readonly coverUrl = signal<string | null>(null);
+  /** chave → URL das imagens já confirmadas, resolvidas numa chamada ao carregar. */
+  protected readonly imageUrls = signal<ReadonlyMap<string, string>>(new Map());
+  /** Enviadas nesta sessão de edição: só saem de PENDING depois que a quest é salva. */
+  private readonly pendingKeys = signal<string[]>([]);
+  /** O que a quest referenciava ao abrir — base para descobrir o que sobrou sem uso. */
+  private readonly initialKeys = signal<string[]>([]);
 
   protected readonly statuses: { value: QuestStatus; label: string }[] = [
     { value: 'TEORIA', label: 'teoria' },
@@ -97,7 +110,40 @@ export class QuestEditor implements OnInit, HasUnsavedChanges {
         to: String(e.to),
       })),
     );
+    this.coverFileKey.set(api.coverImageFileKey ?? null);
+    this.initialKeys.set(
+      [api.coverImageFileKey, ...(api.nodes ?? []).map((n) => n.imageFileKey)].filter(
+        (k): k is string => !!k,
+      ),
+    );
+    this.resolveExistingImages(api);
     this.isDirty.set(false);
+  }
+
+  /** Chaves que a quest referencia agora — capa mais a imagem de cada passo. */
+  private currentKeys(): string[] {
+    return [this.coverFileKey(), ...this.nodes().map((n) => n.imageFileKey)].filter(
+      (k): k is string => !!k,
+    );
+  }
+
+  /**
+   * Uma chamada resolve a capa e as imagens de todos os passos: os arquivos pertencem à
+   * quest, não a cada nó, justamente para caber numa listagem só.
+   */
+  private resolveExistingImages(api: QuestApi): void {
+    if (!this.questId) return;
+    const keys = [api.coverImageFileKey, ...(api.nodes ?? []).map((n) => n.imageFileKey)].filter(
+      (k): k is string => !!k,
+    );
+    if (!keys.length) return;
+
+    this.storage.resolve(keys, 'QUEST', this.questId).subscribe((resolved) => {
+      this.imageUrls.set(resolved);
+      if (api.coverImageFileKey) {
+        this.coverUrl.set(resolved.get(api.coverImageFileKey) ?? null);
+      }
+    });
   }
 
   @HostListener('window:beforeunload', ['$event'])
@@ -117,6 +163,31 @@ export class QuestEditor implements OnInit, HasUnsavedChanges {
     this.isDirty.set(true);
   }
 
+  protected onCoverUploaded(pending: PendingUpload): void {
+    this.coverFileKey.set(pending.fileKey);
+    this.coverUrl.set(pending.previewUrl);
+    this.trackPending(pending);
+    this.isDirty.set(true);
+  }
+
+  protected onCoverCleared(): void {
+    this.coverFileKey.set(null);
+    this.coverUrl.set(null);
+    this.isDirty.set(true);
+  }
+
+  /**
+   * Registra a chave para confirmar depois de salvar, e guarda a URL de preview.
+   *
+   * A URL importa porque o painel de detalhes do passo é destruído ao fechar: o
+   * arquivo ainda não foi confirmado, então não tem URL de leitura, e sem alguém aqui
+   * segurando a blob a imagem sumia da tela mesmo estando gravada no nó.
+   */
+  protected trackPending(pending: PendingUpload): void {
+    this.pendingKeys.update((keys) => [...keys, pending.fileKey]);
+    this.imageUrls.update((map) => new Map(map).set(pending.fileKey, pending.previewUrl));
+  }
+
   protected saveQuest(): void {
     if (this.saving()) return;
     this.saving.set(true);
@@ -125,6 +196,7 @@ export class QuestEditor implements OnInit, HasUnsavedChanges {
       description: this.description(),
       status: this.questStatus(),
       gameId: Number(this.gameId),
+      coverImageFileKey: this.coverFileKey() ?? undefined,
       nodes: this.nodes(),
       edges: this.edges(),
     };
@@ -132,6 +204,7 @@ export class QuestEditor implements OnInit, HasUnsavedChanges {
       title: this.title() || 'Nova Quest',
       description: this.description(),
       status: this.questStatus(),
+      coverImageFileKey: this.coverFileKey() ?? undefined,
     };
 
     if (this.isEdit && this.questId) {
@@ -142,11 +215,13 @@ export class QuestEditor implements OnInit, HasUnsavedChanges {
         next: () => {
           this.saving.set(false);
           this.isDirty.set(false);
-          if (this.isPersonal) {
-            this.router.navigate(['/profile']);
-          } else {
-            this.router.navigate(['/games', this.gameId, 'quests', this.questId]);
-          }
+          this.confirmImages(this.questId!, () => {
+            if (this.isPersonal) {
+              this.router.navigate(['/profile']);
+            } else {
+              this.router.navigate(['/games', this.gameId, 'quests', this.questId]);
+            }
+          });
         },
         error: (err) => {
           this.saving.set(false);
@@ -165,7 +240,9 @@ export class QuestEditor implements OnInit, HasUnsavedChanges {
         next: (created) => {
           this.saving.set(false);
           this.isDirty.set(false);
-          this.router.navigate(['/games', this.gameId, 'quests', created.id]);
+          this.confirmImages(String(created.id), () => {
+            this.router.navigate(['/games', this.gameId, 'quests', created.id]);
+          });
         },
         error: () => {
           this.saving.set(false);
@@ -173,6 +250,27 @@ export class QuestEditor implements OnInit, HasUnsavedChanges {
         },
       });
     }
+  }
+
+  /**
+   * Amarra os arquivos enviados à quest recém-salva. Navegar antes seria uma corrida
+   * perdida: os uploads ficariam PENDING e a limpeza de órfãos os apagaria.
+   */
+  private confirmImages(questId: string, done: () => void): void {
+    // Diferenca, e nao rastreio de eventos de troca: o editor tem undo/redo, entao
+    // marcar "trocou" no momento do upload apagaria arquivo que o usuario desfez e
+    // voltou a usar. O que vale e o que sobrou referenciado no fim.
+    const emUso = new Set(this.currentKeys());
+    const descartadas = [...this.initialKeys(), ...this.pendingKeys()].filter((k) => !emUso.has(k));
+
+    this.storage.confirmAll(this.pendingKeys(), 'QUEST', questId).subscribe(() => {
+      this.pendingKeys.set([]);
+      this.initialKeys.set(this.currentKeys());
+      // Nao prende a navegacao: a limpeza e melhor-esforco, e o que escapar aqui
+      // continua sendo lixo silencioso, nao erro visivel para o usuario.
+      this.storage.discard(descartadas, 'QUEST', questId).subscribe();
+      done();
+    });
   }
 
   hasUnsavedChanges(): boolean {

@@ -1,6 +1,5 @@
-export interface UserProgress {
-  questId: string;
-  completedNodeIds: string[];
-  totalNodes?: number;
-  completedNodes?: number;
-}
+import type { UserProgressDTO, UserProgressResponse } from '@xcorpiiion/canonico';
+
+// UserProgressResponse (questId/completedNodeIds) + contadores do UserProgressDTO
+export type UserProgress = UserProgressResponse &
+  Partial<Pick<UserProgressDTO, 'totalNodes' | 'completedNodes'>>;

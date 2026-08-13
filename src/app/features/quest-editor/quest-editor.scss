@@ -227,13 +227,30 @@
 }
 
 .qe__meta {
-  display: flex;
+  // Grid, e não flex em linha: a capa é alta e a descrição é baixa, então lado a lado
+  // sobrava um vão morto de centenas de pixels. Empilhando descrição e status à
+  // esquerda, a coluna cresce até a altura da capa e o vão desaparece.
+  display: grid;
+  grid-template-columns: 1fr 200px;
   gap: v.$space-4;
+  align-items: stretch;
   margin-bottom: v.$space-6;
 
   @media (max-width: 600px) {
-    flex-direction: column;
+    grid-template-columns: 1fr;
   }
+}
+
+.qe__meta-main {
+  display: flex;
+  flex-direction: column;
+  gap: v.$space-3;
+}
+
+.qe__cover {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
 }
 
 .qe__field {

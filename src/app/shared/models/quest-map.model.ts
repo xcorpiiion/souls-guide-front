@@ -1,3 +1,13 @@
+import type {
+  GameQuestMapRequest as CanonicoGameQuestMapRequest,
+  GameQuestMapResponse as CanonicoGameQuestMapResponse,
+  MapEntryRequest as CanonicoMapEntryRequest,
+  MapEntryResponse as CanonicoMapEntryResponse,
+  MapSectionRequest as CanonicoMapSectionRequest,
+  MapSectionResponse as CanonicoMapSectionResponse,
+} from '@xcorpiiion/canonico';
+
+/** Fases em minúsculo — é o que trafega no campo `phase` (string) do contrato. */
 export type QuestMapPhase = 'inicio' | 'meio' | 'fim' | 'full';
 
 export const QUEST_MAP_PHASE_LABELS: Record<QuestMapPhase, string> = {
@@ -7,44 +17,29 @@ export const QUEST_MAP_PHASE_LABELS: Record<QuestMapPhase, string> = {
   full: 'completa',
 };
 
-// ─── API shapes ──────────────────────────────────────────────────────────────
+// ─── API shapes — canonico com narrowing do phase ────────────────────────────
 
-export interface MapEntryResponse {
-  questId: number | null;
-  questTitle: string | null;
-  nodeId: number | null;
-  nodeTitle: string | null;
+export interface MapEntryResponse extends Omit<CanonicoMapEntryResponse, 'phase'> {
   phase: QuestMapPhase;
-  order: number;
 }
 
-export interface MapSectionResponse {
-  id: number;
-  name: string;
-  order: number;
+export interface MapSectionResponse extends Omit<CanonicoMapSectionResponse, 'entries'> {
   entries: MapEntryResponse[];
 }
 
-export interface GameQuestMapResponse {
-  gameId: number;
+export interface GameQuestMapResponse extends Omit<CanonicoGameQuestMapResponse, 'sections'> {
   sections: MapSectionResponse[];
 }
 
-export interface MapEntryRequest {
-  questId: number;
-  nodeId: number | null;
+export interface MapEntryRequest extends Omit<CanonicoMapEntryRequest, 'phase'> {
   phase: QuestMapPhase;
-  order: number;
 }
 
-export interface MapSectionRequest {
-  id: number | null;
-  name: string;
-  order: number;
+export interface MapSectionRequest extends Omit<CanonicoMapSectionRequest, 'entries'> {
   entries: MapEntryRequest[];
 }
 
-export interface GameQuestMapRequest {
+export interface GameQuestMapRequest extends Omit<CanonicoGameQuestMapRequest, 'sections'> {
   sections: MapSectionRequest[];
 }
 
@@ -80,7 +75,7 @@ export function responseToLocal(response: GameQuestMapResponse): MapSectionLocal
     name: s.name,
     entries: s.entries.map((e) => ({
       questId: e.questId != null ? String(e.questId) : null,
-      questTitle: e.questTitle,
+      questTitle: e.questTitle ?? null,
       nodeId: e.nodeId != null ? String(e.nodeId) : null,
       nodeTitle: e.nodeTitle ?? null,
       phase: e.phase,

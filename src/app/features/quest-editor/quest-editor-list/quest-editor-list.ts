@@ -22,6 +22,8 @@ import {
   buildEntries,
 } from '../../quest-detail/quest-checklist/quest-checklist';
 import { ConfirmService } from '../../../core/services/confirm.service';
+import { PendingUpload } from '../../../core/services/storage.service';
+import { ImageUploader } from '../../../shared/components/image-uploader/image-uploader';
 
 export interface GraphSnapshot {
   nodes: QuestNode[];
@@ -131,7 +133,7 @@ function swapEdges(edges: QuestEdge[], a: ListEntry, b: ListEntry): QuestEdge[] 
 
 @Component({
   selector: 'app-quest-editor-list',
-  imports: [CdkDropList, CdkDrag],
+  imports: [CdkDropList, CdkDrag, ImageUploader],
   templateUrl: './quest-editor-list.html',
   styleUrl: './quest-editor-list.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -142,7 +144,11 @@ export class QuestEditorList {
 
   readonly nodes = input.required<QuestNode[]>();
   readonly edges = input.required<QuestEdge[]>();
+  /** chave → URL das imagens que já existiam quando a quest carregou. */
+  readonly imageUrls = input<ReadonlyMap<string, string>>(new Map());
   readonly graphChange = output<GraphSnapshot>();
+  /** Avisa o pai da chave nova, que ainda precisa ser confirmada depois de salvar. */
+  readonly imageUploaded = output<PendingUpload>();
 
   protected readonly entries = computed(() => buildEntries(this.nodes(), this.edges()));
 
@@ -476,6 +482,23 @@ export class QuestEditorList {
   }
   protected updateStepType(value: string): void {
     this.updateField('type', value as QuestNodeType);
+  }
+
+  protected onStepImageUploaded(pending: PendingUpload): void {
+    this.updateField('imageFileKey', pending.fileKey);
+    // O pai guarda a URL de preview: este painel é destruído ao fechar, e sem alguém
+    // segurando a blob a imagem sumiria do passo mesmo estando gravada no nó.
+    this.imageUploaded.emit(pending);
+  }
+
+  protected onStepImageCleared(): void {
+    this.updateField('imageFileKey', null);
+  }
+
+  /** URL da imagem já confirmada do passo; nula enquanto o upload novo só tem blob local. */
+  protected stepImageUrl(node: QuestNode): string | null {
+    const key = node.imageFileKey;
+    return key ? (this.imageUrls().get(key) ?? null) : null;
   }
 
   protected stepTagsString(node: QuestNode): string {

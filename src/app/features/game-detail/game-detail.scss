@@ -702,3 +702,126 @@ $game-colors: (
     color: v.$color-gold;
   }
 }
+
+// ─── aba de finais ────────────────────────────────────────────────────────────
+.game-detail__endings-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: v.$space-3;
+}
+
+.game-detail__ending-card {
+  display: block;
+  background: v.$color-bg-surface;
+  border: 1px solid v.$color-border;
+  border-radius: v.$radius-md;
+  padding: v.$space-3 v.$space-4;
+  text-decoration: none;
+  transition: border-color v.$transition-fast;
+
+  @include m.on-hover {
+    border-color: v.$color-gold-dark;
+  }
+
+  &--achieved {
+    border-color: rgba(v.$color-consolidado, 0.5);
+  }
+}
+
+.game-detail__ending-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: v.$space-2;
+}
+
+.game-detail__ending-kind {
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 2px 7px;
+  border-radius: v.$radius-sm;
+  background: v.$color-bg-elevated;
+  color: v.$color-text;
+
+  &--true {
+    background: v.$color-gold;
+    color: v.$color-bg;
+  }
+
+  &--bad {
+    background: rgba(v.$color-ember, 0.22);
+    color: v.$color-ember-light;
+  }
+
+  &--secret {
+    background: rgba(v.$color-teoria, 0.22);
+    color: v.$color-teoria;
+  }
+
+  &--joke {
+    background: rgba(v.$color-warning, 0.18);
+    color: v.$color-warning;
+  }
+}
+
+.game-detail__ending-mark {
+  color: v.$color-consolidado;
+  font-size: v.$font-size-sm;
+}
+
+.game-detail__ending-warn {
+  color: v.$color-ember-light;
+  font-size: v.$font-size-sm;
+}
+
+.game-detail__ending-title {
+  font-family: v.$font-display;
+  font-size: v.$font-size-lg;
+  color: v.$color-text;
+  margin: 0 0 v.$space-1;
+}
+
+.game-detail__ending-summary {
+  font-size: v.$font-size-xs;
+  line-height: 1.5;
+  color: v.$color-text-muted;
+  margin: 0 0 v.$space-3;
+}
+
+.game-detail__ending-spoiler {
+  display: block;
+  width: 100%;
+  text-align: left;
+  background: transparent;
+  border: none;
+  padding: 0;
+  margin-bottom: v.$space-3;
+  font-size: v.$font-size-xs;
+  font-style: italic;
+  color: v.$color-text-faint;
+  cursor: pointer;
+
+  @include m.on-hover {
+    color: v.$color-text-muted;
+  }
+}
+
+.game-detail__ending-bar {
+  height: 3px;
+  background: v.$color-bg-elevated;
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.game-detail__ending-fill {
+  height: 100%;
+  background: v.$color-consolidado;
+}
+
+.game-detail__ending-count {
+  display: block;
+  margin-top: v.$space-2;
+  font-size: 11px;
+  color: v.$color-text-muted;
+}

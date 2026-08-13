@@ -10,7 +10,7 @@ import { AuthService } from '../../core/services/auth.service';
 import { UserSummary } from '../../shared/models/user.model';
 
 const MOCK_USER: UserSummary = {
-  id: 1,
+  id: '1',
   name: 'Vinicius Cruz',
   handle: 'vincruz',
   bio: null,

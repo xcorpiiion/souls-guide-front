@@ -1,0 +1,364 @@
+@use 'styles/variables' as v;
+
+.ending-detail {
+  max-width: 860px;
+  margin: 0 auto;
+  padding: v.$space-8 v.$space-6 v.$space-16;
+
+  &__error,
+  &__empty {
+    color: v.$color-text-muted;
+    font-size: v.$font-size-sm;
+    text-align: center;
+    padding: v.$space-8 0;
+  }
+
+  &__breadcrumb {
+    display: flex;
+    gap: v.$space-2;
+    align-items: center;
+    font-size: v.$font-size-xs;
+    color: v.$color-text-muted;
+    margin-bottom: v.$space-3;
+
+    a {
+      color: v.$color-text-muted;
+      text-decoration: none;
+
+      &:hover {
+        color: v.$color-gold;
+      }
+    }
+
+    span[aria-hidden='true'] {
+      color: v.$color-text-faint;
+    }
+  }
+
+  &__breadcrumb-current {
+    color: v.$color-text;
+  }
+
+  &__header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: v.$space-4;
+    flex-wrap: wrap;
+  }
+
+  &__title {
+    font-family: v.$font-display;
+    font-size: v.$font-size-3xl;
+    color: v.$color-text;
+    margin: 0;
+  }
+
+  &__badges {
+    display: flex;
+    gap: v.$space-2;
+    flex-wrap: wrap;
+    margin-top: v.$space-2;
+  }
+
+  // ─── tipo do final ──────────────────────────────────────────────────────────
+  &__kind {
+    font-size: 10px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 3px 8px;
+    border-radius: v.$radius-sm;
+    background: v.$color-bg-elevated;
+    color: v.$color-text;
+
+    &--true {
+      background: v.$color-gold;
+      color: v.$color-bg;
+    }
+
+    &--bad {
+      background: rgba(v.$color-ember, 0.22);
+      color: v.$color-ember-light;
+    }
+
+    &--secret {
+      background: rgba(v.$color-teoria, 0.22);
+      color: v.$color-teoria;
+    }
+
+    &--joke {
+      background: rgba(v.$color-warning, 0.18);
+      color: v.$color-warning;
+    }
+  }
+
+  &__flag {
+    font-size: v.$font-size-xs;
+    color: v.$color-text-muted;
+    border: 1px solid v.$color-border;
+    border-radius: v.$radius-sm;
+    padding: 3px 8px;
+
+    &--missable {
+      color: v.$color-ember-light;
+      border-color: rgba(v.$color-ember, 0.4);
+    }
+  }
+
+  &__actions {
+    display: flex;
+    gap: v.$space-2;
+  }
+
+  &__action {
+    font-size: v.$font-size-xs;
+    color: v.$color-text-muted;
+    background: transparent;
+    border: 1px solid v.$color-border;
+    border-radius: v.$radius-md;
+    padding: v.$space-2 v.$space-3;
+    cursor: pointer;
+    transition:
+      color v.$transition-fast,
+      border-color v.$transition-fast;
+
+    &:hover:not(:disabled) {
+      color: v.$color-gold;
+      border-color: v.$color-gold-dark;
+    }
+
+    &:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    &--on {
+      color: v.$color-gold;
+      border-color: v.$color-gold-dark;
+    }
+  }
+
+  &__action-count {
+    color: v.$color-text-faint;
+  }
+
+  // ─── resumo, com a cortina de spoiler ───────────────────────────────────────
+  &__summary {
+    margin: v.$space-6 0;
+    padding: v.$space-3 v.$space-4;
+    background: v.$color-bg-surface;
+    border-left: 3px solid v.$color-gold;
+
+    p {
+      margin: 0;
+      font-size: v.$font-size-sm;
+      line-height: 1.6;
+      color: v.$color-text;
+    }
+  }
+
+  &__spoiler {
+    width: 100%;
+    text-align: left;
+    background: transparent;
+    border: none;
+    padding: 0;
+    font-size: v.$font-size-sm;
+    font-style: italic;
+    color: v.$color-text-faint;
+    cursor: pointer;
+
+    &:hover {
+      color: v.$color-text-muted;
+    }
+  }
+
+  // ─── passo a passo ──────────────────────────────────────────────────────────
+  &__steps {
+    margin-top: v.$space-8;
+  }
+
+  &__steps-header {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: v.$space-4;
+    flex-wrap: wrap;
+  }
+
+  &__steps-title {
+    font-size: v.$font-size-lg;
+    color: v.$color-text;
+    margin: 0;
+  }
+
+  &__progress-label {
+    font-size: v.$font-size-xs;
+    color: v.$color-text-muted;
+  }
+
+  &__progress-bar {
+    height: 3px;
+    background: v.$color-bg-elevated;
+    border-radius: 2px;
+    overflow: hidden;
+    margin: v.$space-3 0 v.$space-5;
+  }
+
+  &__progress-fill {
+    height: 100%;
+    background: v.$color-consolidado;
+    transition: width v.$transition-base;
+  }
+
+  /** O ponto do jogo. Texto livre, então é só um rótulo — não um filtro. */
+  &__chapter {
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: v.$color-text-muted;
+    margin: v.$space-6 0 v.$space-3;
+    font-weight: 400;
+  }
+
+  &__step {
+    display: flex;
+    gap: v.$space-3;
+    padding: v.$space-3;
+    background: v.$color-bg-surface;
+    border: 1px solid v.$color-border;
+    border-radius: v.$radius-md;
+    margin-bottom: v.$space-2;
+
+    &--missable {
+      border-color: rgba(v.$color-ember, 0.35);
+    }
+
+    &--done {
+      opacity: 0.72;
+    }
+  }
+
+  &__check {
+    background: transparent;
+    border: none;
+    padding: 0;
+    font-size: v.$font-size-lg;
+    line-height: 1;
+    color: v.$color-text-faint;
+    cursor: pointer;
+
+    &:hover:not(:disabled) {
+      color: v.$color-gold;
+    }
+
+    &:disabled {
+      cursor: not-allowed;
+    }
+  }
+
+  &__step--done &__check {
+    color: v.$color-consolidado;
+  }
+
+  &__step-body {
+    flex: 1;
+  }
+
+  &__step-head {
+    display: flex;
+    align-items: center;
+    gap: v.$space-2;
+    flex-wrap: wrap;
+    margin-bottom: v.$space-1;
+  }
+
+  // ─── o que o jogador faz com o passo ────────────────────────────────────────
+  &__step-kind {
+    font-size: 9px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 2px 6px;
+    border-radius: 3px;
+    background: v.$color-text-muted;
+    color: v.$color-bg;
+
+    /** O passo que a quest não sabe representar: não se conclui, se mantém. */
+    &--avoid {
+      background: rgba(v.$color-ember, 0.25);
+      color: v.$color-ember-light;
+    }
+
+    &--check {
+      background: rgba(v.$color-teoria, 0.25);
+      color: v.$color-teoria;
+    }
+
+    &--choice {
+      background: v.$color-gold;
+      color: v.$color-bg;
+    }
+  }
+
+  &__step-title {
+    font-size: v.$font-size-sm;
+    color: v.$color-text;
+  }
+
+  &__step-location,
+  &__step-optional {
+    font-size: 10px;
+    color: v.$color-text-muted;
+  }
+
+  &__step-missable {
+    font-size: 10px;
+    color: v.$color-ember-light;
+  }
+
+  &__step-content {
+    margin: 0;
+    font-size: v.$font-size-xs;
+    line-height: 1.55;
+    color: v.$color-text-muted;
+  }
+
+  &__step-quest {
+    display: inline-block;
+    margin-top: v.$space-2;
+    font-size: v.$font-size-xs;
+    color: v.$color-gold;
+    text-decoration: none;
+    border: 1px solid v.$color-border;
+    border-radius: v.$radius-full;
+    padding: 3px 9px;
+
+    &:hover {
+      border-color: v.$color-gold-dark;
+    }
+  }
+
+  &__footer {
+    margin-top: v.$space-8;
+  }
+
+  &__achieved {
+    font-size: v.$font-size-sm;
+    color: v.$color-text-muted;
+    background: transparent;
+    border: 1px solid v.$color-border;
+    border-radius: v.$radius-md;
+    padding: v.$space-3 v.$space-5;
+    cursor: pointer;
+
+    &:hover {
+      color: v.$color-gold;
+      border-color: v.$color-gold-dark;
+    }
+
+    &--on {
+      color: v.$color-consolidado;
+      border-color: v.$color-consolidado;
+    }
+  }
+}

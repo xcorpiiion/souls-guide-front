@@ -98,6 +98,7 @@ export class Navbar implements OnInit {
     const map: Record<NotificationType, string> = {
       QUEST_LIKE: `${actor} curtiu sua quest ${title}`,
       LORE_LIKE: `${actor} curtiu seu lore ${title}`,
+      ENDING_LIKE: `${actor} curtiu seu guia do final ${title}`,
       COMMENT_LIKE: `${actor} curtiu seu comentário`,
       COMMENT_ON_QUEST: `${actor} comentou na sua quest ${title}`,
       COMMENT_ON_LORE: `${actor} comentou no seu lore ${title}`,
@@ -106,6 +107,7 @@ export class Navbar implements OnInit {
       LORE_NEW_VERSION: `O lore ${title} que você segue recebeu uma atualização`,
       GAME_NEW_QUEST: `${actor} criou a quest ${title} em um jogo que você segue`,
       GAME_NEW_LORE: `${actor} criou o lore ${title} em um jogo que você segue`,
+      GAME_NEW_ENDING: `${actor} mapeou o final ${title} em um jogo que você segue`,
       USER_FOLLOW: `${actor} começou a te seguir`,
     };
     return map[n.type] ?? `Nova notificação de ${actor}`;

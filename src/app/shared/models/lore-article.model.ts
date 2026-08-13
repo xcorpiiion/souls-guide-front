@@ -1,29 +1,15 @@
-export type LoreStatus = 'TEORIA' | 'CONSOLIDADO' | 'CANONICO';
-export type LoreCategory = 'WORLD' | 'CHARACTER';
+import type {
+  LoreArticleDTO,
+  LoreStatus as CanonicoLoreStatus,
+  LoreType,
+} from '@xcorpiiion/canonico';
 
-// Shape retornado pela API
-export interface LoreApi {
-  id: number;
-  title: string;
-  content: string;
-  status: LoreStatus;
-  type: 'WORLD' | 'CHARACTER';
-  characterName: string | null;
-  tags: string[];
-  userId: string;
-  gameId: number;
-  gameName: string;
-  items: { id: number; name: string; description: string }[];
-  // campos de conteúdo de perfil
-  isPersonal: boolean;
-  ownerId: string | null;
-  isPublic: boolean;
-  allowCopy: boolean;
-  likeCount: number;
-  userHasLiked: boolean;
-  followerCount: number;
-  userIsFollowing: boolean;
-}
+// Enums do contrato — fonte da verdade: lib canonico
+export type LoreStatus = CanonicoLoreStatus;
+export type LoreCategory = LoreType;
+
+// Shape retornado pela API — LoreArticleDTO do canonico
+export type LoreApi = LoreArticleDTO;
 
 export interface LoreSummary {
   id: string;

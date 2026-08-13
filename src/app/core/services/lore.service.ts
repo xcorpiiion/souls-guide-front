@@ -14,6 +14,8 @@ export interface CreateLoreRequest {
   gameId: string;
   characterName?: string;
   content: string;
+  /** Chave do arquivo de destaque na storage-api. Imagens do texto vão dentro de content. */
+  coverImageFileKey?: string;
   tags?: string[];
 }
 

@@ -8,7 +8,7 @@ import { UserSummary, UserPublicProfile } from '../../shared/models/user.model';
 const BASE = 'http://localhost:8765/souls-guide-api/users';
 
 const MOCK_USER: UserSummary = {
-  id: 1,
+  id: '1',
   name: 'Vinicius Cruz',
   handle: 'vincruz',
   bio: 'Explorador de lore',
@@ -21,7 +21,7 @@ const MOCK_USER: UserSummary = {
 };
 
 const MOCK_PROFILE: UserPublicProfile = {
-  id: 1,
+  id: '1',
   name: 'Vinicius Cruz',
   handle: 'vincruz',
   bio: 'Explorador de lore',
@@ -108,21 +108,21 @@ describe('UserService', () => {
 
   describe('getFollowers()', () => {
     it('faz GET /users/:id/followers', () => {
-      svc.getFollowers(1).subscribe();
+      svc.getFollowers('1').subscribe();
       http.expectOne(`${BASE}/1/followers`).flush([MOCK_USER]);
     });
   });
 
   describe('getFollowing()', () => {
     it('faz GET /users/:id/following', () => {
-      svc.getFollowing(1).subscribe();
+      svc.getFollowing('1').subscribe();
       http.expectOne(`${BASE}/1/following`).flush([MOCK_USER]);
     });
   });
 
   describe('follow()', () => {
     it('faz POST /users/:id/follow', () => {
-      svc.follow(2).subscribe();
+      svc.follow('2').subscribe();
       const req = http.expectOne(`${BASE}/2/follow`);
       expect(req.request.method).toBe('POST');
       req.flush(null, { status: 204, statusText: 'No Content' });
@@ -131,7 +131,7 @@ describe('UserService', () => {
 
   describe('unfollow()', () => {
     it('faz DELETE /users/:id/follow', () => {
-      svc.unfollow(2).subscribe();
+      svc.unfollow('2').subscribe();
       const req = http.expectOne(`${BASE}/2/follow`);
       expect(req.request.method).toBe('DELETE');
       req.flush(null, { status: 204, statusText: 'No Content' });

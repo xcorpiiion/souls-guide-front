@@ -913,3 +913,17 @@
 .ck__spin {
   animation: ck-spin 0.8s linear infinite;
 }
+
+.ck__node-image {
+  margin: v.$space-3 0 0;
+  border-radius: v.$radius-md;
+  overflow: hidden;
+  border: 1px solid v.$color-border;
+  max-width: 32rem;
+
+  img {
+    display: block;
+    width: 100%;
+    object-fit: cover;
+  }
+}

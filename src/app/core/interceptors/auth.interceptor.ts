@@ -3,11 +3,17 @@ import { inject } from '@angular/core';
 import { BehaviorSubject, catchError, filter, switchMap, take, throwError } from 'rxjs';
 import { AuthService } from '../services/auth.service';
 import { ToastService } from '../../shared/components/toast/toast.service';
+import { SKIP_AUTH } from './skip-auth';
 
 let refreshing = false;
 const refreshDone$ = new BehaviorSubject<boolean>(false);
 
 export const authInterceptor: HttpInterceptorFn = (req, next) => {
+  // Upload direto para o bucket: nada nosso deve ir junto, nem token nem refresh.
+  if (req.context.get(SKIP_AUTH)) {
+    return next(req);
+  }
+
   const auth = inject(AuthService);
   const toast = inject(ToastService);
 

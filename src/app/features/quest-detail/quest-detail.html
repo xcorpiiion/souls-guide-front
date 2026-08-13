@@ -70,6 +70,12 @@
         </div>
       }
 
+      @if (coverUrl(); as cover) {
+        <figure class="quest-detail__cover">
+          <img [src]="cover" [alt]="q.title" loading="lazy" />
+        </figure>
+      }
+
       <div class="quest-detail__header">
         <div class="quest-detail__title-block">
           <div class="quest-detail__title-row">
@@ -263,6 +269,7 @@
             [triggerNodeConditions]="triggerNodeConditions()"
             [conditionsLoading]="conditionsLoading()"
             [gameId]="gameId()"
+            [imageUrls]="imageUrls()"
             (nodeDoneToggle)="toggleNodeDone($event)"
           />
         }

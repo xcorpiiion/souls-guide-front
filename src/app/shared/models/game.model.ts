@@ -1,37 +1,13 @@
-export interface FeaturedGame {
-  id: number;
-  name: string;
-  shortName: string;
-  questCount: number;
-  loreCount: number;
-}
+import type { FeaturedGameDTO, GameDTO, GameSummaryDTO } from '@xcorpiiion/canonico';
+
+// Shapes da API — fonte da verdade: lib canonico (gerada dos DTOs Java do back-end)
+export type FeaturedGame = FeaturedGameDTO;
 
 // DTO retornado por GET /games/{id}
-export interface Game {
-  id: number;
-  name: string;
-  imageUrl: string;
-  description: string;
-  followerCount: number;
-  userIsFollowing: boolean;
-}
+export type Game = GameDTO;
 
 // DTO retornado por GET /games (lista paginada) — GameSummaryDTO do back-end
-export interface GameListItem {
-  id: number;
-  name: string;
-  imageUrl: string;
-  description: string;
-  followersCount: number;
-  userIsFollowing: boolean;
-  questCount: number;
-  loreCount: number;
-  contributorsCount: number;
-  topQuestTitle: string | null;
-  topQuestSteps: number | null;
-  topQuestFollowers: number | null;
-  lastActivityLabel: string;
-}
+export type GameListItem = GameSummaryDTO;
 
 // Shape usado nas listagens e cards do front
 export interface GameSummary {
@@ -65,19 +41,17 @@ export function gameListItemToSummary(g: GameListItem): GameSummary {
   return {
     id: String(g.id),
     name: g.name,
-    shortName: g.name.split(' ')[0],
-    accentClass: 'accent-default',
+    shortName: g.shortName,
+    accentClass: g.accentClass,
     questCount: g.questCount,
     loreCount: g.loreCount,
     followersCount: g.followersCount,
     userIsFollowing: g.userIsFollowing,
     contributorsCount: g.contributorsCount,
-    topQuestTitle: g.topQuestTitle,
-    topQuestSteps: g.topQuestSteps,
-    topQuestFollowers: g.topQuestFollowers,
+    topQuestTitle: g.topQuestTitle ?? null,
+    topQuestSteps: g.topQuestSteps ?? null,
+    topQuestFollowers: g.topQuestFollowers ?? null,
     lastActivityLabel: g.lastActivityLabel,
-    imageUrl: g.imageUrl,
-    description: g.description,
   };
 }
 

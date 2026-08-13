@@ -43,35 +43,50 @@
 
   <div class="qe__body">
     <div class="qe__meta">
-      <label class="qe__field">
-        <span class="qe__label">descrição</span>
-        <textarea
-          class="qe__input qe__input--textarea"
-          rows="2"
-          placeholder="descreva a questline…"
-          [value]="description()"
-          (input)="description.set($any($event.target).value); markDirty()"
-        ></textarea>
-      </label>
+      <div class="qe__meta-main">
+        <label class="qe__field">
+          <span class="qe__label">descrição</span>
+          <textarea
+            class="qe__input qe__input--textarea"
+            rows="3"
+            placeholder="descreva a questline…"
+            [value]="description()"
+            (input)="description.set($any($event.target).value); markDirty()"
+          ></textarea>
+        </label>
 
-      <label class="qe__field qe__field--status">
-        <span class="qe__label">status</span>
-        <select
-          class="qe__input qe__input--select"
-          [value]="questStatus()"
-          (change)="questStatus.set($any($event.target).value); markDirty()"
-        >
-          @for (s of statuses; track s.value) {
-            <option [value]="s.value">{{ s.label }}</option>
-          }
-        </select>
-      </label>
+        <label class="qe__field qe__field--status">
+          <span class="qe__label">status</span>
+          <select
+            class="qe__input qe__input--select"
+            [value]="questStatus()"
+            (change)="questStatus.set($any($event.target).value); markDirty()"
+          >
+            @for (s of statuses; track s.value) {
+              <option [value]="s.value">{{ s.label }}</option>
+            }
+          </select>
+        </label>
+      </div>
+
+      <div class="qe__cover">
+        <app-image-uploader
+          purpose="QUEST_IMAGE"
+          label="capa da quest"
+          hint="PNG, JPG ou WebP · até 5 MB"
+          [currentUrl]="coverUrl()"
+          (uploaded)="onCoverUploaded($event)"
+          (cleared)="onCoverCleared()"
+        />
+      </div>
     </div>
 
     <app-quest-editor-list
       [nodes]="nodes()"
       [edges]="edges()"
+      [imageUrls]="imageUrls()"
       (graphChange)="onGraphChange($event)"
+      (imageUploaded)="trackPending($event)"
     />
   </div>
 </div>

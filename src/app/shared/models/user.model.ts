@@ -1,34 +1,12 @@
-export interface UserSummary {
-  id: number;
-  name: string;
-  handle: string;
-  bio: string | null;
-  questCount: number;
-  loreCount: number;
-  followerCount: number;
-  followingCount: number;
-  isFollowing: boolean;
-  favoriteGame: string | null;
-}
+import type { ActivityItem, UserPublicProfileDTO, UserSummaryDTO } from '@xcorpiiion/canonico';
 
-export interface ActivityEvent {
+// Shapes da API — fonte da verdade: lib canonico
+export type UserSummary = UserSummaryDTO;
+
+export type UserPublicProfile = UserPublicProfileDTO;
+
+// ActivityItem do canonico, com narrowing dos discriminadores usados pelo front
+export interface ActivityEvent extends ActivityItem {
   type: 'created' | 'updated' | 'followed_user';
-  targetTitle: string | null;
-  targetId: string;
   targetKind: 'quest' | 'lore' | 'user';
-  occurredAt: string;
-  daysAgo: number;
-}
-
-export interface UserPublicProfile {
-  id: number;
-  name: string;
-  handle: string;
-  bio: string | null;
-  joinedLabel: string;
-  questCount: number;
-  loreCount: number;
-  followerCount: number;
-  followingCount: number;
-  isFollowing: boolean;
 }

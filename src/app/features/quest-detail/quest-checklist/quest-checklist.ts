@@ -151,12 +151,19 @@ export class QuestChecklist {
   readonly triggerNodeConditions = input<Map<string, TriggerEffect[]>>(new Map());
   /** true enquanto conditionService.listByGame ainda não retornou. */
   readonly conditionsLoading = input<boolean>(false);
+  /** chave do arquivo → URL de leitura, resolvidas pelo pai numa chamada só. */
+  readonly imageUrls = input<ReadonlyMap<string, string>>(new Map());
 
   readonly nodeSelect = output<string>();
   readonly nodeDoneToggle = output<string>();
 
   protected readonly selectedId = signal<string | null>(null);
   protected readonly closedForks = signal<Set<string>>(new Set());
+
+  protected nodeImageUrl(node: QuestNode): string | null {
+    const key = node.imageFileKey;
+    return key ? (this.imageUrls().get(key) ?? null) : null;
+  }
 
   protected readonly entries = computed(() => buildEntries(this.nodes(), this.edges()));
 

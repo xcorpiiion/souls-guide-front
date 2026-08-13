@@ -55,7 +55,7 @@ export class Profile implements OnInit {
   /** ID do usuário na users-api (auth) — usado para update de perfil e senha */
   protected readonly userId = signal<number | null>(null);
   /** ID do usuário na souls-guide-api — usado para buscar quests, lore, seguidores */
-  private readonly sgUserId = signal<number | null>(null);
+  private readonly sgUserId = signal<string | null>(null);
 
   protected readonly isGoogleUser = signal(false);
   protected readonly activeTab = signal<ProfileTab>('quests');
@@ -254,7 +254,7 @@ export class Profile implements OnInit {
     });
   }
 
-  private loadPersonalContent(userId: number): void {
+  private loadPersonalContent(userId: string): void {
     this.loadingContent.set(true);
     forkJoin([
       this.profileService.getQuestsByUser(userId),

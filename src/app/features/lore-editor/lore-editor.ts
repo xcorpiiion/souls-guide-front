@@ -14,14 +14,21 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { LoreService } from '../../core/services/lore.service';
 import { PersonalLoreService } from '../../core/services/personal-lore.service';
 import { GameService } from '../../core/services/game.service';
+import { PendingUpload, StorageService } from '../../core/services/storage.service';
 import { PageLoader } from '../../shared/components/page-loader/page-loader';
+import { ImageUploader } from '../../shared/components/image-uploader/image-uploader';
 import { GameSummary } from '../../shared/models/game.model';
 import { LoreType, LoreTypeApi } from '../lore-create/lore-create';
 import { HasUnsavedChanges } from '../../core/guards/unsaved-changes.guard';
+import {
+  extractImageFileKeys,
+  loreImageMarkdown,
+  renderMarkdown,
+} from '../../shared/utils/lore-content';
 
 @Component({
   selector: 'app-lore-editor',
-  imports: [ReactiveFormsModule, RouterLink, PageLoader],
+  imports: [ReactiveFormsModule, RouterLink, PageLoader, ImageUploader],
   templateUrl: './lore-editor.html',
   styleUrl: './lore-editor.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -30,6 +37,7 @@ export class LoreEditor implements OnInit, OnDestroy, HasUnsavedChanges {
   private readonly loreService = inject(LoreService);
   private readonly personalLoreService = inject(PersonalLoreService);
   private readonly gameService = inject(GameService);
+  private readonly storage = inject(StorageService);
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
   private readonly fb = inject(FormBuilder);
@@ -60,10 +68,20 @@ export class LoreEditor implements OnInit, OnDestroy, HasUnsavedChanges {
   protected readonly selectedGame = signal<GameSummary | null>(null);
   protected readonly showGameDropdown = signal(false);
 
+  // imagens
+  protected readonly coverFileKey = signal<string | null>(null);
+  protected readonly coverUrl = signal<string | null>(null);
+  /** chave → URL exibível: as já confirmadas resolvem pela storage-api, as novas são blob. */
+  protected readonly imagePreviews = signal<ReadonlyMap<string, string>>(new Map());
+  private readonly pendingKeys = signal<string[]>([]);
+  /** O que o artigo referenciava ao abrir — capa mais as imagens do texto. */
+  private readonly initialKeys = signal<string[]>([]);
+  protected readonly insertingImage = signal(false);
+
   protected readonly isCharacter = computed(() => this.loreType() === 'character');
 
   protected readonly previewContent = computed(() =>
-    this.renderMarkdown(this.form.value.content ?? ''),
+    renderMarkdown(this.form.value.content ?? '', this.imagePreviews()),
   );
 
   hasUnsavedChanges(): boolean {
@@ -113,6 +131,13 @@ export class LoreEditor implements OnInit, OnDestroy, HasUnsavedChanges {
           characterName: data.characterName ?? '',
           content: data.content,
         });
+        this.coverFileKey.set(data.coverImageFileKey ?? null);
+        this.initialKeys.set(
+          [data.coverImageFileKey, ...extractImageFileKeys(data.content)].filter(
+            (k): k is string => !!k,
+          ),
+        );
+        this.resolveExistingImages(data.coverImageFileKey ?? null, data.content);
         this.loading.set(false);
       },
       error: () => {
@@ -169,6 +194,72 @@ export class LoreEditor implements OnInit, OnDestroy, HasUnsavedChanges {
     this.showPreview.update((v) => !v);
   }
 
+  protected onCoverUploaded(pending: PendingUpload): void {
+    this.coverFileKey.set(pending.fileKey);
+    this.coverUrl.set(pending.previewUrl);
+    this.pendingKeys.update((keys) => [...keys, pending.fileKey]);
+    this.form.markAsDirty();
+  }
+
+  protected onCoverCleared(): void {
+    this.coverFileKey.set(null);
+    this.coverUrl.set(null);
+    this.form.markAsDirty();
+  }
+
+  protected insertInlineImage(event: Event, textarea: HTMLTextAreaElement): void {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+    if (!file) return;
+    input.value = '';
+
+    const problem = this.storage.validateImage(file);
+    if (problem) {
+      this.errorMsg.set(problem);
+      return;
+    }
+
+    this.errorMsg.set(null);
+    this.insertingImage.set(true);
+    this.storage.upload(file, 'LORE_IMAGE').subscribe({
+      next: ({ fileKey, previewUrl }) => {
+        this.insertingImage.set(false);
+        this.pendingKeys.update((keys) => [...keys, fileKey]);
+        this.imagePreviews.update((map) => new Map(map).set(fileKey, previewUrl));
+        this.writeAtCursor(textarea, `\n\n${loreImageMarkdown(fileKey, file.name)}\n\n`);
+      },
+      error: () => {
+        this.insertingImage.set(false);
+        this.errorMsg.set('Não foi possível enviar a imagem. Tente novamente.');
+      },
+    });
+  }
+
+  /** As imagens que já estavam no artigo têm URL; sem resolvê-las o preview ficaria vazio. */
+  private resolveExistingImages(coverKey: string | null, content: string): void {
+    const keys = [coverKey, ...extractImageFileKeys(content)].filter((k): k is string => !!k);
+    if (!keys.length) return;
+
+    this.storage.resolve(keys, 'LORE', this.loreId).subscribe((resolved) => {
+      this.imagePreviews.update((map) => new Map([...map, ...resolved]));
+      if (coverKey) this.coverUrl.set(resolved.get(coverKey) ?? null);
+    });
+  }
+
+  private writeAtCursor(textarea: HTMLTextAreaElement, snippet: string): void {
+    const current = this.form.value.content ?? '';
+    const at = textarea.selectionStart ?? current.length;
+    const next = current.slice(0, at) + snippet + current.slice(at);
+    this.form.patchValue({ content: next });
+    this.form.markAsDirty();
+
+    const caret = at + snippet.length;
+    queueMicrotask(() => {
+      textarea.focus();
+      textarea.setSelectionRange(caret, caret);
+    });
+  }
+
   protected submit(): void {
     if (this.form.invalid) return;
     if (this.isCharacter() && !this.form.value.characterName?.trim()) return;
@@ -182,6 +273,7 @@ export class LoreEditor implements OnInit, OnDestroy, HasUnsavedChanges {
       gameId: v.gameId!,
       characterName: this.isCharacter() ? v.characterName || undefined : undefined,
       content: v.content!,
+      coverImageFileKey: this.coverFileKey() ?? undefined,
       tags: this.tags().length ? this.tags() : undefined,
     };
 
@@ -192,11 +284,30 @@ export class LoreEditor implements OnInit, OnDestroy, HasUnsavedChanges {
     save$.subscribe({
       next: () => {
         this.form.markAsPristine();
-        if (this.isPersonal) {
-          this.router.navigate(['/profile']);
-        } else {
-          this.router.navigate(['/lore', this.loreId]);
-        }
+        // Imagem tirada do meio do texto some junto com a referência: sem varrer o
+        // conteúdo salvo, o arquivo continuaria no storage sem ninguém apontando.
+        const emUso = new Set(
+          [this.coverFileKey(), ...extractImageFileKeys(v.content ?? '')].filter(
+            (k): k is string => !!k,
+          ),
+        );
+        const descartadas = [...this.initialKeys(), ...this.pendingKeys()].filter(
+          (k) => !emUso.has(k),
+        );
+
+        // O artigo já tem id: aqui a confirmação é só o passo que faltava para os
+        // arquivos enviados nesta edição saírem de PENDING.
+        this.storage.confirmAll(this.pendingKeys(), 'LORE', this.loreId).subscribe(() => {
+          this.pendingKeys.set([]);
+          this.initialKeys.set([...emUso]);
+          this.storage.discard(descartadas, 'LORE', this.loreId).subscribe();
+
+          if (this.isPersonal) {
+            this.router.navigate(['/profile']);
+          } else {
+            this.router.navigate(['/lore', this.loreId]);
+          }
+        });
       },
       error: (err: HttpErrorResponse) => {
         this.errorMsg.set(
@@ -207,21 +318,6 @@ export class LoreEditor implements OnInit, OnDestroy, HasUnsavedChanges {
         this.saving.set(false);
       },
     });
-  }
-
-  private renderMarkdown(md: string): string {
-    return md
-      .replace(/^### (.+)$/gm, '<h3>$1</h3>')
-      .replace(/^## (.+)$/gm, '<h2>$1</h2>')
-      .replace(/^# (.+)$/gm, '<h1>$1</h1>')
-      .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
-      .replace(/\*(.+?)\*/g, '<em>$1</em>')
-      .replace(/^> (.+)$/gm, '<blockquote>$1</blockquote>')
-      .replace(/^- (.+)$/gm, '<li>$1</li>')
-      .replace(/(<li>.*<\/li>)/gs, '<ul>$1</ul>')
-      .replace(/\n\n/g, '</p><p>')
-      .replace(/^(?!<[hbup])/gm, '')
-      .trim();
   }
 
   ngOnDestroy(): void {

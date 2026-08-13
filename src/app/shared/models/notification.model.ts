@@ -1,24 +1,12 @@
-export type NotificationType =
-  | 'QUEST_LIKE'
-  | 'LORE_LIKE'
-  | 'COMMENT_LIKE'
-  | 'COMMENT_ON_QUEST'
-  | 'COMMENT_ON_LORE'
-  | 'REPLY_TO_COMMENT'
-  | 'QUEST_NEW_VERSION'
-  | 'LORE_NEW_VERSION'
-  | 'GAME_NEW_QUEST'
-  | 'GAME_NEW_LORE'
-  | 'USER_FOLLOW';
+import type {
+  NotificationResponse,
+  NotificationType as CanonicoNotificationType,
+} from '@xcorpiiion/canonico';
 
-export interface Notification {
-  id: number;
-  type: NotificationType;
-  actorId: string;
-  actorName: string;
+// Enum do contrato — fonte da verdade: lib canonico
+export type NotificationType = CanonicoNotificationType;
+
+// NotificationResponse do canonico, com narrowing do targetType usado pelo front
+export interface Notification extends NotificationResponse {
   targetType: 'QUEST' | 'LORE' | 'COMMENT' | 'USER';
-  targetId: number;
-  targetTitle: string | null;
-  read: boolean;
-  createdAt: string;
 }

@@ -18,6 +18,8 @@ export interface QuestRequest {
   description: string;
   status: string;
   gameId: number;
+  /** Chave do arquivo de capa na storage-api. As dos passos vão em cada nó. */
+  coverImageFileKey?: string;
   nodes: QuestNode[];
   edges: QuestEdge[];
 }

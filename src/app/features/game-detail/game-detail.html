@@ -118,6 +118,18 @@
         lore
         <span class="game-detail__tab-count">{{ loreArticles().length }}</span>
       </button>
+      @if (endings().length > 0) {
+        <button
+          class="game-detail__tab"
+          [class.game-detail__tab--active]="activeTab() === 'endings'"
+          role="tab"
+          type="button"
+          (click)="setTab('endings')"
+        >
+          finais
+          <span class="game-detail__tab-count">{{ endings().length }}</span>
+        </button>
+      }
       <button
         class="game-detail__tab"
         [class.game-detail__tab--active]="activeTab() === 'contributors'"
@@ -277,6 +289,72 @@
         } @else {
           <p class="game-detail__empty">Nenhum lore ainda. Seja o primeiro a contribuir.</p>
         }
+      </div>
+    }
+
+    @if (activeTab() === 'endings') {
+      <div class="game-detail__content" role="tabpanel">
+        <div class="game-detail__section-header">
+          <span class="game-detail__section-title">
+            {{ endings().length }} finais mapeados · você conseguiu {{ achievedEndingsCount() }}
+          </span>
+        </div>
+
+        <div class="game-detail__endings-grid">
+          @for (ending of endings(); track trackById($index, ending)) {
+            <a
+              class="game-detail__ending-card"
+              [class.game-detail__ending-card--achieved]="ending.userHasAchieved"
+              [routerLink]="['/games', gameId, 'finais', ending.id]"
+            >
+              <div class="game-detail__ending-head">
+                <span
+                  [class]="
+                    'game-detail__ending-kind game-detail__ending-kind--' +
+                    ending.kind.toLowerCase()
+                  "
+                >
+                  {{ kindLabel[ending.kind] }}
+                </span>
+                @if (ending.userHasAchieved) {
+                  <span class="game-detail__ending-mark" title="você conseguiu">✓</span>
+                } @else if (ending.isMissable) {
+                  <span class="game-detail__ending-warn" title="tem ponto de não retorno">!</span>
+                }
+              </div>
+
+              <h2 class="game-detail__ending-title">{{ ending.title }}</h2>
+
+              @if (isEndingRevealed(ending)) {
+                <p class="game-detail__ending-summary">{{ ending.summary }}</p>
+              } @else {
+                <button
+                  class="game-detail__ending-spoiler"
+                  type="button"
+                  (click)="$event.preventDefault(); revealEnding(ending)"
+                >
+                  resumo escondido — contém spoiler.
+                </button>
+              }
+
+              <div class="game-detail__ending-bar">
+                <div
+                  class="game-detail__ending-fill"
+                  [style.width.%]="endingProgressPercent(ending)"
+                ></div>
+              </div>
+              <span class="game-detail__ending-count">
+                @if (ending.requiresNewGamePlus && ending.completedStepCount === 0) {
+                  só em new game+
+                } @else {
+                  {{ ending.completedStepCount }} de {{ ending.stepCount }} passos
+                }
+              </span>
+            </a>
+          } @empty {
+            <p class="game-detail__empty">Nenhum final mapeado ainda.</p>
+          }
+        </div>
       </div>
     }
 

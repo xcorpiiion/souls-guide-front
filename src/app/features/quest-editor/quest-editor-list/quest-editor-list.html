@@ -279,6 +279,18 @@
       />
     </label>
 
+    <div class="qel__field">
+      <app-image-uploader
+        purpose="QUEST_IMAGE"
+        label="imagem do passo"
+        variant="inline"
+        hint="O print do lugar, do NPC ou do caminho · PNG, JPG ou WebP · até 5 MB"
+        [currentUrl]="stepImageUrl(step)"
+        (uploaded)="onStepImageUploaded($event)"
+        (cleared)="onStepImageCleared()"
+      />
+    </div>
+
     <label class="qel__field">
       <span class="qel__label">tags (vírgula)</span>
       <input

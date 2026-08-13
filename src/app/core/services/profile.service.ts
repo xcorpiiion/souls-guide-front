@@ -56,13 +56,13 @@ export class ProfileService {
     return this.http.delete<void>(`${this.usersBase}/${id}`);
   }
 
-  getQuestsByUser(userId: number): Observable<QuestSummary[]> {
+  getQuestsByUser(userId: string): Observable<QuestSummary[]> {
     return this.http
       .get<QuestApi[]>(`${this.sgBase}/quests/by-user/${userId}`)
       .pipe(map((list) => list.map(questApiToSummary)));
   }
 
-  getLoreByUser(userId: number): Observable<LoreSummary[]> {
+  getLoreByUser(userId: string): Observable<LoreSummary[]> {
     return this.http
       .get<LoreApi[]>(`${this.sgBase}/lore/by-user/${userId}`)
       .pipe(map((list) => list.map(loreApiToSummary)));

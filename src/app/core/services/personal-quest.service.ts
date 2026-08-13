@@ -14,6 +14,7 @@ export interface CreatePersonalQuestRequest {
   description?: string;
   gameId: number;
   status?: QuestStatus;
+  coverImageFileKey?: string;
   isPublic: boolean;
   allowCopy: boolean;
 }
@@ -22,6 +23,7 @@ export interface UpdatePersonalQuestRequest {
   title?: string;
   description?: string;
   status?: QuestStatus;
+  coverImageFileKey?: string;
   isPublic?: boolean;
   allowCopy?: boolean;
 }

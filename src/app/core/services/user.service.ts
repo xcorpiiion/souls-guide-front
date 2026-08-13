@@ -25,19 +25,19 @@ export class UserService {
     return this.http.get<UserPublicProfile>(`${BASE}/handle/${handle}`);
   }
 
-  getFollowers(userId: number): Observable<UserSummary[]> {
+  getFollowers(userId: string): Observable<UserSummary[]> {
     return this.http.get<UserSummary[]>(`${BASE}/${userId}/followers`);
   }
 
-  getFollowing(userId: number): Observable<UserSummary[]> {
+  getFollowing(userId: string): Observable<UserSummary[]> {
     return this.http.get<UserSummary[]>(`${BASE}/${userId}/following`);
   }
 
-  follow(userId: number): Observable<void> {
+  follow(userId: string): Observable<void> {
     return this.http.post<void>(`${BASE}/${userId}/follow`, null);
   }
 
-  unfollow(userId: number): Observable<void> {
+  unfollow(userId: string): Observable<void> {
     return this.http.delete<void>(`${BASE}/${userId}/follow`);
   }
 
@@ -45,19 +45,19 @@ export class UserService {
     return this.http.get<ActivityEvent[]>(`${BASE}/${userId}/activity`);
   }
 
-  getFollowingQuests(userId: number): Observable<QuestSummary[]> {
+  getFollowingQuests(userId: string): Observable<QuestSummary[]> {
     return this.http
       .get<QuestApi[]>(`${BASE}/${userId}/following-quests`)
       .pipe(map((list) => list.map(questApiToSummary)));
   }
 
-  getFollowingLore(userId: number): Observable<LoreSummary[]> {
+  getFollowingLore(userId: string): Observable<LoreSummary[]> {
     return this.http
       .get<LoreApi[]>(`${BASE}/${userId}/following-lore`)
       .pipe(map((list) => list.map(loreApiToSummary)));
   }
 
-  getFollowingGames(userId: number): Observable<GameSummary[]> {
+  getFollowingGames(userId: string): Observable<GameSummary[]> {
     return this.http
       .get<GameListItem[]>(`${BASE}/${userId}/following-games`)
       .pipe(map((list) => list.map(gameListItemToSummary)));

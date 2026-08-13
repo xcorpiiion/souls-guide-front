@@ -12,7 +12,13 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { LoreApi, LoreCategory } from '../../../shared/models/lore-article.model';
 import { LoreService } from '../../../core/services/lore.service';
 import { PersonalLoreService } from '../../../core/services/personal-lore.service';
+import { StorageService } from '../../../core/services/storage.service';
 import { AuthService } from '../../../core/services/auth.service';
+import {
+  LoreBlock,
+  extractImageFileKeys,
+  parseLoreContent,
+} from '../../../shared/utils/lore-content';
 import {
   CopyToProfileModal,
   CopyConfirmEvent,
@@ -33,6 +39,7 @@ export class LoreDetail implements OnInit {
   private readonly router = inject(Router);
   private readonly loreService = inject(LoreService);
   private readonly personalLoreService = inject(PersonalLoreService);
+  private readonly storage = inject(StorageService);
   protected readonly auth = inject(AuthService);
   private readonly toast = inject(ToastService);
 
@@ -51,6 +58,10 @@ export class LoreDetail implements OnInit {
   protected readonly followerCount = signal(0);
   protected readonly userIsFollowing = signal(false);
   protected readonly following = signal(false);
+
+  protected readonly coverUrl = signal<string | null>(null);
+  /** chave → URL de leitura, resolvidas de uma vez quando o artigo carrega. */
+  private readonly imageUrls = signal<ReadonlyMap<string, string>>(new Map());
   private loreId = '';
   protected readonly handle: string = this.route.snapshot.paramMap.get('handle') ?? '';
   protected readonly context: 'community' | 'profile' | 'usuario' =
@@ -89,6 +100,7 @@ export class LoreDetail implements OnInit {
         this.userHasLiked.set(data.userHasLiked ?? false);
         this.followerCount.set(data.followerCount ?? 0);
         this.userIsFollowing.set(data.userIsFollowing ?? false);
+        this.loadImages(data);
         this.loading.set(false);
       },
       error: (err: HttpErrorResponse) => {
@@ -119,8 +131,30 @@ export class LoreDetail implements OnInit {
     return String(id);
   }
 
-  protected contentParagraphs(content: string): string[] {
-    return content.split(/\n{2,}/).filter((p) => p.trim().length > 0);
+  protected contentBlocks(content: string): LoreBlock[] {
+    return parseLoreContent(content);
+  }
+
+  protected imageUrl(fileKey: string): string | null {
+    return this.imageUrls().get(fileKey) ?? null;
+  }
+
+  /**
+   * Uma chamada resolve a capa e todas as imagens do texto: elas pertencem ao mesmo
+   * artigo, então a storage-api devolve o conjunto inteiro de uma vez.
+   */
+  private loadImages(article: LoreApi): void {
+    const keys = [article.coverImageFileKey, ...extractImageFileKeys(article.content)].filter(
+      (k): k is string => !!k,
+    );
+    if (!keys.length) return;
+
+    this.storage.resolve(keys, 'LORE', String(article.id)).subscribe((resolved) => {
+      this.imageUrls.set(resolved);
+      if (article.coverImageFileKey) {
+        this.coverUrl.set(resolved.get(article.coverImageFileKey) ?? null);
+      }
+    });
   }
 
   protected openCopyModal(): void {

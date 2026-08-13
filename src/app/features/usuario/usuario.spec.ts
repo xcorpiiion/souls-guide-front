@@ -11,7 +11,7 @@ import { PersonalLoreService } from '../../core/services/personal-lore.service';
 import { UserPublicProfile } from '../../shared/models/user.model';
 
 const MOCK_PROFILE: UserPublicProfile = {
-  id: 1,
+  id: '1',
   name: 'Raidou',
   handle: 'raidou',
   bio: 'Dark Souls 3 loremaster',

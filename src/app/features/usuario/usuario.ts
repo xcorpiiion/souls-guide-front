@@ -130,7 +130,7 @@ export class Usuario implements OnInit {
     });
   }
 
-  private loadContent(userId: number): void {
+  private loadContent(userId: string): void {
     this.loadingContent.set(true);
     forkJoin([
       this.profileService.getQuestsByUser(userId),

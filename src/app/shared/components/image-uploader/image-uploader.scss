@@ -1,0 +1,204 @@
+@use 'styles/variables' as v;
+@use 'styles/mixins' as m;
+
+.image-uploader {
+  display: flex;
+  flex-direction: column;
+  gap: v.$space-2;
+  // Ocupa a altura que o pai der: no editor de quest a capa fica ao lado da
+  // descrição, e sem isto sobra um vão morto entre as duas colunas.
+  height: 100%;
+  min-height: 0;
+
+  &__label {
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: v.$color-text-muted;
+  }
+
+  &__frame {
+    position: relative;
+    flex: 1;
+    min-height: 9rem;
+  }
+
+  &__surface {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    border: 1px dashed v.$color-border;
+    border-radius: v.$radius-md;
+    background: v.$color-bg-surface;
+    cursor: pointer;
+    transition: border-color v.$transition-fast;
+
+    &:hover,
+    &:focus-within {
+      border-color: v.$color-gold;
+    }
+
+    // Com imagem o tracejado não faz sentido: não há mais nada a soltar ali.
+    &--filled {
+      border-style: solid;
+    }
+  }
+
+  &__input {
+    display: none;
+  }
+
+  &__img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  &__empty,
+  &__overlay,
+  &__busy {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: v.$space-1;
+    font-size: v.$font-size-sm;
+    color: v.$color-text-muted;
+    text-align: center;
+
+    i {
+      font-size: 1.5rem;
+    }
+  }
+
+  &__overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.62);
+    color: v.$color-gold;
+    opacity: 0;
+    transition: opacity v.$transition-fast;
+  }
+
+  &__surface:hover &__overlay,
+  &__surface:focus-within &__overlay {
+    opacity: 1;
+  }
+
+  &__busy {
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.72);
+    color: v.$color-text;
+  }
+
+  &__remove {
+    position: absolute;
+    top: v.$space-2;
+    right: v.$space-2;
+    display: grid;
+    place-items: center;
+    width: 1.75rem;
+    height: 1.75rem;
+    border: none;
+    border-radius: v.$radius-full;
+    background: rgba(0, 0, 0, 0.65);
+    color: #fff;
+    cursor: pointer;
+    transition: background v.$transition-fast;
+
+    &:hover {
+      background: v.$color-ember;
+    }
+  }
+
+  &__body {
+    display: flex;
+    flex-direction: column;
+    gap: v.$space-2;
+    flex: 1;
+    min-height: 0;
+  }
+
+  &__aside {
+    display: flex;
+    flex-direction: column;
+    gap: v.$space-2;
+  }
+
+  &__hint,
+  &__error {
+    margin: 0;
+    font-size: v.$font-size-xs;
+    line-height: 1.5;
+  }
+
+  &__hint {
+    color: v.$color-text-faint;
+  }
+
+  &__error {
+    color: v.$color-ember;
+  }
+
+  &__action {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: v.$space-2 v.$space-3;
+    border: 1px solid v.$color-border;
+    border-radius: v.$radius-sm;
+    font-size: v.$font-size-xs;
+    color: v.$color-text-muted;
+    cursor: pointer;
+    transition:
+      border-color v.$transition-fast,
+      color v.$transition-fast;
+
+    &:hover {
+      border-color: v.$color-gold;
+      color: v.$color-gold;
+    }
+  }
+
+  // Painel estreito: miniatura à esquerda, texto e botão à direita. Um quadrado
+  // grande aqui tomaria a coluna inteira e empurraria as tags para fora da vista.
+  &--inline {
+    height: auto;
+
+    .image-uploader__body {
+      flex-direction: row;
+      align-items: flex-start;
+      gap: v.$space-3;
+    }
+
+    .image-uploader__frame {
+      flex: 0 0 4.5rem;
+      width: 4.5rem;
+      height: 4.5rem;
+      min-height: 0;
+    }
+
+    .image-uploader__aside {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .image-uploader__empty i,
+    .image-uploader__overlay i {
+      font-size: 1.125rem;
+    }
+
+    .image-uploader__remove {
+      top: -0.4rem;
+      right: -0.4rem;
+      width: 1.35rem;
+      height: 1.35rem;
+      font-size: 0.7rem;
+    }
+  }
+}

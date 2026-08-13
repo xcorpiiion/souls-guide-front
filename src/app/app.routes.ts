@@ -42,6 +42,11 @@ export const routes: Routes = [
     loadComponent: () => import('./features/login/login').then((m) => m.Login),
   },
   {
+    path: 'games/:gameId/finais/:endingId',
+    loadComponent: () =>
+      import('./features/ending-detail/ending-detail').then((m) => m.EndingDetail),
+  },
+  {
     path: 'games/:gameId/quests/new',
     loadComponent: () => import('./features/quest-editor/quest-editor').then((m) => m.QuestEditor),
     canActivate: [authGuard],

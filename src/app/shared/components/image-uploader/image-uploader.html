@@ -1,0 +1,73 @@
+<div class="image-uploader" [class.image-uploader--inline]="variant() === 'inline'">
+  <span class="image-uploader__label">{{ label() }}</span>
+
+  <div class="image-uploader__body">
+    <div class="image-uploader__frame">
+      <!-- A superfície inteira é o seletor: com imagem, clicar nela troca; sem imagem,
+           é o convite para escolher. Um drop zone separado embaixo duplicava o alvo. -->
+      <label
+        class="image-uploader__surface"
+        [class.image-uploader__surface--filled]="!!preview()"
+        [attr.for]="inputId"
+      >
+        <input
+          type="file"
+          [id]="inputId"
+          accept="image/png,image/jpeg,image/webp"
+          class="image-uploader__input"
+          [disabled]="uploading()"
+          (change)="onFileSelected($event)"
+        />
+
+        @if (preview(); as src) {
+          <img class="image-uploader__img" [src]="src" [alt]="label()" />
+          <span class="image-uploader__overlay">
+            <i class="ti ti-photo-up" aria-hidden="true"></i>
+            @if (variant() === 'cover') {
+              trocar imagem
+            }
+          </span>
+        } @else {
+          <span class="image-uploader__empty">
+            <i class="ti ti-photo-plus" aria-hidden="true"></i>
+            @if (variant() === 'cover') {
+              escolher imagem
+            }
+          </span>
+        }
+
+        @if (uploading()) {
+          <span class="image-uploader__busy">
+            <i class="ti ti-loader-2" aria-hidden="true"></i>
+          </span>
+        }
+      </label>
+
+      <!-- Fora do label de propósito: dentro dele, clicar em remover abriria o seletor. -->
+      @if (preview() && !uploading()) {
+        <button
+          type="button"
+          class="image-uploader__remove"
+          (click)="clear()"
+          aria-label="Remover imagem"
+        >
+          <i class="ti ti-x" aria-hidden="true"></i>
+        </button>
+      }
+    </div>
+
+    <div class="image-uploader__aside">
+      @if (error(); as message) {
+        <p class="image-uploader__error" role="alert">{{ message }}</p>
+      } @else {
+        <p class="image-uploader__hint">{{ hint() }}</p>
+      }
+
+      @if (variant() === 'inline') {
+        <label class="image-uploader__action" [attr.for]="inputId">
+          {{ uploading() ? 'enviando…' : preview() ? 'trocar imagem' : 'escolher imagem' }}
+        </label>
+      }
+    </div>
+  </div>
+</div>

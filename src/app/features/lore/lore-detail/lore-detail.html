@@ -145,17 +145,37 @@
           </div>
         </header>
 
+        @if (coverUrl(); as cover) {
+          <figure class="ld__cover">
+            <img [src]="cover" [alt]="a.characterName ?? a.title" loading="lazy" />
+          </figure>
+        }
+
         <div class="ld__content">
-          @for (paragraph of contentParagraphs(a.content); track $index) {
-            @if (paragraph.startsWith('## ')) {
-              <h2 class="ld__section-heading">{{ paragraph.slice(3) }}</h2>
-            } @else if (paragraph.startsWith('> ')) {
-              <blockquote class="ld__quote">
-                <i class="ti ti-quote ld__quote-icon" aria-hidden="true"></i>
-                <span class="ld__quote-text">{{ paragraph.slice(2) }}</span>
-              </blockquote>
-            } @else {
-              <p class="ld__paragraph">{{ paragraph }}</p>
+          @for (block of contentBlocks(a.content); track $index) {
+            @switch (block.kind) {
+              @case ('heading') {
+                <h2 class="ld__section-heading">{{ block.text }}</h2>
+              }
+              @case ('quote') {
+                <blockquote class="ld__quote">
+                  <i class="ti ti-quote ld__quote-icon" aria-hidden="true"></i>
+                  <span class="ld__quote-text">{{ block.text }}</span>
+                </blockquote>
+              }
+              @case ('image') {
+                @if (imageUrl(block.fileKey); as src) {
+                  <figure class="ld__figure">
+                    <img [src]="src" [alt]="block.alt" loading="lazy" />
+                    @if (block.alt) {
+                      <figcaption class="ld__figcaption">{{ block.alt }}</figcaption>
+                    }
+                  </figure>
+                }
+              }
+              @case ('paragraph') {
+                <p class="ld__paragraph">{{ block.text }}</p>
+              }
             }
           }
         </div>

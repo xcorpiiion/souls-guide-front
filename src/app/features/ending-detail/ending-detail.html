@@ -1,0 +1,171 @@
+@if (loading()) {
+  <app-page-loader message="Carregando o final…" />
+} @else if (error()) {
+  <p class="ending-detail__error">{{ error() }}</p>
+} @else if (ending(); as e) {
+  <div class="ending-detail">
+    <nav class="ending-detail__breadcrumb">
+      <a [routerLink]="['/games', e.gameId]">{{ e.gameName }}</a>
+      <span aria-hidden="true">/</span>
+      <span>finais</span>
+      <span aria-hidden="true">/</span>
+      <span class="ending-detail__breadcrumb-current">{{ e.title }}</span>
+    </nav>
+
+    <header class="ending-detail__header">
+      <div>
+        <h1 class="ending-detail__title">{{ e.title }}</h1>
+        <div class="ending-detail__badges">
+          <span [class]="'ending-detail__kind ending-detail__kind--' + e.kind.toLowerCase()">
+            {{ kindLabel[e.kind] }}
+          </span>
+          @if (e.isMissable) {
+            <span class="ending-detail__flag ending-detail__flag--missable">
+              tem ponto de não retorno
+            </span>
+          }
+          @if (e.requiresNewGamePlus) {
+            <span class="ending-detail__flag">só em new game+</span>
+          }
+        </div>
+      </div>
+
+      <div class="ending-detail__actions">
+        <button
+          class="ending-detail__action"
+          [class.ending-detail__action--on]="userHasLiked()"
+          type="button"
+          [disabled]="!auth.isLoggedIn() || liking()"
+          (click)="toggleLike()"
+        >
+          curtir <span class="ending-detail__action-count">{{ likeCount() }}</span>
+        </button>
+        <button
+          class="ending-detail__action"
+          [class.ending-detail__action--on]="userIsFollowing()"
+          type="button"
+          [disabled]="!auth.isLoggedIn() || following()"
+          (click)="toggleFollow()"
+        >
+          {{ userIsFollowing() ? 'seguindo' : 'seguir' }}
+        </button>
+      </div>
+    </header>
+
+    @if (e.summary) {
+      <section class="ending-detail__summary">
+        @if (summaryRevealed()) {
+          <p>{{ e.summary }}</p>
+        } @else {
+          <button class="ending-detail__spoiler" type="button" (click)="revealSummary()">
+            resumo escondido — contém spoiler. clique para ler.
+          </button>
+        }
+      </section>
+    }
+
+    <section class="ending-detail__steps">
+      <div class="ending-detail__steps-header">
+        <h2 class="ending-detail__steps-title">passo a passo</h2>
+        @if (auth.isLoggedIn()) {
+          <span class="ending-detail__progress-label">
+            {{ completedCount() }} de {{ totalSteps() }} · seu progresso salva sozinho
+          </span>
+        } @else {
+          <span class="ending-detail__progress-label">
+            {{ totalSteps() }} passos · entre para marcar seu progresso
+          </span>
+        }
+      </div>
+
+      @if (auth.isLoggedIn() && totalSteps() > 0) {
+        <div
+          class="ending-detail__progress-bar"
+          role="progressbar"
+          [attr.aria-valuenow]="progressPercent()"
+          aria-valuemin="0"
+          aria-valuemax="100"
+        >
+          <div class="ending-detail__progress-fill" [style.width.%]="progressPercent()"></div>
+        </div>
+      }
+
+      @for (chapter of chapters(); track chapter.title) {
+        @if (chapter.title) {
+          <h3 class="ending-detail__chapter">{{ chapter.title }}</h3>
+        }
+
+        @for (step of chapter.steps; track trackStep($index, step)) {
+          <article
+            class="ending-detail__step"
+            [class.ending-detail__step--done]="isDone(step)"
+            [class.ending-detail__step--missable]="step.isMissable"
+          >
+            <button
+              class="ending-detail__check"
+              type="button"
+              [disabled]="!auth.isLoggedIn() || savingStepId() !== null"
+              [attr.aria-pressed]="isDone(step)"
+              [attr.aria-label]="(isDone(step) ? 'desmarcar' : 'marcar') + ': ' + step.title"
+              (click)="toggleStep(step)"
+            >
+              {{ isDone(step) ? '☑' : '☐' }}
+            </button>
+
+            <div class="ending-detail__step-body">
+              <div class="ending-detail__step-head">
+                <span
+                  [class]="
+                    'ending-detail__step-kind ending-detail__step-kind--' + step.kind.toLowerCase()
+                  "
+                >
+                  {{ stepKindLabel[step.kind] }}
+                </span>
+                <span class="ending-detail__step-title">{{ step.title }}</span>
+                @if (step.location) {
+                  <span class="ending-detail__step-location">{{ step.location }}</span>
+                }
+                @if (step.optional) {
+                  <span class="ending-detail__step-optional">opcional</span>
+                }
+                @if (step.isMissable) {
+                  <span class="ending-detail__step-missable">ponto de não retorno</span>
+                }
+              </div>
+
+              @if (step.content) {
+                <p class="ending-detail__step-content">{{ step.content }}</p>
+              }
+
+              @if (step.linkedQuestId && step.linkedQuestTitle) {
+                <a
+                  class="ending-detail__step-quest"
+                  [routerLink]="['/games', e.gameId, 'quests', step.linkedQuestId]"
+                >
+                  quest: {{ step.linkedQuestTitle }}
+                </a>
+              }
+            </div>
+          </article>
+        }
+      } @empty {
+        <p class="ending-detail__empty">
+          Esse final ainda não tem passo a passo. Seja o primeiro a escrever.
+        </p>
+      }
+    </section>
+
+    @if (auth.isLoggedIn()) {
+      <footer class="ending-detail__footer">
+        <button
+          class="ending-detail__achieved"
+          [class.ending-detail__achieved--on]="achieved()"
+          type="button"
+          (click)="toggleAchieved()"
+        >
+          {{ achieved() ? '✓ você conseguiu esse final' : 'marcar como conseguido' }}
+        </button>
+      </footer>
+    }
+  </div>
+}

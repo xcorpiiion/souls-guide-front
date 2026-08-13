@@ -35,13 +35,13 @@ export class Comunidade implements OnInit {
   protected readonly games = signal<FeaturedGame[]>([]);
   protected readonly page = signal(0);
   protected readonly hasMore = signal(false);
-  protected readonly followingIds = signal<Set<number>>(new Set());
+  protected readonly followingIds = signal<Set<string>>(new Set());
 
   protected readonly isLoggedIn = computed(() => this.authService.isLoggedIn());
   private readonly myNickname = this.authService.getNickname();
   private readonly myUserId = this.authService.getUserId();
 
-  protected isMe(user: { id: number; handle: string }): boolean {
+  protected isMe(user: { id: string; handle: string }): boolean {
     if (this.myUserId && String(user.id) === String(this.myUserId)) return true;
     if (this.myNickname && user.handle.toLowerCase() === this.myNickname.toLowerCase()) return true;
     return false;
@@ -138,7 +138,7 @@ export class Comunidade implements OnInit {
     this.loadPage(this.page() + 1);
   }
 
-  protected isFollowing(userId: number): boolean {
+  protected isFollowing(userId: string): boolean {
     return this.followingIds().has(userId);
   }
 

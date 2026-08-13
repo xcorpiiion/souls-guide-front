@@ -456,3 +456,24 @@
   padding: 2.5rem 1.5rem 4rem;
   border-top: 1px solid rgba(255, 255, 255, 0.08);
 }
+
+.ld__cover,
+.ld__figure {
+  margin: v.$space-6 0;
+  border-radius: v.$radius-md;
+  overflow: hidden;
+  border: 1px solid v.$color-border;
+
+  img {
+    display: block;
+    width: 100%;
+    object-fit: cover;
+  }
+}
+
+.ld__figcaption {
+  padding: v.$space-2 v.$space-3;
+  font-size: v.$font-size-xs;
+  color: v.$color-text-muted;
+  background: v.$color-bg-surface;
+}

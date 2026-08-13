@@ -1,19 +1,7 @@
-export interface Comment {
-  id: string;
-  authorId: string;
-  authorName: string;
-  authorHandle: string;
-  content: string;
-  isSpoiler: boolean;
-  likeCount: number;
-  userHasLiked: boolean;
-  createdAt: string;
-  daysAgo: number;
-  replies: Comment[];
-}
+import type { CommentResponse, CreateCommentRequest } from '@xcorpiiion/canonico';
 
-export interface CommentRequest {
-  content: string;
-  isSpoiler: boolean;
-  parentId?: string;
-}
+// Shapes da API — fonte da verdade: lib canonico
+export type Comment = CommentResponse;
+
+// O service injeta targetKind/targetId a partir do contexto do componente
+export type CommentRequest = Omit<CreateCommentRequest, 'targetKind' | 'targetId'>;
