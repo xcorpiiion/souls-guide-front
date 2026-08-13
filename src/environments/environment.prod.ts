@@ -7,5 +7,6 @@ export const environment = {
     soulsGuide: 'https://api-gateway-ca6bve3kea-rj.a.run.app/souls-guide-api',
     auth: 'https://api-gateway-ca6bve3kea-rj.a.run.app/authorization-api',
     users: 'https://api-gateway-ca6bve3kea-rj.a.run.app/user-api',
+    storage: 'https://api-gateway-ca6bve3kea-rj.a.run.app/storage-api',
   },
 };

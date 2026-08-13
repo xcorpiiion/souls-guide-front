@@ -91,6 +91,11 @@ __screenshots__/
 /test-results
 /playwright-report
 
+# ─── Deploy ──────────────────────────────────────────────────────
+# Cache do firebase hosting: guarda o hash dos arquivos ja enviados para pular
+# upload repetido. Regenera sozinho e muda a cada deploy.
+/.firebase
+
 # ─── Misc ────────────────────────────────────────────────────────
 *.zip
 *.tar.gz

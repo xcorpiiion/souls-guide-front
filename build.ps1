@@ -8,6 +8,8 @@ if (-not $env:GITHUB_TOKEN)
     Write-Host "ERRO: variavel GITHUB_TOKEN nao definida." -ForegroundColor Red
     Write-Host "      O front depende de @xcorpiiion/canonico (GitHub Packages)." -ForegroundColor Yellow
     Write-Host '      Defina com: $env:GITHUB_TOKEN = "<seu-PAT-com-read:packages>"' -ForegroundColor Yellow
+    Write-Host "      Ou ponha GITHUB_TOKEN no .env de Back-end\soulsguide e rode o" -ForegroundColor Yellow
+    Write-Host "      ./build-all.ps1, que carrega o arquivo antes de construir." -ForegroundColor Yellow
     exit 1
 }
 

@@ -16,12 +16,15 @@ RUN --mount=type=secret,id=github_token \
     GITHUB_TOKEN="$(cat /run/secrets/github_token)" npm ci --legacy-peer-deps
 
 COPY . .
-RUN npm run build -- --configuration=development
+# `container` é o `development` mais as APIs por caminho relativo — o nginx desta mesma
+# imagem faz o proxy para o gateway. Ver src/environments/environment.container.ts.
+RUN npm run build -- --configuration=container
 
 # ── Stage 2: serve ──────────────────────────────────────────────────────────────
 FROM nginx:1.27-alpine
 
 COPY --from=builder /app/dist/soulguide/browser /usr/share/nginx/html
 COPY nginx.conf /etc/nginx/conf.d/default.conf
+COPY nginx-proxy-comum.inc /etc/nginx/conf.d/proxy-comum.inc
 
 EXPOSE 80

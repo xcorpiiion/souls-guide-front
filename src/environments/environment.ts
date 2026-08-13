@@ -7,5 +7,6 @@ export const environment = {
     soulsGuide: 'http://localhost:8765/souls-guide-api',
     auth: 'http://localhost:8765/authorization-api',
     users: 'http://localhost:8765/user-api',
+    storage: 'http://localhost:8765/storage-api',
   },
 };

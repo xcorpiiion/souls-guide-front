@@ -23,6 +23,27 @@ Projeto pessoal/portfólio, sem fins financeiros.
 
 ---
 
+## Ambientes e build da imagem
+
+| Configuração | Environment | Quem usa |
+|---|---|---|
+| `development` | `environment.ts` — `http://localhost:8765` | `ng serve` na sua máquina |
+| `container` | `environment.container.ts` — caminhos relativos | a imagem Docker (`Dockerfile`) |
+| `production` | `environment.prod.ts` — Cloud Run | deploy antigo no Cloud Run |
+
+A imagem usa `container` porque host fixo no bundle é decidido em build time: com
+`http://localhost:8765` embutido, o site só funciona no navegador da própria máquina —
+de outro dispositivo ou por um túnel, `localhost` é o aparelho de quem acessa. Com
+caminho relativo, quem serve o HTML também serve a API: o `nginx.conf` desta pasta faz
+proxy para o `gateway-api` dentro da rede do compose, e o mesmo build atende localhost,
+o IP da LAN e a URL pública, sem CORS no caminho.
+
+`nginx-proxy-comum.inc` guarda os cabeçalhos de proxy repetidos. `proxy_buffering off`
+não é detalhe: as notificações chegam por SSE, e com buffering o navegador só recebe os
+eventos quando a conexão cai.
+
+---
+
 ## Estrutura de pastas (Frontend)
 
 ```
@@ -59,6 +80,7 @@ src/
 ## Regras de código
 
 - Standalone components, OnPush, Signals — ver `.claude/rules.md` para detalhes
+- **Contratos de API**: os shapes de request/response vêm da lib `@xcorpiiion/canonico` (tipos TS gerados dos DTOs Java do back-end). Os arquivos em `shared/models` apenas re-exportam/estreitam esses tipos e mantêm os view models do front. Nunca redeclarar um shape de API à mão — se o contrato mudou, atualizar a versão do pacote (`npm update @xcorpiiion/canonico`).
 - Componentes grandes → dividir. Limite: ~200 linhas de HTML, ~150 de SCSS, ~100 de TS
 - Todo componente e service criado deve ter arquivo `.spec.ts`
 - Mock-first: dados em `*.mocks.ts`, nunca inline no componente
