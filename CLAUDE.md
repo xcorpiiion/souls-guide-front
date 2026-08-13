@@ -14,12 +14,15 @@ Projeto pessoal/portfólio, sem fins financeiros.
 
 ## Stack
 
-- **Frontend:** Angular 21 (não 22), Zoneless, SCSS, Signals, Standalone, OnPush
+- **Frontend:** Angular 22, Zoneless, SCSS, Signals, Standalone, OnPush
+- **TypeScript:** 6.0 — o Angular 22 fixa `>=6.0 <6.1`, então a 7.0 ainda não entra
+- **Node:** 24 LTS — o Angular 22 exige `^22.22.3 || ^24.15.0 || >=26`, e o `ng` recusa rodar abaixo disso
 - **Testes:** Vitest
 - **BPMN:** bpmn-js@18 (editor e viewer de quests como grafo)
-- **Drag-drop:** @angular/cdk@21
+- **Drag-drop:** @angular/cdk@22
 - **CI/CD:** GitHub Actions + SonarCloud (repo público, free)
-- **Backend:** ainda não existe — fase mock-first
+- **Backend:** existe e está no ar — `souls-guide-api` (8095), `authorization-api`, `user-api` e
+  `storage-api`, todos atrás do gateway na 8765. A fase mock-first acabou
 
 ---
 
@@ -55,15 +58,19 @@ src/
       pipes/
       directives/
       models/         # interfaces e types globais
-    features/
+    features/        # uma pasta por tela, no plano — 24 hoje. As principais:
       home/
-      games/
+      games/  game-detail/
       quests/
         kanban/       # visualização de progresso pessoal
         bpmn/         # visualização de jornada com quests interconectadas
         editor/       # criação e edição de guias
+      quest-detail/  quest-editor/  quest-conditions/  quest-map-organizer/
       lore/           # artigos de lore com sistema de status
+      lore-create/  lore-editor/  lore-history/
+      ending-detail/  # guia de final: passos por capítulo, inclusive AVOID
       profile/        # perfil do usuário, meus guias, doações
+      usuario/  comunidade/  search/  login/  forgot-password/  reset-password/
     layout/
       navbar/
       sidebar/
@@ -83,7 +90,9 @@ src/
 - **Contratos de API**: os shapes de request/response vêm da lib `@xcorpiiion/canonico` (tipos TS gerados dos DTOs Java do back-end). Os arquivos em `shared/models` apenas re-exportam/estreitam esses tipos e mantêm os view models do front. Nunca redeclarar um shape de API à mão — se o contrato mudou, atualizar a versão do pacote (`npm update @xcorpiiion/canonico`).
 - Componentes grandes → dividir. Limite: ~200 linhas de HTML, ~150 de SCSS, ~100 de TS
 - Todo componente e service criado deve ter arquivo `.spec.ts`
-- Mock-first: dados em `*.mocks.ts`, nunca inline no componente
+- Dados vêm dos services em `core/services`, não de mock. Onde ainda não há endpoint, o dado
+  fica num `*.mocks.ts` ao lado do componente — nunca inline. Hoje só `profile.ts` depende de
+  um (`MY_PROFILE`, como valor inicial do signal); os outros `*.mocks.ts` sobraram para os specs
 - SCSS via `@use 'styles/variables' as v` e `@use 'styles/mixins' as m`
 - Nunca `any`, nunca Zone.js, nunca style inline
 
@@ -183,18 +192,18 @@ Nunca deixar testes para depois. Se uma etapa não tiver testes, ela não está 
 
 ---
 
-## Estado atual (junho 2025)
+## Estado atual (agosto 2026)
 
-- [x] Angular 21, zoneless, signals, OnPush, lazy routes
-- [x] Layout: navbar + router-outlet
-- [x] Styles: _variables.scss, _mixins.scss, _reset.scss, _typography.scss
-- [x] Shared: Button, Toast, SearchInput, EmptyState, TruncatePipe
-- [x] Services: LoadingService, ToastService
-- [x] Feature home: completa com mocks
-- [x] Feature games: completa com mocks
-- [x] CI/CD: GitHub Actions + SonarCloud
-- [ ] Feature games: GameCard como subcomponente + specs
-- [ ] Feature games/:id (detalhe do jogo)
-- [ ] Feature quests: lista + editor BPMN + viewer
-- [ ] Feature lore: lista + artigo
-- [ ] Feature profile: espaço pessoal
+O front está em operação e ligado ao back-end real. Nada da lista de features iniciais
+continua em aberto: home, games, game-detail, quests (lista, kanban, bpmn, editor,
+condições, histórico, mapa), lore (lista, criação, editor, histórico), finais, perfil,
+usuário, comunidade, busca e todo o fluxo de auth (login, Google, recuperação de senha)
+existem — 24 features, 22 services em `core/services`, 13 componentes compartilhados,
+2 guards e 3 interceptors.
+
+**Onde a régua não está sendo cumprida:** a regra é um `.spec.ts` por componente e por
+service, mas são 33 arquivos de spec para 94 arquivos de código — 387 testes, 58% de
+cobertura de linhas. Feature nova continua nascendo com spec; o passivo é o que já existe
+sem.
+
+Para o estado do back-end, ver `Back-end/soulsguide/CLAUDE.md`.
