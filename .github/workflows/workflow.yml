@@ -25,8 +25,15 @@ jobs:
           node-version: '24'
           cache: 'npm'
 
+      # O .npmrc versionado aponta o escopo @xcorpiiion para o GitHub Packages e lê o
+      # token do ambiente. O secrets.GITHUB_TOKEN automático não serve: ele é escopado a
+      # este repositório e o canonico é publicado por outro, então precisa ser um PAT com
+      # read:packages. Sem isso o npm ci morre em 401 — o registry recusa leitura anônima
+      # mesmo de pacote público.
       - name: Install dependencies
         run: npm ci
+        env:
+          GITHUB_TOKEN: ${{ secrets.PACKAGES_TOKEN }}
 
       - name: Type check
         id: typecheck

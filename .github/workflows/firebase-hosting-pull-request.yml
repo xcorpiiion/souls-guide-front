@@ -27,8 +27,12 @@ jobs:
           node-version: '24'
           cache: 'npm'
 
+      # Ver o comentário em workflow.yml: o canonico vem do GitHub Packages e exige um PAT
+      # com read:packages. O job já é barrado para PR de fork, que não recebe secret.
       - name: Install dependencies
         run: npm ci
+        env:
+          GITHUB_TOKEN: ${{ secrets.PACKAGES_TOKEN }}
 
       - name: Type check
         run: npx tsc --noEmit
