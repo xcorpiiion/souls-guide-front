@@ -12,15 +12,15 @@ import { RouterLink } from '@angular/router';
 import { forkJoin } from 'rxjs';
 import { QuestStatus, QuestSummary } from '../../shared/models/quest.model';
 import { LoreSummary } from '../../shared/models/lore-article.model';
-import { AuthService } from '../../core/services/auth.service';
+import { AuthService } from '@xcorpiiion/ng-core';
 import { ProfileService } from '../../core/services/profile.service';
 import { PersonalQuestService } from '../../core/services/personal-quest.service';
 import { PersonalLoreService } from '../../core/services/personal-lore.service';
 import { QuestService } from '../../core/services/quest.service';
 import { LoreService } from '../../core/services/lore.service';
 import { UserService } from '../../core/services/user.service';
-import { ToastService } from '../../shared/components/toast/toast.service';
-import { ConfirmService } from '../../core/services/confirm.service';
+import { ToastService } from '@xcorpiiion/ui';
+import { ConfirmService } from '@xcorpiiion/ui';
 import { MY_PROFILE, UserProfile } from './profile.mocks';
 import { GameFilterDropdown } from '../../shared/components/game-filter-dropdown/game-filter-dropdown';
 import { UserSummary } from '../../shared/models/user.model';
@@ -161,9 +161,9 @@ export class Profile implements OnInit {
   private socialLoaded = false;
 
   ngOnInit(): void {
-    this.isGoogleUser.set(this.authService.isGoogleUser());
+    this.isGoogleUser.set(this.authService.authProvider() === 'GOOGLE');
 
-    const email = this.authService.getEmail();
+    const email = this.authService.email();
     if (!email) return;
 
     // Passo 1: busca dados de auth (nome, nickname, formulário)

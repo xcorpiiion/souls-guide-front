@@ -1,5 +1,5 @@
 @if (loading()) {
-  <app-page-loader message="Carregando o final…" />
+  <pf-page-loader message="Carregando o final…" />
 } @else if (error()) {
   <p class="ending-detail__error">{{ error() }}</p>
 } @else if (ending(); as e) {

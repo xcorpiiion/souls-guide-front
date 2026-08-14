@@ -7,7 +7,7 @@ import { QuestDetail } from './quest-detail';
 import { QUESTS_DETAIL } from './quest-detail.mocks';
 import { QuestService } from '../../core/services/quest.service';
 import { QuestApi } from '../../shared/models/quest.model';
-import { AuthService } from '../../core/services/auth.service';
+import { AuthService } from '@xcorpiiion/ng-core';
 
 const MOCK_QUEST = QUESTS_DETAIL.find((q) => q.id === 'er-q1')!;
 

@@ -11,7 +11,7 @@ import { NavigationEnd, Router, RouterLink, RouterLinkActive } from '@angular/ro
 import { EMPTY, interval, merge } from 'rxjs';
 import { filter, startWith, switchMap, throttleTime } from 'rxjs/operators';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { AuthService } from '../../core/services/auth.service';
+import { AuthService } from '@xcorpiiion/ng-core';
 import { NotificationService } from '../../core/services/notification.service';
 import { Notification, NotificationType } from '../../shared/models/notification.model';
 

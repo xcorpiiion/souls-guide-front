@@ -12,10 +12,10 @@ import { QuestApi, QuestEdge, QuestNode, QuestStatus } from '../../shared/models
 import { QuestService } from '../../core/services/quest.service';
 import { PersonalQuestService } from '../../core/services/personal-quest.service';
 import { PendingUpload, StorageService } from '../../core/services/storage.service';
-import { HasUnsavedChanges } from '../../core/guards/unsaved-changes.guard';
-import { ToastService } from '../../shared/components/toast/toast.service';
+import { HasUnsavedChanges } from '@xcorpiiion/ng-core';
+import { ToastService } from '@xcorpiiion/ui';
 import { GraphSnapshot, QuestEditorList } from './quest-editor-list/quest-editor-list';
-import { PageLoader } from '../../shared/components/page-loader/page-loader';
+import { PfPageLoader } from '@xcorpiiion/ui';
 import { ImageUploader } from '../../shared/components/image-uploader/image-uploader';
 
 function makeId(prefix: string): string {
@@ -24,7 +24,7 @@ function makeId(prefix: string): string {
 
 @Component({
   selector: 'app-quest-editor',
-  imports: [FormsModule, QuestEditorList, PageLoader, ImageUploader],
+  imports: [FormsModule, QuestEditorList, PfPageLoader, ImageUploader],
   templateUrl: './quest-editor.html',
   styleUrl: './quest-editor.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

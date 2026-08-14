@@ -7,14 +7,14 @@ import {
   signal,
 } from '@angular/core';
 import { ActivatedRoute, RouterLink } from '@angular/router';
-import { AuthService } from '../../core/services/auth.service';
+import { AuthService } from '@xcorpiiion/ng-core';
 import { QuestVersionService, QuestVersion } from '../../core/services/quest-version.service';
-import { ToastService } from '../../shared/components/toast/toast.service';
-import { PageLoader } from '../../shared/components/page-loader/page-loader';
+import { ToastService } from '@xcorpiiion/ui';
+import { PfPageLoader } from '@xcorpiiion/ui';
 
 @Component({
   selector: 'app-quest-history',
-  imports: [RouterLink, PageLoader],
+  imports: [RouterLink, PfPageLoader],
   templateUrl: './quest-history.html',
   styleUrl: './quest-history.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

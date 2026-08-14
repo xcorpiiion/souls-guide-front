@@ -16,11 +16,11 @@ import { FeaturedGame } from '../../shared/models/game.model';
 import { GameService } from '../../core/services/game.service';
 import { QuestService } from '../../core/services/quest.service';
 import { LoreService } from '../../core/services/lore.service';
-import { PageLoader } from '../../shared/components/page-loader/page-loader';
+import { PfPageLoader } from '@xcorpiiion/ui';
 
 @Component({
   selector: 'app-home',
-  imports: [RouterLink, FormsModule, LowerCasePipe, PageLoader],
+  imports: [RouterLink, FormsModule, LowerCasePipe, PfPageLoader],
   templateUrl: './home.html',
   styleUrl: './home.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

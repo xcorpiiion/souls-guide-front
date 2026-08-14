@@ -1,5 +1,5 @@
 @if (loading()) {
-  <app-page-loader message="Carregando jogo…" />
+  <pf-page-loader message="Carregando jogo…" />
 } @else if (error()) {
   <div class="game-detail__not-found">
     <p>{{ error() }}</p>

@@ -11,7 +11,7 @@ import { LowerCasePipe } from '@angular/common';
 import { GameFilterDropdown } from '../../shared/components/game-filter-dropdown/game-filter-dropdown';
 import { forkJoin } from 'rxjs';
 import { UserService } from '../../core/services/user.service';
-import { AuthService } from '../../core/services/auth.service';
+import { AuthService } from '@xcorpiiion/ng-core';
 import { ProfileService } from '../../core/services/profile.service';
 import { UserPublicProfile, ActivityEvent, UserSummary } from '../../shared/models/user.model';
 import { QuestSummary, QuestStatus } from '../../shared/models/quest.model';

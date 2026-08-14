@@ -13,7 +13,7 @@ import { Subject, debounceTime, distinctUntilChanged, switchMap } from 'rxjs';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { GameService } from '../../core/services/game.service';
 import { GameSummary } from '../../shared/models/game.model';
-import { AuthService } from '../../core/services/auth.service';
+import { AuthService } from '@xcorpiiion/ng-core';
 
 type SortOption = '' | 'quests' | 'contributors';
 

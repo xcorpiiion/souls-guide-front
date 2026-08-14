@@ -1,12 +1,12 @@
 import { AfterViewInit, ChangeDetectionStrategy, Component } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 import { Navbar } from './layout/navbar/navbar';
-import { ToastContainer } from './shared/components/toast/toast';
-import { LoadingBar } from './shared/components/loading-bar/loading-bar';
+import { PfToastContainer } from '@xcorpiiion/ui';
+import { PfLoadingBar } from '@xcorpiiion/ui';
 
 @Component({
   selector: 'app-root',
-  imports: [RouterOutlet, Navbar, ToastContainer, LoadingBar],
+  imports: [RouterOutlet, Navbar, PfToastContainer, PfLoadingBar],
   templateUrl: './app.html',
   styleUrl: './app.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

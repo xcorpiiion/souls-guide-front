@@ -21,7 +21,7 @@ import {
   ListEntry,
   buildEntries,
 } from '../../quest-detail/quest-checklist/quest-checklist';
-import { ConfirmService } from '../../../core/services/confirm.service';
+import { ConfirmService } from '@xcorpiiion/ui';
 import { PendingUpload } from '../../../core/services/storage.service';
 import { ImageUploader } from '../../../shared/components/image-uploader/image-uploader';
 

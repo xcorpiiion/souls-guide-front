@@ -1,6 +1,6 @@
 import { Routes } from '@angular/router';
-import { unsavedChangesGuard } from './core/guards/unsaved-changes.guard';
-import { authGuard } from './core/guards/auth.guard';
+import { unsavedChangesGuard } from '@xcorpiiion/ng-core';
+import { authGuard } from '@xcorpiiion/ng-core';
 
 export const routes: Routes = [
   {

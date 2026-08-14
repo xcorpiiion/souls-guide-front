@@ -23,20 +23,20 @@ import { QuestProgressService } from '../../core/services/quest-progress.service
 import { QuestVersionService } from '../../core/services/quest-version.service';
 import { PersonalQuestService } from '../../core/services/personal-quest.service';
 import { StorageService } from '../../core/services/storage.service';
-import { AuthService } from '../../core/services/auth.service';
+import { AuthService } from '@xcorpiiion/ng-core';
 import {
   CopyToProfileModal,
   CopyConfirmEvent,
 } from '../../shared/components/copy-to-profile-modal/copy-to-profile-modal';
 import { CommentSection } from '../../shared/components/comment-section/comment-section';
 import { QuestChecklist, TriggerEffect } from './quest-checklist/quest-checklist';
-import { ToastService } from '../../shared/components/toast/toast.service';
+import { ToastService } from '@xcorpiiion/ui';
 import { HttpErrorResponse } from '@angular/common/http';
-import { PageLoader } from '../../shared/components/page-loader/page-loader';
+import { PfPageLoader } from '@xcorpiiion/ui';
 
 @Component({
   selector: 'app-quest-detail',
-  imports: [RouterLink, CopyToProfileModal, CommentSection, QuestChecklist, PageLoader],
+  imports: [RouterLink, CopyToProfileModal, CommentSection, QuestChecklist, PfPageLoader],
   templateUrl: './quest-detail.html',
   styleUrl: './quest-detail.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

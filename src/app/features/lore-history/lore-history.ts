@@ -7,14 +7,14 @@ import {
   signal,
 } from '@angular/core';
 import { ActivatedRoute, RouterLink } from '@angular/router';
-import { AuthService } from '../../core/services/auth.service';
+import { AuthService } from '@xcorpiiion/ng-core';
 import { LoreVersionService, LoreVersion } from '../../core/services/lore-version.service';
-import { ToastService } from '../../shared/components/toast/toast.service';
-import { PageLoader } from '../../shared/components/page-loader/page-loader';
+import { ToastService } from '@xcorpiiion/ui';
+import { PfPageLoader } from '@xcorpiiion/ui';
 
 @Component({
   selector: 'app-lore-history',
-  imports: [RouterLink, PageLoader],
+  imports: [RouterLink, PfPageLoader],
   templateUrl: './lore-history.html',
   styleUrl: './lore-history.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

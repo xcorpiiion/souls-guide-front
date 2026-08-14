@@ -5,7 +5,7 @@ import { of, throwError } from 'rxjs';
 import { HttpErrorResponse } from '@angular/common/http';
 import { LoreDetail } from './lore-detail';
 import { LoreService } from '../../../core/services/lore.service';
-import { AuthService } from '../../../core/services/auth.service';
+import { AuthService } from '@xcorpiiion/ng-core';
 import { LoreApi } from '../../../shared/models/lore-article.model';
 
 const MOCK_LORE_API: LoreApi = {
@@ -31,7 +31,7 @@ const MOCK_LORE_API: LoreApi = {
 };
 
 function makeAuth(loggedIn: boolean) {
-  return { isLoggedIn: () => loggedIn, getUserId: () => null } as unknown as AuthService;
+  return { isLoggedIn: () => loggedIn, userId: () => null } as unknown as AuthService;
 }
 
 const MOCK_LORE_WITH_FOLLOW: LoreApi = {

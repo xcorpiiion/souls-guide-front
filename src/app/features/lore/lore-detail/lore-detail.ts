@@ -13,7 +13,7 @@ import { LoreApi, LoreCategory } from '../../../shared/models/lore-article.model
 import { LoreService } from '../../../core/services/lore.service';
 import { PersonalLoreService } from '../../../core/services/personal-lore.service';
 import { StorageService } from '../../../core/services/storage.service';
-import { AuthService } from '../../../core/services/auth.service';
+import { AuthService } from '@xcorpiiion/ng-core';
 import {
   LoreBlock,
   extractImageFileKeys,
@@ -24,12 +24,12 @@ import {
   CopyConfirmEvent,
 } from '../../../shared/components/copy-to-profile-modal/copy-to-profile-modal';
 import { CommentSection } from '../../../shared/components/comment-section/comment-section';
-import { ToastService } from '../../../shared/components/toast/toast.service';
-import { PageLoader } from '../../../shared/components/page-loader/page-loader';
+import { ToastService } from '@xcorpiiion/ui';
+import { PfPageLoader } from '@xcorpiiion/ui';
 
 @Component({
   selector: 'app-lore-detail',
-  imports: [RouterLink, LowerCasePipe, CopyToProfileModal, CommentSection, PageLoader],
+  imports: [RouterLink, LowerCasePipe, CopyToProfileModal, CommentSection, PfPageLoader],
   templateUrl: './lore-detail.html',
   styleUrl: './lore-detail.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -74,7 +74,7 @@ export class LoreDetail implements OnInit {
   protected readonly isOwner = computed(() => {
     const a = this.article();
     if (!a || !this.auth.isLoggedIn()) return false;
-    return String(a.ownerId) === String(this.auth.getUserId());
+    return String(a.ownerId) === String(this.auth.userId());
   });
 
   protected readonly canEdit = computed(() => {

@@ -1,5 +1,5 @@
 @if (loading()) {
-  <app-page-loader message="Carregando mapa de quests…" />
+  <pf-page-loader message="Carregando mapa de quests…" />
 } @else {
   <div class="qmo">
     <nav class="qmo__breadcrumb" aria-label="navegação">
@@ -462,7 +462,7 @@
 }
 
 @if (pendingRemove(); as pr) {
-  <app-confirm-modal
+  <pf-confirm-modal
     [title]="pr.type === 'section' ? 'Remover área?' : 'Remover quest?'"
     [message]="
       pr.type === 'section'
@@ -473,5 +473,5 @@
     cancelLabel="Cancelar"
     (confirmed)="onRemoveConfirmed()"
     (cancelled)="onRemoveCancelled()"
-  ></app-confirm-modal>
+  ></pf-confirm-modal>
 }

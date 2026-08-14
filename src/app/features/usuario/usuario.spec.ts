@@ -5,7 +5,7 @@ import { of, throwError } from 'rxjs';
 import { signal } from '@angular/core';
 import { Usuario } from './usuario';
 import { UserService } from '../../core/services/user.service';
-import { AuthService } from '../../core/services/auth.service';
+import { AuthService } from '@xcorpiiion/ng-core';
 import { PersonalQuestService } from '../../core/services/personal-quest.service';
 import { PersonalLoreService } from '../../core/services/personal-lore.service';
 import { UserPublicProfile } from '../../shared/models/user.model';

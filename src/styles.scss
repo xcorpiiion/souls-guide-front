@@ -1,3 +1,78 @@
+// Tokens da plataforma: só as custom properties, sem o reset/tipografia da lib.
+// O reset e a tipografia daqui continuam sendo os do SoulGuide — trocar os dois
+// junto seria restyle, não migração.
+@use '@xcorpiiion/ui-tokens/scss/tokens';
+
 @use 'styles/reset';
 @use 'styles/typography';
 @use 'styles/animations';
+
+// A paleta do SoulGuide entra por cima dos tokens. É isto que faz o pf-button,
+// o pf-toast e o pf-confirm-modal saírem dourados sem uma linha na lib.
+//
+// O SCSS do app continua usando $color-gold e companhia com valor literal, em
+// styles/_variables.scss. Os dois lados precisam bater: quem mudar a paleta
+// muda nos dois lugares até o app terminar de migrar o próprio SCSS para os
+// tokens — o que não dá para fazer de uma vez, porque são 217 chamadas de
+// rgba($color, …), e rgba() é função SCSS e não aceita var().
+:root {
+  --pf-color-bg: #0d0d0d;
+  --pf-color-surface: #1a1a1a;
+  --pf-color-elevated: #242424;
+
+  --pf-color-primary: #c9a84c;
+  --pf-color-primary-light: #e2c06e;
+  --pf-color-primary-dark: #9a7a35;
+  --pf-color-on-primary: #0d0d0d;
+
+  --pf-color-accent: #b84c2a;
+  --pf-color-accent-light: #d4633e;
+  --pf-color-on-accent: #ffffff;
+
+  --pf-color-text: #e8e0d0;
+  --pf-color-text-muted: #8a8278;
+  --pf-color-text-faint: #4a453f;
+
+  --pf-color-border: #2e2b26;
+
+  --pf-color-success: #5ee089;
+  --pf-color-warning: #c47f2a;
+  --pf-color-danger: #ef4444;
+  --pf-color-info: #c9a84c;
+  --pf-color-on-danger: #ffffff;
+
+  --pf-font-display: 'Cinzel', serif;
+  --pf-font-body: 'Inter', sans-serif;
+  --pf-font-mono: 'JetBrains Mono', monospace;
+
+  --pf-radius-sm: 4px;
+  --pf-radius-md: 8px;
+  --pf-radius-lg: 12px;
+
+  --pf-shadow-sm: 0 1px 3px rgb(0 0 0 / 40%);
+  --pf-shadow-md: 0 4px 12px rgb(0 0 0 / 50%);
+  --pf-shadow-lg: 0 8px 24px rgb(0 0 0 / 60%);
+  --pf-shadow-glow: 0 0 12px rgb(201 168 76 / 30%);
+}
+
+// O tema claro do app já redefine as próprias regras em styles/_light-theme.scss.
+// Aqui só os tokens, para os componentes da lib acompanharem.
+[data-theme='light'] {
+  --pf-color-bg: #f2ede5;
+  --pf-color-surface: #ffffff;
+  --pf-color-elevated: #ede8e0;
+
+  --pf-color-primary: #9a7a35;
+  --pf-color-primary-light: #b8944a;
+  --pf-color-on-primary: #ffffff;
+
+  --pf-color-text: #1a1410;
+  --pf-color-text-muted: #6b6054;
+  --pf-color-text-faint: #a09689;
+
+  --pf-color-border: #d8d0c6;
+
+  --pf-shadow-sm: 0 1px 3px rgb(0 0 0 / 8%);
+  --pf-shadow-md: 0 4px 12px rgb(0 0 0 / 10%);
+  --pf-shadow-lg: 0 8px 24px rgb(0 0 0 / 14%);
+}
