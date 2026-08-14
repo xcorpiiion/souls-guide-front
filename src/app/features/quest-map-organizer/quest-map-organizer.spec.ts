@@ -248,14 +248,49 @@ describe('QuestMapOrganizer', () => {
     expect(comp['usedEntryKeys']().has('1|n2')).toBe(true);
   });
 
-  it('should hide questline from picker after it is placed in a section', () => {
+  it('mantém a questline no picker enquanto sobrar etapa dela', () => {
     const { componentInstance: comp } = setup();
     comp['addSection']();
     const id = comp['sections']()[0].id;
+
+    // A quest '1' tem stepCount 3; uma etapa usada deixa outras duas.
     fillPicker(comp, id, '1', 'A Última Promessa', 'n2', 'Falar com Stone', 'full');
-    const available = comp['availableForPicker']();
-    expect(available.find((q) => q.id === '1')).toBeUndefined();
-    expect(available.length).toBe(1);
+
+    expect(comp['availableForPicker']().find((q) => q.id === '1')).toBeDefined();
+  });
+
+  it('tira a questline do picker quando todas as etapas foram usadas', () => {
+    const { componentInstance: comp } = setup();
+    comp['addSection']();
+    const id = comp['sections']()[0].id;
+
+    fillPicker(comp, id, '1', 'A Última Promessa', 'n2', 'Falar com Stone', 'full');
+    fillPicker(comp, id, '1', 'A Última Promessa', 'n3', 'Bifurcação', 'full');
+    fillPicker(comp, id, '1', 'A Última Promessa', 'n4', 'Entregar o artefato', 'full');
+
+    expect(comp['availableForPicker']().find((q) => q.id === '1')).toBeUndefined();
+  });
+
+  it('tira a questline do picker quando entra sem etapa específica', () => {
+    const { componentInstance: comp } = setup();
+    comp['addSection']();
+    const id = comp['sections']()[0].id;
+
+    // Sem nó: a entrada ocupa a linha inteira.
+    fillPicker(comp, id, '1', 'A Última Promessa', null, null, 'full');
+
+    expect(comp['availableForPicker']().find((q) => q.id === '1')).toBeUndefined();
+  });
+
+  it('não confunde etapas de questlines diferentes', () => {
+    const { componentInstance: comp } = setup();
+    comp['addSection']();
+    const id = comp['sections']()[0].id;
+
+    fillPicker(comp, id, '1', 'A Última Promessa', 'n2', 'Falar com Stone', 'full');
+
+    // A quest '2' não foi tocada e continua inteira disponível.
+    expect(comp['availableForPicker']().find((q) => q.id === '2')).toBeDefined();
   });
 
   it('should remove entry from section after confirmation', () => {

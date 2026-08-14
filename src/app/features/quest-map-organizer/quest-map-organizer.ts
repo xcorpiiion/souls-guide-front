@@ -145,15 +145,49 @@ export class QuestMapOrganizer implements OnInit, HasUnsavedChanges {
     return total > 0 ? Math.round((this.placedCount() / total) * 100) : 0;
   });
 
-  /** Quests ainda não adicionadas em nenhuma seção */
+  /**
+   * Quests que ainda têm etapa para escolher.
+   *
+   * A linha só sai do picker quando não sobra nada dela para mapear. Antes
+   * bastava uma entrada de qualquer etapa para a linha inteira sumir: quem
+   * mapeasse "Conversar com Venigni na Sala de Controle" perdia o acesso às
+   * outras duas etapas do Venigni, e não havia como colocá-las em outra área.
+   *
+   * A contagem por nó já existia no `usedEntryKeys` e no `isNodeAvailable`;
+   * aqui ela não tinha chegado, e as duas regras discordavam.
+   *
+   * Entrada sem nó — a opção "sem etapa específica" — ocupa a linha toda, e
+   * nesse caso ela sai mesmo.
+   */
   protected readonly availableForPicker = computed(() => {
-    const placed = new Set<string>();
-    this.sections().forEach((s) =>
-      s.entries.forEach((e) => {
-        if (e.questId) placed.add(e.questId);
-      }),
-    );
-    return this.quests().filter((q) => !placed.has(q.id));
+    const linhaInteira = new Set<string>();
+    const nosUsados = new Map<string, Set<string>>();
+
+    for (const section of this.sections()) {
+      for (const entry of section.entries) {
+        if (!entry.questId) continue;
+
+        if (!entry.nodeId) {
+          linhaInteira.add(entry.questId);
+          continue;
+        }
+
+        const nos = nosUsados.get(entry.questId) ?? new Set<string>();
+        nos.add(entry.nodeId);
+        nosUsados.set(entry.questId, nos);
+      }
+    }
+
+    return this.quests().filter((q) => {
+      if (linhaInteira.has(q.id)) return false;
+
+      // Quest sem etapa cadastrada só pode entrar como linha inteira, então
+      // continua disponível até alguém a colocar assim. Sem esta guarda, o
+      // `0 < 0` abaixo a esconderia para sempre.
+      if (q.stepCount === 0) return true;
+
+      return (nosUsados.get(q.id)?.size ?? 0) < q.stepCount;
+    });
   });
 
   hasUnsavedChanges(): boolean {
