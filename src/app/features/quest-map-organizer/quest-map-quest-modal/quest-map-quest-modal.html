@@ -44,7 +44,7 @@
 
     <div class="qmqm__body">
       @if (loading()) {
-        <app-page-loader message="Carregando quest…" />
+        <pf-page-loader message="Carregando quest…" />
       } @else if (quest(); as q) {
         @if (q.description) {
           <p class="qmqm__description">{{ q.description }}</p>

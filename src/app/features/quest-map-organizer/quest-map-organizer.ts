@@ -10,7 +10,7 @@ import {
   signal,
 } from '@angular/core';
 import { catchError, forkJoin, of } from 'rxjs';
-import { HasUnsavedChanges } from '../../core/guards/unsaved-changes.guard';
+import { HasUnsavedChanges } from '@xcorpiiion/ng-core';
 import { RouterLink, ActivatedRoute, Router } from '@angular/router';
 import {
   CdkDragDrop,
@@ -22,8 +22,8 @@ import {
 import { QuestService } from '../../core/services/quest.service';
 import { QuestMapService } from '../../core/services/quest-map.service';
 import { QuestProgressService } from '../../core/services/quest-progress.service';
-import { AuthService } from '../../core/services/auth.service';
-import { ToastService } from '../../shared/components/toast/toast.service';
+import { AuthService } from '@xcorpiiion/ng-core';
+import { ToastService } from '@xcorpiiion/ui';
 import { UserProgress } from '../../shared/models/user-progress.model';
 import { QuestSummary } from '../../shared/models/quest.model';
 import {
@@ -36,9 +36,9 @@ import {
   localToRequest,
   groupByNpc,
 } from '../../shared/models/quest-map.model';
-import { ConfirmModal } from '../../shared/components/confirm-modal/confirm-modal';
+import { PfConfirmModal } from '@xcorpiiion/ui';
 import { QuestNode } from '../../shared/models/quest.model';
-import { PageLoader } from '../../shared/components/page-loader/page-loader';
+import { PfPageLoader } from '@xcorpiiion/ui';
 import { QuestMapQuestModal } from './quest-map-quest-modal/quest-map-quest-modal';
 
 type PickerStep = 'questline' | 'details';
@@ -59,8 +59,8 @@ interface PickerState {
   selector: 'app-quest-map-organizer',
   imports: [
     RouterLink,
-    PageLoader,
-    ConfirmModal,
+    PfPageLoader,
+    PfConfirmModal,
     CdkDropList,
     CdkDrag,
     CdkDragHandle,

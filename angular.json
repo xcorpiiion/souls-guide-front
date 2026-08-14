@@ -33,7 +33,7 @@
             ],
             "styles": ["src/styles.scss"],
             "stylePreprocessorOptions": {
-              "includePaths": ["src"]
+              "includePaths": ["src", "node_modules"]
             }
           },
           "configurations": {
@@ -70,9 +70,10 @@
                   "with": "src/environments/environment.container.ts"
                 }
               ],
-              "optimization": false,
-              "extractLicenses": false,
-              "sourceMap": true
+              "optimization": true,
+              "extractLicenses": true,
+              "sourceMap": false,
+              "outputHashing": "all"
             }
           },
           "defaultConfiguration": "production"

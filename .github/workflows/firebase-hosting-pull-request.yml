@@ -17,18 +17,22 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 0
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v7
         with:
-          node-version: '22'
+          node-version: '24'
           cache: 'npm'
 
+      # Ver o comentário em workflow.yml: o canonico vem do GitHub Packages e exige um PAT
+      # com read:packages. O job já é barrado para PR de fork, que não recebe secret.
       - name: Install dependencies
         run: npm ci
+        env:
+          PACKAGES_TOKEN: ${{ secrets.PACKAGES_TOKEN }}
 
       - name: Type check
         run: npx tsc --noEmit
@@ -43,7 +47,7 @@ jobs:
         run: npm run build
 
       - name: Upload dist artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: dist-pr
           path: dist/soulguide/browser
@@ -55,10 +59,10 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Download dist artifact
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: dist-pr
           path: dist/soulguide/browser
@@ -68,7 +72,11 @@ jobs:
           FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
         run: |
           PR_NUMBER=${{ github.event.pull_request.number }}
+          # Sem --only aqui. No `deploy` o valor `hosting` significa "só a parte de
+          # hosting", mas o `hosting:channel:deploy` já é hosting por definição e lê o
+          # que vem depois de --only como nome de site/target: com --only hosting ele
+          # procura um site chamado "hosting" e morre em "Hosting site or target
+          # hosting not detected in firebase.json".
           npx firebase-tools hosting:channel:deploy pr-${PR_NUMBER} \
             --project soulsguide-f2b59 \
-            --only hosting \
             --expires 7d

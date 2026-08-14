@@ -12,7 +12,7 @@ import { RouterLink } from '@angular/router';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { Comment } from '../../models/comment.model';
 import { CommentService, CommentTargetKind } from '../../../core/services/comment.service';
-import { AuthService } from '../../../core/services/auth.service';
+import { AuthService } from '@xcorpiiion/ng-core';
 
 @Component({
   selector: 'app-comment-section',
@@ -45,7 +45,7 @@ export class CommentSection implements OnInit {
   protected readonly revealedSpoilers = signal<Set<string>>(new Set());
 
   protected readonly authorInitial = computed(() => {
-    const email = this.auth.getEmail() ?? '';
+    const email = this.auth.email() ?? '';
     return email[0]?.toUpperCase() ?? '?';
   });
 
@@ -180,7 +180,7 @@ export class CommentSection implements OnInit {
   }
 
   protected isOwn(comment: Comment): boolean {
-    return this.auth.getEmail() !== null && comment.authorHandle === this.auth.getEmail();
+    return this.auth.email() !== null && comment.authorHandle === this.auth.email();
   }
 
   private patchComment(

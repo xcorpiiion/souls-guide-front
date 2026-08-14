@@ -34,7 +34,7 @@ interface MiniEdge {
 import { GameSummary } from '../../shared/models/game.model';
 import { QuestService } from '../../core/services/quest.service';
 import { GameService } from '../../core/services/game.service';
-import { AuthService } from '../../core/services/auth.service';
+import { AuthService } from '@xcorpiiion/ng-core';
 
 const STATUS_FILTERS: { id: QuestStatus | ''; label: string }[] = [
   { id: '', label: 'todos' },

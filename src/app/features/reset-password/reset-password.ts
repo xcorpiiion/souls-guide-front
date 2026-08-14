@@ -7,7 +7,7 @@ import {
   Validators,
 } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
-import { AuthService } from '../../core/services/auth.service';
+import { AuthService } from '@xcorpiiion/ng-core';
 
 @Component({
   selector: 'app-reset-password',
@@ -60,24 +60,22 @@ export class ResetPassword implements OnInit {
     this.loading.set(true);
     this.errorMsg.set(null);
 
-    this.auth
-      .resetPassword({ token: this.token, newPassword: this.form.value.newPassword! })
-      .subscribe({
-        next: () => {
-          this.done.set(true);
-          this.loading.set(false);
-          setTimeout(() => this.router.navigate(['/login']), 3000);
-        },
-        error: (err) => {
-          const msg =
-            err.status === 400
-              ? 'O link expirou ou já foi utilizado. Solicite um novo.'
-              : err.status === 429
-                ? 'Muitas tentativas. Tente novamente em alguns minutos.'
-                : 'Ocorreu um erro. Tente novamente.';
-          this.errorMsg.set(msg);
-          this.loading.set(false);
-        },
-      });
+    this.auth.resetPassword(this.token, this.form.value.newPassword!).subscribe({
+      next: () => {
+        this.done.set(true);
+        this.loading.set(false);
+        setTimeout(() => this.router.navigate(['/login']), 3000);
+      },
+      error: (err) => {
+        const msg =
+          err.status === 400
+            ? 'O link expirou ou já foi utilizado. Solicite um novo.'
+            : err.status === 429
+              ? 'Muitas tentativas. Tente novamente em alguns minutos.'
+              : 'Ocorreu um erro. Tente novamente.';
+        this.errorMsg.set(msg);
+        this.loading.set(false);
+      },
+    });
   }
 }

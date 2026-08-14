@@ -6,6 +6,7 @@ import { Quests } from './quests';
 import { QuestService } from '../../core/services/quest.service';
 import { GameService } from '../../core/services/game.service';
 import { QuestSummary } from '../../shared/models/quest.model';
+import { provideAuth } from '@xcorpiiion/ng-core';
 
 const MOCK_QUESTS: QuestSummary[] = [
   {
@@ -58,6 +59,7 @@ async function setup(page = makePage(MOCK_QUESTS)) {
   await TestBed.configureTestingModule({
     imports: [Quests],
     providers: [
+      provideAuth({ baseUrl: 'http://localhost/auth' }),
       provideRouter([]),
       { provide: QuestService, useValue: questServiceMock },
       { provide: GameService, useValue: gameServiceMock },
@@ -92,6 +94,7 @@ describe('Quests', () => {
     await TestBed.configureTestingModule({
       imports: [Quests],
       providers: [
+        provideAuth({ baseUrl: 'http://localhost/auth' }),
         provideRouter([]),
         { provide: QuestService, useValue: questServiceMock },
         { provide: GameService, useValue: gameServiceMock },

@@ -7,6 +7,7 @@ import { GameService } from '../../core/services/game.service';
 import { QuestService } from '../../core/services/quest.service';
 import { LoreService } from '../../core/services/lore.service';
 import { Game } from '../../shared/models/game.model';
+import { provideAuth } from '@xcorpiiion/ng-core';
 
 const MOCK_GAME: Game = {
   id: 1,
@@ -35,6 +36,7 @@ function createFixture(gameId: string): ComponentFixture<GameDetail> {
   TestBed.configureTestingModule({
     imports: [GameDetail],
     providers: [
+      provideAuth({ baseUrl: 'http://localhost/auth' }),
       provideRouter([]),
       {
         provide: ActivatedRoute,
@@ -95,6 +97,7 @@ describe('GameDetail', () => {
     TestBed.configureTestingModule({
       imports: [GameDetail],
       providers: [
+        provideAuth({ baseUrl: 'http://localhost/auth' }),
         provideRouter([]),
         {
           provide: ActivatedRoute,

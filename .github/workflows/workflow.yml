@@ -15,18 +15,25 @@ jobs:
       contents: read
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 0
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v7
         with:
-          node-version: '22'
+          node-version: '24'
           cache: 'npm'
 
+      # O .npmrc versionado aponta o escopo @xcorpiiion para o GitHub Packages e lê o
+      # token do ambiente. O secrets.GITHUB_TOKEN automático não serve: ele é escopado a
+      # este repositório e o canonico é publicado por outro, então precisa ser um PAT com
+      # read:packages. Sem isso o npm ci morre em 401 — o registry recusa leitura anônima
+      # mesmo de pacote público.
       - name: Install dependencies
         run: npm ci
+        env:
+          PACKAGES_TOKEN: ${{ secrets.PACKAGES_TOKEN }}
 
       - name: Type check
         id: typecheck
@@ -53,13 +60,13 @@ jobs:
 
       - name: SonarCloud Scan
         id: sonar
-        uses: SonarSource/sonarqube-scan-action@v6
+        uses: SonarSource/sonarqube-scan-action@v8
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
 
       - name: Upload dist artifact
         if: github.event_name == 'push'
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: dist
           path: dist/soulguide/browser
@@ -113,10 +120,10 @@ jobs:
     if: github.ref == 'refs/heads/develop' && github.event_name == 'push'
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Download dist artifact
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: dist
           path: dist/soulguide/browser
@@ -125,7 +132,9 @@ jobs:
         env:
           FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
         run: |
-          npx firebase-tools hosting:channel:deploy dev --project soulsguide-f2b59 --only hosting
+          # Ver o comentário em firebase-hosting-pull-request.yml: channel:deploy não
+          # aceita --only hosting, ele lê o valor como nome de site.
+          npx firebase-tools hosting:channel:deploy dev --project soulsguide-f2b59
 
       - name: Deploy Summary
         run: |
@@ -144,10 +153,10 @@ jobs:
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Download dist artifact
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: dist
           path: dist/soulguide/browser

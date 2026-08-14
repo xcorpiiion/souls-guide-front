@@ -9,7 +9,7 @@ import type {
   UploadTicketRequest,
 } from '@xcorpiiion/canonico';
 import { environment } from '../../../environments/environment';
-import { skipAuth } from '../interceptors/skip-auth';
+import { skipAuth } from '@xcorpiiion/ng-core';
 
 /** A que entidade um arquivo pertence. Casa com o ownerKind gravado na storage-api. */
 export type FileOwnerKind = 'QUEST' | 'LORE' | 'GAME';

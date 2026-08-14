@@ -7,7 +7,7 @@ import {
   ValidationErrors,
   Validators,
 } from '@angular/forms';
-import { AuthService } from '../../core/services/auth.service';
+import { AuthService } from '@xcorpiiion/ng-core';
 import { environment } from '../../../environments/environment';
 
 @Component({
@@ -122,7 +122,7 @@ export class Login implements OnInit {
   private handleGoogleResponse(response: google.accounts.id.CredentialResponse): void {
     this.loading.set(true);
     this.errorMsg.set(null);
-    this.auth.loginWithGoogle(response.credential).subscribe({
+    this.auth.loginWithSocialToken(response.credential).subscribe({
       next: (tokens) => {
         this.auth.saveTokens(tokens);
         this.router.navigate(['/home']);

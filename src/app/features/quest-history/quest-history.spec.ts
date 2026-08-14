@@ -4,8 +4,8 @@ import { describe, beforeEach, it, expect, vi } from 'vitest';
 import { of, throwError } from 'rxjs';
 import { QuestHistory } from './quest-history';
 import { QuestVersionService } from '../../core/services/quest-version.service';
-import { AuthService } from '../../core/services/auth.service';
-import { ToastService } from '../../shared/components/toast/toast.service';
+import { AuthService } from '@xcorpiiion/ng-core';
+import { ToastService } from '@xcorpiiion/ui';
 import { QUEST_HISTORY_MOCK } from './quest-history.mocks';
 
 function makeAuth(loggedIn: boolean) {

@@ -18,11 +18,11 @@ import { GameService } from '../../core/services/game.service';
 import { QuestService } from '../../core/services/quest.service';
 import { LoreService } from '../../core/services/lore.service';
 import { EndingService } from '../../core/services/ending.service';
-import { AuthService } from '../../core/services/auth.service';
+import { AuthService } from '@xcorpiiion/ng-core';
 import { PersonalQuestService } from '../../core/services/personal-quest.service';
-import { ConfirmService } from '../../core/services/confirm.service';
-import { ToastService } from '../../shared/components/toast/toast.service';
-import { PageLoader } from '../../shared/components/page-loader/page-loader';
+import { ConfirmService } from '@xcorpiiion/ui';
+import { ToastService } from '@xcorpiiion/ui';
+import { PfPageLoader } from '@xcorpiiion/ui';
 
 type Tab = 'quests' | 'lore' | 'endings' | 'contributors';
 type QuestFilter = QuestStatus | 'todos';
@@ -34,7 +34,7 @@ interface FilterOption {
 
 @Component({
   selector: 'app-game-detail',
-  imports: [RouterLink, PageLoader],
+  imports: [RouterLink, PfPageLoader],
   templateUrl: './game-detail.html',
   styleUrl: './game-detail.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

@@ -3,7 +3,7 @@ import { describe, beforeEach, it, expect, vi } from 'vitest';
 import { of } from 'rxjs';
 import { QuestEditorList } from './quest-editor-list';
 import { QuestEdge, QuestNode } from '../../../shared/models/quest.model';
-import { ConfirmService } from '../../../core/services/confirm.service';
+import { ConfirmService } from '@xcorpiiion/ui';
 
 function setGraph(
   fixture: ComponentFixture<QuestEditorList>,

@@ -10,7 +10,11 @@
 //
 // `ng serve` continua usando environment.ts com localhost:8765.
 export const environment = {
-  production: false,
+  // Esta imagem e a que vai para o ar, inclusive no dominio publico. Com
+  // `false` aqui o Sentry marcava tudo como 'development' e mandava 100% das
+  // transacoes — o dobro de ruido e de custo, e sem separar o que e erro de
+  // usuario de verdade do que e teste local.
+  production: true,
   sentryDsn:
     'https://34ad2b87d436031a9eda1006f626bc85@o4511548273917952.ingest.us.sentry.io/4511548277981185',
   googleClientId: '125662553556-q6agb67d8q0d253docbi55kk3ps6hc9b.apps.googleusercontent.com',

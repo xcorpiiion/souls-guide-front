@@ -1,5 +1,5 @@
 @if (loading()) {
-  <app-page-loader message="Carregando artigo…" />
+  <pf-page-loader message="Carregando artigo…" />
 } @else if (errorMsg() && !form.value.title) {
   <div class="lore-create">
     <p class="lore-create__error"><i class="ti ti-alert-circle"></i> {{ errorMsg() }}</p>

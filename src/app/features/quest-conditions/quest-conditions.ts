@@ -11,8 +11,8 @@ import { forkJoin, of } from 'rxjs';
 import { catchError, filter, switchMap } from 'rxjs/operators';
 import { QuestService } from '../../core/services/quest.service';
 import { QuestConditionService } from '../../core/services/quest-condition.service';
-import { ConfirmService } from '../../core/services/confirm.service';
-import { ToastService } from '../../shared/components/toast/toast.service';
+import { ConfirmService } from '@xcorpiiion/ui';
+import { ToastService } from '@xcorpiiion/ui';
 import { QuestApi, QuestSummary } from '../../shared/models/quest.model';
 import {
   ConditionEffect,
@@ -23,11 +23,11 @@ import {
   NodeOption,
   NodeSelectorPanel,
 } from '../../shared/components/node-selector-panel/node-selector-panel';
-import { PageLoader } from '../../shared/components/page-loader/page-loader';
+import { PfPageLoader } from '@xcorpiiion/ui';
 
 @Component({
   selector: 'app-quest-conditions',
-  imports: [RouterLink, NodeSelectorPanel, PageLoader],
+  imports: [RouterLink, NodeSelectorPanel, PfPageLoader],
   templateUrl: './quest-conditions.html',
   styleUrl: './quest-conditions.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

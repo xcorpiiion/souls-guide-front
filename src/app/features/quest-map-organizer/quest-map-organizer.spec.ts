@@ -7,9 +7,10 @@ import { QuestService } from '../../core/services/quest.service';
 import { QuestNode } from '../../shared/models/quest.model';
 import { QuestMapService } from '../../core/services/quest-map.service';
 import { QuestProgressService } from '../../core/services/quest-progress.service';
-import { ToastService } from '../../shared/components/toast/toast.service';
+import { ToastService } from '@xcorpiiion/ui';
 import { GameQuestMapResponse } from '../../shared/models/quest-map.model';
 import { UserProgress } from '../../shared/models/user-progress.model';
+import { provideAuth } from '@xcorpiiion/ng-core';
 
 const MOCK_QUESTS = [
   {
@@ -55,6 +56,7 @@ function setup(mapResponse: GameQuestMapResponse = EMPTY_MAP): ComponentFixture<
   TestBed.configureTestingModule({
     imports: [QuestMapOrganizer],
     providers: [
+      provideAuth({ baseUrl: 'http://localhost/auth' }),
       provideRouter([]),
       { provide: ActivatedRoute, useValue: { snapshot: { paramMap: { get: () => 'g1' } } } },
       {

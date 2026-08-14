@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { RouterLink } from '@angular/router';
-import { AuthService } from '../../core/services/auth.service';
+import { AuthService } from '@xcorpiiion/ng-core';
 
 @Component({
   selector: 'app-forgot-password',
@@ -27,7 +27,7 @@ export class ForgotPassword {
     this.loading.set(true);
     this.errorMsg.set(null);
 
-    this.auth.forgotPassword({ email: this.form.value.email! }).subscribe({
+    this.auth.forgotPassword(this.form.value.email!).subscribe({
       next: () => {
         this.sent.set(true);
         this.loading.set(false);

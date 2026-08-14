@@ -6,7 +6,7 @@ import { signal } from '@angular/core';
 import { Comunidade } from './comunidade';
 import { UserService } from '../../core/services/user.service';
 import { GameService } from '../../core/services/game.service';
-import { AuthService } from '../../core/services/auth.service';
+import { AuthService } from '@xcorpiiion/ng-core';
 import { UserSummary } from '../../shared/models/user.model';
 
 const MOCK_USER: UserSummary = {
@@ -53,9 +53,9 @@ function createFixture(
         provide: AuthService,
         useValue: {
           isLoggedIn: signal(true),
-          isGoogleUser: () => false,
-          getNickname: () => null,
-          getUserId: () => null,
+          authProvider: () => null,
+          nickname: () => null,
+          userId: () => null,
         },
       },
     ],

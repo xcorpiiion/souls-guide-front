@@ -1,5 +1,5 @@
 @if (loading()) {
-  <app-page-loader message="Carregando jogo…" />
+  <pf-page-loader message="Carregando jogo…" />
 } @else if (error()) {
   <div class="game-detail__not-found">
     <p>{{ error() }}</p>
@@ -57,7 +57,7 @@
               <div class="game-detail__contrib-menu">
                 <a
                   class="game-detail__contrib-item"
-                  [routerLink]="['/games', game()?.id, 'quests', 'new']"
+                  [routerLink]="['/games', g.id, 'quests', 'new']"
                   (click)="showContribMenu.set(false)"
                 >
                   <i class="ti ti-map" aria-hidden="true"></i>
@@ -65,7 +65,7 @@
                 </a>
                 <a
                   class="game-detail__contrib-item"
-                  [routerLink]="['/games', game()?.id, 'lore', 'new']"
+                  [routerLink]="['/games', g.id, 'lore', 'new']"
                   (click)="showContribMenu.set(false)"
                 >
                   <i class="ti ti-book" aria-hidden="true"></i>

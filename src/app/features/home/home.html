@@ -61,7 +61,7 @@
       </div>
 
       @if (loading()) {
-        <app-page-loader message="Carregando quests…" />
+        <pf-page-loader message="Carregando quests…" />
       } @else if (filteredQuests().length === 0) {
         <p class="home__empty">Nenhuma quest encontrada.</p>
       } @else {
@@ -98,7 +98,7 @@
       </p>
 
       @if (loading()) {
-        <app-page-loader message="Carregando lore…" />
+        <pf-page-loader message="Carregando lore…" />
       } @else if (filteredLore().length === 0) {
         <p class="home__empty">Nenhum artigo encontrado.</p>
       } @else {

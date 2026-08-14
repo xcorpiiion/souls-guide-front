@@ -11,7 +11,7 @@ import { debounceTime, distinctUntilChanged, Subject, switchMap, of, catchError 
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { UserService } from '../../core/services/user.service';
 import { GameService } from '../../core/services/game.service';
-import { AuthService } from '../../core/services/auth.service';
+import { AuthService } from '@xcorpiiion/ng-core';
 import { UserSummary } from '../../shared/models/user.model';
 import { FeaturedGame } from '../../shared/models/game.model';
 
@@ -38,8 +38,8 @@ export class Comunidade implements OnInit {
   protected readonly followingIds = signal<Set<string>>(new Set());
 
   protected readonly isLoggedIn = computed(() => this.authService.isLoggedIn());
-  private readonly myNickname = this.authService.getNickname();
-  private readonly myUserId = this.authService.getUserId();
+  private readonly myNickname = this.authService.nickname();
+  private readonly myUserId = this.authService.userId();
 
   protected isMe(user: { id: string; handle: string }): boolean {
     if (this.myUserId && String(user.id) === String(this.myUserId)) return true;

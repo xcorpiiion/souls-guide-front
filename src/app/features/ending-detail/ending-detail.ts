@@ -16,13 +16,13 @@ import {
   groupStepsByChapter,
 } from '../../shared/models/ending.model';
 import { EndingService } from '../../core/services/ending.service';
-import { AuthService } from '../../core/services/auth.service';
-import { ToastService } from '../../shared/components/toast/toast.service';
-import { PageLoader } from '../../shared/components/page-loader/page-loader';
+import { AuthService } from '@xcorpiiion/ng-core';
+import { ToastService } from '@xcorpiiion/ui';
+import { PfPageLoader } from '@xcorpiiion/ui';
 
 @Component({
   selector: 'app-ending-detail',
-  imports: [RouterLink, PageLoader],
+  imports: [RouterLink, PfPageLoader],
   templateUrl: './ending-detail.html',
   styleUrl: './ending-detail.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

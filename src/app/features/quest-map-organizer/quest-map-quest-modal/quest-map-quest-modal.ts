@@ -12,14 +12,14 @@ import { RouterLink } from '@angular/router';
 import { catchError, of } from 'rxjs';
 import { QuestService } from '../../../core/services/quest.service';
 import { QuestProgressService } from '../../../core/services/quest-progress.service';
-import { AuthService } from '../../../core/services/auth.service';
+import { AuthService } from '@xcorpiiion/ng-core';
 import { QuestDetailData, QuestNode, questApiToSummary } from '../../../shared/models/quest.model';
 import { UserProgress } from '../../../shared/models/user-progress.model';
-import { PageLoader } from '../../../shared/components/page-loader/page-loader';
+import { PfPageLoader } from '@xcorpiiion/ui';
 
 @Component({
   selector: 'app-quest-map-quest-modal',
-  imports: [RouterLink, PageLoader],
+  imports: [RouterLink, PfPageLoader],
   templateUrl: './quest-map-quest-modal.html',
   styleUrl: './quest-map-quest-modal.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

@@ -9,9 +9,9 @@ import {
 } from '@angular/core';
 import { NavigationEnd, Router, RouterLink, RouterLinkActive } from '@angular/router';
 import { EMPTY, interval, merge } from 'rxjs';
-import { filter, startWith, switchMap, throttleTime } from 'rxjs/operators';
+import { catchError, filter, startWith, switchMap, throttleTime } from 'rxjs/operators';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { AuthService } from '../../core/services/auth.service';
+import { AuthService } from '@xcorpiiion/ng-core';
 import { NotificationService } from '../../core/services/notification.service';
 import { Notification, NotificationType } from '../../shared/models/notification.model';
 
@@ -54,7 +54,25 @@ export class Navbar implements OnInit {
       .pipe(
         startWith(null),
         throttleTime(2_000, undefined, { leading: true, trailing: false }),
-        switchMap(() => (this.auth.isLoggedIn() ? this.notifService.getUnreadCount() : EMPTY)),
+        switchMap(() =>
+          this.auth.isLoggedIn()
+            ? // O catchError vai DENTRO do switchMap de propósito. Fora, o erro
+              // sobe pelo fluxo externo e mata a assinatura inteira: o contador
+              // parava de atualizar até alguém recarregar a página, porque o
+              // merge de rota e intervalo tinha morrido junto.
+              //
+              // Uma falha aqui não merece tela de erro — é um contador de
+              // badge, e a próxima navegação ou o próximo minuto tentam de
+              // novo. O que não pode é sumir em silêncio como exceção não
+              // tratada, que era o que enchia o Sentry a cada 503 do gateway.
+              this.notifService.getUnreadCount().pipe(
+                catchError(() => {
+                  this.unreadCount.set(0);
+                  return EMPTY;
+                }),
+              )
+            : EMPTY,
+        ),
         takeUntilDestroyed(this.destroyRef),
       )
       .subscribe({ next: (r) => this.unreadCount.set(r.count) });

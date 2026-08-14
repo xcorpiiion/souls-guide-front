@@ -8,7 +8,7 @@ import {
   signal,
 } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
-import { AuthService } from '../../../core/services/auth.service';
+import { AuthService } from '@xcorpiiion/ng-core';
 import { QuestEdge, QuestNode } from '../../../shared/models/quest.model';
 import { ConditionEffect } from '../../../shared/models/quest-condition.model';
 
