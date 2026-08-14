@@ -72,7 +72,11 @@ jobs:
           FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
         run: |
           PR_NUMBER=${{ github.event.pull_request.number }}
+          # Sem --only aqui. No `deploy` o valor `hosting` significa "só a parte de
+          # hosting", mas o `hosting:channel:deploy` já é hosting por definição e lê o
+          # que vem depois de --only como nome de site/target: com --only hosting ele
+          # procura um site chamado "hosting" e morre em "Hosting site or target
+          # hosting not detected in firebase.json".
           npx firebase-tools hosting:channel:deploy pr-${PR_NUMBER} \
             --project soulsguide-f2b59 \
-            --only hosting \
             --expires 7d

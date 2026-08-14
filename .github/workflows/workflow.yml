@@ -132,7 +132,9 @@ jobs:
         env:
           FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
         run: |
-          npx firebase-tools hosting:channel:deploy dev --project soulsguide-f2b59 --only hosting
+          # Ver o comentário em firebase-hosting-pull-request.yml: channel:deploy não
+          # aceita --only hosting, ele lê o valor como nome de site.
+          npx firebase-tools hosting:channel:deploy dev --project soulsguide-f2b59
 
       - name: Deploy Summary
         run: |
