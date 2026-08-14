@@ -11,11 +11,17 @@ import {
   loadingBarInterceptor,
   provideAuth,
 } from '@xcorpiiion/ng-core';
-import { provideRouter, Router, withComponentInputBinding } from '@angular/router';
+import {
+  provideRouter,
+  Router,
+  withComponentInputBinding,
+  withNavigationErrorHandler,
+} from '@angular/router';
 import * as Sentry from '@sentry/angular';
 import { routes } from './app.routes';
 import { environment } from '../environments/environment';
 import { initSentry } from './core/services/monitoring.service';
+import { recarregarSeBundleVelho } from './core/stale-bundle';
 
 initSentry();
 
@@ -23,7 +29,15 @@ export const appConfig: ApplicationConfig = {
   providers: [
     provideZonelessChangeDetection(),
     provideHttpClient(withFetch(), withInterceptors([loadingBarInterceptor, authInterceptor])),
-    provideRouter(routes, withComponentInputBinding()),
+    provideRouter(
+      routes,
+      withComponentInputBinding(),
+      // Aba aberta durante um deploy fica com o main.js velho na memória,
+      // pedindo chunks que o build novo apagou. A navegação falha em 404 e a
+      // tela simplesmente não troca. Só recarregar resolve — o index.html não
+      // é cacheado justamente para isso funcionar.
+      withNavigationErrorHandler((e) => recarregarSeBundleVelho(e.error)),
+    ),
 
     // O que a lib não pode adivinhar: onde fica a auth-api, com que nome os
     // tokens são guardados e para onde mandar quem caiu da sessão. As chaves
