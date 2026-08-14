@@ -10,7 +10,7 @@ import { QuestProgressService } from '../../core/services/quest-progress.service
 import { ToastService } from '@xcorpiiion/ui';
 import { GameQuestMapResponse } from '../../shared/models/quest-map.model';
 import { UserProgress } from '../../shared/models/user-progress.model';
-import { provideAuth } from '@xcorpiiion/ng-core';
+import { AuthService, provideAuth } from '@xcorpiiion/ng-core';
 
 const MOCK_QUESTS = [
   {
@@ -52,11 +52,22 @@ const TOAST_MOCK = { success: vi.fn(), error: vi.fn(), info: vi.fn(), warning: v
 let mockSaveResult: GameQuestMapResponse = EMPTY_MAP;
 let mockProgressResult: UserProgress | null = null;
 
-function setup(mapResponse: GameQuestMapResponse = EMPTY_MAP): ComponentFixture<QuestMapOrganizer> {
+function setup(
+  mapResponse: GameQuestMapResponse = EMPTY_MAP,
+  /**
+   * O template do picker é fechado por `auth.isLoggedIn() && isEditing()`.
+   * Sem sessão nada disso renderiza, então quem testa o DOM precisa de um
+   * AuthService que diga que há alguém logado.
+   */
+  logado = false,
+): ComponentFixture<QuestMapOrganizer> {
   TestBed.configureTestingModule({
     imports: [QuestMapOrganizer],
     providers: [
       provideAuth({ baseUrl: 'http://localhost/auth' }),
+      ...(logado
+        ? [{ provide: AuthService, useValue: { isLoggedIn: () => true, userId: () => 'u1' } }]
+        : []),
       provideRouter([]),
       { provide: ActivatedRoute, useValue: { snapshot: { paramMap: { get: () => 'g1' } } } },
       {
@@ -280,6 +291,51 @@ describe('QuestMapOrganizer', () => {
     fillPicker(comp, id, '1', 'A Última Promessa', null, null, 'full');
 
     expect(comp['availableForPicker']().find((q) => q.id === '1')).toBeUndefined();
+  });
+
+  it('tira do select a etapa que já foi mapeada', () => {
+    const { componentInstance: comp } = setup();
+    comp['addSection']();
+    const id = comp['sections']()[0].id;
+
+    fillPicker(comp, id, '1', 'A Última Promessa', 'n2', 'Falar com Stone', 'full');
+
+    // Abre o picker de novo na mesma questline: a etapa usada nao pode voltar.
+    comp['openPicker'](id);
+    comp['selectQuestline']('1', 'A Última Promessa');
+    comp['pickerNodes'].set(MOCK_NODES.filter((n) => n.type !== 'start'));
+
+    const etapas = comp['availablePickerNodes']();
+    expect(etapas.find((n) => n.id === 'n2')).toBeUndefined();
+    expect(etapas.find((n) => n.id === 'n3')).toBeDefined();
+  });
+
+  it('o select renderizado não oferece etapa já mapeada', () => {
+    // Este vai pelo DOM de proposito. O teste acima trava a regra do computed,
+    // mas nao pegaria alguem religando o @for em `pickerNodes()` — que foi
+    // exatamente o defeito: a funcao de checagem existia e o template a
+    // ignorava.
+    const fixture = setup(EMPTY_MAP, true);
+    const comp = fixture.componentInstance;
+
+    comp['startEditing']();
+    comp['addSection']();
+    const id = comp['sections']()[0].id;
+    fillPicker(comp, id, '1', 'A Última Promessa', 'n2', 'Falar com Stone', 'full');
+
+    comp['openPicker'](id);
+    comp['selectQuestline']('1', 'A Última Promessa');
+    comp['pickerNodes'].set(MOCK_NODES.filter((n) => n.type !== 'start'));
+    fixture.detectChanges();
+
+    const select: HTMLSelectElement | null =
+      fixture.nativeElement.querySelector('#picker-node-select');
+    expect(select).not.toBeNull();
+
+    const valores = [...select!.options].map((o) => o.value);
+    expect(valores).toContain(''); // "— sem etapa específica —"
+    expect(valores).not.toContain('n2'); // já mapeada
+    expect(valores).toContain('n3');
   });
 
   it('não confunde etapas de questlines diferentes', () => {

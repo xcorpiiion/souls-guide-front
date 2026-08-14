@@ -399,11 +399,24 @@ export class QuestMapOrganizer implements OnInit, HasUnsavedChanges {
     return groupByNpc(entries);
   }
 
-  protected isAvailableNode(node: QuestNode): boolean {
+  /**
+   * Etapas que ainda podem ser escolhidas para a questline aberta no picker.
+   *
+   * O select listava `pickerNodes()` cru, então uma etapa já mapeada aparecia
+   * de novo e dava para colocar a mesma duas vezes. A checagem existia —
+   * `isAvailableNode`, que fazia exatamente esta comparação — mas nada no
+   * template a chamava: era código morto desde que foi escrita.
+   *
+   * Virou `computed` em vez de método: chamada de método no `@for` roda a cada
+   * ciclo de detecção, uma vez por opção da lista.
+   */
+  protected readonly availablePickerNodes = computed<QuestNode[]>(() => {
     const p = this.picker();
-    if (!p?.questlineId) return false;
-    return !this.usedEntryKeys().has(`${p.questlineId}|${node.id}`);
-  }
+    if (!p?.questlineId) return [];
+
+    const usados = this.usedEntryKeys();
+    return this.pickerNodes().filter((n) => !usados.has(`${p.questlineId}|${n.id}`));
+  });
 
   protected questlineInitials(title: string | undefined): string {
     if (!title) return '?';

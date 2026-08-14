@@ -335,7 +335,7 @@
                                   (change)="setPickerNode($event)"
                                 >
                                   <option value="">— sem etapa específica —</option>
-                                  @for (n of pickerNodes(); track n.id) {
+                                  @for (n of availablePickerNodes(); track n.id) {
                                     <option [value]="n.id">{{ n.label }}</option>
                                   }
                                 </select>
