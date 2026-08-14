@@ -12,8 +12,8 @@ COPY package*.json .npmrc ./
 
 # O token entra como secret do BuildKit, não como ARG: valores de ARG ficam
 # gravados no histórico da imagem e vazariam a credencial para quem a baixar.
-RUN --mount=type=secret,id=github_token \
-    GITHUB_TOKEN="$(cat /run/secrets/github_token)" npm ci --legacy-peer-deps
+RUN --mount=type=secret,id=packages_token \
+    PACKAGES_TOKEN="$(cat /run/secrets/packages_token)" npm ci --legacy-peer-deps
 
 COPY . .
 # `container` é o `development` mais as APIs por caminho relativo — o nginx desta mesma
