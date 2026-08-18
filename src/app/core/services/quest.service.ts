@@ -1,7 +1,6 @@
 import { inject, Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpService, Page, mapPage } from '@xcorpiiion/ng-core';
 import { map, Observable } from 'rxjs';
-import { environment } from '../../../environments/environment';
 import {
   FollowResponse,
   QuestApi,
@@ -10,7 +9,6 @@ import {
   QuestSummary,
   questApiToSummary,
 } from '../../shared/models/quest.model';
-import { Page } from '../../shared/models/page.model';
 import { LikeResponse } from './personal-quest.service';
 
 export interface QuestRequest {
@@ -26,8 +24,7 @@ export interface QuestRequest {
 
 @Injectable({ providedIn: 'root' })
 export class QuestService {
-  private readonly http = inject(HttpClient);
-  private readonly base = `${environment.apis.soulsGuide}/quests`;
+  private readonly api = inject(HttpService).resource('quests');
 
   list(
     page = 0,
@@ -36,62 +33,54 @@ export class QuestService {
     gameId?: string,
     status?: string,
   ): Observable<Page<QuestSummary>> {
-    const params: Record<string, string | number> = { page, size };
-    if (q) params['q'] = q;
-    if (gameId) params['gameId'] = gameId;
-    if (status) params['status'] = status;
-    return this.http
-      .get<Page<QuestApi>>(this.base, { params })
-      .pipe(map((p) => ({ ...p, content: p.content.map(questApiToSummary) })));
+    return this.api
+      .page<QuestApi>('', { page, size, q, gameId, status })
+      .pipe(map((p) => mapPage(p, questApiToSummary)));
   }
 
   search(q: string, size = 20): Observable<QuestSummary[]> {
-    return this.http
-      .get<Page<QuestApi>>(this.base, { params: { q, page: 0, size } })
+    return this.api
+      .page<QuestApi>('', { q, page: 0, size })
       .pipe(map((p) => p.content.map(questApiToSummary)));
   }
 
   get(id: string): Observable<QuestApi> {
-    return this.http.get<QuestApi>(`${this.base}/${id}`);
+    return this.api.get<QuestApi>(id);
   }
 
   listNodes(questId: string): Observable<QuestNode[]> {
-    return this.http.get<QuestNode[]>(`${this.base}/${questId}/nodes`);
+    return this.api.get<QuestNode[]>(`${questId}/nodes`);
   }
 
   create(request: QuestRequest): Observable<QuestApi> {
-    return this.http.post<QuestApi>(this.base, request);
+    return this.api.post<QuestApi>('', request);
   }
 
   update(id: string, request: QuestRequest): Observable<QuestApi> {
-    return this.http.put<QuestApi>(`${this.base}/${id}`, request);
+    return this.api.put<QuestApi>(id, request);
   }
 
   like(id: string): Observable<LikeResponse> {
-    return this.http.post<LikeResponse>(`${this.base}/${id}/like`, {});
+    return this.api.post<LikeResponse>(`${id}/like`, {});
   }
 
   unlike(id: string): Observable<LikeResponse> {
-    return this.http.delete<LikeResponse>(`${this.base}/${id}/like`);
+    return this.api.delete<LikeResponse>(`${id}/like`);
   }
 
   follow(id: string): Observable<FollowResponse> {
-    return this.http.post<FollowResponse>(`${this.base}/${id}/follow`, {});
+    return this.api.post<FollowResponse>(`${id}/follow`, {});
   }
 
   unfollow(id: string): Observable<FollowResponse> {
-    return this.http.delete<FollowResponse>(`${this.base}/${id}/follow`);
+    return this.api.delete<FollowResponse>(`${id}/follow`);
   }
 
   listFollowed(): Observable<QuestSummary[]> {
-    return this.http
-      .get<QuestApi[]>(`${this.base}/following`)
-      .pipe(map((list) => list.map(questApiToSummary)));
+    return this.api.get<QuestApi[]>('following').pipe(map((list) => list.map(questApiToSummary)));
   }
 
   listLiked(): Observable<QuestSummary[]> {
-    return this.http
-      .get<QuestApi[]>(`${this.base}/liked`)
-      .pipe(map((list) => list.map(questApiToSummary)));
+    return this.api.get<QuestApi[]>('liked').pipe(map((list) => list.map(questApiToSummary)));
   }
 }

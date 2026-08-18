@@ -1,7 +1,6 @@
 import { inject, Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpService } from '@xcorpiiion/ng-core';
 import { map, Observable } from 'rxjs';
-import { environment } from '../../../environments/environment';
 import { LoreApi, LoreSummary, loreApiToSummary } from '../../shared/models/lore-article.model';
 import { LoreTypeApi } from '../../features/lore-create/lore-create';
 import { LikeResponse } from './personal-quest.service';
@@ -37,29 +36,28 @@ export interface CopyLoreToProfileRequest {
 
 @Injectable({ providedIn: 'root' })
 export class PersonalLoreService {
-  private readonly http = inject(HttpClient);
-  private readonly base = `${environment.apis.soulsGuide}`;
+  private readonly api = inject(HttpService).resource('lore');
 
   createPersonal(data: CreatePersonalLoreRequest): Observable<LoreApi> {
-    return this.http.post<LoreApi>(`${this.base}/lore/personal`, data);
+    return this.api.post<LoreApi>('personal', data);
   }
 
   getPersonal(id: string): Observable<LoreApi> {
-    return this.http.get<LoreApi>(`${this.base}/lore/personal/${id}`);
+    return this.api.get<LoreApi>(`personal/${id}`);
   }
 
   listByUser(userId: string): Observable<LoreSummary[]> {
-    return this.http
-      .get<LoreApi[]>(`${this.base}/lore/by-user/${userId}`)
+    return this.api
+      .get<LoreApi[]>(`by-user/${userId}`)
       .pipe(map((list) => list.map(loreApiToSummary)));
   }
 
   updatePersonal(id: string, data: UpdatePersonalLoreRequest): Observable<LoreApi> {
-    return this.http.put<LoreApi>(`${this.base}/lore/personal/${id}`, data);
+    return this.api.put<LoreApi>(`personal/${id}`, data);
   }
 
   deletePersonal(id: string): Observable<void> {
-    return this.http.delete<void>(`${this.base}/lore/personal/${id}`);
+    return this.api.delete<void>(`personal/${id}`);
   }
 
   copyToProfile(
@@ -71,14 +69,14 @@ export class PersonalLoreService {
       filterType,
       ...(replaceExistingId ? { replaceExistingId } : {}),
     };
-    return this.http.post<LoreApi>(`${this.base}/lore/${loreId}/copy-to-profile`, body);
+    return this.api.post<LoreApi>(`${loreId}/copy-to-profile`, body);
   }
 
   like(id: string): Observable<LikeResponse> {
-    return this.http.post<LikeResponse>(`${this.base}/lore/personal/${id}/like`, {});
+    return this.api.post<LikeResponse>(`personal/${id}/like`, {});
   }
 
   unlike(id: string): Observable<LikeResponse> {
-    return this.http.delete<LikeResponse>(`${this.base}/lore/personal/${id}/like`);
+    return this.api.delete<LikeResponse>(`personal/${id}/like`);
   }
 }

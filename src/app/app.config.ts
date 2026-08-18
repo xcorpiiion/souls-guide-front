@@ -9,6 +9,7 @@ import {
   UNSAVED_CHANGES_TEXT,
   authInterceptor,
   loadingBarInterceptor,
+  provideApis,
   provideAuth,
 } from '@xcorpiiion/ng-core';
 import {
@@ -54,6 +55,17 @@ export const appConfig: ApplicationConfig = {
         message: 'Faça login novamente para continuar.',
       },
     }),
+
+    // As quatro APIs do stack, nomeadas. O `environment` é lido aqui, uma
+    // vez: `ng-core` não pode importá-lo, senão deixa de compilar em qualquer
+    // projeto que nomeie as coisas de outro jeito.
+    //
+    // Em `environment.container.ts` estas bases são caminhos relativos
+    // (`/souls-guide-api`), e não URLs — é o que faz um mesmo bundle servir
+    // localhost, o IP da LAN e a URL do túnel, com o nginx do front fazendo o
+    // proxy. Base desconhecida ou `defaultBase` fora da lista estouram na
+    // subida, não na primeira chamada.
+    provideApis({ bases: environment.apis, defaultBase: 'soulsGuide' }),
 
     {
       provide: UNSAVED_CHANGES_TEXT,

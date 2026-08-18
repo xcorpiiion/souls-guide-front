@@ -8,8 +8,7 @@ import type {
   UploadTicket,
   UploadTicketRequest,
 } from '@xcorpiiion/canonico';
-import { environment } from '../../../environments/environment';
-import { skipAuth } from '@xcorpiiion/ng-core';
+import { HttpService, skipAuth } from '@xcorpiiion/ng-core';
 
 /** A que entidade um arquivo pertence. Casa com o ownerKind gravado na storage-api. */
 export type FileOwnerKind = 'QUEST' | 'LORE' | 'GAME';
@@ -28,8 +27,12 @@ const ACCEPTED_IMAGE_TYPES = ['image/png', 'image/jpeg', 'image/webp'];
 
 @Injectable({ providedIn: 'root' })
 export class StorageService {
+  private readonly api = inject(HttpService).resource('files', 'storage');
+
+  // O `HttpClient` cru fica, e é só para o upload: os bytes vão direto para o
+  // bucket, numa URL assinada que vem no ticket. Não é chamada a uma base
+  // conhecida da plataforma, então não passa pelo `resource()`.
   private readonly http = inject(HttpClient);
-  private readonly base = `${environment.apis.storage}/files`;
 
   /** Recusa cedo o que a política do servidor recusaria, para não gastar ida e volta. */
   validateImage(file: File): string | null {
@@ -57,7 +60,7 @@ export class StorageService {
       purpose,
     };
 
-    return this.http.post<UploadTicket>(`${this.base}/tickets`, request).pipe(
+    return this.api.post<UploadTicket>('tickets', request).pipe(
       switchMap((ticket) =>
         this.http
           .request(ticket.httpMethod, ticket.uploadUrl, {
@@ -75,7 +78,7 @@ export class StorageService {
   /** Libera o arquivo para uso e o amarra à entidade que acabou de ser salva. */
   confirm(fileKey: string, ownerKind: FileOwnerKind, ownerId: string): Observable<FileMetadata> {
     const body: ConfirmUploadRequest = { ownerKind, ownerId };
-    return this.http.post<FileMetadata>(`${this.base}/${fileKey}/confirm`, body);
+    return this.api.post<FileMetadata>(`${fileKey}/confirm`, body);
   }
 
   /** Confirma vários de uma vez; um que falhe não derruba os outros. */
@@ -130,11 +133,11 @@ export class StorageService {
 
   /** Uma chave só, sem contexto de dono. Devolve null quando não dá para exibir. */
   findByKey(fileKey: string): Observable<FileMetadata | null> {
-    return this.http.get<FileMetadata>(`${this.base}/${fileKey}`).pipe(catchError(() => of(null)));
+    return this.api.get<FileMetadata>(fileKey).pipe(catchError(() => of(null)));
   }
 
   remove(fileKey: string): Observable<void> {
-    return this.http.delete<void>(`${this.base}/${fileKey}`).pipe(catchError(() => of(undefined)));
+    return this.api.delete<void>(fileKey).pipe(catchError(() => of(undefined)));
   }
 
   /**
@@ -175,8 +178,6 @@ export class StorageService {
   }
 
   private listByOwner(ownerKind: FileOwnerKind, ownerId: string): Observable<FileMetadata[]> {
-    return this.http
-      .get<FileMetadata[]>(this.base, { params: { ownerKind, ownerId } })
-      .pipe(catchError(() => of([])));
+    return this.api.get<FileMetadata[]>('', { ownerKind, ownerId }).pipe(catchError(() => of([])));
   }
 }
