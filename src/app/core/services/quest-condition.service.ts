@@ -1,7 +1,6 @@
 import { inject, Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpService } from '@xcorpiiion/ng-core';
 import { map, Observable } from 'rxjs';
-import { environment } from '../../../environments/environment';
 import {
   QuestCondition,
   QuestConditionApi,
@@ -11,28 +10,27 @@ import {
 
 @Injectable({ providedIn: 'root' })
 export class QuestConditionService {
-  private readonly http = inject(HttpClient);
-  private readonly base = `${environment.apis.soulsGuide}`;
+  private readonly api = inject(HttpService).resource('');
 
   listByGame(gameId: string): Observable<QuestCondition[]> {
-    return this.http
-      .get<QuestConditionApi[]>(`${this.base}/games/${gameId}/conditions`)
+    return this.api
+      .get<QuestConditionApi[]>(`games/${gameId}/conditions`)
       .pipe(map((list) => list.map(questConditionApiToModel)));
   }
 
   create(gameId: string, request: QuestConditionRequest): Observable<QuestCondition> {
-    return this.http
-      .post<QuestConditionApi>(`${this.base}/games/${gameId}/conditions`, request)
+    return this.api
+      .post<QuestConditionApi>(`games/${gameId}/conditions`, request)
       .pipe(map(questConditionApiToModel));
   }
 
   update(id: string, request: QuestConditionRequest): Observable<QuestCondition> {
-    return this.http
-      .put<QuestConditionApi>(`${this.base}/conditions/${id}`, request)
+    return this.api
+      .put<QuestConditionApi>(`conditions/${id}`, request)
       .pipe(map(questConditionApiToModel));
   }
 
   delete(id: string): Observable<void> {
-    return this.http.delete<void>(`${this.base}/conditions/${id}`);
+    return this.api.delete<void>(`conditions/${id}`);
   }
 }

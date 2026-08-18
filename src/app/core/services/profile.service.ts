@@ -1,7 +1,6 @@
 import { inject, Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpService } from '@xcorpiiion/ng-core';
 import { map, Observable } from 'rxjs';
-import { environment } from '../../../environments/environment';
 import { QuestApi, QuestSummary, questApiToSummary } from '../../shared/models/quest.model';
 import { LoreApi, LoreSummary, loreApiToSummary } from '../../shared/models/lore-article.model';
 
@@ -36,35 +35,36 @@ export interface ChangePasswordRequest {
 
 @Injectable({ providedIn: 'root' })
 export class ProfileService {
-  private readonly http = inject(HttpClient);
-  private readonly usersBase = `${environment.apis.users}/users`;
-  private readonly sgBase = `${environment.apis.soulsGuide}`;
+  // Duas bases: conta e perfil vivem na user-api; conteudo do usuario, na
+  // souls-guide-api. E o unico service que fala com as duas.
+  private readonly usuarios = inject(HttpService).resource('users', 'users');
+  private readonly conteudo = inject(HttpService).resource('');
 
   getByEmail(email: string): Observable<ProfileResponse> {
-    return this.http.get<ProfileResponse>(`${this.usersBase}/email/${encodeURIComponent(email)}`);
+    return this.usuarios.get<ProfileResponse>(`email/${encodeURIComponent(email)}`);
   }
 
   updateProfile(id: number, data: UpdateProfileRequest): Observable<ProfileResponse> {
-    return this.http.put<ProfileResponse>(`${this.usersBase}/${id}/profile`, data);
+    return this.usuarios.put<ProfileResponse>(`${id}/profile`, data);
   }
 
   changePassword(id: number, data: ChangePasswordRequest): Observable<void> {
-    return this.http.put<void>(`${this.usersBase}/${id}/password`, data);
+    return this.usuarios.put<void>(`${id}/password`, data);
   }
 
   deleteAccount(id: number): Observable<void> {
-    return this.http.delete<void>(`${this.usersBase}/${id}`);
+    return this.usuarios.delete<void>(`${id}`);
   }
 
   getQuestsByUser(userId: string): Observable<QuestSummary[]> {
-    return this.http
-      .get<QuestApi[]>(`${this.sgBase}/quests/by-user/${userId}`)
+    return this.conteudo
+      .get<QuestApi[]>(`quests/by-user/${userId}`)
       .pipe(map((list) => list.map(questApiToSummary)));
   }
 
   getLoreByUser(userId: string): Observable<LoreSummary[]> {
-    return this.http
-      .get<LoreApi[]>(`${this.sgBase}/lore/by-user/${userId}`)
+    return this.conteudo
+      .get<LoreApi[]>(`lore/by-user/${userId}`)
       .pipe(map((list) => list.map(loreApiToSummary)));
   }
 }

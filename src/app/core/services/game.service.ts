@@ -1,7 +1,6 @@
 import { inject, Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpService, Page, mapPage } from '@xcorpiiion/ng-core';
 import { map, Observable } from 'rxjs';
-import { environment } from '../../../environments/environment';
 import {
   FeaturedGame,
   Game,
@@ -9,7 +8,6 @@ import {
   gameListItemToSummary,
   GameSummary,
 } from '../../shared/models/game.model';
-import { Page } from '../../shared/models/page.model';
 
 export interface CreateGameRequest {
   name: string;
@@ -21,40 +19,38 @@ export interface CreateGameRequest {
 
 @Injectable({ providedIn: 'root' })
 export class GameService {
-  private readonly http = inject(HttpClient);
-  private readonly base = `${environment.apis.soulsGuide}/games`;
+  private readonly api = inject(HttpService).resource('games');
 
   list(page = 0, size = 20, name?: string): Observable<Page<GameSummary>> {
-    const params: Record<string, string | number> = { page, size };
-    if (name) params['name'] = name;
-    return this.http
-      .get<Page<GameListItem>>(this.base, { params })
-      .pipe(map((p) => ({ ...p, content: p.content.map(gameListItemToSummary) })));
+    // `name` undefined sai da query; `page = 0` fica.
+    return this.api
+      .page<GameListItem>('', { page, size, name })
+      .pipe(map((p) => mapPage(p, gameListItemToSummary)));
   }
 
   search(name: string): Observable<GameSummary[]> {
-    return this.http
-      .get<Page<GameListItem>>(this.base, { params: { name, page: 0, size: 5 } })
+    return this.api
+      .page<GameListItem>('', { name, page: 0, size: 5 })
       .pipe(map((p) => p.content.map(gameListItemToSummary)));
   }
 
   getFeatured(): Observable<FeaturedGame[]> {
-    return this.http.get<FeaturedGame[]>(`${this.base}/featured`);
+    return this.api.get<FeaturedGame[]>(`featured`);
   }
 
   get(id: string): Observable<Game> {
-    return this.http.get<Game>(`${this.base}/${id}`);
+    return this.api.get<Game>(`${id}`);
   }
 
   create(data: CreateGameRequest): Observable<Game> {
-    return this.http.post<Game>(this.base, data);
+    return this.api.post<Game>('', data);
   }
 
   followGame(id: string): Observable<void> {
-    return this.http.post<void>(`${this.base}/${id}/follow`, null);
+    return this.api.post<void>(`${id}/follow`, null);
   }
 
   unfollowGame(id: string): Observable<void> {
-    return this.http.delete<void>(`${this.base}/${id}/follow`);
+    return this.api.delete<void>(`${id}/follow`);
   }
 }

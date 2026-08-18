@@ -1,10 +1,8 @@
 import { inject, Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpService, Page, mapPage } from '@xcorpiiion/ng-core';
 import { map, Observable } from 'rxjs';
-import { environment } from '../../../environments/environment';
 import { LoreApi, LoreSummary, loreApiToSummary } from '../../shared/models/lore-article.model';
 import { FollowResponse } from '../../shared/models/quest.model';
-import { Page } from '../../shared/models/page.model';
 import { LikeResponse } from './personal-quest.service';
 import { LoreTypeApi } from '../../features/lore-create/lore-create';
 
@@ -21,8 +19,7 @@ export interface CreateLoreRequest {
 
 @Injectable({ providedIn: 'root' })
 export class LoreService {
-  private readonly http = inject(HttpClient);
-  private readonly base = `${environment.apis.soulsGuide}/lore`;
+  private readonly api = inject(HttpService).resource('lore');
 
   list(
     page = 0,
@@ -31,58 +28,51 @@ export class LoreService {
     gameId?: string,
     category?: string,
   ): Observable<Page<LoreSummary>> {
-    const params: Record<string, string | number> = { page, size };
-    if (q) params['q'] = q;
-    if (gameId) params['gameId'] = gameId;
-    if (category) params['category'] = category;
-    return this.http
-      .get<Page<LoreApi>>(this.base, { params })
-      .pipe(map((p) => ({ ...p, content: p.content.map(loreApiToSummary) })));
+    // Os `undefined` saem da query sozinhos; `page = 0` fica.
+    return this.api
+      .page<LoreApi>('', { page, size, q, gameId, category })
+      .pipe(map((p) => mapPage(p, loreApiToSummary)));
   }
 
   search(q: string, size = 20): Observable<LoreSummary[]> {
-    return this.http
-      .get<Page<LoreApi>>(this.base, { params: { q, page: 0, size } })
+    return this.api
+      .page<LoreApi>('', { q, page: 0, size })
       .pipe(map((p) => p.content.map(loreApiToSummary)));
   }
 
   get(id: string): Observable<LoreApi> {
-    return this.http.get<LoreApi>(`${this.base}/${id}`);
+    return this.api.get<LoreApi>(id);
   }
 
   create(data: CreateLoreRequest): Observable<LoreApi> {
-    return this.http.post<LoreApi>(this.base, data);
+    return this.api.post<LoreApi>('', data);
   }
 
   like(id: string): Observable<LikeResponse> {
-    return this.http.post<LikeResponse>(`${this.base}/${id}/like`, {});
+    return this.api.post<LikeResponse>(`${id}/like`, {});
   }
 
   unlike(id: string): Observable<LikeResponse> {
-    return this.http.delete<LikeResponse>(`${this.base}/${id}/like`);
+    return this.api.delete<LikeResponse>(`${id}/like`);
   }
 
   follow(id: string): Observable<FollowResponse> {
-    return this.http.post<FollowResponse>(`${this.base}/${id}/follow`, {});
+    return this.api.post<FollowResponse>(`${id}/follow`, {});
   }
 
   unfollow(id: string): Observable<FollowResponse> {
-    return this.http.delete<FollowResponse>(`${this.base}/${id}/follow`);
+    return this.api.delete<FollowResponse>(`${id}/follow`);
   }
 
   update(id: string, data: CreateLoreRequest): Observable<LoreApi> {
-    return this.http.put<LoreApi>(`${this.base}/${id}`, data);
+    return this.api.put<LoreApi>(id, data);
   }
 
   listFollowed(): Observable<LoreSummary[]> {
-    return this.http
-      .get<LoreApi[]>(`${this.base}/following`)
-      .pipe(map((list) => list.map(loreApiToSummary)));
+    return this.api.get<LoreApi[]>('following').pipe(map((list) => list.map(loreApiToSummary)));
   }
 
   listLiked(): Observable<LoreSummary[]> {
-    return this.http
-      .get<LoreApi[]>(`${this.base}/liked`)
-      .pipe(map((list) => list.map(loreApiToSummary)));
+    return this.api.get<LoreApi[]>('liked').pipe(map((list) => list.map(loreApiToSummary)));
   }
 }

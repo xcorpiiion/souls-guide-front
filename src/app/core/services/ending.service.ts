@@ -1,7 +1,6 @@
 import { inject, Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpService } from '@xcorpiiion/ng-core';
 import { map, Observable } from 'rxjs';
-import { environment } from '../../../environments/environment';
 import {
   EndingApi,
   EndingDetailApi,
@@ -14,54 +13,49 @@ import { LikeResponse } from './personal-quest.service';
 
 @Injectable({ providedIn: 'root' })
 export class EndingService {
-  private readonly http = inject(HttpClient);
-  private readonly base = `${environment.apis.soulsGuide}/endings`;
+  private readonly api = inject(HttpService).resource('endings');
 
   /** A aba "Finais" de um jogo. Não é paginado: a ordem entre os finais é editorial. */
   listByGame(gameId: string): Observable<EndingSummary[]> {
-    return this.http
-      .get<EndingApi[]>(`${this.base}/by-game/${gameId}`)
+    return this.api
+      .get<EndingApi[]>(`by-game/${gameId}`)
       .pipe(map((list) => list.map(endingApiToSummary)));
   }
 
   get(id: string): Observable<EndingDetailApi> {
-    return this.http.get<EndingDetailApi>(`${this.base}/${id}`);
+    return this.api.get<EndingDetailApi>(`${id}`);
   }
 
   getProgress(id: string): Observable<EndingProgressApi> {
-    return this.http.get<EndingProgressApi>(`${this.base}/${id}/my-progress`);
+    return this.api.get<EndingProgressApi>(`${id}/my-progress`);
   }
 
   markStep(id: string, stepId: string): Observable<EndingProgressApi> {
-    return this.http.post<EndingProgressApi>(`${this.base}/${id}/my-progress/steps/${stepId}`, {});
+    return this.api.post<EndingProgressApi>(`${id}/my-progress/steps/${stepId}`, {});
   }
 
   unmarkStep(id: string, stepId: string): Observable<EndingProgressApi> {
-    return this.http.delete<EndingProgressApi>(`${this.base}/${id}/my-progress/steps/${stepId}`);
+    return this.api.delete<EndingProgressApi>(`${id}/my-progress/steps/${stepId}`);
   }
 
   /** Conseguir o final é declaração do jogador, não consequência de marcar os passos. */
   setAchieved(id: string, value: boolean): Observable<EndingProgressApi> {
-    return this.http.put<EndingProgressApi>(
-      `${this.base}/${id}/my-progress/achieved`,
-      {},
-      { params: { value } },
-    );
+    return this.api.put<EndingProgressApi>(`${id}/my-progress/achieved`, {}, { value });
   }
 
   like(id: string): Observable<LikeResponse> {
-    return this.http.post<LikeResponse>(`${this.base}/${id}/like`, {});
+    return this.api.post<LikeResponse>(`${id}/like`, {});
   }
 
   unlike(id: string): Observable<LikeResponse> {
-    return this.http.delete<LikeResponse>(`${this.base}/${id}/like`);
+    return this.api.delete<LikeResponse>(`${id}/like`);
   }
 
   follow(id: string): Observable<FollowResponse> {
-    return this.http.post<FollowResponse>(`${this.base}/${id}/follow`, {});
+    return this.api.post<FollowResponse>(`${id}/follow`, {});
   }
 
   unfollow(id: string): Observable<FollowResponse> {
-    return this.http.delete<FollowResponse>(`${this.base}/${id}/follow`);
+    return this.api.delete<FollowResponse>(`${id}/follow`);
   }
 }

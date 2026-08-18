@@ -1,7 +1,6 @@
 import { inject, Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpService } from '@xcorpiiion/ng-core';
 import { Observable } from 'rxjs';
-import { environment } from '../../../environments/environment';
 
 export interface LoreVersionAuthor {
   userId: number;
@@ -34,25 +33,21 @@ export interface LoreVersion {
 
 @Injectable({ providedIn: 'root' })
 export class LoreVersionService {
-  private readonly http = inject(HttpClient);
-  private readonly base = `${environment.apis.soulsGuide}/lore`;
+  private readonly api = inject(HttpService).resource('lore');
 
   list(loreId: string): Observable<LoreVersion[]> {
-    return this.http.get<LoreVersion[]>(`${this.base}/${loreId}/versions`);
+    return this.api.get<LoreVersion[]>(`${loreId}/versions`);
   }
 
   revert(loreId: string, versionNumber: number): Observable<LoreVersion> {
-    return this.http.post<LoreVersion>(
-      `${this.base}/${loreId}/versions/${versionNumber}/revert`,
-      {},
-    );
+    return this.api.post<LoreVersion>(`${loreId}/versions/${versionNumber}/revert`, {});
   }
 
   voteRevert(loreId: string): Observable<LoreVersion> {
-    return this.http.post<LoreVersion>(`${this.base}/${loreId}/versions/current/vote-revert`, {});
+    return this.api.post<LoreVersion>(`${loreId}/versions/current/vote-revert`, {});
   }
 
   removeVoteRevert(loreId: string): Observable<LoreVersion> {
-    return this.http.delete<LoreVersion>(`${this.base}/${loreId}/versions/current/vote-revert`);
+    return this.api.delete<LoreVersion>(`${loreId}/versions/current/vote-revert`);
   }
 }

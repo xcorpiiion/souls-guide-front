@@ -1,7 +1,6 @@
 import { inject, Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpService } from '@xcorpiiion/ng-core';
 import { map, Observable } from 'rxjs';
-import { environment } from '../../../environments/environment';
 import {
   QuestApi,
   QuestSummary,
@@ -45,48 +44,49 @@ export interface CopyConflict {
 
 @Injectable({ providedIn: 'root' })
 export class PersonalQuestService {
-  private readonly http = inject(HttpClient);
-  private readonly base = `${environment.apis.soulsGuide}`;
+  // A raiz da souls-guide-api: este service atravessa `quests`, `users` e
+  // `games`, então o recurso é a base e o caminho vai inteiro na chamada.
+  private readonly api = inject(HttpService).resource('');
 
   createPersonal(data: CreatePersonalQuestRequest): Observable<QuestApi> {
-    return this.http.post<QuestApi>(`${this.base}/quests/personal`, data);
+    return this.api.post<QuestApi>('quests/personal', data);
   }
 
   listByUser(userId: string): Observable<QuestSummary[]> {
-    return this.http
-      .get<QuestApi[]>(`${this.base}/users/${userId}/quests`)
+    return this.api
+      .get<QuestApi[]>(`users/${userId}/quests`)
       .pipe(map((list) => list.map(questApiToSummary)));
   }
 
   getPersonal(id: string): Observable<QuestApi> {
-    return this.http.get<QuestApi>(`${this.base}/quests/personal/${id}`);
+    return this.api.get<QuestApi>(`quests/personal/${id}`);
   }
 
   updatePersonal(id: string, data: UpdatePersonalQuestRequest): Observable<QuestApi> {
-    return this.http.put<QuestApi>(`${this.base}/quests/personal/${id}`, data);
+    return this.api.put<QuestApi>(`quests/personal/${id}`, data);
   }
 
   deletePersonal(id: string): Observable<void> {
-    return this.http.delete<void>(`${this.base}/quests/personal/${id}`);
+    return this.api.delete<void>(`quests/personal/${id}`);
   }
 
   copyToProfile(questId: string, replaceExistingId?: number): Observable<QuestApi> {
     const body: CopyToProfileRequest = replaceExistingId ? { replaceExistingId } : {};
-    return this.http.post<QuestApi>(`${this.base}/quests/${questId}/copy-to-profile`, body);
+    return this.api.post<QuestApi>(`quests/${questId}/copy-to-profile`, body);
   }
 
   copyAllFromGame(gameId: string): Observable<{ copied: number; skipped: number }> {
-    return this.http.post<{ copied: number; skipped: number }>(
-      `${this.base}/games/${gameId}/quests/copy-all-to-profile`,
+    return this.api.post<{ copied: number; skipped: number }>(
+      `games/${gameId}/quests/copy-all-to-profile`,
       {},
     );
   }
 
   like(id: string): Observable<LikeResponse> {
-    return this.http.post<LikeResponse>(`${this.base}/quests/personal/${id}/like`, {});
+    return this.api.post<LikeResponse>(`quests/personal/${id}/like`, {});
   }
 
   unlike(id: string): Observable<LikeResponse> {
-    return this.http.delete<LikeResponse>(`${this.base}/quests/personal/${id}/like`);
+    return this.api.delete<LikeResponse>(`quests/personal/${id}/like`);
   }
 }

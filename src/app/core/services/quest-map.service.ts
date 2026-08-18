@@ -1,19 +1,17 @@
 import { inject, Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpService } from '@xcorpiiion/ng-core';
 import { Observable } from 'rxjs';
-import { environment } from '../../../environments/environment';
 import { GameQuestMapResponse, GameQuestMapRequest } from '../../shared/models/quest-map.model';
 
 @Injectable({ providedIn: 'root' })
 export class QuestMapService {
-  private readonly http = inject(HttpClient);
-  private readonly base = `${environment.apis.soulsGuide}`;
+  private readonly api = inject(HttpService).resource('');
 
   getMap(gameId: string): Observable<GameQuestMapResponse> {
-    return this.http.get<GameQuestMapResponse>(`${this.base}/games/${gameId}/quest-map`);
+    return this.api.get<GameQuestMapResponse>(`games/${gameId}/quest-map`);
   }
 
   saveMap(gameId: string, body: GameQuestMapRequest): Observable<GameQuestMapResponse> {
-    return this.http.put<GameQuestMapResponse>(`${this.base}/games/${gameId}/quest-map`, body);
+    return this.api.put<GameQuestMapResponse>(`games/${gameId}/quest-map`, body);
   }
 }
