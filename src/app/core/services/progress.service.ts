@@ -1,28 +1,21 @@
 import { inject, Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpService } from '@xcorpiiion/ng-core';
 import { Observable } from 'rxjs';
-import { environment } from '../../../environments/environment';
 import { UserProgress } from '../../shared/models/user-progress.model';
 
 @Injectable({ providedIn: 'root' })
 export class ProgressService {
-  private readonly http = inject(HttpClient);
-  private readonly base = `${environment.apis.soulsGuide}/progress`;
+  private readonly api = inject(HttpService).resource('progress');
 
   getProgress(questId: string): Observable<UserProgress> {
-    return this.http.get<UserProgress>(`${this.base}/quests/${questId}`);
+    return this.api.get<UserProgress>(`quests/${questId}`);
   }
 
   completeNode(questId: string, nodeId: string): Observable<UserProgress> {
-    return this.http.post<UserProgress>(
-      `${this.base}/quests/${questId}/nodes/${nodeId}/complete`,
-      {},
-    );
+    return this.api.post<UserProgress>(`quests/${questId}/nodes/${nodeId}/complete`, {});
   }
 
   uncompleteNode(questId: string, nodeId: string): Observable<UserProgress> {
-    return this.http.delete<UserProgress>(
-      `${this.base}/quests/${questId}/nodes/${nodeId}/complete`,
-    );
+    return this.api.delete<UserProgress>(`quests/${questId}/nodes/${nodeId}/complete`);
   }
 }

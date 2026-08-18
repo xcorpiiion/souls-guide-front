@@ -1,27 +1,25 @@
 import { inject, Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpService } from '@xcorpiiion/ng-core';
 import { Observable } from 'rxjs';
-import { environment } from '../../../environments/environment';
 import { Notification } from '../../shared/models/notification.model';
 
 @Injectable({ providedIn: 'root' })
 export class NotificationService {
-  private readonly http = inject(HttpClient);
-  private readonly base = `${environment.apis.soulsGuide}/notifications`;
+  private readonly api = inject(HttpService).resource('notifications');
 
   getNotifications(page: number): Observable<Notification[]> {
-    return this.http.get<Notification[]>(this.base, { params: { page } });
+    return this.api.get<Notification[]>('', { page });
   }
 
   getUnreadCount(): Observable<{ count: number }> {
-    return this.http.get<{ count: number }>(`${this.base}/unread-count`);
+    return this.api.get<{ count: number }>('unread-count');
   }
 
   markOneRead(notificationId: number): Observable<void> {
-    return this.http.post<void>(`${this.base}/${notificationId}/read`, null);
+    return this.api.post<void>(`${notificationId}/read`);
   }
 
   markAllRead(): Observable<void> {
-    return this.http.post<void>(`${this.base}/read-all`, null);
+    return this.api.post<void>('read-all');
   }
 }
