@@ -1,0 +1,20 @@
+# Guia de souls-like é conteúdo para ser encontrado: o padrão é liberar tudo.
+User-agent: *
+Allow: /
+
+# O que não é conteúdo. Estas rotas também respondem com <meta name="robots" content="noindex">,
+# mas quem não é rastreado nunca chega a ler a meta — os dois valem, e este é o que
+# economiza rastreamento em página que exige sessão para mostrar qualquer coisa.
+Disallow: /login
+Disallow: /profile
+Disallow: /forgot-password
+Disallow: /reset-password
+
+# Busca gera URL infinita: cada combinação de termo e filtro é um endereço novo, todos
+# com o mesmo conteúdo remontado. É o clássico jeito de gastar a cota de rastreamento
+# do site inteiro em páginas que não deveriam estar no índice.
+Disallow: /search
+
+# O documento é gerado pelo souls-guide-api a partir do conteúdo publicado, e servido
+# aqui na raiz do domínio pelo nginx. Sitemap exige URL absoluta.
+Sitemap: https://soulsguide.com.br/sitemap.xml

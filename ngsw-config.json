@@ -1,0 +1,56 @@
+{
+  "$schema": "./node_modules/@angular/service-worker/config/schema.json",
+  "index": "/index.html",
+  "assetGroups": [
+    {
+      "name": "app",
+      "installMode": "prefetch",
+      "resources": {
+        "files": [
+          "/favicon.ico",
+          "/favicon.svg",
+          "/index.csr.html",
+          "/index.html",
+          "/manifest.webmanifest",
+          "/robots.txt",
+          "/*.css",
+          "/*.js"
+        ]
+      }
+    },
+    {
+      "name": "assets",
+      "installMode": "lazy",
+      "updateMode": "prefetch",
+      "resources": {
+        "files": ["/**/*.(svg|cur|jpg|jpeg|png|apng|webp|avif|gif|otf|ttf|woff|woff2)"]
+      }
+    }
+  ],
+  "dataGroups": [
+    {
+      "name": "conteudo",
+      "urls": [
+        "/souls-guide-api/games/**",
+        "/souls-guide-api/quests/**",
+        "/souls-guide-api/lore/**",
+        "/souls-guide-api/endings/**"
+      ],
+      "cacheConfig": {
+        "strategy": "freshness",
+        "maxSize": 200,
+        "maxAge": "7d",
+        "timeout": "3s"
+      }
+    },
+    {
+      "name": "imagens-assinadas",
+      "urls": ["/local-files/**", "/storage-api/files/**"],
+      "cacheConfig": {
+        "strategy": "performance",
+        "maxSize": 120,
+        "maxAge": "1d"
+      }
+    }
+  ]
+}

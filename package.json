@@ -8,7 +8,8 @@
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
     "lint": "ng lint",
-    "prepare": "husky"
+    "prepare": "husky",
+    "serve:ssr:soulguide": "node dist/soulguide/server/server.mjs"
   },
   "lint-staged": {
     "*.ts": [
@@ -28,12 +29,17 @@
     "@angular/core": "^22.1.2",
     "@angular/forms": "^22.1.2",
     "@angular/platform-browser": "^22.1.2",
+    "@angular/platform-server": "^22.1.2",
     "@angular/router": "^22.1.2",
+    "@angular/service-worker": "^22.1.2",
+    "@angular/ssr": "^22.1.4",
     "@sentry/angular": "^10.70.0",
+    "@tabler/icons-webfont": "^3.46.0",
     "@xcorpiiion/ng-core": "^0.2.1",
     "@xcorpiiion/ui": "^0.2.1",
     "@xcorpiiion/ui-tokens": "^0.2.1",
     "bpmn-js": "^18.24.0",
+    "express": "^5.1.0",
     "rxjs": "~7.8.2",
     "tslib": "^2.8.1"
   },
@@ -42,7 +48,9 @@
     "@angular/cli": "^22.1.4",
     "@angular/compiler-cli": "^22.1.2",
     "@eslint/js": "^10.0.1",
+    "@types/express": "^5.0.1",
     "@types/google.accounts": "^0.0.18",
+    "@types/node": "^20.17.19",
     "@vitest/coverage-v8": "^4.1.10",
     "@xcorpiiion/canonico": "^2026.0.1-dev.8",
     "angular-eslint": "22.1.0",

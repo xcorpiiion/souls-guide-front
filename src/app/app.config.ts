@@ -3,6 +3,7 @@ import {
   ApplicationConfig,
   ErrorHandler,
   provideZonelessChangeDetection,
+  isDevMode,
 } from '@angular/core';
 import { provideHttpClient, withFetch, withInterceptors } from '@angular/common/http';
 import {
@@ -23,13 +24,21 @@ import { routes } from './app.routes';
 import { environment } from '../environments/environment';
 import { initSentry } from './core/services/monitoring.service';
 import { recarregarSeBundleVelho } from './core/stale-bundle';
+import { baseAbsolutaNoServidor } from './core/ssr/api-base';
+import { provideClientHydration } from '@angular/platform-browser';
+import { provideServiceWorker } from '@angular/service-worker';
 
 initSentry();
 
 export const appConfig: ApplicationConfig = {
   providers: [
     provideZonelessChangeDetection(),
-    provideHttpClient(withFetch(), withInterceptors([loadingBarInterceptor, authInterceptor])),
+    // `baseAbsolutaNoServidor` vem primeiro porque reescreve a URL; os outros dois
+    // mexem em cabeçalho e em estado de tela. No navegador ele não faz nada.
+    provideHttpClient(
+      withFetch(),
+      withInterceptors([baseAbsolutaNoServidor, loadingBarInterceptor, authInterceptor]),
+    ),
     provideRouter(
       routes,
       withComponentInputBinding(),
@@ -89,5 +98,10 @@ export const appConfig: ApplicationConfig = {
       deps: [Sentry.TraceService],
       multi: true,
     },
+    provideClientHydration(),
+    provideServiceWorker('ngsw-worker.js', {
+      enabled: !isDevMode(),
+      registrationStrategy: 'registerWhenStable:30000',
+    }),
   ],
 };

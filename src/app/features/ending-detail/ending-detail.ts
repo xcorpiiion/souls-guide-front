@@ -16,6 +16,7 @@ import {
   groupStepsByChapter,
 } from '../../shared/models/ending.model';
 import { EndingService } from '../../core/services/ending.service';
+import { resumo, SeoService } from '../../core/services/seo.service';
 import { AuthService } from '@xcorpiiion/ng-core';
 import { ToastService } from '@xcorpiiion/ui';
 import { PfPageLoader } from '@xcorpiiion/ui';
@@ -30,6 +31,7 @@ import { PfPageLoader } from '@xcorpiiion/ui';
 export class EndingDetail implements OnInit {
   private readonly route = inject(ActivatedRoute);
   private readonly endingService = inject(EndingService);
+  private readonly seo = inject(SeoService);
   private readonly toast = inject(ToastService);
   protected readonly auth = inject(AuthService);
 
@@ -58,6 +60,32 @@ export class EndingDetail implements OnInit {
 
   protected readonly ending = computed(() => this.detail()?.ending ?? null);
 
+  /**
+   * O resumo de um final marcado como spoiler **não** vai para a descrição.
+   *
+   * A página esconde o resumo até o leitor pedir; repeti-lo na meta o entregaria no
+   * resultado do Google e no preview do Discord, que é justamente onde ele aparece sem
+   * ninguém ter pedido. A página fica indexável — o que não sai é o texto.
+   */
+  private aplicarSeo(): void {
+    const e = this.ending();
+    if (!e) return;
+
+    const passos = this.totalSteps();
+
+    this.seo.aplicar({
+      titulo: `${e.title} · finais de ${e.gameName}`,
+      descricao: e.isSpoiler
+        ? `Guia do final ${this.kindLabel[e.kind]} “${e.title}” de ${e.gameName}` +
+          (passos ? `, em ${passos} passos.` : '.') +
+          ' Contém spoiler.'
+        : resumo(e.summary) ||
+          `Como alcançar o final ${this.kindLabel[e.kind]} de ${e.gameName}` +
+            (passos ? `, em ${passos} passos.` : '.'),
+      tipo: 'article',
+    });
+  }
+
   protected readonly chapters = computed<EndingChapter[]>(() =>
     groupStepsByChapter(this.detail()?.steps ?? []),
   );
@@ -81,10 +109,16 @@ export class EndingDetail implements OnInit {
         this.userHasLiked.set(detail.ending.userHasLiked);
         this.userIsFollowing.set(detail.ending.userIsFollowing);
         this.summaryRevealed.set(!detail.ending.isSpoiler);
+        this.aplicarSeo();
         this.loading.set(false);
       },
       error: () => {
         this.error.set('Final não encontrado.');
+        this.seo.aplicar({
+          titulo: 'Final não encontrado',
+          descricao: 'Este final não existe ou foi removido.',
+          indexavel: false,
+        });
         this.loading.set(false);
       },
     });

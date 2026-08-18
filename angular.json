@@ -4,9 +4,7 @@
   "cli": {
     "packageManager": "npm",
     "analytics": "42d559e0-7772-4892-8296-d57c39d73dcd",
-    "schematicCollections": [
-      "angular-eslint"
-    ]
+    "schematicCollections": ["angular-eslint"]
   },
   "newProjectRoot": "projects",
   "projects": {
@@ -33,14 +31,17 @@
                 "input": "public"
               }
             ],
-            "styles": [
-              "src/styles.scss"
-            ],
+            "styles": ["src/styles.scss"],
             "stylePreprocessorOptions": {
-              "includePaths": [
-                "src",
-                "node_modules"
-              ]
+              "includePaths": ["src", "node_modules"]
+            },
+            "server": "src/main.server.ts",
+            "outputMode": "server",
+            "security": {
+              "allowedHosts": ["*"]
+            },
+            "ssr": {
+              "entry": "src/server.ts"
             }
           },
           "configurations": {
@@ -63,7 +64,8 @@
                   "maximumError": "24kB"
                 }
               ],
-              "outputHashing": "all"
+              "outputHashing": "all",
+              "serviceWorker": "ngsw-config.json"
             },
             "development": {
               "optimization": false,
@@ -80,7 +82,8 @@
               "optimization": true,
               "extractLicenses": true,
               "sourceMap": false,
-              "outputHashing": "all"
+              "outputHashing": "all",
+              "serviceWorker": "ngsw-config.json"
             }
           },
           "defaultConfiguration": "production"
@@ -102,20 +105,14 @@
           "options": {
             "tsConfig": "tsconfig.spec.json",
             "coverage": false,
-            "coverageReporters": [
-              "lcov",
-              "text-summary"
-            ],
+            "coverageReporters": ["lcov", "text-summary"],
             "providersFile": "src/test-providers.ts"
           }
         },
         "lint": {
           "builder": "@angular-eslint/builder:lint",
           "options": {
-            "lintFilePatterns": [
-              "src/**/*.ts",
-              "src/**/*.html"
-            ]
+            "lintFilePatterns": ["src/**/*.ts", "src/**/*.html"]
           }
         }
       }

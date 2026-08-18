@@ -20,6 +20,7 @@ import { LoreService } from '../../core/services/lore.service';
 import { EndingService } from '../../core/services/ending.service';
 import { AuthService } from '@xcorpiiion/ng-core';
 import { PersonalQuestService } from '../../core/services/personal-quest.service';
+import { resumo, SeoService } from '../../core/services/seo.service';
 import { ConfirmService } from '@xcorpiiion/ui';
 import { ToastService } from '@xcorpiiion/ui';
 import { PfPageLoader } from '@xcorpiiion/ui';
@@ -46,12 +47,33 @@ export class GameDetail implements OnInit {
   private readonly loreService = inject(LoreService);
   private readonly endingService = inject(EndingService);
   private readonly personalQuestService = inject(PersonalQuestService);
+  private readonly seo = inject(SeoService);
   private readonly confirm = inject(ConfirmService);
   private readonly toast = inject(ToastService);
   private readonly el = inject(ElementRef);
   readonly auth = inject(AuthService);
 
   protected readonly gameId = this.route.snapshot.paramMap.get('id') ?? '';
+
+  /**
+   * O número de quests e de finais entra na descrição porque é o que distingue a
+   * página de jogo de todas as outras na página de resultado: "Elden Ring — 34 guias"
+   * diz mais do que a sinopse do jogo, que é igual em toda parte da internet.
+   */
+  private aplicarSeo(): void {
+    const g = this.game();
+    if (!g) return;
+
+    this.seo.aplicar({
+      titulo: g.name,
+      descricao:
+        resumo(g.description) ||
+        `Guias de quest, finais e lore de ${g.name}, escritos e revisados pela comunidade.`,
+      imagem: g.imageUrl ?? null,
+    });
+
+    this.seo.estruturado({ '@type': 'VideoGame', name: g.name, description: g.description ?? '' });
+  }
 
   protected readonly loading = signal(true);
   protected readonly error = signal<string | null>(null);
@@ -99,10 +121,16 @@ export class GameDetail implements OnInit {
       next: (g: Game) => {
         this.game.set(gameToSummary(g));
         this.gameFollowing.set(g.userIsFollowing ?? false);
+        this.aplicarSeo();
         this.loading.set(false);
       },
       error: () => {
         this.error.set('Jogo não encontrado.');
+        this.seo.aplicar({
+          titulo: 'Jogo não encontrado',
+          descricao: 'Este jogo não existe ou foi removido.',
+          indexavel: false,
+        });
         this.loading.set(false);
       },
     });

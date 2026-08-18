@@ -13,12 +13,23 @@ if (-not $env:PACKAGES_TOKEN)
     exit 1
 }
 
-docker build --secret id=packages_token,env=PACKAGES_TOKEN -t xcorpiiion/soulguide-front:latest .
+# Duas imagens do mesmo Dockerfile e do mesmo estagio de build: o nginx que serve
+# estatico e faz proxy das APIs, e o Node que renderiza o HTML. O `--target` e
+# obrigatorio nos dois — sem ele, o docker constroi o ultimo estagio do arquivo.
+docker build --secret id=packages_token,env=PACKAGES_TOKEN --target web -t xcorpiiion/soulguide-front:latest .
 
 if ($LASTEXITCODE -ne 0)
 {
-    Write-Host "ERRO: Docker build falhou!" -ForegroundColor Red
+    Write-Host "ERRO: Docker build do front falhou!" -ForegroundColor Red
     exit 1
 }
 
-Write-Host "soulguide-front buildada com sucesso!" -ForegroundColor Green
+docker build --secret id=packages_token,env=PACKAGES_TOKEN --target ssr -t xcorpiiion/soulguide-ssr:latest .
+
+if ($LASTEXITCODE -ne 0)
+{
+    Write-Host "ERRO: Docker build do SSR falhou!" -ForegroundColor Red
+    exit 1
+}
+
+Write-Host "soulguide-front e soulguide-ssr buildadas com sucesso!" -ForegroundColor Green

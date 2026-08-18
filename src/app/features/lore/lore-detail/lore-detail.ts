@@ -13,6 +13,7 @@ import { LoreApi, LoreCategory } from '../../../shared/models/lore-article.model
 import { LoreService } from '../../../core/services/lore.service';
 import { PersonalLoreService } from '../../../core/services/personal-lore.service';
 import { StorageService } from '../../../core/services/storage.service';
+import { resumo, SeoService } from '../../../core/services/seo.service';
 import { AuthService } from '@xcorpiiion/ng-core';
 import {
   LoreBlock,
@@ -40,6 +41,7 @@ export class LoreDetail implements OnInit {
   private readonly loreService = inject(LoreService);
   private readonly personalLoreService = inject(PersonalLoreService);
   private readonly storage = inject(StorageService);
+  private readonly seo = inject(SeoService);
   protected readonly auth = inject(AuthService);
   private readonly toast = inject(ToastService);
 
@@ -91,6 +93,37 @@ export class LoreDetail implements OnInit {
     return true; // lore da comunidade: todos podem copiar
   });
 
+  /**
+   * O texto do artigo é markdown; `resumo` tira imagem, link e ênfase antes de virar
+   * descrição, senão o resultado do Google mostra `![alt](file:abc123)`.
+   */
+  private aplicarSeo(): void {
+    const a = this.article();
+    if (!a) return;
+
+    const publico = !a.isPersonal || a.isPublic;
+
+    this.seo.aplicar({
+      titulo: `${a.title} · ${a.gameName}`,
+      descricao: resumo(a.content),
+      imagem: this.coverUrl(),
+      tipo: 'article',
+      indexavel: publico,
+    });
+
+    this.seo.estruturado(
+      publico
+        ? {
+            '@type': 'Article',
+            headline: a.title,
+            description: resumo(a.content),
+            about: { '@type': 'VideoGame', name: a.gameName },
+            keywords: a.tags?.join(', ') ?? '',
+          }
+        : null,
+    );
+  }
+
   ngOnInit(): void {
     this.loreId = this.route.snapshot.paramMap.get('id') ?? '';
     this.loreService.get(this.loreId).subscribe({
@@ -101,10 +134,16 @@ export class LoreDetail implements OnInit {
         this.followerCount.set(data.followerCount ?? 0);
         this.userIsFollowing.set(data.userIsFollowing ?? false);
         this.loadImages(data);
+        this.aplicarSeo();
         this.loading.set(false);
       },
       error: (err: HttpErrorResponse) => {
         this.error.set(err.status === 403 ? 'Este conteúdo é privado.' : 'Artigo não encontrado.');
+        this.seo.aplicar({
+          titulo: 'Artigo não encontrado',
+          descricao: 'Este artigo não existe, foi removido ou é privado.',
+          indexavel: false,
+        });
         this.loading.set(false);
       },
     });
@@ -153,6 +192,7 @@ export class LoreDetail implements OnInit {
       this.imageUrls.set(resolved);
       if (article.coverImageFileKey) {
         this.coverUrl.set(resolved.get(article.coverImageFileKey) ?? null);
+        this.aplicarSeo();
       }
     });
   }

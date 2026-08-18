@@ -11,6 +11,7 @@ import { LowerCasePipe } from '@angular/common';
 import { GameFilterDropdown } from '../../shared/components/game-filter-dropdown/game-filter-dropdown';
 import { forkJoin } from 'rxjs';
 import { UserService } from '../../core/services/user.service';
+import { resumo, SeoService } from '../../core/services/seo.service';
 import { AuthService } from '@xcorpiiion/ng-core';
 import { ProfileService } from '../../core/services/profile.service';
 import { UserPublicProfile, ActivityEvent, UserSummary } from '../../shared/models/user.model';
@@ -33,6 +34,7 @@ type SocialSubTab = 'seguidores' | 'seguindo';
 export class Usuario implements OnInit {
   private readonly route = inject(ActivatedRoute);
   private readonly userService = inject(UserService);
+  private readonly seo = inject(SeoService);
   private readonly authService = inject(AuthService);
   private readonly profileService = inject(ProfileService);
 
@@ -114,6 +116,21 @@ export class Usuario implements OnInit {
       next: (data) => {
         this.profile.set(data);
         this.following.set(data.isFollowing);
+        this.seo.aplicar({
+          titulo: `${data.name} (@${data.handle})`,
+          descricao:
+            resumo(data.bio) ||
+            `${data.name} escreveu ${data.questCount} guias e ${data.loreCount} artigos de lore no SoulGuide.`,
+        });
+        this.seo.estruturado({
+          '@type': 'ProfilePage',
+          mainEntity: {
+            '@type': 'Person',
+            name: data.name,
+            alternateName: `@${data.handle}`,
+            ...(data.bio ? { description: data.bio } : {}),
+          },
+        });
         this.loading.set(false);
         this.loadContent(data.id);
         this.userService.getActivity(String(data.id)).subscribe({
@@ -125,6 +142,11 @@ export class Usuario implements OnInit {
       },
       error: () => {
         this.notFound.set(true);
+        this.seo.aplicar({
+          titulo: 'Perfil não encontrado',
+          descricao: 'Este contribuidor não existe ou mudou de handle.',
+          indexavel: false,
+        });
         this.loading.set(false);
       },
     });

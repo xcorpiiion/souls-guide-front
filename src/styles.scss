@@ -1,3 +1,12 @@
+// Os ícones vêm do pacote, e não mais de um <link> para o CDN com `@latest` no index.html.
+// Dois motivos, e o segundo é o que decidiu: sem rede o site ficava sem ícone nenhum (o
+// que derruba metade da leitura de um guia num celular no sofá), e `@latest` significa que
+// uma versão nova do Tabler mudava o desenho do site sem um commit aqui.
+//
+// São ~90 ícones usados em 3.500 disponíveis; o custo é a fonte inteira no bundle, o que
+// o service worker cacheia uma vez e não busca de novo.
+@use '@tabler/icons-webfont/dist/tabler-icons.scss';
+
 // Tokens da plataforma: só as custom properties, sem o reset/tipografia da lib.
 // O reset e a tipografia daqui continuam sendo os do SoulGuide — trocar os dois
 // junto seria restyle, não migração.

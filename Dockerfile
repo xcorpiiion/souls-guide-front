@@ -21,10 +21,41 @@ COPY . .
 RUN npm run build -- --configuration=container
 
 # ── Stage 2: serve ──────────────────────────────────────────────────────────────
-FROM nginx:1.30-alpine
+# O nome do estágio não é enfeite: com o estágio de SSR abaixo, `docker build` sem
+# `--target` passaria a construir o último, e a imagem do front viraria o Node.
+FROM nginx:1.30-alpine AS web
 
 COPY --from=builder /app/dist/soulguide/browser /usr/share/nginx/html
 COPY nginx.conf /etc/nginx/conf.d/default.conf
 COPY nginx-proxy-comum.inc /etc/nginx/conf.d/proxy-comum.inc
 
 EXPOSE 80
+
+# ── Stage 3: SSR ────────────────────────────────────────────────────────────────
+# Alvo separado, da MESMA build: `docker build --target ssr`. O nginx acima continua
+# servindo estático e fazendo o proxy das APIs; o que ele passa para cá é o HTML.
+#
+# Dois containers, e não um com nginx e node juntos, porque o nginx desta imagem carrega
+# conhecimento que custou caro (o resolver do Docker, o `^~` que salvou o PUT da URL
+# assinada, o Cache-Control do index.html). Reescrever isso em Express para caber num
+# processo só seria trocar uma coisa que funciona por uma reescrita.
+FROM node:24-alpine AS ssr
+
+WORKDIR /app
+
+# Só o que o servidor precisa: o bundle de servidor e o de navegador, que ele lê para
+# montar o HTML. Nada de node_modules — o build do Angular já embute as dependências
+# do servidor no bundle.
+COPY --from=builder /app/dist/soulguide ./dist/soulguide
+
+ENV NODE_ENV=production
+ENV PORT=4000
+
+EXPOSE 4000
+
+# Sem porta publicada no compose: quem alcança este processo é o nginx do front, dentro
+# da rede. O healthcheck é o /healthz do server.ts, que responde sem renderizar página.
+HEALTHCHECK --interval=15s --timeout=5s --start-period=20s --retries=5 \
+    CMD wget -q -O /dev/null http://localhost:4000/healthz || exit 1
+
+CMD ["node", "dist/soulguide/server/server.mjs"]

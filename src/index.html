@@ -6,10 +6,36 @@
     <base href="/" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <link rel="icon" type="image/svg+xml" href="favicon.svg" />
-    <link
-      rel="stylesheet"
-      href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css"
+    <meta name="theme-color" content="#0d0d0d" />
+
+    <!--
+      Cabeçalho de partida. O SeoService troca tudo isto por página, mas quem lê o HTML
+      sem executar JavaScript — o crawler de preview do Discord, do WhatsApp e do X —
+      nunca vê a troca, e é este bloco que ele mostra. Sem ele, todo link do site sai
+      no chat como "Soulguide" e mais nada.
+    -->
+    <meta
+      name="description"
+      content="Guias colaborativos de souls-like: quests passo a passo, finais, lore e o progresso da sua run em um lugar só."
     />
+    <meta property="og:site_name" content="SoulGuide" />
+    <meta property="og:type" content="website" />
+    <meta property="og:locale" content="pt_BR" />
+    <meta property="og:title" content="SoulGuide" />
+    <meta
+      property="og:description"
+      content="Guias colaborativos de souls-like: quests passo a passo, finais, lore e o progresso da sua run em um lugar só."
+    />
+    <meta property="og:image" content="/og-default.png" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="SoulGuide" />
+    <meta
+      name="twitter:description"
+      content="Guias colaborativos de souls-like: quests passo a passo, finais, lore e o progresso da sua run em um lugar só."
+    />
+    <meta name="twitter:image" content="/og-default.png" />
+    <link rel="apple-touch-icon" href="icons/icon-192x192.png" />
+    <link rel="manifest" href="manifest.webmanifest" />
   </head>
   <style>
     #sg-splash {
@@ -115,6 +141,7 @@
       <div class="sg-splash__bar"><div class="sg-splash__bar-fill"></div></div>
     </div>
     <app-root></app-root>
-    <script src="https://accounts.google.com/gsi/client" async></script>
+    <script src="https://accounts.google.com/gsi/client" async=""></script>
+    <noscript>Please enable JavaScript to continue using this application.</noscript>
   </body>
 </html>

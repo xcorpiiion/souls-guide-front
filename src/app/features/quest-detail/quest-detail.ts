@@ -23,6 +23,7 @@ import { QuestProgressService } from '../../core/services/quest-progress.service
 import { QuestVersionService } from '../../core/services/quest-version.service';
 import { PersonalQuestService } from '../../core/services/personal-quest.service';
 import { StorageService } from '../../core/services/storage.service';
+import { resumo, SeoService } from '../../core/services/seo.service';
 import { AuthService } from '@xcorpiiion/ng-core';
 import {
   CopyToProfileModal,
@@ -50,6 +51,7 @@ export class QuestDetail implements OnInit {
   private readonly versionService = inject(QuestVersionService);
   private readonly personalQuestService = inject(PersonalQuestService);
   private readonly storage = inject(StorageService);
+  private readonly seo = inject(SeoService);
   protected readonly auth = inject(AuthService);
   private readonly toast = inject(ToastService);
 
@@ -177,6 +179,7 @@ export class QuestDetail implements OnInit {
           this.followerCount.set(api.followerCount ?? 0);
           this.userIsFollowing.set(api.userIsFollowing ?? false);
           this.loadImages(questId, api.coverImageFileKey ?? null, api.nodes ?? []);
+          this.aplicarSeo();
           this.loading.set(false);
 
           const ver = this.previewVersion();
@@ -301,8 +304,53 @@ export class QuestDetail implements OnInit {
 
     this.storage.resolve(keys, 'QUEST', questId).subscribe((resolved) => {
       this.imageUrls.set(resolved);
-      if (coverKey) this.coverUrl.set(resolved.get(coverKey) ?? null);
+      if (coverKey) {
+        this.coverUrl.set(resolved.get(coverKey) ?? null);
+        // A capa chega depois do resto, e o card de compartilhamento sem imagem
+        // é o que o Discord já teria cacheado. Reaplica com a capa no lugar.
+        this.aplicarSeo();
+      }
     });
+  }
+
+  /**
+   * Cabeçalho da página. Roda quando a quest chega e de novo quando a capa resolve.
+   *
+   * Quest de perfil sai com `noindex`: é conteúdo do dono, alcançável só por quem tem
+   * a sessão, e indexá-la publicaria na busca o que a rota exige token para ler.
+   */
+  private aplicarSeo(): void {
+    const q = this.quest();
+    if (!q) return;
+
+    const publico = this.context === 'game' || (this.context === 'usuario' && q.isPublic !== false);
+    const descricao =
+      resumo(q.description) ||
+      `Guia passo a passo de ${q.title} em ${q.gameName}: ${q.stepCount} passos` +
+        (q.endingCount ? `, ${q.endingCount} finais` : '') +
+        (q.forkCount ? ` e ${q.forkCount} bifurcações` : '') +
+        '.';
+
+    this.seo.aplicar({
+      titulo: `${q.title} · ${q.gameName}`,
+      descricao,
+      imagem: this.coverUrl(),
+      tipo: 'article',
+      indexavel: publico,
+      autor: q.author ?? q.ownerNickname ?? null,
+    });
+
+    this.seo.estruturado(
+      publico
+        ? {
+            '@type': 'Article',
+            headline: q.title,
+            description: descricao,
+            about: { '@type': 'VideoGame', name: q.gameName },
+            ...(q.author ? { author: { '@type': 'Person', name: q.author } } : {}),
+          }
+        : null,
+    );
   }
 
   private resetState(): void {
