@@ -3,6 +3,9 @@
 Arquivo de instruções para o Claude Code. Leia antes de qualquer ação.
 Leia também `.claude/rules.md` para regras de código detalhadas.
 
+Para **por que** cada decisão é assim, ver `docs/adr/`; para o desenho do front,
+`docs/arquitetura/`; para quando algo quebrar na tela, `docs/runbooks/`.
+
 ---
 
 ## O projeto
@@ -61,11 +64,9 @@ src/
     features/        # uma pasta por tela, no plano — 24 hoje. As principais:
       home/
       games/  game-detail/
-      quests/
-        kanban/       # visualização de progresso pessoal
-        bpmn/         # visualização de jornada com quests interconectadas
-        editor/       # criação e edição de guias
+      quests/         # listagem, com filtro por jogo e status
       quest-detail/  quest-editor/  quest-conditions/  quest-map-organizer/
+      rotas/  game-create/  not-found/
       lore/           # artigos de lore com sistema de status
       lore-create/  lore-editor/  lore-history/
       ending-detail/  # guia de final: passos por capítulo, inclusive AVOID
@@ -181,14 +182,83 @@ Nunca deixar testes para depois. Se uma etapa não tiver testes, ela não está 
 
 ## O que NÃO fazer
 
-- Não adicionar SSR
-- Não criar seção/entidade de itens separada (itens são citações no lore)
+- Não redeclarar shape de API à mão — vem do `@xcorpiiion/canonico`
+- Não derivar URL do cabeçalho `Host` no SSR — ver `docs/adr/` e o ADR 0009 do back-end
+- Não listar hosts em `allowedHosts` — quebra o IP da LAN e a URL do quick tunnel
+- Não redeclarar `serviceWorker` só em `production` no `angular.json` — a imagem usa `container`
+- Não cachear `ngsw-worker.js`, `ngsw.json` nem `index.html` com hash longo
+- Não editar ADR já aceito — decisão que mudou vira um ADR novo
 - Não usar localStorage para estado sensível
 - Não commitar chaves de API ou senhas
 - Não criar componente sem SCSS próprio
 - Não criar componente sem spec correspondente
 - Não usar Zone.js
 - Não usar `any`
+
+---
+
+## O site sai renderizado do servidor, e instala como aplicativo
+
+Três coisas que este repositório ganhou em 18/08/2026, e que mudam como ele é servido:
+
+| Peça | Onde | Para quê |
+|---|---|---|
+| `SeoService` | `core/services/seo.service.ts` | título, descrição, OG, Twitter card, `canonical` e JSON-LD por página |
+| SSR | `src/server.ts`, `src/app/app.routes.server.ts` | o crawler de preview **não executa JavaScript**: sem isto todo link do site aparece no Discord como "Soulguide" e mais nada |
+| PWA | `ngsw-config.json`, `public/manifest.webmanifest` | um guia é lido enquanto se joga, no celular do lado — o app instala e o conteúdo visitado abre sem rede |
+
+O porquê de cada decisão, e o que foi descartado, está no
+[ADR 0009 do back-end](../../Back-end/soulsguide/docs/adr/0009-o-html-do-conteudo-sai-do-servidor.md) —
+a decisão é uma só e atravessa os dois repositórios, então ela não é copiada para cá.
+
+### O que quebra calado
+
+- **O cabeçalho da página tem que ser aplicado quando o dado chega**, não no `ngOnInit`:
+  montado antes da resposta, o que o crawler lê é "Carregando".
+- **O `SeoService` remove as tags que administra antes de pôr as novas.** Sem isso, sair
+  de uma página com capa para outra sem capa deixa a capa anterior no `<head>`, e o link
+  compartilhado sai com a imagem da quest errada.
+- **O bundle de servidor importa código que assume navegador.** Hoje é o `localStorage`
+  do `@xcorpiiion/ng-core`; `src/ssr-globals.ts` é o contorno, e ele precisa ser o
+  **primeiro** import de `src/main.server.ts`.
+- **`serviceWorker` está declarado nas duas configurações do `angular.json`.** O
+  schematic só põe em `production`, e a imagem é buildada com `--configuration=container`.
+- **Duas imagens saem do mesmo Dockerfile**, por `--target web` e `--target ssr`. Sem o
+  `--target`, o `docker build` constrói o último estágio e publica o Node no lugar do nginx.
+
+### Rodar e conferir
+
+```bash
+npm run build -- --configuration=container
+node dist/soulguide/server/server.mjs      # PORT, SSR_API_BASE e SITE_URL por variável
+```
+
+```bash
+curl -s http://localhost:4300/games/17/quests/45 | grep -E "<title>|og:title"
+```
+
+O `curl` é o único jeito de ver o que o crawler vê: no DevTools o JavaScript roda e o
+título aparece certo mesmo quando o SSR está quebrado.
+
+---
+
+## Documentação
+
+Este arquivo diz **o que fazer**. A pasta `docs/` diz **por quê**, **como é o desenho** e
+**o que fazer quando quebra**.
+
+| Pasta | O que é | Quando ler |
+|---|---|---|
+| [`docs/adr/`](docs/adr/) | Decisões de arquitetura deste repositório, imutáveis depois de aceitas | Antes de propor desfazer alguma coisa |
+| [`docs/arquitetura/`](docs/arquitetura/) | C4 nível 3: camadas, services e o que renderiza no servidor. Os níveis 1 e 2 moram no back-end, com o `docker-compose.yml` | Ao chegar no projeto |
+| [`docs/runbooks/`](docs/runbooks/) | Diagnóstico por sintoma: navegação que não acontece, preview de link vazio, SSR que não renderiza | Quando algo está quebrado |
+
+**Isto é travado por teste.** O `src/documentacao.spec.ts` roda junto com a suíte e falha se
+um ADR não está no índice, se falta uma das quatro seções, se um link relativo de `docs/`
+não resolve, se um ADR cita uma trava que não existe — e, a que tem dentes, **se um service
+novo de `core/services/` não aparece no diagrama de componentes**. É o equivalente do
+`DocumentacaoTest` do back-end, cuja última regra é o serviço do compose no diagrama de
+containers.
 
 ---
 

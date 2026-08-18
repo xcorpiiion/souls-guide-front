@@ -7,14 +7,16 @@ Leia este arquivo e o CLAUDE.md antes de qualquer ação.
 
 ## Stack
 
-- Angular 21 (não 22 — muito recente, instável)
+- Angular 22 — a versão em uso desde a migração; a linha "Angular 21, não 22" que estava
+  aqui ficou para trás e contradizia o `CLAUDE.md` e o `package.json`
 - Zoneless: `provideZonelessChangeDetection()`
 - Standalone components (sem `standalone: true` explícito — padrão no Angular 21)
 - OnPush em todos os componentes
 - Signals: `signal()`, `computed()`, `input()`, `output()`
 - SCSS: `@use 'styles/variables' as v` e `@use 'styles/mixins' as m`
 - Vitest para testes unitários
-- Mock-first: construir UI com dados mockados antes de qualquer backend
+- O back-end existe e está no ar: os dados vêm dos services de `core/services`. A fase
+  mock-first acabou — `*.mocks.ts` sobrevive nos specs e como valor inicial de signal
 
 ---
 
@@ -55,7 +57,8 @@ describe('GameCard', () => {
 
 - **Componentes de feature** (`features/`) → orquestram dados e subcomponentes, pouca lógica de UI
 - **Componentes shared** (`shared/components/`) → recebem dados via `input()`, emitem via `output()`, sem dependência de services
-- **Services** → lógica de negócio, estado global, chamadas HTTP futuras
+- **Services** → lógica de negócio, estado global e toda chamada HTTP, pelo `HttpService`
+  da plataforma (ver `docs/adr/0003-http-pela-plataforma-environment-num-lugar-so.md`)
 - **Models** (`shared/models/`) → interfaces e types, sem lógica
 - **Mocks** → arquivo `*.mocks.ts` por feature, nunca inline no componente
 
@@ -98,7 +101,8 @@ Feature component → recebe dados do mock/service
 - Não usar `any`
 - Não usar `Subject`/`BehaviorSubject` para estado local (usar `signal`)
 - Não commitar chaves de API ou senhas
-- Não adicionar SSR
-- Não criar seção de itens separada — itens são citações dentro do lore
+- Não usar API de navegador (`window`, `document`, `localStorage`) sem guarda de
+  plataforma: o mesmo código roda no servidor, e lá isso derruba a página inteira
+- Não editar ADR já aceito — decisão que mudou vira um ADR novo
 - Não usar `localStorage` para estado sensível
 - Não criar arquivo de componente com mais de 200 linhas sem justificativa
