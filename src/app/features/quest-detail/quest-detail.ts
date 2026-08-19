@@ -30,6 +30,7 @@ import {
   CopyConfirmEvent,
 } from '../../shared/components/copy-to-profile-modal/copy-to-profile-modal';
 import { CommentSection } from '../../shared/components/comment-section/comment-section';
+import { ReportButton } from '../../shared/components/report-button/report-button';
 import { QuestChecklist, TriggerEffect } from './quest-checklist/quest-checklist';
 import { ToastService } from '@xcorpiiion/ui';
 import { HttpErrorResponse } from '@angular/common/http';
@@ -37,7 +38,14 @@ import { PfPageLoader } from '@xcorpiiion/ui';
 
 @Component({
   selector: 'app-quest-detail',
-  imports: [RouterLink, CopyToProfileModal, CommentSection, QuestChecklist, PfPageLoader],
+  imports: [
+    RouterLink,
+    CopyToProfileModal,
+    CommentSection,
+    ReportButton,
+    QuestChecklist,
+    PfPageLoader,
+  ],
   templateUrl: './quest-detail.html',
   styleUrl: './quest-detail.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

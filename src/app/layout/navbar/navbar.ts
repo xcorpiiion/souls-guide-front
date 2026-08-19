@@ -4,6 +4,7 @@ import {
   DestroyRef,
   HostListener,
   OnInit,
+  computed,
   inject,
   signal,
 } from '@angular/core';
@@ -13,6 +14,7 @@ import { catchError, filter, startWith, switchMap, throttleTime } from 'rxjs/ope
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { AuthService } from '@xcorpiiion/ng-core';
 import { NotificationService } from '../../core/services/notification.service';
+import { ehAdmin as ehAdminNoToken } from '../../core/guards/admin.guard';
 import { Notification, NotificationType } from '../../shared/models/notification.model';
 
 @Component({
@@ -27,6 +29,14 @@ export class Navbar implements OnInit {
   private readonly destroyRef = inject(DestroyRef);
   private readonly notifService = inject(NotificationService);
   readonly auth = inject(AuthService);
+
+  /**
+   * O atalho para a fila de moderação, só para quem modera.
+   *
+   * É conveniência, não segurança: o `@PreAuthorize("hasRole('ADMIN')")` do servidor é
+   * quem decide, e continua valendo para quem digitar a URL.
+   */
+  protected readonly ehAdmin = computed(() => this.auth.isLoggedIn() && ehAdminNoToken(this.auth));
 
   readonly navLinks = [
     { path: '/home', label: 'Início' },

@@ -25,12 +25,20 @@ import {
   CopyConfirmEvent,
 } from '../../../shared/components/copy-to-profile-modal/copy-to-profile-modal';
 import { CommentSection } from '../../../shared/components/comment-section/comment-section';
+import { ReportButton } from '../../../shared/components/report-button/report-button';
 import { ToastService } from '@xcorpiiion/ui';
 import { PfPageLoader } from '@xcorpiiion/ui';
 
 @Component({
   selector: 'app-lore-detail',
-  imports: [RouterLink, LowerCasePipe, CopyToProfileModal, CommentSection, PfPageLoader],
+  imports: [
+    RouterLink,
+    LowerCasePipe,
+    CopyToProfileModal,
+    CommentSection,
+    ReportButton,
+    PfPageLoader,
+  ],
   templateUrl: './lore-detail.html',
   styleUrl: './lore-detail.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

@@ -1,0 +1,148 @@
+@use 'styles/variables' as v;
+
+.report__botao {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: inherit;
+  font-size: 12.5px;
+  color: v.$color-text-faint;
+  background: none;
+  border: none;
+  padding: 4px 6px;
+  cursor: pointer;
+
+  // Discreto de propósito: denunciar não é uma ação que o site queira estimular, é uma
+  // que ele precisa oferecer.
+  &:hover {
+    color: v.$color-ember;
+  }
+}
+
+.report__fundo {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  border: none;
+  padding: 0;
+  cursor: default;
+  z-index: 90;
+}
+
+.report__caixa {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: min(440px, calc(100vw - 32px));
+  background: v.$color-bg-surface;
+  border: 0.5px solid v.$color-border;
+  border-radius: v.$radius-lg;
+  padding: 22px 24px;
+  z-index: 91;
+}
+
+.report__titulo {
+  font-family: v.$font-display;
+  font-size: 18px;
+  color: v.$color-text;
+  margin: 0 0 16px;
+}
+
+.report__motivos {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 18px;
+}
+
+.report__motivo {
+  font-family: inherit;
+  font-size: 12.5px;
+  color: v.$color-text-muted;
+  background: v.$color-bg-elevated;
+  border: 0.5px solid v.$color-border;
+  border-radius: v.$radius-sm;
+  padding: 6px 11px;
+  cursor: pointer;
+
+  &:hover {
+    color: v.$color-text;
+  }
+}
+
+.report__motivo--ativo {
+  color: v.$color-ember-light;
+  border-color: v.$color-ember;
+  background: rgba(v.$color-ember, 0.12);
+}
+
+.report__label {
+  display: block;
+  font-size: 12px;
+  color: v.$color-text-muted;
+  margin-bottom: 6px;
+}
+
+.report__texto {
+  width: 100%;
+  background: v.$color-bg-elevated;
+  border: 0.5px solid v.$color-border;
+  border-radius: v.$radius-md;
+  color: v.$color-text;
+  font-family: inherit;
+  font-size: 13.5px;
+  padding: 10px 12px;
+  resize: vertical;
+
+  &:focus {
+    outline: none;
+    border-color: v.$color-gold-dark;
+  }
+}
+
+.report__aviso {
+  font-size: 11.5px;
+  color: v.$color-text-faint;
+  margin: 10px 0 18px;
+}
+
+.report__acoes {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.report__cancelar,
+.report__enviar {
+  font-family: inherit;
+  font-size: 13px;
+  border-radius: v.$radius-md;
+  padding: 8px 14px;
+  cursor: pointer;
+}
+
+.report__cancelar {
+  color: v.$color-text-muted;
+  background: none;
+  border: 0.5px solid v.$color-border;
+
+  &:hover {
+    color: v.$color-text;
+  }
+}
+
+.report__enviar {
+  color: v.$color-ember-light;
+  background: rgba(v.$color-ember, 0.12);
+  border: 0.5px solid v.$color-ember;
+
+  &:hover:not(:disabled) {
+    background: rgba(v.$color-ember, 0.2);
+  }
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: default;
+  }
+}

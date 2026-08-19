@@ -24,6 +24,7 @@ export const serverRoutes: ServerRoute[] = [
   { path: 'search', renderMode: RenderMode.Client },
 
   // Editores: dependem de API do navegador e de conteúdo que não é público.
+  { path: 'admin/**', renderMode: RenderMode.Client },
   { path: 'games/new', renderMode: RenderMode.Client },
   { path: 'games/:id/run', renderMode: RenderMode.Client },
   { path: 'games/:id/conditions', renderMode: RenderMode.Client },

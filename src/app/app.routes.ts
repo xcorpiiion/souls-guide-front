@@ -2,6 +2,7 @@ import { Routes } from '@angular/router';
 import type { SeoPagina } from './core/services/seo.service';
 import { unsavedChangesGuard } from '@xcorpiiion/ng-core';
 import { authGuard } from '@xcorpiiion/ng-core';
+import { adminGuard } from './core/guards/admin.guard';
 
 export const routes: Routes = [
   {
@@ -367,6 +368,18 @@ export const routes: Routes = [
     loadComponent: () => import('./features/lore-editor/lore-editor').then((m) => m.LoreEditor),
     canActivate: [authGuard],
     canDeactivate: [unsavedChangesGuard],
+  },
+  {
+    path: 'admin/moderacao',
+    data: {
+      seo: {
+        titulo: 'Moderação',
+        descricao: 'Fila de denúncias do SoulGuide.',
+        indexavel: false,
+      } satisfies SeoPagina,
+    },
+    loadComponent: () => import('./features/moderacao/moderacao').then((m) => m.Moderacao),
+    canActivate: [adminGuard],
   },
   {
     path: 'comunidade',

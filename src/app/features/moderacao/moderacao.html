@@ -1,0 +1,140 @@
+<section class="mod">
+  <header class="mod__header">
+    <h1 class="mod__title">moderação</h1>
+    <p class="mod__subtitle">
+      <i class="ti ti-flag" aria-hidden="true"></i>
+      {{ total() }} {{ aba() === 'OPEN' ? 'na fila' : 'no histórico' }}
+    </p>
+
+    <div class="mod__abas" role="tablist">
+      @for (a of abas; track a.status) {
+        <button
+          class="mod__aba"
+          type="button"
+          role="tab"
+          [attr.aria-selected]="aba() === a.status"
+          [class.mod__aba--ativa]="aba() === a.status"
+          (click)="trocarAba(a.status)"
+        >
+          {{ a.label }}
+        </button>
+      }
+    </div>
+  </header>
+
+  @if (loading()) {
+    <pf-page-loader message="Carregando a fila…" />
+  } @else if (vazio()) {
+    <div class="mod__empty">
+      <i class="ti ti-mood-check mod__empty-icon" aria-hidden="true"></i>
+      <p class="mod__empty-title">
+        {{ aba() === 'OPEN' ? 'nada na fila' : 'nada aqui ainda' }}
+      </p>
+      <p class="mod__empty-text">
+        @if (aba() === 'OPEN') {
+          nenhuma denúncia esperando decisão.
+        } @else {
+          o que você decidir aparece nesta aba.
+        }
+      </p>
+    </div>
+  } @else {
+    <ul class="mod__lista">
+      @for (d of denuncias(); track d.id) {
+        <li class="mod__card">
+          <div class="mod__card-topo">
+            <span class="mod__tag">{{ kindLabel[d.contentKind] }}</span>
+            <span class="mod__tag mod__tag--motivo">{{ reasonLabel[d.reason] }}</span>
+            @if (d.contentGone) {
+              <span class="mod__tag mod__tag--sumiu">conteúdo removido</span>
+            }
+          </div>
+
+          @if (linkDo(d); as link) {
+            <a class="mod__conteudo" [routerLink]="link">{{ d.contentTitle }}</a>
+          } @else {
+            <p class="mod__conteudo mod__conteudo--sem-link">
+              {{ d.contentTitle ?? 'conteúdo #' + d.contentId }}
+            </p>
+          }
+
+          @if (d.details) {
+            <p class="mod__detalhes">“{{ d.details }}”</p>
+          }
+
+          <p class="mod__meta">
+            denunciado por {{ d.reporterId }}
+            @if (d.reportedUserId) {
+              · autor {{ d.reportedUserId }}
+            }
+          </p>
+
+          @if (d.status === 'OPEN') {
+            @if (decidindo() === d.id) {
+              <div class="mod__decisao">
+                <label class="mod__label" [attr.for]="'nota-' + d.id">nota da decisão</label>
+                <textarea
+                  [id]="'nota-' + d.id"
+                  class="mod__texto"
+                  rows="2"
+                  maxlength="1000"
+                  placeholder="o que você concluiu, para o próximo moderador entender"
+                  [ngModel]="nota()"
+                  (ngModelChange)="nota.set($event)"
+                ></textarea>
+
+                <label class="mod__check">
+                  <input
+                    type="checkbox"
+                    [ngModel]="comStrike()"
+                    (ngModelChange)="comStrike.set($event)"
+                  />
+                  <span>
+                    aplicar strike ao autor
+                    <small>três seguram por uma semana, cinco por um mês, sete não expiram</small>
+                  </span>
+                </label>
+
+                <div class="mod__acoes">
+                  <button class="mod__btn" type="button" (click)="decidindo.set(null)">
+                    cancelar
+                  </button>
+                  <button
+                    class="mod__btn mod__btn--arquivar"
+                    type="button"
+                    [disabled]="salvando()"
+                    (click)="decidir(d.id, 'DISMISSED')"
+                  >
+                    não procede
+                  </button>
+                  <button
+                    class="mod__btn mod__btn--resolver"
+                    type="button"
+                    [disabled]="salvando()"
+                    (click)="decidir(d.id, 'RESOLVED')"
+                  >
+                    procede
+                  </button>
+                </div>
+              </div>
+            } @else {
+              <button class="mod__btn mod__btn--decidir" type="button" (click)="abrirDecisao(d.id)">
+                decidir
+              </button>
+            }
+          } @else {
+            <p class="mod__decidida">
+              {{ d.status === 'RESOLVED' ? 'procedeu' : 'arquivada' }}
+              @if (d.resolvedBy) {
+                · por {{ d.resolvedBy }}
+              }
+              @if (d.note) {
+                — “{{ d.note }}”
+              }
+            </p>
+          }
+        </li>
+      }
+    </ul>
+  }
+</section>

@@ -99,6 +99,13 @@
       </div>
     }
 
+    <!-- moderação: só para quem tem a role, e o servidor recusa de qualquer forma -->
+    @if (ehAdmin()) {
+      <a class="navbar__mod" routerLink="/admin/moderacao" title="Moderação" aria-label="Moderação">
+        <i class="ti ti-flag" aria-hidden="true"></i>
+      </a>
+    }
+
     <!-- profile avatar -->
     @if (auth.isLoggedIn()) {
       <a class="navbar__avatar" routerLink="/profile" aria-label="Perfil">V</a>
