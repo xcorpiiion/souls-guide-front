@@ -3,6 +3,7 @@ import type {
   LoreStatus as CanonicoLoreStatus,
   LoreType,
 } from '@xcorpiiion/canonico';
+import { refDe } from '../utils/ref';
 
 // Enums do contrato — fonte da verdade: lib canonico
 export type LoreStatus = CanonicoLoreStatus;
@@ -12,6 +13,8 @@ export type LoreCategory = LoreType;
 export type LoreApi = LoreArticleDTO;
 
 export interface LoreSummary {
+  /** O que vai na URL. Ver shared/utils/ref.ts. */
+  ref: string;
   id: string;
   title: string;
   gameId: string;
@@ -38,6 +41,7 @@ export interface LoreSummary {
 export function loreApiToSummary(l: LoreApi): LoreSummary {
   return {
     id: String(l.id),
+    ref: refDe(l.id, l.slug),
     title: l.title,
     gameId: String(l.gameId),
     gameName: l.gameName,

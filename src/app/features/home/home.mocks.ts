@@ -5,6 +5,7 @@ import { QuestSummary } from '../../shared/models/quest.model';
 export const GAMES: GameSummary[] = [
   {
     id: '1',
+    ref: '1',
     name: 'Elden Ring',
     shortName: 'ER',
     accentClass: 'accent-default',
@@ -19,6 +20,7 @@ export const GAMES: GameSummary[] = [
   },
   {
     id: '2',
+    ref: '2',
     name: 'Dark Souls III',
     shortName: 'DS3',
     accentClass: 'accent-default',
@@ -33,6 +35,7 @@ export const GAMES: GameSummary[] = [
   },
   {
     id: '3',
+    ref: '3',
     name: 'Bloodborne',
     shortName: 'BB',
     accentClass: 'accent-default',
@@ -47,6 +50,7 @@ export const GAMES: GameSummary[] = [
   },
   {
     id: '4',
+    ref: '4',
     name: 'Lies of P',
     shortName: 'LoP',
     accentClass: 'accent-default',
@@ -64,6 +68,7 @@ export const GAMES: GameSummary[] = [
 export const QUESTS: QuestSummary[] = [
   {
     id: 'er-q1',
+    ref: 'er-q1',
     title: 'Questline de Ranni, a Bruxa',
     gameId: 'elden-ring',
     gameName: 'Elden Ring',
@@ -76,6 +81,7 @@ export const QUESTS: QuestSummary[] = [
   },
   {
     id: 'er-q2',
+    ref: 'er-q2',
     title: 'Questline do Blaidd',
     gameId: 'elden-ring',
     gameName: 'Elden Ring',
@@ -88,6 +94,7 @@ export const QUESTS: QuestSummary[] = [
   },
   {
     id: 'er-q3',
+    ref: 'er-q3',
     title: 'Questline de Millicent',
     gameId: 'elden-ring',
     gameName: 'Elden Ring',
@@ -100,6 +107,7 @@ export const QUESTS: QuestSummary[] = [
   },
   {
     id: 'bb-q1',
+    ref: 'bb-q1',
     title: 'Questline de Eileen the Crow',
     gameId: 'bloodborne',
     gameName: 'Bloodborne',
@@ -112,6 +120,7 @@ export const QUESTS: QuestSummary[] = [
   },
   {
     id: 'ds3-q1',
+    ref: 'ds3-q1',
     title: 'Questline de Sirris do Luar',
     gameId: 'dark-souls-3',
     gameName: 'Dark Souls III',
@@ -124,6 +133,7 @@ export const QUESTS: QuestSummary[] = [
   },
   {
     id: 'q6',
+    ref: 'q6',
     title: 'A Boneca de Yharnam',
     gameId: 'bloodborne',
     gameName: 'Bloodborne',
@@ -136,6 +146,7 @@ export const QUESTS: QuestSummary[] = [
   },
   {
     id: 'q7',
+    ref: 'q7',
     title: 'Eileen, a Corvina',
     gameId: 'bloodborne',
     gameName: 'Bloodborne',
@@ -148,6 +159,7 @@ export const QUESTS: QuestSummary[] = [
   },
   {
     id: 'q8',
+    ref: 'q8',
     title: 'Sofia e o Coração',
     gameId: 'lies-of-p',
     gameName: 'Lies of P',
@@ -163,6 +175,7 @@ export const QUESTS: QuestSummary[] = [
 export const LORE: LoreSummary[] = [
   {
     id: 'ranni-plano-da-lua',
+    ref: 'ranni-plano-da-lua',
     title: 'Ranni, a Bruxa das Estrelas',
     gameId: 'elden-ring',
     gameName: 'Elden Ring',
@@ -176,6 +189,7 @@ export const LORE: LoreSummary[] = [
   },
   {
     id: 'gehrman-sonho-cacador',
+    ref: 'gehrman-sonho-cacador',
     title: 'Gehrman e o Sonho do Caçador',
     gameId: 'bloodborne',
     gameName: 'Bloodborne',
@@ -189,6 +203,7 @@ export const LORE: LoreSummary[] = [
   },
   {
     id: 'runes-elden-ring-origem',
+    ref: 'runes-elden-ring-origem',
     title: 'O Elden Ring e os Grandes Runes',
     gameId: 'elden-ring',
     gameName: 'Elden Ring',
@@ -202,6 +217,7 @@ export const LORE: LoreSummary[] = [
   },
   {
     id: 'catedral-do-abismo',
+    ref: 'catedral-do-abismo',
     title: 'A Catedral do Abismo — Oolacile',
     gameId: 'dark-souls-3',
     gameName: 'Dark Souls III',

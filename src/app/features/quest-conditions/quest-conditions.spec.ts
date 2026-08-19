@@ -10,6 +10,7 @@ import { Page } from '../../shared/models/page.model';
 
 const MOCK_QUEST_SUMMARY: QuestSummary = {
   id: '45',
+  ref: '45',
   title: 'Questline de Ranni, a Bruxa',
   gameId: '1',
   gameName: 'Elden Ring',

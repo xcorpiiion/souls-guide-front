@@ -3,6 +3,7 @@ import { QuestDetailData } from '../../shared/models/quest.model';
 export const QUESTS_DETAIL: QuestDetailData[] = [
   {
     id: 'er-q1',
+    ref: 'er-q1',
     title: 'Questline de Ranni, a Bruxa',
     gameId: 'elden-ring',
     gameName: 'Elden Ring',
@@ -94,6 +95,7 @@ export const QUESTS_DETAIL: QuestDetailData[] = [
   },
   {
     id: 'er-q2',
+    ref: 'er-q2',
     title: 'Questline do Blaidd',
     gameId: 'elden-ring',
     gameName: 'Elden Ring',
@@ -160,6 +162,7 @@ export const QUESTS_DETAIL: QuestDetailData[] = [
   },
   {
     id: 'er-q3',
+    ref: 'er-q3',
     title: 'Questline de Millicent',
     gameId: 'elden-ring',
     gameName: 'Elden Ring',
@@ -236,6 +239,7 @@ export const QUESTS_DETAIL: QuestDetailData[] = [
   },
   {
     id: 'bb-q1',
+    ref: 'bb-q1',
     title: 'Questline de Eileen the Crow',
     gameId: 'bloodborne',
     gameName: 'Bloodborne',
@@ -296,6 +300,7 @@ export const QUESTS_DETAIL: QuestDetailData[] = [
   },
   {
     id: 'bb-q2',
+    ref: 'bb-q2',
     title: 'Investigação de Yharnam',
     gameId: 'bloodborne',
     gameName: 'Bloodborne',
@@ -340,6 +345,7 @@ export const QUESTS_DETAIL: QuestDetailData[] = [
   },
   {
     id: 'ds3-q1',
+    ref: 'ds3-q1',
     title: 'Questline de Sirris do Luar',
     gameId: 'dark-souls-3',
     gameName: 'Dark Souls III',

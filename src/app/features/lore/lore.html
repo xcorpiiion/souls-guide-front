@@ -122,7 +122,7 @@
     } @else if (articles().length) {
       <div class="lr__grid">
         @for (article of articles(); track article.id) {
-          <a class="lr__card" [routerLink]="['/lore', article.id]">
+          <a class="lr__card" [routerLink]="['/lore', article.ref]">
             <div class="lr__card-badges">
               <span class="lr__game-badge">
                 <i class="ti ti-device-gamepad-2" aria-hidden="true"></i> {{ article.gameName }}

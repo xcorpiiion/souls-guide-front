@@ -3,6 +3,7 @@ import { GameDetailData } from '../../shared/models/game.model';
 export const GAMES_DETAIL: GameDetailData[] = [
   {
     id: 'elden-ring',
+    ref: 'elden-ring',
     name: 'Elden Ring',
     shortName: 'ER',
     accentClass: 'er',
@@ -20,6 +21,7 @@ export const GAMES_DETAIL: GameDetailData[] = [
     quests: [
       {
         id: 'er-q1',
+        ref: 'er-q1',
         title: 'Questline de Ranni, a Bruxa',
         gameId: 'elden-ring',
         gameName: 'Elden Ring',
@@ -32,6 +34,7 @@ export const GAMES_DETAIL: GameDetailData[] = [
       },
       {
         id: 'er-q2',
+        ref: 'er-q2',
         title: 'Questline de Millicent',
         gameId: 'elden-ring',
         gameName: 'Elden Ring',
@@ -44,6 +47,7 @@ export const GAMES_DETAIL: GameDetailData[] = [
       },
       {
         id: 'er-q3',
+        ref: 'er-q3',
         title: 'Questline de Fia, a Guardiã dos Mortos',
         gameId: 'elden-ring',
         gameName: 'Elden Ring',
@@ -56,6 +60,7 @@ export const GAMES_DETAIL: GameDetailData[] = [
       },
       {
         id: 'er-q4',
+        ref: 'er-q4',
         title: 'Teoria: Destino oculto de Melina',
         gameId: 'elden-ring',
         gameName: 'Elden Ring',
@@ -70,6 +75,7 @@ export const GAMES_DETAIL: GameDetailData[] = [
     featuredLore: [
       {
         id: 'er-l1',
+        ref: 'er-l1',
         title: 'A Origem dos Dedos Dourados',
         gameId: 'elden-ring',
         gameName: 'Elden Ring',
@@ -84,6 +90,7 @@ export const GAMES_DETAIL: GameDetailData[] = [
       },
       {
         id: 'er-l2',
+        ref: 'er-l2',
         title: 'Marika e a Ruína da Ordem',
         gameId: 'elden-ring',
         gameName: 'Elden Ring',
@@ -98,6 +105,7 @@ export const GAMES_DETAIL: GameDetailData[] = [
       },
       {
         id: 'er-l3',
+        ref: 'er-l3',
         title: 'Conexão entre Ranni e os Sem-Deus',
         gameId: 'elden-ring',
         gameName: 'Elden Ring',
@@ -114,6 +122,7 @@ export const GAMES_DETAIL: GameDetailData[] = [
   },
   {
     id: 'dark-souls-3',
+    ref: 'dark-souls-3',
     name: 'Dark Souls III',
     shortName: 'DS3',
     accentClass: 'ds3',
@@ -131,6 +140,7 @@ export const GAMES_DETAIL: GameDetailData[] = [
     quests: [
       {
         id: 'ds3-q1',
+        ref: 'ds3-q1',
         title: 'Questline de Siegward de Catarina',
         gameId: 'dark-souls-3',
         gameName: 'Dark Souls III',
@@ -145,6 +155,7 @@ export const GAMES_DETAIL: GameDetailData[] = [
     featuredLore: [
       {
         id: 'ds3-l1',
+        ref: 'ds3-l1',
         title: 'Gwyn sabia do Oco desde o início',
         gameId: 'dark-souls-3',
         gameName: 'Dark Souls III',
@@ -161,6 +172,7 @@ export const GAMES_DETAIL: GameDetailData[] = [
   },
   {
     id: 'bloodborne',
+    ref: 'bloodborne',
     name: 'Bloodborne',
     shortName: 'BB',
     accentClass: 'bb',
@@ -178,6 +190,7 @@ export const GAMES_DETAIL: GameDetailData[] = [
     quests: [
       {
         id: 'bb-q1',
+        ref: 'bb-q1',
         title: 'Questline de Eileen, a Corvina',
         gameId: 'bloodborne',
         gameName: 'Bloodborne',
@@ -192,6 +205,7 @@ export const GAMES_DETAIL: GameDetailData[] = [
     featuredLore: [
       {
         id: 'bb-l1',
+        ref: 'bb-l1',
         title: 'O ciclo dos sonhos e Mergo',
         gameId: 'bloodborne',
         gameName: 'Bloodborne',
@@ -208,6 +222,7 @@ export const GAMES_DETAIL: GameDetailData[] = [
   },
   {
     id: 'lies-of-p',
+    ref: 'lies-of-p',
     name: 'Lies of P',
     shortName: 'LoP',
     accentClass: 'lop',
@@ -225,6 +240,7 @@ export const GAMES_DETAIL: GameDetailData[] = [
     quests: [
       {
         id: 'lop-q1',
+        ref: 'lop-q1',
         title: 'Questline de Sofia e o Coração',
         gameId: 'lies-of-p',
         gameName: 'Lies of P',
@@ -240,6 +256,7 @@ export const GAMES_DETAIL: GameDetailData[] = [
   },
   {
     id: 'lords-of-the-fallen',
+    ref: 'lords-of-the-fallen',
     name: 'Lords of the Fallen',
     shortName: 'LotF',
     accentClass: 'lotf',

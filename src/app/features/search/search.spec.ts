@@ -11,6 +11,7 @@ import { LoreSummary } from '../../shared/models/lore-article.model';
 
 const QUEST_RANNI: QuestSummary = {
   id: '1',
+  ref: '1',
   title: 'Questline de Ranni',
   gameId: '1',
   gameName: 'Elden Ring',
@@ -24,6 +25,7 @@ const QUEST_RANNI: QuestSummary = {
 
 const LORE_GEHRMAN: LoreSummary = {
   id: '1',
+  ref: '1',
   title: 'Gehrman, o Primeiro Caçador',
   gameId: '2',
   gameName: 'Bloodborne',

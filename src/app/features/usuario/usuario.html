@@ -171,7 +171,7 @@
               <p class="up__empty">Carregando…</p>
             } @else if (filteredQuests().length) {
               @for (quest of filteredQuests(); track quest.id) {
-                <a class="up__quest-card" [routerLink]="['/usuarios', handle, 'quests', quest.id]">
+                <a class="up__quest-card" [routerLink]="['/usuarios', handle, 'quests', quest.ref]">
                   <div class="up__quest-info">
                     <span class="up__quest-title">{{ quest.title }}</span>
                     <span class="up__quest-meta">
@@ -204,7 +204,7 @@
               @for (quest of filteredFollowingQuests(); track quest.id) {
                 <a
                   class="up__quest-card"
-                  [routerLink]="['/games', quest.gameId, 'quests', quest.id]"
+                  [routerLink]="['/games', quest.gameId, 'quests', quest.ref]"
                 >
                   <div class="up__quest-info">
                     <span class="up__quest-title">{{ quest.title }}</span>
@@ -286,7 +286,7 @@
               <p class="up__empty">Carregando…</p>
             } @else if (filteredLore().length) {
               @for (article of filteredLore(); track article.id) {
-                <a class="up__quest-card" [routerLink]="['/usuarios', handle, 'lore', article.id]">
+                <a class="up__quest-card" [routerLink]="['/usuarios', handle, 'lore', article.ref]">
                   <div class="up__quest-info">
                     <span class="up__quest-title">{{ article.title }}</span>
                     <span class="up__quest-meta">
@@ -317,7 +317,7 @@
               <p class="up__empty">Carregando…</p>
             } @else if (filteredFollowingLore().length) {
               @for (article of filteredFollowingLore(); track article.id) {
-                <a class="up__quest-card" [routerLink]="['/usuarios', handle, 'lore', article.id]">
+                <a class="up__quest-card" [routerLink]="['/usuarios', handle, 'lore', article.ref]">
                   <div class="up__quest-info">
                     <span class="up__quest-title">{{ article.title }}</span>
                     <span class="up__quest-meta">
@@ -352,7 +352,7 @@
             <p class="up__empty">Carregando…</p>
           } @else if (followingGames().length) {
             @for (game of followingGames(); track game.id) {
-              <a class="up__quest-card" [routerLink]="['/games', game.id]">
+              <a class="up__quest-card" [routerLink]="['/games', game.ref]">
                 <div class="up__quest-info">
                   <span class="up__quest-title">{{ game.name }}</span>
                   <span class="up__quest-meta">

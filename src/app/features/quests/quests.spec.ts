@@ -11,6 +11,7 @@ import { provideAuth } from '@xcorpiiion/ng-core';
 const MOCK_QUESTS: QuestSummary[] = [
   {
     id: '1',
+    ref: '1',
     title: 'Questline de Ranni',
     gameId: '1',
     gameName: 'Elden Ring',
@@ -24,6 +25,7 @@ const MOCK_QUESTS: QuestSummary[] = [
   },
   {
     id: '2',
+    ref: '2',
     title: 'Investigação de Yharnam',
     gameId: '2',
     gameName: 'Bloodborne',

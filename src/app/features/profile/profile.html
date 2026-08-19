@@ -361,14 +361,14 @@
                   <div class="pf__personal-card-actions">
                     <a
                       class="pf__personal-action"
-                      [routerLink]="['/profile', 'quests', quest.id]"
+                      [routerLink]="['/profile', 'quests', quest.ref]"
                       title="ver quest"
                     >
                       <i class="ti ti-eye" aria-hidden="true"></i>
                     </a>
                     <a
                       class="pf__personal-action"
-                      [routerLink]="['/profile', 'quests', quest.id, 'edit']"
+                      [routerLink]="['/profile', 'quests', quest.ref, 'edit']"
                       [queryParams]="{ personal: 'true' }"
                       title="editar quest"
                     >
@@ -407,7 +407,7 @@
               @for (quest of filteredFollowedQuests(); track quest.id) {
                 <a
                   class="pf__quest-card"
-                  [routerLink]="['/games', quest.gameId, 'quests', quest.id]"
+                  [routerLink]="['/games', quest.gameId, 'quests', quest.ref]"
                 >
                   <div class="pf__quest-info">
                     <span class="pf__quest-title">{{ quest.title }}</span>
@@ -519,14 +519,14 @@
                   <div class="pf__personal-card-actions">
                     <a
                       class="pf__personal-action"
-                      [routerLink]="['/profile', 'lore', article.id]"
+                      [routerLink]="['/profile', 'lore', article.ref]"
                       title="ver artigo"
                     >
                       <i class="ti ti-eye" aria-hidden="true"></i>
                     </a>
                     <a
                       class="pf__personal-action"
-                      [routerLink]="['/profile', 'lore', article.id, 'edit']"
+                      [routerLink]="['/profile', 'lore', article.ref, 'edit']"
                       [queryParams]="{ personal: 'true' }"
                       title="editar artigo"
                     >
@@ -563,7 +563,7 @@
               <p class="pf__empty">Carregando…</p>
             } @else if (filteredFollowedLore().length) {
               @for (article of filteredFollowedLore(); track article.id) {
-                <a class="pf__quest-card" [routerLink]="['/lore', article.id]">
+                <a class="pf__quest-card" [routerLink]="['/lore', article.ref]">
                   <div class="pf__quest-info">
                     <span class="pf__quest-title">{{ article.title }}</span>
                     <span class="pf__quest-meta">{{ article.gameName }}</span>
@@ -602,7 +602,7 @@
           </div>
           @if (filteredGames().length) {
             @for (game of filteredGames(); track game.id) {
-              <a class="pf__quest-card" [routerLink]="['/games', game.id]">
+              <a class="pf__quest-card" [routerLink]="['/games', game.ref]">
                 <div class="pf__quest-info">
                   <span class="pf__quest-title">{{ game.name }}</span>
                   <span class="pf__quest-meta">
@@ -665,7 +665,10 @@
               />
             }
             @for (quest of filteredFollowedQuests(); track quest.id) {
-              <a class="pf__quest-card" [routerLink]="['/games', quest.gameId, 'quests', quest.id]">
+              <a
+                class="pf__quest-card"
+                [routerLink]="['/games', quest.gameId, 'quests', quest.ref]"
+              >
                 <div class="pf__quest-info">
                   <span class="pf__quest-title">{{ quest.title }}</span>
                   <span class="pf__quest-meta">{{ quest.gameName }}</span>
@@ -704,7 +707,7 @@
               />
             }
             @for (article of filteredFollowedLore(); track article.id) {
-              <a class="pf__quest-card" [routerLink]="['/lore', article.id]">
+              <a class="pf__quest-card" [routerLink]="['/lore', article.ref]">
                 <div class="pf__quest-info">
                   <span class="pf__quest-title">{{ article.title }}</span>
                   <span class="pf__quest-meta">{{ article.gameName }}</span>
@@ -796,7 +799,10 @@
             <p class="pf__section-title">quests curtidas</p>
 
             @for (quest of likedQuests(); track quest.id) {
-              <a class="pf__quest-card" [routerLink]="['/games', quest.gameId, 'quests', quest.id]">
+              <a
+                class="pf__quest-card"
+                [routerLink]="['/games', quest.gameId, 'quests', quest.ref]"
+              >
                 <div class="pf__quest-info">
                   <span class="pf__quest-title">{{ quest.title }}</span>
                   <span class="pf__quest-meta"
@@ -817,7 +823,7 @@
             <p class="pf__section-title pf__section-title--mt">lore curtido</p>
 
             @for (article of likedLore(); track article.id) {
-              <a class="pf__quest-card" [routerLink]="['/lore', article.id]">
+              <a class="pf__quest-card" [routerLink]="['/lore', article.ref]">
                 <div class="pf__quest-info">
                   <span class="pf__quest-title">{{ article.title }}</span>
                   <span class="pf__quest-meta"
@@ -844,7 +850,7 @@
         <div class="pf__sidebar-card">
           <p class="pf__section-title">jogos favoritos</p>
           @for (game of profile().favoriteGames; track game.id) {
-            <a class="pf__game-row" [routerLink]="['/games', game.id]">
+            <a class="pf__game-row" [routerLink]="['/games', game.ref]">
               <div class="pf__game-icon game-icon--{{ game.id }}">
                 <i [class]="'ti ' + game.icon" aria-hidden="true"></i>
               </div>

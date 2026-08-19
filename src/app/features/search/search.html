@@ -50,7 +50,7 @@
             <span class="sr__section-count">{{ questResults().length }}</span>
           </h2>
           @for (quest of questResults(); track quest.id) {
-            <a class="sr__card" [routerLink]="['/games', quest.gameId, 'quests', quest.id]">
+            <a class="sr__card" [routerLink]="['/games', quest.gameId, 'quests', quest.ref]">
               <div class="sr__card-icon sr__card-icon--quest">
                 <i class="ti ti-map" aria-hidden="true"></i>
               </div>
@@ -84,7 +84,7 @@
             <span class="sr__section-count">{{ loreResults().length }}</span>
           </h2>
           @for (article of loreResults(); track article.id) {
-            <a class="sr__card" [routerLink]="['/lore', article.id]">
+            <a class="sr__card" [routerLink]="['/lore', article.ref]">
               <div class="sr__card-icon sr__card-icon--lore">
                 <i class="ti ti-book" aria-hidden="true"></i>
               </div>

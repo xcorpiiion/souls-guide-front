@@ -3,6 +3,7 @@ import { GameSummary } from '../../shared/models/game.model';
 export const GAMES_SUMMARY: GameSummary[] = [
   {
     id: 'elden-ring',
+    ref: 'elden-ring',
     name: 'Elden Ring',
     shortName: 'ER',
     accentClass: 'er',
@@ -17,6 +18,7 @@ export const GAMES_SUMMARY: GameSummary[] = [
   },
   {
     id: 'dark-souls-3',
+    ref: 'dark-souls-3',
     name: 'Dark Souls III',
     shortName: 'DS3',
     accentClass: 'ds3',
@@ -31,6 +33,7 @@ export const GAMES_SUMMARY: GameSummary[] = [
   },
   {
     id: 'bloodborne',
+    ref: 'bloodborne',
     name: 'Bloodborne',
     shortName: 'BB',
     accentClass: 'bb',
@@ -45,6 +48,7 @@ export const GAMES_SUMMARY: GameSummary[] = [
   },
   {
     id: 'lies-of-p',
+    ref: 'lies-of-p',
     name: 'Lies of P',
     shortName: 'LoP',
     accentClass: 'lop',
@@ -59,6 +63,7 @@ export const GAMES_SUMMARY: GameSummary[] = [
   },
   {
     id: 'lords-of-the-fallen',
+    ref: 'lords-of-the-fallen',
     name: 'Lords of the Fallen',
     shortName: 'LotF',
     accentClass: 'lotf',

@@ -68,7 +68,7 @@
         <ol class="quest-list">
           @for (quest of filteredQuests(); track trackById($index, quest); let i = $index) {
             <li>
-              <a class="quest-item" [routerLink]="['/games', quest.gameId, 'quests', quest.id]">
+              <a class="quest-item" [routerLink]="['/games', quest.gameId, 'quests', quest.ref]">
                 <span class="quest-item__rank">{{ i + 1 }}</span>
                 <div class="quest-item__body">
                   <span class="quest-item__title">{{ quest.title }}</span>
@@ -105,7 +105,7 @@
         <ul class="lore-list">
           @for (article of filteredLore(); track trackById($index, article)) {
             <li>
-              <a class="lore-item" [routerLink]="['/lore', article.id]">
+              <a class="lore-item" [routerLink]="['/lore', article.ref]">
                 <span class="lore-item__badge lore-item__badge--{{ article.status | lowercase }}">
                   {{ loreBadgeLabel(article.status) }}
                 </span>

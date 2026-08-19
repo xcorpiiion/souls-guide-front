@@ -15,6 +15,7 @@ import { AuthService, provideAuth } from '@xcorpiiion/ng-core';
 const MOCK_QUESTS = [
   {
     id: '1',
+    ref: '1',
     title: 'A Última Promessa',
     gameId: 'g1',
     stepCount: 3,
@@ -26,6 +27,7 @@ const MOCK_QUESTS = [
   },
   {
     id: '2',
+    ref: '2',
     title: 'Rastros da Cidade Velha',
     gameId: 'g1',
     stepCount: 5,

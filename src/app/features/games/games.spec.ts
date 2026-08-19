@@ -19,6 +19,7 @@ const makePage = (games: GameSummary[], total = games.length, pages = 1) => ({
 const MOCK_GAMES: GameSummary[] = [
   {
     id: '1',
+    ref: '1',
     name: 'Elden Ring',
     shortName: 'ER',
     accentClass: 'a',
@@ -33,6 +34,7 @@ const MOCK_GAMES: GameSummary[] = [
   },
   {
     id: '2',
+    ref: '2',
     name: 'Bloodborne',
     shortName: 'BB',
     accentClass: 'a',

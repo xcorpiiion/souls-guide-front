@@ -3,6 +3,7 @@ import { LoreArticle } from '../../shared/models/lore-article.model';
 export const LORE_ARTICLES: LoreArticle[] = [
   {
     id: 'ranni-plano-da-lua',
+    ref: 'ranni-plano-da-lua',
     title: 'Ranni, a Bruxa das Estrelas',
     gameId: 'elden-ring',
     gameName: 'Elden Ring',
@@ -41,6 +42,7 @@ export const LORE_ARTICLES: LoreArticle[] = [
   },
   {
     id: 'gehrman-sonho-cacador',
+    ref: 'gehrman-sonho-cacador',
     title: 'Gehrman e o Sonho do Caçador',
     gameId: 'bloodborne',
     gameName: 'Bloodborne',
@@ -72,6 +74,7 @@ export const LORE_ARTICLES: LoreArticle[] = [
   },
   {
     id: 'farum-azula-cidade-tempo',
+    ref: 'farum-azula-cidade-tempo',
     title: 'Farum Azula e a Cidade do Tempo',
     gameId: 'elden-ring',
     gameName: 'Elden Ring',
@@ -98,6 +101,7 @@ export const LORE_ARTICLES: LoreArticle[] = [
   },
   {
     id: 'runes-elden-ring-origem',
+    ref: 'runes-elden-ring-origem',
     title: 'O Elden Ring e os Grandes Runes',
     gameId: 'elden-ring',
     gameName: 'Elden Ring',
@@ -125,6 +129,7 @@ export const LORE_ARTICLES: LoreArticle[] = [
   },
   {
     id: 'eileen-the-crow',
+    ref: 'eileen-the-crow',
     title: 'Eileen the Crow e o Código dos Caçadores',
     gameId: 'bloodborne',
     gameName: 'Bloodborne',
@@ -151,6 +156,7 @@ export const LORE_ARTICLES: LoreArticle[] = [
   },
   {
     id: 'catedral-do-abismo',
+    ref: 'catedral-do-abismo',
     title: 'A Catedral do Abismo — Oolacile',
     gameId: 'dark-souls-3',
     gameName: 'Dark Souls III',

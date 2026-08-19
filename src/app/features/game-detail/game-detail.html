@@ -28,14 +28,14 @@
         <div class="game-detail__actions">
           <a
             class="game-detail__btn game-detail__btn--secondary"
-            [routerLink]="['/games', g.id, 'itens']"
+            [routerLink]="['/games', g.ref, 'itens']"
           >
             <i class="ti ti-sword" aria-hidden="true"></i> itens
           </a>
           @if (auth.isLoggedIn()) {
             <a
               class="game-detail__btn game-detail__btn--secondary"
-              [routerLink]="['/games', g.id, 'run']"
+              [routerLink]="['/games', g.ref, 'run']"
             >
               <i class="ti ti-progress" aria-hidden="true"></i> minha run
             </a>
@@ -69,7 +69,7 @@
               <div class="game-detail__contrib-menu">
                 <a
                   class="game-detail__contrib-item"
-                  [routerLink]="['/games', g.id, 'quests', 'new']"
+                  [routerLink]="['/games', g.ref, 'quests', 'new']"
                   (click)="showContribMenu.set(false)"
                 >
                   <i class="ti ti-map" aria-hidden="true"></i>
@@ -77,7 +77,7 @@
                 </a>
                 <a
                   class="game-detail__contrib-item"
-                  [routerLink]="['/games', g.id, 'lore', 'new']"
+                  [routerLink]="['/games', g.ref, 'lore', 'new']"
                   (click)="showContribMenu.set(false)"
                 >
                   <i class="ti ti-book" aria-hidden="true"></i>
@@ -189,7 +189,7 @@
             <li
               class="game-detail__quest-card"
               [class.game-detail__quest-card--hidden]="quest.hidden"
-              [routerLink]="['/games', g.id, 'quests', quest.id]"
+              [routerLink]="['/games', g.ref, 'quests', quest.ref]"
               style="cursor: pointer"
             >
               <div class="game-detail__quest-info">
@@ -242,7 +242,7 @@
         </ul>
 
         <div class="game-detail__quest-actions">
-          <a class="game-detail__add-card" [routerLink]="['/games', g.id, 'quests', 'new']"
+          <a class="game-detail__add-card" [routerLink]="['/games', g.ref, 'quests', 'new']"
             >+ adicionar quest</a
           >
           @if (auth.isLoggedIn() && copyableQuests().length > 0) {
@@ -260,11 +260,11 @@
               }
             </button>
           }
-          <a class="game-detail__conditions-link" [routerLink]="['/games', g.id, 'conditions']">
+          <a class="game-detail__conditions-link" [routerLink]="['/games', g.ref, 'conditions']">
             <i class="ti ti-git-branch" aria-hidden="true"></i> gerenciar condições
           </a>
           @if (auth.isLoggedIn()) {
-            <a class="game-detail__conditions-link" [routerLink]="['/games', g.id, 'quest-map']">
+            <a class="game-detail__conditions-link" [routerLink]="['/games', g.ref, 'quest-map']">
               <i class="ti ti-map-2" aria-hidden="true"></i> organizar rota
             </a>
           }

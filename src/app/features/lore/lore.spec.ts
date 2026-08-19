@@ -10,6 +10,7 @@ import { LoreSummary } from '../../shared/models/lore-article.model';
 const MOCK_LORE: LoreSummary[] = [
   {
     id: '1',
+    ref: '1',
     title: 'Ranni, a Bruxa das Estrelas',
     gameId: '1',
     gameName: 'Elden Ring',
@@ -23,6 +24,7 @@ const MOCK_LORE: LoreSummary[] = [
   },
   {
     id: '2',
+    ref: '2',
     title: 'Farum Azula',
     gameId: '1',
     gameName: 'Elden Ring',

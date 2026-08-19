@@ -4,6 +4,7 @@ import type {
   QuestNodeDTO,
   QuestStatus as CanonicoQuestStatus,
 } from '@xcorpiiion/canonico';
+import { refDe } from '../utils/ref';
 
 // Enums do contrato — fonte da verdade: lib canonico
 export type QuestStatus = CanonicoQuestStatus;
@@ -49,6 +50,11 @@ export interface QuestApi extends QuestGuideDTO {
 }
 
 export interface QuestSummary {
+  /**
+   * O que vai na URL: `45-ranni-a-bruxa`. Montado no mapper para o template não precisar
+   * saber como se monta um endereço — ver shared/utils/ref.ts.
+   */
+  ref: string;
   /** Endereço legível na URL. Ausente em conteúdo criado antes da migração V34. */
   slug?: string | null;
   id: string;
@@ -83,6 +89,7 @@ export interface QuestSummary {
 export function questApiToSummary(q: QuestApi): QuestSummary {
   return {
     id: String(q.id),
+    ref: refDe(q.id, q.slug),
     slug: q.slug,
     title: q.title,
     description: q.description,

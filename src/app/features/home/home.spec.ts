@@ -13,6 +13,7 @@ import { FeaturedGame } from '../../shared/models/game.model';
 const MOCK_QUESTS: QuestSummary[] = [
   {
     id: '1',
+    ref: '1',
     title: 'Questline de Ranni',
     gameId: '1',
     gameName: 'Elden Ring',
@@ -25,6 +26,7 @@ const MOCK_QUESTS: QuestSummary[] = [
   },
   {
     id: '2',
+    ref: '2',
     title: 'Questline de Fia',
     gameId: '1',
     gameName: 'Elden Ring',
@@ -37,6 +39,7 @@ const MOCK_QUESTS: QuestSummary[] = [
   },
   {
     id: '3',
+    ref: '3',
     title: 'Questline do Gehrman',
     gameId: '2',
     gameName: 'Bloodborne',
@@ -52,6 +55,7 @@ const MOCK_QUESTS: QuestSummary[] = [
 const MOCK_LORE: LoreSummary[] = [
   {
     id: '1',
+    ref: '1',
     title: 'Ranni, a Bruxa das Estrelas',
     gameId: '1',
     gameName: 'Elden Ring',
@@ -65,6 +69,7 @@ const MOCK_LORE: LoreSummary[] = [
   },
   {
     id: '2',
+    ref: '2',
     title: 'O Plano da Lua',
     gameId: '1',
     gameName: 'Elden Ring',
