@@ -54,6 +54,18 @@ export const routes: Routes = [
     loadComponent: () => import('./features/game-detail/game-detail').then((m) => m.GameDetail),
   },
   {
+    path: 'games/:id/run',
+    data: {
+      seo: {
+        titulo: 'Minha run',
+        descricao: 'Seu progresso, seus finais e os avisos que valem agora.',
+        indexavel: false,
+      } satisfies SeoPagina,
+    },
+    loadComponent: () => import('./features/run-panel/run-panel').then((m) => m.RunPanel),
+    canActivate: [authGuard],
+  },
+  {
     path: 'games/:id/conditions',
     data: {
       seo: {

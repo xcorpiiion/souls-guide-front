@@ -27,6 +27,12 @@
         </div>
         <div class="game-detail__actions">
           @if (auth.isLoggedIn()) {
+            <a
+              class="game-detail__btn game-detail__btn--secondary"
+              [routerLink]="['/games', g.id, 'run']"
+            >
+              <i class="ti ti-progress" aria-hidden="true"></i> minha run
+            </a>
             <button
               class="game-detail__btn"
               [class.game-detail__btn--primary]="gameFollowing()"

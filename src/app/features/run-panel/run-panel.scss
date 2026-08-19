@@ -1,0 +1,277 @@
+@use 'styles/variables' as v;
+
+.run {
+  max-width: 760px;
+  margin: 0 auto;
+  padding: 40px 24px 80px;
+}
+
+.run__header {
+  margin-bottom: 28px;
+}
+
+.run__back {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  color: v.$color-text-muted;
+  text-decoration: none;
+  padding: 6px 10px;
+  border-radius: v.$radius-md;
+  border: 0.5px solid v.$color-border;
+  background: v.$color-bg-surface;
+  margin-bottom: 20px;
+  transition:
+    color 0.15s,
+    background 0.15s;
+
+  &:hover {
+    color: v.$color-gold;
+    background: v.$color-bg-elevated;
+  }
+}
+
+.run__title {
+  font-family: v.$font-display;
+  font-size: 28px;
+  color: v.$color-text;
+  margin: 0 0 6px;
+}
+
+.run__subtitle {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 14px;
+  color: v.$color-text-muted;
+  margin: 0;
+}
+
+// ─── Blocos ──────────────────────────────────────────────────────
+
+.run__box {
+  border: 0.5px solid v.$color-border;
+  border-radius: v.$radius-lg;
+  background: v.$color-bg-surface;
+  padding: 20px 22px;
+  margin-bottom: 20px;
+}
+
+// O aviso de comportamento nao e alerta de erro: ele acompanha a run inteira, entao usa a
+// cor de atencao e nao a de perigo, que ficaria gritando a sessao toda.
+.run__box--avoid {
+  border-color: rgba(v.$color-warning, 0.4);
+  background: rgba(v.$color-warning, 0.06);
+}
+
+.run__box--porta {
+  border-color: rgba(v.$color-ember, 0.4);
+  background: rgba(v.$color-ember, 0.06);
+}
+
+.run__box-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: v.$font-display;
+  font-size: 16px;
+  color: v.$color-text;
+  margin: 0 0 4px;
+}
+
+.run__box-help {
+  font-size: 12.5px;
+  color: v.$color-text-muted;
+  margin: 0 0 14px;
+}
+
+// ─── Avisos ──────────────────────────────────────────────────────
+
+.run__avisos {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.run__aviso {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 8px;
+  font-size: 14px;
+  color: v.$color-text;
+}
+
+.run__aviso-texto {
+  flex: 1 1 auto;
+}
+
+.run__aviso-fonte {
+  font-size: 12px;
+  color: v.$color-text-muted;
+  text-decoration: none;
+
+  &:hover {
+    color: v.$color-gold;
+  }
+}
+
+.run__spoiler {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: inherit;
+  font-size: 13px;
+  color: v.$color-text-muted;
+  background: v.$color-bg-elevated;
+  border: 0.5px solid v.$color-border;
+  border-radius: v.$radius-md;
+  padding: 5px 10px;
+  cursor: pointer;
+
+  &:hover {
+    color: v.$color-gold;
+    border-color: v.$color-gold-dark;
+  }
+}
+
+// ─── Progresso ───────────────────────────────────────────────────
+
+.run__resumo {
+  display: flex;
+  gap: 28px;
+  margin-bottom: 14px;
+}
+
+.run__stat {
+  display: flex;
+  flex-direction: column;
+}
+
+.run__stat-n {
+  font-family: v.$font-display;
+  font-size: 22px;
+  color: v.$color-gold;
+}
+
+.run__stat-l {
+  font-size: 11.5px;
+  color: v.$color-text-muted;
+}
+
+.run__bar {
+  height: 6px;
+  border-radius: 3px;
+  background: v.$color-bg-elevated;
+  overflow: hidden;
+}
+
+.run__bar--fina {
+  height: 3px;
+  flex: 1 1 100%;
+}
+
+.run__bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, v.$color-gold-dark, v.$color-gold);
+  transition: width 0.3s ease;
+}
+
+// ─── Listas ──────────────────────────────────────────────────────
+
+.run__lista {
+  list-style: none;
+  margin: 18px 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.run__item {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.run__item--done .run__item-nome {
+  color: v.$color-text-muted;
+}
+
+.run__item-nome {
+  flex: 1 1 auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 14px;
+  color: v.$color-text;
+  text-decoration: none;
+
+  &:hover {
+    color: v.$color-gold;
+  }
+}
+
+.run__item-n {
+  font-size: 12px;
+  color: v.$color-text-muted;
+  font-variant-numeric: tabular-nums;
+}
+
+.run__tag {
+  font-size: 11px;
+  color: v.$color-text-muted;
+  border: 0.5px solid v.$color-border;
+  border-radius: v.$radius-sm;
+  padding: 1px 6px;
+}
+
+.run__tag--avoid {
+  color: v.$color-warning;
+  border-color: rgba(v.$color-warning, 0.4);
+}
+
+// ─── Vazio ───────────────────────────────────────────────────────
+
+.run__empty {
+  text-align: center;
+  padding: 60px 20px;
+}
+
+.run__empty-icon {
+  font-size: 34px;
+  color: v.$color-text-faint;
+}
+
+.run__empty-title {
+  font-family: v.$font-display;
+  font-size: 17px;
+  color: v.$color-text;
+  margin: 14px 0 6px;
+}
+
+.run__empty-text {
+  font-size: 13.5px;
+  color: v.$color-text-muted;
+  max-width: 420px;
+  margin: 0 auto 20px;
+}
+
+.run__cta {
+  display: inline-block;
+  font-size: 13px;
+  color: v.$color-gold;
+  border: 0.5px solid v.$color-gold-dark;
+  border-radius: v.$radius-md;
+  padding: 8px 16px;
+  text-decoration: none;
+
+  &:hover {
+    background: rgba(v.$color-gold, 0.08);
+  }
+}

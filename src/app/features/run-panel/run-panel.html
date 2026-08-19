@@ -1,0 +1,176 @@
+<section class="run">
+  <header class="run__header">
+    <a class="run__back" [routerLink]="['/games', gameId]">
+      <i class="ti ti-arrow-left" aria-hidden="true"></i> voltar para o jogo
+    </a>
+
+    <h1 class="run__title">minha run</h1>
+    @if (run(); as r) {
+      <p class="run__subtitle">
+        <i class="ti ti-device-gamepad-2" aria-hidden="true"></i>
+        {{ r.gameName }}
+      </p>
+    }
+  </header>
+
+  @if (loading()) {
+    <pf-page-loader message="Carregando sua run…" />
+  } @else if (error()) {
+    <div class="run__empty">
+      <i class="ti ti-alert-circle run__empty-icon" aria-hidden="true"></i>
+      <p class="run__empty-title">{{ error() }}</p>
+    </div>
+  } @else if (vazio()) {
+    <div class="run__empty">
+      <i class="ti ti-map-off run__empty-icon" aria-hidden="true"></i>
+      <p class="run__empty-title">sua run ainda não começou</p>
+      <p class="run__empty-text">
+        marque um passo em qualquer guia deste jogo e ele aparece aqui, com o que falta e o que você
+        precisa evitar.
+      </p>
+      <a class="run__cta" [routerLink]="['/games', gameId]">ver os guias</a>
+    </div>
+  } @else if (run(); as r) {
+    <!-- Avisos primeiro: eles valem agora, o progresso é consulta. -->
+    @if (avisosAEvitar().length > 0) {
+      <section class="run__box run__box--avoid">
+        <h2 class="run__box-title">
+          <i class="ti ti-hand-stop" aria-hidden="true"></i>
+          manter a run inteira
+        </h2>
+        <p class="run__box-help">
+          não é tarefa que se conclui — é comportamento, e vale enquanto o final estiver em curso.
+        </p>
+        <ul class="run__avisos">
+          @for (aviso of avisosAEvitar(); track $index) {
+            <li class="run__aviso">
+              @if (revelado($index, aviso)) {
+                <span class="run__aviso-texto">{{ aviso.text }}</span>
+              } @else {
+                <button class="run__spoiler" type="button" (click)="revelar($index)">
+                  <i class="ti ti-eye-off" aria-hidden="true"></i> contém spoiler — mostrar
+                </button>
+              }
+              @if (aviso.questTitle) {
+                <span class="run__aviso-fonte">{{ aviso.questTitle }}</span>
+              }
+            </li>
+          }
+        </ul>
+      </section>
+    }
+
+    @if (pontosSemRetorno().length > 0) {
+      <section class="run__box run__box--porta">
+        <h2 class="run__box-title">
+          <i class="ti ti-door-exit" aria-hidden="true"></i>
+          portas que ainda dá para não fechar
+        </h2>
+        <p class="run__box-help">
+          cada uma some daqui assim que você a disparar. até lá, a escolha é sua.
+        </p>
+        <ul class="run__avisos">
+          @for (aviso of pontosSemRetorno(); track $index) {
+            <li class="run__aviso">
+              @if (revelado(1000 + $index, aviso)) {
+                <span class="run__aviso-texto">{{ aviso.text }}</span>
+              } @else {
+                <button class="run__spoiler" type="button" (click)="revelar(1000 + $index)">
+                  <i class="ti ti-eye-off" aria-hidden="true"></i> contém spoiler — mostrar
+                </button>
+              }
+              @if (aviso.questId) {
+                <a
+                  class="run__aviso-fonte"
+                  [routerLink]="['/games', gameId, 'quests', aviso.questId]"
+                >
+                  {{ aviso.questTitle }}
+                </a>
+              }
+            </li>
+          }
+        </ul>
+      </section>
+    }
+
+    <section class="run__box">
+      <h2 class="run__box-title"><i class="ti ti-progress" aria-hidden="true"></i> progresso</h2>
+
+      <div class="run__resumo">
+        <div class="run__stat">
+          <span class="run__stat-n">{{ r.questsStarted }}</span>
+          <span class="run__stat-l">quests em curso</span>
+        </div>
+        <div class="run__stat">
+          <span class="run__stat-n">{{ r.questsFinished }}</span>
+          <span class="run__stat-l">terminadas</span>
+        </div>
+        <div class="run__stat">
+          <span class="run__stat-n">{{ percent() }}%</span>
+          <span class="run__stat-l">dos passos</span>
+        </div>
+      </div>
+
+      <div class="run__bar" role="progressbar" [attr.aria-valuenow]="percent()">
+        <div class="run__bar-fill" [style.width.%]="percent()"></div>
+      </div>
+
+      <ul class="run__lista">
+        @for (quest of r.quests; track quest.questId) {
+          <li class="run__item" [class.run__item--done]="quest.finished">
+            <a class="run__item-nome" [routerLink]="['/games', gameId, 'quests', quest.questId]">
+              @if (quest.finished) {
+                <i class="ti ti-circle-check" aria-hidden="true"></i>
+              }
+              {{ quest.title }}
+            </a>
+            <span class="run__item-n">{{ quest.stepsDone }}/{{ quest.stepsTotal }}</span>
+            <div class="run__bar run__bar--fina">
+              <div
+                class="run__bar-fill"
+                [style.width.%]="percentOf(quest.stepsDone, quest.stepsTotal)"
+              ></div>
+            </div>
+          </li>
+        }
+      </ul>
+    </section>
+
+    @if (r.endings.length > 0) {
+      <section class="run__box">
+        <h2 class="run__box-title"><i class="ti ti-flag" aria-hidden="true"></i> finais</h2>
+
+        <ul class="run__lista">
+          @for (fim of finaisEmCurso(); track fim.endingId) {
+            <li class="run__item">
+              <a class="run__item-nome" [routerLink]="['/games', gameId, 'finais', fim.endingId]">
+                {{ fim.title }}
+                <span class="run__tag">{{ kindLabel[fim.kind] }}</span>
+              </a>
+              <span class="run__item-n">{{ fim.stepsDone }}/{{ fim.stepsTotal }}</span>
+              @if (fim.avoidSteps > 0) {
+                <span class="run__tag run__tag--avoid"> {{ fim.avoidSteps }} a evitar </span>
+              }
+              <div class="run__bar run__bar--fina">
+                <div
+                  class="run__bar-fill"
+                  [style.width.%]="percentOf(fim.stepsDone, fim.stepsTotal)"
+                ></div>
+              </div>
+            </li>
+          }
+
+          @for (fim of finaisAlcancados(); track fim.endingId) {
+            <li class="run__item run__item--done">
+              <a class="run__item-nome" [routerLink]="['/games', gameId, 'finais', fim.endingId]">
+                <i class="ti ti-circle-check" aria-hidden="true"></i>
+                {{ fim.title }}
+              </a>
+              <span class="run__item-n">alcançado</span>
+            </li>
+          }
+        </ul>
+      </section>
+    }
+  }
+</section>

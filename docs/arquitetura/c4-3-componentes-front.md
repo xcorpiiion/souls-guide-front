@@ -85,6 +85,7 @@ flowchart LR
         profile["profile.service"]
         progress["progress.service"]
         questProgress["quest-progress.service"]
+        run["run.service"]
         user["user.service"]
         notification["notification.service"]
     end
@@ -98,7 +99,7 @@ flowchart LR
     end
 
     classDef s fill:#1168bd,stroke:#0b4884,color:#fff
-    class game,quest,lore,ending,questVersion,loreVersion,questCondition,questMap,comment,personalQuest,personalLore,profile,progress,questProgress,user,notification,seo,atualizacao,storage,loading,monitoring s
+    class game,quest,lore,ending,questVersion,loreVersion,questCondition,questMap,comment,personalQuest,personalLore,profile,progress,questProgress,run,user,notification,seo,atualizacao,storage,loading,monitoring s
 ```
 
 Três deles não falam com o `souls-guide-api`:
