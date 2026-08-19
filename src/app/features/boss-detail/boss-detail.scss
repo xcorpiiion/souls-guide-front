@@ -260,3 +260,29 @@
   color: v.$color-text;
   margin: 14px 0 6px;
 }
+
+.chefe__topo {
+  @include m.flex-between;
+  align-items: center;
+  gap: v.$space-3;
+  flex-wrap: wrap;
+}
+
+.chefe__editar {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  color: v.$color-gold;
+  text-decoration: none;
+  padding: 8px 12px;
+  border-radius: v.$radius-md;
+  border: 0.5px solid v.$color-gold-dark;
+  background: rgb(201 168 76 / 8%);
+  margin-bottom: 20px;
+  min-height: 36px;
+
+  &:hover {
+    background: rgb(201 168 76 / 14%);
+  }
+}

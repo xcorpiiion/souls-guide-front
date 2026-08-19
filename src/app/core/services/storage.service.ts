@@ -11,7 +11,7 @@ import type {
 import { HttpService, skipAuth } from '@xcorpiiion/ng-core';
 
 /** A que entidade um arquivo pertence. Casa com o ownerKind gravado na storage-api. */
-export type FileOwnerKind = 'QUEST' | 'LORE' | 'GAME';
+export type FileOwnerKind = 'QUEST' | 'LORE' | 'GAME' | 'BOSS';
 
 /**
  * Arquivo que já subiu mas ainda não foi confirmado. Enquanto está assim ele não tem

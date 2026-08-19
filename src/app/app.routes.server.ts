@@ -33,6 +33,8 @@ export const serverRoutes: ServerRoute[] = [
   { path: 'games/:gameId/quests/:questId/edit', renderMode: RenderMode.Client },
   { path: 'lore/new', renderMode: RenderMode.Client },
   { path: 'lore/:id/edit', renderMode: RenderMode.Client },
+  { path: 'games/:gameId/chefes/novo', renderMode: RenderMode.Client },
+  { path: 'chefes/:id/editar', renderMode: RenderMode.Client },
 
   // O resto é conteúdo: jogo, quest, lore, final, perfil público, listagens.
   { path: '**', renderMode: RenderMode.Server },

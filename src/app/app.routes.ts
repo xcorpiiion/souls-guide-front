@@ -86,6 +86,28 @@ export const routes: Routes = [
     loadComponent: () => import('./features/chefes/chefes').then((m) => m.Chefes),
   },
   {
+    path: 'games/:gameId/chefes/novo',
+    data: {
+      seo: {
+        titulo: 'Cadastrar chefe',
+        descricao: 'Acrescente um chefe ao catálogo da comunidade.',
+        indexavel: false,
+      } satisfies SeoPagina,
+    },
+    loadComponent: () => import('./features/boss-editor/boss-editor').then((m) => m.BossEditor),
+  },
+  {
+    path: 'chefes/:id/editar',
+    data: {
+      seo: {
+        titulo: 'Editar chefe',
+        descricao: 'Corrija ou complete o que está cadastrado.',
+        indexavel: false,
+      } satisfies SeoPagina,
+    },
+    loadComponent: () => import('./features/boss-editor/boss-editor').then((m) => m.BossEditor),
+  },
+  {
     path: 'chefes/:id',
     data: {
       seo: {

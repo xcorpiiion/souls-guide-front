@@ -70,6 +70,12 @@
         ></i>
         {{ spoilerLiberado() ? 'mostrando tudo' : 'sem spoiler' }}
       </button>
+
+      @if (logado()) {
+        <a class="chefes__adicionar" [routerLink]="['/games', gameId, 'chefes', 'novo']">
+          <i class="ti ti-plus" aria-hidden="true"></i> adicionar
+        </a>
+      }
     </div>
   </div>
 
@@ -83,6 +89,13 @@
         esse catálogo é escrito pela comunidade — {{ gameName() }} ainda não tem nenhum chefe
         registrado. seja o primeiro a começar a linha do tempo.
       </p>
+      <!-- O texto convidava e não oferecia nada: é justamente aqui que a pessoa está
+           mais disposta a cadastrar. -->
+      @if (logado()) {
+        <a class="chefes__cta" [routerLink]="['/games', gameId, 'chefes', 'novo']">
+          <i class="ti ti-plus" aria-hidden="true"></i> cadastrar o primeiro chefe
+        </a>
+      }
     </div>
   } @else if (buscaVazia()) {
     <div class="chefes__empty">

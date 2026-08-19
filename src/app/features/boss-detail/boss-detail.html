@@ -7,9 +7,17 @@
       <p class="chefe__empty-title">{{ error() }}</p>
     </div>
   } @else if (boss(); as b) {
-    <a class="chefe__back" [routerLink]="['/games', b.gameId, 'chefes']">
-      <i class="ti ti-arrow-left" aria-hidden="true"></i> chefes de {{ b.gameName }}
-    </a>
+    <div class="chefe__topo">
+      <a class="chefe__back" [routerLink]="['/games', b.gameId, 'chefes']">
+        <i class="ti ti-arrow-left" aria-hidden="true"></i> chefes de {{ b.gameName }}
+      </a>
+
+      @if (logado()) {
+        <a class="chefe__editar" [routerLink]="['/chefes', b.id, 'editar']">
+          <i class="ti ti-pencil" aria-hidden="true"></i> editar
+        </a>
+      }
+    </div>
 
     <header class="chefe__header">
       @if (imagem()) {

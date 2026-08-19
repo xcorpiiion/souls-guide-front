@@ -1,0 +1,502 @@
+<section class="editor">
+  <button class="editor__back" type="button" (click)="cancelar()">
+    <i class="ti ti-arrow-left" aria-hidden="true"></i> chefes de {{ jogoNome() }}
+  </button>
+
+  <header class="editor__header">
+    <h1 class="editor__title">{{ editando() ? 'editar chefe' : 'cadastrar chefe' }}</h1>
+    <p class="editor__subtitle">
+      <i class="ti ti-skull" aria-hidden="true"></i>
+      {{
+        editando()
+          ? 'editando entrada existente'
+          : 'contribuição da comunidade — só nome e jogo são obrigatórios'
+      }}
+    </p>
+  </header>
+
+  <!--
+    O erro não limpa nada: o formulário continua preenchido para a pessoa tentar de novo.
+    Perder o texto digitado é o pior desfecho possível aqui.
+  -->
+  @if (erroDeRede()) {
+    <div class="editor__aviso editor__aviso--erro" role="alert">
+      <i class="ti ti-wifi-off" aria-hidden="true"></i>
+      <span>
+        não foi possível salvar. nada foi perdido, o formulário continua preenchido — tente de novo.
+      </span>
+    </div>
+  }
+
+  @if (salvoAviso(); as aviso) {
+    <div class="editor__aviso editor__aviso--ok" role="status">
+      <i class="ti ti-circle-check" aria-hidden="true"></i>
+      <span>{{ aviso }}</span>
+    </div>
+  }
+
+  <!-- ─── identidade ─────────────────────────────────────────── -->
+  <div class="editor__card">
+    <p class="editor__card-title">identidade</p>
+
+    <div class="editor__campo">
+      <label for="nome">nome <span class="editor__obrigatorio">*</span></label>
+      <input
+        id="nome"
+        type="text"
+        autocomplete="off"
+        placeholder="ex: Devorador de Carne Vermelha"
+        [class.editor__input--alerta]="nomeDuplicado()"
+        [ngModel]="nome()"
+        (ngModelChange)="onNome($event)"
+      />
+      @if (nomeDuplicado()) {
+        <span class="editor__alerta">
+          <i class="ti ti-alert-triangle" aria-hidden="true"></i>
+          já existe "{{ nome() }}" cadastrado em {{ jogoNome() }}. confira antes de duplicar.
+        </span>
+      }
+    </div>
+
+    <div class="editor__grade">
+      <div class="editor__campo">
+        <label for="jogo">jogo <span class="editor__obrigatorio">*</span></label>
+        <select id="jogo" [ngModel]="jogoId()" (ngModelChange)="onJogo($event)">
+          <option value="" disabled>escolha o jogo</option>
+          @for (j of jogos(); track j.id) {
+            <option [value]="j.id">{{ j.name }}</option>
+          }
+        </select>
+      </div>
+
+      <div class="editor__campo">
+        <span class="editor__rotulo">obrigatório?</span>
+        <div class="editor__par">
+          <button
+            type="button"
+            class="editor__opcao"
+            [class.editor__opcao--obrigatorio]="mandatory()"
+            [attr.aria-pressed]="mandatory()"
+            (click)="mandatory.set(true)"
+          >
+            obrigatório
+          </button>
+          <button
+            type="button"
+            class="editor__opcao"
+            [class.editor__opcao--opcional]="!mandatory()"
+            [attr.aria-pressed]="!mandatory()"
+            (click)="mandatory.set(false)"
+          >
+            opcional
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div class="editor__grade">
+      <div class="editor__campo">
+        <label for="regiao">região / capítulo</label>
+        <input
+          id="regiao"
+          type="text"
+          autocomplete="off"
+          placeholder="ex: Caelid, a Terra Escarlate"
+          [ngModel]="regiao()"
+          (ngModelChange)="regiao.set($event)"
+        />
+      </div>
+      <div class="editor__campo">
+        <label for="ordem">ordem recomendada</label>
+        <input
+          id="ordem"
+          type="number"
+          placeholder="deixe em branco"
+          [ngModel]="ordem()"
+          (ngModelChange)="ordem.set($event)"
+        />
+      </div>
+    </div>
+    <p class="editor__dica">
+      sem número? tudo bem — dá pra arrastar a posição certa depois, na listagem.
+    </p>
+  </div>
+
+  <!-- ─── onde fica ──────────────────────────────────────────── -->
+  <div class="editor__card">
+    <p class="editor__card-title"><i class="ti ti-map-pin" aria-hidden="true"></i> onde fica</p>
+    <textarea
+      rows="3"
+      placeholder="como chegar até ele — pontos de referência, o que passar antes"
+      [ngModel]="ondeFica()"
+      (ngModelChange)="ondeFica.set($event)"
+    ></textarea>
+  </div>
+
+  <!-- ─── como matar ─────────────────────────────────────────── -->
+  <div class="editor__card editor__card--dobra">
+    <button
+      class="editor__dobra"
+      type="button"
+      [attr.aria-expanded]="comoMatarAberto()"
+      (click)="comoMatarAberto.set(!comoMatarAberto())"
+    >
+      <span><i class="ti ti-sword" aria-hidden="true"></i> como matar</span>
+      <i
+        class="ti"
+        [class.ti-chevron-up]="comoMatarAberto()"
+        [class.ti-chevron-down]="!comoMatarAberto()"
+        aria-hidden="true"
+      ></i>
+    </button>
+
+    @if (comoMatarAberto()) {
+      <div class="editor__dobra-corpo">
+        <div class="editor__campo">
+          <span class="editor__rotulo">fraquezas</span>
+          <!-- Chips, não texto com vírgulas: fraqueza é filtro visual, e a pessoa varre
+               a tela atrás de uma palavra. -->
+          <div class="editor__chips">
+            @for (fraqueza of fraquezas(); track fraqueza; let i = $index) {
+              <span class="editor__chip editor__chip--dourado">
+                {{ fraqueza }}
+                <button type="button" aria-label="remover fraqueza" (click)="removerFraqueza(i)">
+                  <i class="ti ti-x" aria-hidden="true"></i>
+                </button>
+              </span>
+            }
+            <input
+              class="editor__chip-input"
+              type="text"
+              autocomplete="off"
+              placeholder="digite e enter…"
+              [ngModel]="fraquezaInput()"
+              (ngModelChange)="fraquezaInput.set($event)"
+              (keydown.enter)="onFraquezaEnter($event)"
+            />
+          </div>
+        </div>
+
+        <div class="editor__campo">
+          <label for="funciona">funciona</label>
+          <textarea
+            id="funciona"
+            rows="2"
+            placeholder="o que dá resultado contra ele"
+            [ngModel]="funciona()"
+            (ngModelChange)="funciona.set($event)"
+          ></textarea>
+        </div>
+
+        <div class="editor__campo">
+          <label for="naofunciona">não funciona</label>
+          <textarea
+            id="naofunciona"
+            rows="2"
+            placeholder="o que perde tempo"
+            [ngModel]="naoFunciona()"
+            (ngModelChange)="naoFunciona.set($event)"
+          ></textarea>
+        </div>
+      </div>
+    }
+  </div>
+
+  <!-- ─── fases ──────────────────────────────────────────────── -->
+  <div class="editor__card editor__card--dobra">
+    <button
+      class="editor__dobra"
+      type="button"
+      [attr.aria-expanded]="fasesAberto()"
+      (click)="fasesAberto.set(!fasesAberto())"
+    >
+      <span>
+        <i class="ti ti-refresh-dot" aria-hidden="true"></i> fases
+        <span class="editor__contagem">({{ fases().length }})</span>
+      </span>
+      <i
+        class="ti"
+        [class.ti-chevron-up]="fasesAberto()"
+        [class.ti-chevron-down]="!fasesAberto()"
+        aria-hidden="true"
+      ></i>
+    </button>
+
+    @if (fasesAberto()) {
+      <div class="editor__dobra-corpo">
+        @if (fases().length === 0) {
+          <p class="editor__vazio">
+            a maioria dos chefes não tem fases — só adicione se este tiver.
+          </p>
+        }
+
+        <div class="editor__fases">
+          @for (fase of fases(); track fase.chave; let i = $index) {
+            <div
+              class="editor__fase"
+              draggable="true"
+              (dragstart)="onDragStart(i)"
+              (dragover)="onDragOver($event)"
+              (drop)="onDrop(i)"
+            >
+              <i class="ti ti-grip-vertical editor__pega" aria-hidden="true"></i>
+              <div class="editor__fase-campos">
+                <input
+                  type="text"
+                  placeholder="título da fase"
+                  [ngModel]="fase.title"
+                  (ngModelChange)="atualizarFase(i, 'title', $event)"
+                />
+                <textarea
+                  rows="2"
+                  placeholder="o que muda nesta fase"
+                  [ngModel]="fase.description"
+                  (ngModelChange)="atualizarFase(i, 'description', $event)"
+                ></textarea>
+              </div>
+              <button
+                type="button"
+                aria-label="remover fase"
+                class="editor__remover"
+                (click)="removerFase(i)"
+              >
+                <i class="ti ti-trash" aria-hidden="true"></i>
+              </button>
+            </div>
+          }
+        </div>
+
+        <button type="button" class="editor__adicionar" (click)="adicionarFase()">
+          <i class="ti ti-plus" aria-hidden="true"></i> adicionar fase
+        </button>
+      </div>
+    }
+  </div>
+
+  <!-- ─── drops ──────────────────────────────────────────────── -->
+  <div class="editor__card editor__card--dobra">
+    <button
+      class="editor__dobra"
+      type="button"
+      [attr.aria-expanded]="dropsAberto()"
+      (click)="dropsAberto.set(!dropsAberto())"
+    >
+      <span>
+        <i class="ti ti-gift" aria-hidden="true"></i> o que dropa
+        <span class="editor__contagem">({{ drops().length }})</span>
+      </span>
+      <i
+        class="ti"
+        [class.ti-chevron-up]="dropsAberto()"
+        [class.ti-chevron-down]="!dropsAberto()"
+        aria-hidden="true"
+      ></i>
+    </button>
+
+    @if (dropsAberto()) {
+      <div class="editor__dobra-corpo">
+        <div class="editor__chips editor__chips--soltos">
+          @for (drop of drops(); track drop.name; let i = $index) {
+            <span class="editor__chip editor__chip--dourado">
+              @if (drop.novo) {
+                <i
+                  class="ti ti-sparkles"
+                  aria-hidden="true"
+                  title="item novo, será criado ao salvar"
+                ></i>
+              }
+              {{ drop.name }}
+              <button type="button" aria-label="remover drop" (click)="removerDrop(i)">
+                <i class="ti ti-x" aria-hidden="true"></i>
+              </button>
+            </span>
+          }
+        </div>
+
+        <div class="editor__busca">
+          <i class="ti ti-search" aria-hidden="true"></i>
+          <input
+            type="text"
+            autocomplete="off"
+            [placeholder]="'buscar item de ' + jogoNome() + '…'"
+            [ngModel]="dropBusca()"
+            (ngModelChange)="onDropBusca($event)"
+          />
+        </div>
+
+        @if (dropBusca().trim()) {
+          <div class="editor__resultados">
+            @for (res of dropResultados(); track res.id) {
+              <button type="button" (click)="escolherDrop(res)">
+                <i class="ti ti-sparkles" aria-hidden="true"></i> {{ res.name }}
+              </button>
+            }
+            <!-- O item que ainda não existe no catálogo nasce aqui. Sem esta saída, o
+                 vínculo chefe↔item quase nunca seria preenchido. -->
+            @if (dropSemResultado()) {
+              <button type="button" class="editor__criar" (click)="criarDrop()">
+                <i class="ti ti-plus" aria-hidden="true"></i>
+                criar item "{{ dropBusca() }}" no catálogo
+              </button>
+            }
+          </div>
+        }
+      </div>
+    }
+  </div>
+
+  <!-- ─── guias ──────────────────────────────────────────────── -->
+  <div class="editor__card editor__card--dobra">
+    <button
+      class="editor__dobra"
+      type="button"
+      [attr.aria-expanded]="guiasAberto()"
+      (click)="guiasAberto.set(!guiasAberto())"
+    >
+      <span>
+        <i class="ti ti-route" aria-hidden="true"></i> em que guias aparece
+        <span class="editor__contagem">({{ guias().length }})</span>
+      </span>
+      <i
+        class="ti"
+        [class.ti-chevron-up]="guiasAberto()"
+        [class.ti-chevron-down]="!guiasAberto()"
+        aria-hidden="true"
+      ></i>
+    </button>
+
+    @if (guiasAberto()) {
+      <div class="editor__dobra-corpo">
+        <div class="editor__chips editor__chips--soltos">
+          @for (guia of guias(); track guia.questId; let i = $index) {
+            <span class="editor__chip">
+              <i class="ti ti-map" aria-hidden="true"></i> {{ guia.title }}
+              <button type="button" aria-label="remover guia" (click)="removerGuia(i)">
+                <i class="ti ti-x" aria-hidden="true"></i>
+              </button>
+            </span>
+          }
+        </div>
+
+        <div class="editor__busca">
+          <i class="ti ti-search" aria-hidden="true"></i>
+          <input
+            type="text"
+            autocomplete="off"
+            [placeholder]="'buscar guia de ' + jogoNome() + '…'"
+            [ngModel]="guiaBusca()"
+            (ngModelChange)="onGuiaBusca($event)"
+          />
+        </div>
+
+        @if (guiaBusca().trim()) {
+          <div class="editor__resultados">
+            @for (res of guiaResultados(); track res.id) {
+              <button type="button" (click)="escolherGuia(res)">
+                <i class="ti ti-map" aria-hidden="true"></i> {{ res.title }}
+              </button>
+            }
+            @if (guiaSemResultado()) {
+              <p class="editor__sem-resultado">nenhum guia encontrado com esse nome.</p>
+            }
+          </div>
+        }
+      </div>
+    }
+  </div>
+
+  <!-- ─── lore ───────────────────────────────────────────────── -->
+  <div class="editor__card editor__card--dobra">
+    <button
+      class="editor__dobra"
+      type="button"
+      [attr.aria-expanded]="loreAberto()"
+      (click)="loreAberto.set(!loreAberto())"
+    >
+      <span><i class="ti ti-book" aria-hidden="true"></i> descrição e lore</span>
+      <i
+        class="ti"
+        [class.ti-chevron-up]="loreAberto()"
+        [class.ti-chevron-down]="!loreAberto()"
+        aria-hidden="true"
+      ></i>
+    </button>
+
+    @if (loreAberto()) {
+      <div class="editor__dobra-corpo">
+        <textarea
+          rows="4"
+          placeholder="história, motivação, curiosidades — o que não é essencial pra vencer o combate"
+          [ngModel]="lore()"
+          (ngModelChange)="lore.set($event)"
+        ></textarea>
+      </div>
+    }
+  </div>
+
+  <!-- ─── imagem ─────────────────────────────────────────────── -->
+  <div class="editor__card editor__card--dobra">
+    <button
+      class="editor__dobra"
+      type="button"
+      [attr.aria-expanded]="imagemAberto()"
+      (click)="imagemAberto.set(!imagemAberto())"
+    >
+      <span><i class="ti ti-photo" aria-hidden="true"></i> imagem</span>
+      <i
+        class="ti"
+        [class.ti-chevron-up]="imagemAberto()"
+        [class.ti-chevron-down]="!imagemAberto()"
+        aria-hidden="true"
+      ></i>
+    </button>
+
+    @if (imagemAberto()) {
+      <div class="editor__dobra-corpo">
+        <app-image-uploader
+          purpose="BOSS_IMAGE"
+          variant="inline"
+          label="Arte do chefe"
+          hint="PNG, JPG ou WebP · até 5 MB. a maioria dos chefes ainda não vai ter imagem — a linha fica boa sem ela."
+          [currentUrl]="imagemUrl()"
+          (uploaded)="onImagemEnviada($event)"
+          (cleared)="onImagemRemovida()"
+        />
+      </div>
+    }
+  </div>
+
+  <!-- Grudado no rodapé: o formulário é longo, e o botão de salvar não pode depender
+       de a pessoa rolar até o fim para existir. -->
+  <div class="editor__acoes">
+    <button type="button" class="editor__btn editor__btn--fantasma" (click)="cancelar()">
+      cancelar
+    </button>
+
+    @if (!editando()) {
+      <button
+        type="button"
+        class="editor__btn editor__btn--secundario"
+        [disabled]="!podeSalvar()"
+        (click)="salvarEProximo()"
+      >
+        <i class="ti ti-arrow-right" aria-hidden="true"></i> salvar e cadastrar próximo
+      </button>
+    }
+
+    <button
+      type="button"
+      class="editor__btn editor__btn--principal"
+      [disabled]="!podeSalvar()"
+      (click)="salvar()"
+    >
+      <i
+        class="ti"
+        [class.ti-loader-2]="salvando()"
+        [class.ti-device-floppy]="!salvando()"
+        aria-hidden="true"
+      ></i>
+      {{ salvando() ? 'salvando…' : editando() ? 'salvar alterações' : 'salvar chefe' }}
+    </button>
+  </div>
+</section>
