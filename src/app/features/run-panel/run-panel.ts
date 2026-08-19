@@ -6,6 +6,7 @@ import {
   inject,
   signal,
 } from '@angular/core';
+import { TPipe } from '../../core/i18n/t.pipe';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { HttpErrorResponse } from '@angular/common/http';
 import { PfPageLoader } from '@xcorpiiion/ui';
@@ -25,7 +26,7 @@ const KIND_LABEL: Record<string, string> = {
 
 @Component({
   selector: 'app-run-panel',
-  imports: [RouterLink, PfPageLoader],
+  imports: [RouterLink, PfPageLoader, TPipe],
   templateUrl: './run-panel.html',
   styleUrl: './run-panel.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

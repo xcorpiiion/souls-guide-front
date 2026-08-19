@@ -1,4 +1,5 @@
 import { ChangeDetectionStrategy, Component, inject, input, signal } from '@angular/core';
+import { TPipe } from '../../../core/i18n/t.pipe';
 import { FormsModule } from '@angular/forms';
 import { HttpErrorResponse } from '@angular/common/http';
 import { AuthService } from '@xcorpiiion/ng-core';
@@ -15,7 +16,7 @@ import { REPORT_REASON_LABEL, REPORT_REASON_ORDER } from '../../models/moderacao
  */
 @Component({
   selector: 'app-report-button',
-  imports: [FormsModule],
+  imports: [FormsModule, TPipe],
   templateUrl: './report-button.html',
   styleUrl: './report-button.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

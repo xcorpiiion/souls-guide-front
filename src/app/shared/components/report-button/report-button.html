@@ -1,6 +1,11 @@
 @if (auth.isLoggedIn()) {
-  <button class="report__botao" type="button" (click)="abrir()" aria-label="denunciar conteúdo">
-    <i class="ti ti-flag" aria-hidden="true"></i> denunciar
+  <button
+    class="report__botao"
+    type="button"
+    (click)="abrir()"
+    [attr.aria-label]="'acao.denunciar' | t"
+  >
+    <i class="ti ti-flag" aria-hidden="true"></i> {{ 'acao.denunciar' | t }}
   </button>
 }
 
@@ -12,7 +17,7 @@
   <button class="report__fundo" type="button" aria-label="fechar" (click)="fechar()"></button>
 
   <div class="report__caixa" role="dialog" aria-label="denunciar conteúdo">
-    <h2 class="report__titulo">o que há de errado?</h2>
+    <h2 class="report__titulo">{{ 'denuncia.titulo' | t }}</h2>
 
     <div class="report__motivos">
       @for (r of reasons; track r) {
@@ -27,28 +32,30 @@
       }
     </div>
 
-    <label class="report__label" for="report-detalhes">detalhes (opcional)</label>
+    <label class="report__label" for="report-detalhes">{{ 'denuncia.detalhes' | t }}</label>
     <textarea
       id="report-detalhes"
       class="report__texto"
       rows="3"
       maxlength="1000"
-      placeholder="o que a moderação precisa saber para decidir"
+      [placeholder]="'denuncia.detalhesPlaceholder' | t"
       [ngModel]="detalhes()"
       (ngModelChange)="detalhes.set($event)"
     ></textarea>
 
     <p class="report__aviso">
-      a denúncia vai para uma fila e é lida por uma pessoa — nada é removido automaticamente.
+      {{ 'denuncia.aviso' | t }}
     </p>
 
     <div class="report__acoes">
-      <button class="report__cancelar" type="button" (click)="fechar()">cancelar</button>
+      <button class="report__cancelar" type="button" (click)="fechar()">
+        {{ 'acao.cancelar' | t }}
+      </button>
       <button class="report__enviar" type="button" [disabled]="enviando()" (click)="enviar()">
         @if (enviando()) {
-          enviando…
+          {{ 'denuncia.enviando' | t }}
         } @else {
-          enviar denúncia
+          {{ 'denuncia.enviar' | t }}
         }
       </button>
     </div>

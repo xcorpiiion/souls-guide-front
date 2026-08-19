@@ -1,4 +1,5 @@
 import { TestBed, ComponentFixture } from '@angular/core/testing';
+import { I18nService } from '../../core/i18n/i18n.service';
 import { ActivatedRoute, convertToParamMap, provideRouter } from '@angular/router';
 import { describe, it, expect } from 'vitest';
 import { of, throwError } from 'rxjs';
@@ -69,6 +70,10 @@ function montar(overview: unknown): ComponentFixture<RunPanel> {
       { provide: RunService, useValue: { overview: () => overview } },
     ],
   });
+
+  // A interface é asserida em português; sem fixar, o teste seguiria o idioma do
+  // ambiente (o jsdom responde en-US).
+  TestBed.inject(I18nService).trocar('pt-BR');
 
   const fixture = TestBed.createComponent(RunPanel);
   fixture.detectChanges();

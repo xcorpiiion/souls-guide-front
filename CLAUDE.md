@@ -242,6 +242,52 @@ título aparece certo mesmo quando o SSR está quebrado.
 
 ---
 
+## Idioma: a interface traduz, o conteúdo não
+
+A interface fala português e inglês. O **conteúdo** — guia, lore, final, comentário — fica
+como quem escreveu escreveu, e quem precisar usa a tradução do navegador.
+
+Não é preguiça, é a decisão de produto: hoje 100% do acervo é em português, então filtrar
+conteúdo por idioma mostraria um site **vazio** para quem lê inglês. Guia mal traduzido por
+máquina ainda ajuda; guia escondido não ajuda ninguém.
+
+| Peça | Onde |
+|---|---|
+| `I18nService` | `core/i18n/` — idioma atual em signal, `t(chave, params)`, persistência |
+| `TPipe` | `{{ 'nav.jogos' | t }}` nos templates |
+| Dicionários | `core/i18n/pt-br.ts` e `core/i18n/en.ts` |
+| Seletor | navbar, alternando entre os dois |
+
+### O que quebra calado
+
+- **O `<html lang>` continua dizendo `pt-BR`, mesmo com a interface em inglês.** Parece
+  errado e é o contrário: esse atributo declara o idioma do **conteúdo**, e é dele que o
+  Chrome parte para oferecer "traduzir esta página". Marcar a página como `en` tiraria a
+  oferta de tradução justamente de quem precisa. O que acompanha a escolha é
+  `data-ui-lang`.
+- **Chave sem tradução cai no português**, não na chave crua. Uma tela com `home.titulo`
+  escrito nela parece defeito; uma frase em português no meio do inglês é compreensível.
+- **O `TPipe` é impuro de propósito.** Puro, ele só recalcularia quando o argumento muda —
+  e a chave nunca muda, então trocar de idioma não redesenharia nada.
+- **Spec que afirma texto de interface precisa fixar o idioma** (`i18n.trocar('pt-BR')`).
+  Sem isso o teste segue o `navigator.language` do ambiente — o jsdom responde `en-US` —,
+  e passa a quebrar na máquina de outra pessoa e não na sua.
+
+### Não é o i18n do Angular, e por quê
+
+O `@angular/localize` traduz em **tempo de build**: um bundle por idioma, e o servidor
+escolhe qual serve. Isso multiplicaria a imagem e o SSR por idioma. Aqui a troca é em tempo
+de execução, sem recarregar a página e sem segundo build.
+
+### Estado
+
+A base está pronta e o dicionário cobre navegação, ações comuns, estados, painel da run,
+catálogo de itens, denúncia e moderação. As telas **já traduzidas** são a navbar, o
+`report-button` e o painel da run — as demais continuam com texto fixo em português, e
+migram uma por uma trocando a frase pela chave.
+
+---
+
 ## Documentação
 
 Este arquivo diz **o que fazer**. A pasta `docs/` diz **por quê**, **como é o desenho** e

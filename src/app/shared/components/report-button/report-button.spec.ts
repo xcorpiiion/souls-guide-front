@@ -1,4 +1,5 @@
 import { TestBed, ComponentFixture } from '@angular/core/testing';
+import { I18nService } from '../../../core/i18n/i18n.service';
 import { describe, it, expect, vi } from 'vitest';
 import { of, throwError } from 'rxjs';
 import { AuthService } from '@xcorpiiion/ng-core';
@@ -19,6 +20,10 @@ function montar(logado: boolean, resposta: unknown = of({})) {
       { provide: ToastService, useValue: TOAST },
     ],
   });
+
+  // A interface é asserida em português; sem fixar, o teste seguiria o idioma do
+  // ambiente (o jsdom responde en-US).
+  TestBed.inject(I18nService).trocar('pt-BR');
 
   const fixture = TestBed.createComponent(ReportButton);
   fixture.componentRef.setInput('contentKind', 'QUEST');

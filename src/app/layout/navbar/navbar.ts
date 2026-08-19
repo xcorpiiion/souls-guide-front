@@ -15,11 +15,13 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { AuthService } from '@xcorpiiion/ng-core';
 import { NotificationService } from '../../core/services/notification.service';
 import { ehAdmin as ehAdminNoToken } from '../../core/guards/admin.guard';
+import { I18nService } from '../../core/i18n/i18n.service';
+import { TPipe } from '../../core/i18n/t.pipe';
 import { Notification, NotificationType } from '../../shared/models/notification.model';
 
 @Component({
   selector: 'app-navbar',
-  imports: [RouterLink, RouterLinkActive],
+  imports: [RouterLink, RouterLinkActive, TPipe],
   templateUrl: './navbar.html',
   styleUrl: './navbar.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -29,6 +31,7 @@ export class Navbar implements OnInit {
   private readonly destroyRef = inject(DestroyRef);
   private readonly notifService = inject(NotificationService);
   readonly auth = inject(AuthService);
+  readonly i18n = inject(I18nService);
 
   /**
    * O atalho para a fila de moderação, só para quem modera.
@@ -55,6 +58,11 @@ export class Navbar implements OnInit {
   protected readonly notifOpen = signal(false);
   protected readonly notifications = signal<Notification[]>([]);
   protected readonly notifLoading = signal(false);
+
+  /** Com dois idiomas, alternar é mais direto que abrir um menu para escolher entre dois. */
+  protected alternarIdioma(): void {
+    this.i18n.trocar(this.i18n.idioma() === 'en' ? 'pt-BR' : 'en');
+  }
 
   ngOnInit(): void {
     const onNav$ = this.router.events.pipe(filter((e) => e instanceof NavigationEnd));

@@ -602,7 +602,7 @@
           </div>
           @if (filteredGames().length) {
             @for (game of filteredGames(); track game.id) {
-              <a class="pf__quest-card" [routerLink]="['/games', game.ref]">
+              <a class="pf__quest-card" [routerLink]="['/games', game.id]">
                 <div class="pf__quest-info">
                   <span class="pf__quest-title">{{ game.name }}</span>
                   <span class="pf__quest-meta">
@@ -850,7 +850,7 @@
         <div class="pf__sidebar-card">
           <p class="pf__section-title">jogos favoritos</p>
           @for (game of profile().favoriteGames; track game.id) {
-            <a class="pf__game-row" [routerLink]="['/games', game.ref]">
+            <a class="pf__game-row" [routerLink]="['/games', game.id]">
               <div class="pf__game-icon game-icon--{{ game.id }}">
                 <i [class]="'ti ' + game.icon" aria-hidden="true"></i>
               </div>

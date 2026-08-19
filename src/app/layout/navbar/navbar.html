@@ -99,6 +99,21 @@
       </div>
     }
 
+    <!--
+      Seletor de idioma. Traduz a INTERFACE; o conteúdo fica como quem escreveu escreveu,
+      e o `lang` do documento continua dizendo pt-BR para o navegador seguir oferecendo
+      "traduzir esta página" — ver I18nService.
+    -->
+    <button
+      class="navbar__idioma"
+      type="button"
+      [attr.aria-label]="'nav.idioma' | t"
+      [title]="'nav.idioma' | t"
+      (click)="alternarIdioma()"
+    >
+      {{ i18n.idioma() === 'en' ? 'EN' : 'PT' }}
+    </button>
+
     <!-- moderação: só para quem tem a role, e o servidor recusa de qualquer forma -->
     @if (ehAdmin()) {
       <a class="navbar__mod" routerLink="/admin/moderacao" title="Moderação" aria-label="Moderação">

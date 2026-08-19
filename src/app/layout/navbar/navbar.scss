@@ -444,3 +444,26 @@
     transform: rotate(360deg);
   }
 }
+
+// Seletor de idioma: discreto, do tamanho de um ícone. Ele troca a interface, não o
+// conteúdo — e por isso não merece o destaque de um botão de ação.
+.navbar__idioma {
+  font-family: inherit;
+  font-size: 11.5px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  color: v.$color-text-muted;
+  background: none;
+  border: 0.5px solid v.$color-border;
+  border-radius: v.$radius-sm;
+  padding: 4px 8px;
+  cursor: pointer;
+  transition:
+    color 0.15s,
+    border-color 0.15s;
+
+  &:hover {
+    color: v.$color-gold;
+    border-color: v.$color-gold-dark;
+  }
+}

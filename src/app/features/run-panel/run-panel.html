@@ -1,10 +1,10 @@
 <section class="run">
   <header class="run__header">
     <a class="run__back" [routerLink]="['/games', gameId]">
-      <i class="ti ti-arrow-left" aria-hidden="true"></i> voltar para o jogo
+      <i class="ti ti-arrow-left" aria-hidden="true"></i> {{ 'run.voltarParaJogo' | t }}
     </a>
 
-    <h1 class="run__title">minha run</h1>
+    <h1 class="run__title">{{ 'run.titulo' | t }}</h1>
     @if (run(); as r) {
       <p class="run__subtitle">
         <i class="ti ti-device-gamepad-2" aria-hidden="true"></i>
@@ -23,12 +23,12 @@
   } @else if (vazio()) {
     <div class="run__empty">
       <i class="ti ti-map-off run__empty-icon" aria-hidden="true"></i>
-      <p class="run__empty-title">sua run ainda não começou</p>
+      <p class="run__empty-title">{{ 'run.vazioTitulo' | t }}</p>
       <p class="run__empty-text">
         marque um passo em qualquer guia deste jogo e ele aparece aqui, com o que falta e o que você
         precisa evitar.
       </p>
-      <a class="run__cta" [routerLink]="['/games', gameId]">ver os guias</a>
+      <a class="run__cta" [routerLink]="['/games', gameId]">{{ 'run.verGuias' | t }}</a>
     </div>
   } @else if (run(); as r) {
     <!-- Avisos primeiro: eles valem agora, o progresso é consulta. -->
@@ -36,10 +36,10 @@
       <section class="run__box run__box--avoid">
         <h2 class="run__box-title">
           <i class="ti ti-hand-stop" aria-hidden="true"></i>
-          manter a run inteira
+          {{ 'run.manterARunInteira' | t }}
         </h2>
         <p class="run__box-help">
-          não é tarefa que se conclui — é comportamento, e vale enquanto o final estiver em curso.
+          {{ 'run.manterAjuda' | t }}
         </p>
         <ul class="run__avisos">
           @for (aviso of avisosAEvitar(); track $index) {
@@ -48,7 +48,7 @@
                 <span class="run__aviso-texto">{{ aviso.text }}</span>
               } @else {
                 <button class="run__spoiler" type="button" (click)="revelar($index)">
-                  <i class="ti ti-eye-off" aria-hidden="true"></i> contém spoiler — mostrar
+                  <i class="ti ti-eye-off" aria-hidden="true"></i> {{ 'run.spoilerMostrar' | t }}
                 </button>
               }
               @if (aviso.questTitle) {
@@ -64,10 +64,10 @@
       <section class="run__box run__box--porta">
         <h2 class="run__box-title">
           <i class="ti ti-door-exit" aria-hidden="true"></i>
-          portas que ainda dá para não fechar
+          {{ 'run.portas' | t }}
         </h2>
         <p class="run__box-help">
-          cada uma some daqui assim que você a disparar. até lá, a escolha é sua.
+          {{ 'run.portasAjuda' | t }}
         </p>
         <ul class="run__avisos">
           @for (aviso of pontosSemRetorno(); track $index) {
@@ -76,7 +76,7 @@
                 <span class="run__aviso-texto">{{ aviso.text }}</span>
               } @else {
                 <button class="run__spoiler" type="button" (click)="revelar(1000 + $index)">
-                  <i class="ti ti-eye-off" aria-hidden="true"></i> contém spoiler — mostrar
+                  <i class="ti ti-eye-off" aria-hidden="true"></i> {{ 'run.spoilerMostrar' | t }}
                 </button>
               }
               @if (aviso.questId) {
@@ -99,15 +99,15 @@
       <div class="run__resumo">
         <div class="run__stat">
           <span class="run__stat-n">{{ r.questsStarted }}</span>
-          <span class="run__stat-l">quests em curso</span>
+          <span class="run__stat-l">{{ 'run.questsEmCurso' | t }}</span>
         </div>
         <div class="run__stat">
           <span class="run__stat-n">{{ r.questsFinished }}</span>
-          <span class="run__stat-l">terminadas</span>
+          <span class="run__stat-l">{{ 'run.terminadas' | t }}</span>
         </div>
         <div class="run__stat">
           <span class="run__stat-n">{{ percent() }}%</span>
-          <span class="run__stat-l">dos passos</span>
+          <span class="run__stat-l">{{ 'run.dosPassos' | t }}</span>
         </div>
       </div>
 
