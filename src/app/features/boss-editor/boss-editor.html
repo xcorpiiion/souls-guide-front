@@ -434,37 +434,14 @@
     }
   </div>
 
-  <!-- ─── imagem ─────────────────────────────────────────────── -->
-  <div class="editor__card editor__card--dobra">
-    <button
-      class="editor__dobra"
-      type="button"
-      [attr.aria-expanded]="imagemAberto()"
-      (click)="imagemAberto.set(!imagemAberto())"
-    >
-      <span><i class="ti ti-photo" aria-hidden="true"></i> imagem</span>
-      <i
-        class="ti"
-        [class.ti-chevron-up]="imagemAberto()"
-        [class.ti-chevron-down]="!imagemAberto()"
-        aria-hidden="true"
-      ></i>
-    </button>
+  <!--
+    A seção de imagem do desenho fica de fora por ora.
 
-    @if (imagemAberto()) {
-      <div class="editor__dobra-corpo">
-        <app-image-uploader
-          purpose="BOSS_IMAGE"
-          variant="inline"
-          label="Arte do chefe"
-          hint="PNG, JPG ou WebP · até 5 MB. a maioria dos chefes ainda não vai ter imagem — a linha fica boa sem ela."
-          [currentUrl]="imagemUrl()"
-          (uploaded)="onImagemEnviada($event)"
-          (cleared)="onImagemRemovida()"
-        />
-      </div>
-    }
-  </div>
+    Não é simplificação: o site não tem como moderar o que é enviado, e imagem é o
+    formato em que conteúdo impróprio entra sem ninguém ler. O que sai é a porta de
+    entrada — as telas de leitura continuam sabendo exibir arte de chefe, e o campo
+    continua no contrato, então religar é devolver esta seção.
+  -->
 
   <!-- Grudado no rodapé: o formulário é longo, e o botão de salvar não pode depender
        de a pessoa rolar até o fim para existir. -->

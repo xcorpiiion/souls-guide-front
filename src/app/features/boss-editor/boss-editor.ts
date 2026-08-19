@@ -17,9 +17,7 @@ import { BossService } from '../../core/services/boss.service';
 import { GameService } from '../../core/services/game.service';
 import { ItemService } from '../../core/services/item.service';
 import { QuestService } from '../../core/services/quest.service';
-import { StorageService, PendingUpload } from '../../core/services/storage.service';
 import { SeoService } from '../../core/services/seo.service';
-import { ImageUploader } from '../../shared/components/image-uploader/image-uploader';
 import { GameSummary } from '../../shared/models/game.model';
 import { paraId } from '../../shared/utils/ref';
 
@@ -58,12 +56,12 @@ let sequencia = 0;
  * <h2>Quase tudo é opcional</h2>
  * Só nome e jogo são obrigatórios. Um chefe com só o nome é contribuição válida — outra
  * pessoa escreve a estratégia depois, que é como conteúdo colaborativo cresce. Por isso
- * as seções pesadas (como matar, fases, drops, guias, lore, imagem) nascem recolhidas:
+ * as seções pesadas (como matar, fases, drops, guias, lore) nascem recolhidas:
  * abertas, o formulário parece um paredão e ninguém começa.
  */
 @Component({
   selector: 'app-boss-editor',
-  imports: [FormsModule, ImageUploader],
+  imports: [FormsModule],
   templateUrl: './boss-editor.html',
   styleUrl: './boss-editor.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -75,7 +73,6 @@ export class BossEditor implements OnInit {
   private readonly gameService = inject(GameService);
   private readonly itemService = inject(ItemService);
   private readonly questService = inject(QuestService);
-  private readonly storage = inject(StorageService);
   private readonly toast = inject(ToastService);
   private readonly seo = inject(SeoService);
   private readonly destroyRef = inject(DestroyRef);
@@ -105,15 +102,22 @@ export class BossEditor implements OnInit {
   protected readonly drops = signal<DropForm[]>([]);
   protected readonly guias = signal<GuiaForm[]>([]);
   protected readonly lore = signal('');
+
+  /**
+   * A chave da arte já cadastrada. Nada nesta tela a define — o envio de imagem saiu
+   * enquanto não há como moderar o que é enviado.
+   *
+   * Ela continua sendo lida e devolvida ao salvar, e isso **não** é resto: o `PUT`
+   * substitui o chefe inteiro, então mandar `null` aqui apagaria a arte de quem já tem
+   * uma, só porque alguém corrigiu um typo na estratégia.
+   */
   protected readonly imagemKey = signal<string | null>(null);
-  protected readonly imagemUrl = signal<string | null>(null);
 
   protected readonly comoMatarAberto = signal(false);
   protected readonly fasesAberto = signal(false);
   protected readonly dropsAberto = signal(false);
   protected readonly guiasAberto = signal(false);
   protected readonly loreAberto = signal(false);
-  protected readonly imagemAberto = signal(false);
 
   protected readonly dropBusca = signal('');
   protected readonly dropResultados = signal<{ id: number; name: string }[]>([]);
@@ -234,7 +238,6 @@ export class BossEditor implements OnInit {
         this.naoFunciona.set(b.whatFails ?? '');
         this.lore.set(b.lore ?? '');
         this.imagemKey.set(b.imageFileKey ?? null);
-        this.imagemUrl.set(b.imageFileKey ? this.storage.previewUrl(b.imageFileKey) : null);
 
         this.fases.set(
           b.phases.map((f) => ({
@@ -395,18 +398,6 @@ export class BossEditor implements OnInit {
     () => this.guiaBusca().trim().length > 0 && this.guiaResultados().length === 0,
   );
 
-  // ─── imagem ────────────────────────────────────────────────────
-
-  protected onImagemEnviada(pendente: PendingUpload): void {
-    this.imagemKey.set(pendente.fileKey);
-    this.imagemUrl.set(pendente.previewUrl);
-  }
-
-  protected onImagemRemovida(): void {
-    this.imagemKey.set(null);
-    this.imagemUrl.set(null);
-  }
-
   // ─── salvar ────────────────────────────────────────────────────
 
   protected salvar(): void {
@@ -432,10 +423,6 @@ export class BossEditor implements OnInit {
 
         chamada.subscribe({
           next: (salvo) => {
-            const chave = this.imagemKey();
-            if (chave) {
-              this.storage.confirmAll([chave], 'BOSS', String(salvo.id)).subscribe();
-            }
             this.salvando.set(false);
             if (continuar) {
               this.prepararProximo(salvo.name);
@@ -534,7 +521,6 @@ export class BossEditor implements OnInit {
     this.guias.set([]);
     this.lore.set('');
     this.imagemKey.set(null);
-    this.imagemUrl.set(null);
     this.nomeDuplicado.set(false);
 
     this.salvoAviso.set(`"${nomeSalvo}" salvo — cadastre o próximo`);
