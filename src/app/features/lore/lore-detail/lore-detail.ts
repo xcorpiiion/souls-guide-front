@@ -106,7 +106,9 @@ export class LoreDetail implements OnInit {
     this.seo.aplicar({
       titulo: `${a.title} · ${a.gameName}`,
       descricao: resumo(a.content),
-      imagem: this.coverUrl(),
+      // Endereço estável, e não a URL assinada de `coverUrl`, que expira antes de o
+      // buscador rebuscar a imagem.
+      imagem: a.coverImageFileKey ? this.storage.previewUrl(a.coverImageFileKey) : null,
       tipo: 'article',
       indexavel: publico,
     });
@@ -192,7 +194,6 @@ export class LoreDetail implements OnInit {
       this.imageUrls.set(resolved);
       if (article.coverImageFileKey) {
         this.coverUrl.set(resolved.get(article.coverImageFileKey) ?? null);
-        this.aplicarSeo();
       }
     });
   }

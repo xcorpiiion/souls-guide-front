@@ -76,6 +76,12 @@ export class QuestDetail implements OnInit {
   protected readonly snapshotUnavailable = signal(false);
   protected readonly snapshotLoading = signal(false);
 
+  /**
+   * A capa que vai para o `og:image` — endereço estável, e não a URL assinada de
+   * `coverUrl`, que expira antes de o buscador rebuscar a imagem.
+   */
+  private readonly capaDoCabecalho = signal<string | null>(null);
+
   protected readonly loading = signal(true);
   protected readonly error = signal<string | null>(null);
   protected readonly quest = signal<QuestDetailData | null>(null);
@@ -178,6 +184,9 @@ export class QuestDetail implements OnInit {
           this.userHasLiked.set(api.userHasLiked ?? false);
           this.followerCount.set(api.followerCount ?? 0);
           this.userIsFollowing.set(api.userIsFollowing ?? false);
+          this.capaDoCabecalho.set(
+            api.coverImageFileKey ? this.storage.previewUrl(api.coverImageFileKey) : null,
+          );
           this.loadImages(questId, api.coverImageFileKey ?? null, api.nodes ?? []);
           this.aplicarSeo();
           this.loading.set(false);
@@ -304,17 +313,15 @@ export class QuestDetail implements OnInit {
 
     this.storage.resolve(keys, 'QUEST', questId).subscribe((resolved) => {
       this.imageUrls.set(resolved);
-      if (coverKey) {
-        this.coverUrl.set(resolved.get(coverKey) ?? null);
-        // A capa chega depois do resto, e o card de compartilhamento sem imagem
-        // é o que o Discord já teria cacheado. Reaplica com a capa no lugar.
-        this.aplicarSeo();
-      }
+      if (coverKey) this.coverUrl.set(resolved.get(coverKey) ?? null);
     });
   }
 
   /**
-   * Cabeçalho da página. Roda quando a quest chega e de novo quando a capa resolve.
+   * Cabeçalho da página, aplicado quando a quest chega.
+   *
+   * Não espera a resolução das imagens: a capa do cabeçalho é montada a partir da chave,
+   * num endereço que não depende de assinatura.
    *
    * Quest de perfil sai com `noindex`: é conteúdo do dono, alcançável só por quem tem
    * a sessão, e indexá-la publicaria na busca o que a rota exige token para ler.
@@ -334,7 +341,7 @@ export class QuestDetail implements OnInit {
     this.seo.aplicar({
       titulo: `${q.title} · ${q.gameName}`,
       descricao,
-      imagem: this.coverUrl(),
+      imagem: this.capaDoCabecalho(),
       tipo: 'article',
       indexavel: publico,
       autor: q.author ?? q.ownerNickname ?? null,

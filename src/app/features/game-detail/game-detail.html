@@ -26,6 +26,12 @@
           <span class="game-detail__tag game-detail__tag--{{ g.accentClass }}">comunidade</span>
         </div>
         <div class="game-detail__actions">
+          <a
+            class="game-detail__btn game-detail__btn--secondary"
+            [routerLink]="['/games', g.id, 'itens']"
+          >
+            <i class="ti ti-sword" aria-hidden="true"></i> itens
+          </a>
           @if (auth.isLoggedIn()) {
             <a
               class="game-detail__btn game-detail__btn--secondary"

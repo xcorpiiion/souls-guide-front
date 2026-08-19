@@ -54,6 +54,26 @@ export const routes: Routes = [
     loadComponent: () => import('./features/game-detail/game-detail').then((m) => m.GameDetail),
   },
   {
+    path: 'games/:id/itens',
+    data: {
+      seo: {
+        titulo: 'Itens',
+        descricao: 'Armas, talismãs, consumíveis e chaves, com o lugar de cada um.',
+      } satisfies SeoPagina,
+    },
+    loadComponent: () => import('./features/itens/itens').then((m) => m.Itens),
+  },
+  {
+    path: 'itens/:id',
+    data: {
+      seo: {
+        titulo: 'Item',
+        descricao: 'Onde encontrar este item, e em que passo do guia ele aparece.',
+      } satisfies SeoPagina,
+    },
+    loadComponent: () => import('./features/item-detail/item-detail').then((m) => m.ItemDetail),
+  },
+  {
     path: 'games/:id/run',
     data: {
       seo: {

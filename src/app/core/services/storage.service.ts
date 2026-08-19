@@ -131,6 +131,20 @@ export class StorageService {
     );
   }
 
+  /**
+   * Endereço estável da imagem, para o `og:image`.
+   *
+   * A URL que o {@link resolve} devolve é assinada e **expira** — serve para a página, que
+   * a usa agora, e não para o `<head>`, que um crawler busca dias depois. O Discord
+   * cacheia na primeira vez e acerta; o Google rebusca e acha link morto, e o card do site
+   * perde a imagem sem nada quebrar em lugar nenhum.
+   *
+   * Este endereço não envelhece: a storage-api redireciona para a URL assinada do momento.
+   */
+  previewUrl(fileKey: string): string {
+    return this.api.url(`${fileKey}/preview`);
+  }
+
   /** Uma chave só, sem contexto de dono. Devolve null quando não dá para exibir. */
   findByKey(fileKey: string): Observable<FileMetadata | null> {
     return this.api.get<FileMetadata>(fileKey).pipe(catchError(() => of(null)));

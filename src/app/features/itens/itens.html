@@ -1,0 +1,81 @@
+<section class="itens">
+  <header class="itens__header">
+    <a class="itens__back" [routerLink]="['/games', gameId]">
+      <i class="ti ti-arrow-left" aria-hidden="true"></i> voltar para o jogo
+    </a>
+
+    <h1 class="itens__title">itens</h1>
+    <p class="itens__subtitle">
+      <i class="ti ti-sword" aria-hidden="true"></i>
+      {{ gameName() }} · {{ total() }} no catálogo
+    </p>
+  </header>
+
+  <div class="itens__filtros">
+    <label class="itens__busca">
+      <i class="ti ti-search" aria-hidden="true"></i>
+      <input
+        type="search"
+        placeholder="procurar por nome…"
+        [ngModel]="busca()"
+        (ngModelChange)="buscar($event)"
+        aria-label="procurar item por nome"
+      />
+    </label>
+
+    <div class="itens__tipos" role="group" aria-label="filtrar por tipo">
+      <button
+        class="itens__tipo"
+        type="button"
+        [class.itens__tipo--ativo]="tipo() === null"
+        (click)="filtrarPor(null)"
+      >
+        todos
+      </button>
+      @for (t of types; track t) {
+        <button
+          class="itens__tipo"
+          type="button"
+          [class.itens__tipo--ativo]="tipo() === t"
+          (click)="filtrarPor(t)"
+        >
+          {{ typeLabel[t] }}
+        </button>
+      }
+    </div>
+  </div>
+
+  @if (loading()) {
+    <pf-page-loader message="Carregando itens…" />
+  } @else if (vazio()) {
+    <div class="itens__empty">
+      <i class="ti ti-search-off itens__empty-icon" aria-hidden="true"></i>
+      <p class="itens__empty-title">nada encontrado</p>
+      <p class="itens__empty-text">
+        nenhum item deste jogo bate com o filtro. o catálogo é escrito pela comunidade, então item
+        que ninguém cadastrou ainda não está aqui.
+      </p>
+    </div>
+  } @else {
+    <ul class="itens__lista">
+      @for (item of itens(); track item.id) {
+        <li class="itens__card">
+          <a class="itens__card-link" [routerLink]="['/itens', item.id]">
+            <span class="itens__card-tipo">{{ typeLabel[item.type ?? 'OTHER'] }}</span>
+            <h2 class="itens__card-nome">{{ item.name }}</h2>
+            @if (item.location) {
+              <p class="itens__card-local">
+                <i class="ti ti-map-pin" aria-hidden="true"></i> {{ item.location }}
+              </p>
+            }
+            @if (item.foundAtQuestTitle) {
+              <p class="itens__card-guia">
+                <i class="ti ti-route" aria-hidden="true"></i> {{ item.foundAtQuestTitle }}
+              </p>
+            }
+          </a>
+        </li>
+      }
+    </ul>
+  }
+</section>

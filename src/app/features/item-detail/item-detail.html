@@ -1,0 +1,65 @@
+<section class="item">
+  @if (loading()) {
+    <pf-page-loader message="Carregando item…" />
+  } @else if (error()) {
+    <div class="item__empty">
+      <i class="ti ti-alert-circle item__empty-icon" aria-hidden="true"></i>
+      <p class="item__empty-title">{{ error() }}</p>
+    </div>
+  } @else if (item(); as i) {
+    <header class="item__header">
+      @if (i.gameId) {
+        <a class="item__back" [routerLink]="['/games', i.gameId, 'itens']">
+          <i class="ti ti-arrow-left" aria-hidden="true"></i> itens de {{ i.gameName }}
+        </a>
+      }
+
+      <div class="item__topo">
+        @if (imagem()) {
+          <img class="item__imagem" [src]="imagem()" [alt]="i.name" loading="lazy" />
+        }
+        <div>
+          <span class="item__tipo">{{ typeLabel[i.type ?? 'OTHER'] }}</span>
+          <h1 class="item__nome">{{ i.name }}</h1>
+          @if (i.gameName) {
+            <p class="item__jogo">{{ i.gameName }}</p>
+          }
+        </div>
+      </div>
+    </header>
+
+    @if (i.location) {
+      <section class="item__bloco item__bloco--onde">
+        <h2 class="item__bloco-title">
+          <i class="ti ti-map-pin" aria-hidden="true"></i> onde encontrar
+        </h2>
+        <p class="item__texto">{{ i.location }}</p>
+
+        <!--
+          O caminho de volta para o guia é o que o catálogo tem e uma lista de itens solta
+          não tem: quem chegou aqui procurando o item ganha o passo que explica como chegar.
+        -->
+        @if (i.foundAtQuestId) {
+          <a class="item__guia" [routerLink]="['/games', i.gameId, 'quests', i.foundAtQuestId]">
+            <i class="ti ti-route" aria-hidden="true"></i>
+            <span>
+              aparece em <strong>{{ i.foundAtQuestTitle }}</strong>
+              @if (i.foundAtNodeTitle) {
+                , no passo “{{ i.foundAtNodeTitle }}”
+              }
+            </span>
+          </a>
+        }
+      </section>
+    }
+
+    @if (i.description) {
+      <section class="item__bloco">
+        <h2 class="item__bloco-title">
+          <i class="ti ti-file-text" aria-hidden="true"></i> descrição
+        </h2>
+        <p class="item__texto">{{ i.description }}</p>
+      </section>
+    }
+  }
+</section>

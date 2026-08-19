@@ -1,0 +1,198 @@
+@use 'styles/variables' as v;
+
+.itens {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 40px 24px 80px;
+}
+
+.itens__header {
+  margin-bottom: 24px;
+}
+
+.itens__back {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  color: v.$color-text-muted;
+  text-decoration: none;
+  padding: 6px 10px;
+  border-radius: v.$radius-md;
+  border: 0.5px solid v.$color-border;
+  background: v.$color-bg-surface;
+  margin-bottom: 20px;
+
+  &:hover {
+    color: v.$color-gold;
+    background: v.$color-bg-elevated;
+  }
+}
+
+.itens__title {
+  font-family: v.$font-display;
+  font-size: 28px;
+  color: v.$color-text;
+  margin: 0 0 6px;
+}
+
+.itens__subtitle {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 14px;
+  color: v.$color-text-muted;
+  margin: 0;
+}
+
+// ─── Filtros ─────────────────────────────────────────────────────
+
+.itens__filtros {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+.itens__busca {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border: 0.5px solid v.$color-border;
+  border-radius: v.$radius-md;
+  background: v.$color-bg-surface;
+  padding: 9px 12px;
+  color: v.$color-text-muted;
+
+  &:focus-within {
+    border-color: v.$color-gold-dark;
+  }
+
+  input {
+    flex: 1;
+    background: none;
+    border: none;
+    outline: none;
+    color: v.$color-text;
+    font-family: inherit;
+    font-size: 14px;
+
+    &::placeholder {
+      color: v.$color-text-faint;
+    }
+  }
+}
+
+.itens__tipos {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.itens__tipo {
+  font-family: inherit;
+  font-size: 12.5px;
+  color: v.$color-text-muted;
+  background: v.$color-bg-surface;
+  border: 0.5px solid v.$color-border;
+  border-radius: v.$radius-sm;
+  padding: 5px 11px;
+  cursor: pointer;
+  transition:
+    color 0.15s,
+    border-color 0.15s;
+
+  &:hover {
+    color: v.$color-text;
+  }
+}
+
+.itens__tipo--ativo {
+  color: v.$color-gold;
+  border-color: v.$color-gold-dark;
+  background: rgba(v.$color-gold, 0.08);
+}
+
+// ─── Lista ───────────────────────────────────────────────────────
+
+.itens__lista {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 12px;
+}
+
+.itens__card {
+  border: 0.5px solid v.$color-border;
+  border-radius: v.$radius-lg;
+  background: v.$color-bg-surface;
+  transition:
+    border-color 0.15s,
+    background 0.15s;
+
+  &:hover {
+    border-color: v.$color-gold-dark;
+    background: v.$color-bg-elevated;
+  }
+}
+
+.itens__card-link {
+  display: block;
+  padding: 14px 16px;
+  text-decoration: none;
+}
+
+.itens__card-tipo {
+  font-size: 11px;
+  color: v.$color-text-muted;
+  text-transform: lowercase;
+}
+
+.itens__card-nome {
+  font-family: v.$font-display;
+  font-size: 16px;
+  color: v.$color-text;
+  margin: 2px 0 8px;
+}
+
+.itens__card-local,
+.itens__card-guia {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12.5px;
+  color: v.$color-text-muted;
+  margin: 0 0 4px;
+}
+
+.itens__card-guia {
+  color: v.$color-gold-dark;
+}
+
+// ─── Vazio ───────────────────────────────────────────────────────
+
+.itens__empty {
+  text-align: center;
+  padding: 60px 20px;
+}
+
+.itens__empty-icon {
+  font-size: 34px;
+  color: v.$color-text-faint;
+}
+
+.itens__empty-title {
+  font-family: v.$font-display;
+  font-size: 17px;
+  color: v.$color-text;
+  margin: 14px 0 6px;
+}
+
+.itens__empty-text {
+  font-size: 13.5px;
+  color: v.$color-text-muted;
+  max-width: 440px;
+  margin: 0 auto;
+}
