@@ -60,13 +60,21 @@
 
     <div class="editor__grade">
       <div class="editor__campo">
-        <label for="jogo">jogo <span class="editor__obrigatorio">*</span></label>
-        <select id="jogo" [ngModel]="jogoId()" (ngModelChange)="onJogo($event)">
-          <option value="" disabled>escolha o jogo</option>
-          @for (j of jogos(); track j.id) {
-            <option [value]="j.id">{{ j.name }}</option>
-          }
-        </select>
+        <span class="editor__rotulo">jogo <span class="editor__obrigatorio">*</span></span>
+        <!--
+          O mesmo dropdown do resto do site, e não um <select> cru: a lista passa de vinte
+          e cinco jogos, e sem a busca dentro dele escolher vira rolagem.
+
+          allowAll fica falso porque aqui "todos os jogos" não é um estado salvável — o
+          chefe pertence a um.
+        -->
+        <app-game-filter-dropdown
+          [games]="nomesDeJogos()"
+          [selected]="jogoNome()"
+          [allowAll]="false"
+          placeholder="escolha o jogo"
+          (selectedChange)="onJogoPorNome($event)"
+        />
       </div>
 
       <div class="editor__campo">

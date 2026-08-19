@@ -24,16 +24,18 @@
         />
       </div>
       <ul class="gfd__list">
-        <li>
-          <button
-            type="button"
-            class="gfd__option"
-            [class.gfd__option--active]="selected() === ''"
-            (click)="select('')"
-          >
-            todos os jogos
-          </button>
-        </li>
+        @if (allowAll()) {
+          <li>
+            <button
+              type="button"
+              class="gfd__option"
+              [class.gfd__option--active]="selected() === ''"
+              (click)="select('')"
+            >
+              todos os jogos
+            </button>
+          </li>
+        }
         @for (g of filtered(); track g) {
           <li>
             <button

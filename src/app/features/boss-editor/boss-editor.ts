@@ -18,6 +18,7 @@ import { GameService } from '../../core/services/game.service';
 import { ItemService } from '../../core/services/item.service';
 import { QuestService } from '../../core/services/quest.service';
 import { SeoService } from '../../core/services/seo.service';
+import { GameFilterDropdown } from '../../shared/components/game-filter-dropdown/game-filter-dropdown';
 import { GameSummary } from '../../shared/models/game.model';
 import { paraId } from '../../shared/utils/ref';
 
@@ -61,7 +62,7 @@ let sequencia = 0;
  */
 @Component({
   selector: 'app-boss-editor',
-  imports: [FormsModule],
+  imports: [FormsModule, GameFilterDropdown],
   templateUrl: './boss-editor.html',
   styleUrl: './boss-editor.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -86,6 +87,9 @@ export class BossEditor implements OnInit {
   protected readonly jogoNome = computed(
     () => this.jogos().find((j) => String(j.id) === this.jogoId())?.name ?? '',
   );
+
+  /** O dropdown da plataforma trabalha com nomes; o formulário guarda o id. */
+  protected readonly nomesDeJogos = computed(() => this.jogos().map((j) => j.name));
 
   protected readonly nome = signal('');
   protected readonly mandatory = signal(true);
@@ -270,7 +274,18 @@ export class BossEditor implements OnInit {
     if (valor.trim()) this.digitouNome.next(valor.trim());
   }
 
-  protected onJogo(valor: string): void {
+  /**
+   * O dropdown devolve o nome; o formulário guarda o id.
+   *
+   * <p>Nome que não bate com nenhum jogo é ignorado em vez de virar id vazio: assim um
+   * clique estranho não apaga a escolha que já estava feita.
+   */
+  protected onJogoPorNome(nome: string): void {
+    const jogo = this.jogos().find((j) => j.name === nome);
+    if (jogo) this.onJogo(String(jogo.id));
+  }
+
+  private onJogo(valor: string): void {
     this.jogoId.set(valor);
     // Drops e guias pertencem ao jogo: trocar de jogo torna a escolha anterior inválida.
     this.drops.set([]);
