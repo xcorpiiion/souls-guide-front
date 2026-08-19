@@ -1,0 +1,165 @@
+<section class="chefes">
+  <header class="chefes__header">
+    <a class="chefes__back" [routerLink]="['/games', gameId]">
+      <i class="ti ti-arrow-left" aria-hidden="true"></i> voltar para o jogo
+    </a>
+
+    <h1 class="chefes__title">chefes</h1>
+    <p class="chefes__subtitle">
+      <i class="ti ti-skull" aria-hidden="true"></i>
+      {{ gameName() }} · {{ total() }} no catálogo
+    </p>
+  </header>
+
+  @if (logado() && total() > 0) {
+    <div class="chefes__progresso-topo">
+      <span>{{ derrotados() }} de {{ total() }} derrotados</span>
+      <span>{{ progressoPct() }}%</span>
+    </div>
+    <div
+      class="chefes__progresso"
+      role="progressbar"
+      [attr.aria-valuenow]="progressoPct()"
+      aria-valuemin="0"
+      aria-valuemax="100"
+    >
+      <div class="chefes__progresso-barra" [style.width.%]="progressoPct()"></div>
+    </div>
+  }
+
+  <div class="chefes__filtros">
+    <label class="chefes__busca">
+      <i class="ti ti-search" aria-hidden="true"></i>
+      <input
+        type="search"
+        placeholder="procurar por nome…"
+        [ngModel]="busca()"
+        (ngModelChange)="buscar($event)"
+        aria-label="procurar chefe por nome"
+      />
+    </label>
+
+    <div class="chefes__acoes">
+      <button
+        class="chefes__chip"
+        type="button"
+        [class.chefes__chip--ativo]="apenasObrigatorios()"
+        [attr.aria-pressed]="apenasObrigatorios()"
+        (click)="alternarObrigatorios()"
+      >
+        <i class="ti ti-flag" aria-hidden="true"></i> só obrigatórios
+      </button>
+
+      <!--
+        A lista de chefes em ordem é o roteiro do jogo — o conteúdo mais spoiler do site.
+        O alternador não é um aviso: ele decide se a informação nasce coberta ou aberta, e
+        a escolha fica lembrada.
+      -->
+      <button
+        class="chefes__chip"
+        type="button"
+        [class.chefes__chip--ativo]="spoilerLiberado()"
+        [attr.aria-pressed]="spoilerLiberado()"
+        (click)="alternarSpoilerGeral()"
+      >
+        <i
+          class="ti"
+          [class.ti-eye]="spoilerLiberado()"
+          [class.ti-eye-off]="!spoilerLiberado()"
+          aria-hidden="true"
+        ></i>
+        {{ spoilerLiberado() ? 'mostrando tudo' : 'sem spoiler' }}
+      </button>
+    </div>
+  </div>
+
+  @if (loading()) {
+    <pf-page-loader message="Carregando chefes…" />
+  } @else if (catalogoVazio()) {
+    <div class="chefes__empty">
+      <i class="ti ti-ghost-off chefes__empty-icon" aria-hidden="true"></i>
+      <p class="chefes__empty-title">nenhum chefe cadastrado</p>
+      <p class="chefes__empty-text">
+        esse catálogo é escrito pela comunidade — {{ gameName() }} ainda não tem nenhum chefe
+        registrado. seja o primeiro a começar a linha do tempo.
+      </p>
+    </div>
+  } @else if (buscaVazia()) {
+    <div class="chefes__empty">
+      <i class="ti ti-search-off chefes__empty-icon" aria-hidden="true"></i>
+      <p class="chefes__empty-title">nada encontrado</p>
+      <p class="chefes__empty-text">nenhum chefe deste jogo bate com o filtro.</p>
+    </div>
+  } @else {
+    <div class="chefes__regioes">
+      @for (regiao of regioes(); track regiao.nome) {
+        <div class="chefes__regiao">
+          <button class="chefes__regiao-titulo" type="button" (click)="alternarRegiao(regiao.nome)">
+            @if (regiaoRevelada(regiao.nome)) {
+              <i class="ti ti-map-pin" aria-hidden="true"></i> {{ regiao.nome }}
+            } @else {
+              <span class="chefes__regiao-oculta">
+                <i class="ti ti-eye-off" aria-hidden="true"></i> região oculta — toque para revelar
+              </span>
+            }
+          </button>
+
+          <ul class="chefes__lista">
+            @for (chefe of regiao.chefes; track chefe.id) {
+              <li class="chefes__linha" [class.chefes__linha--derrotado]="chefe.viewerHasDefeated">
+                @if (logado()) {
+                  <button
+                    class="chefes__check"
+                    type="button"
+                    [attr.aria-label]="'marcar ' + chefe.name + ' como derrotado'"
+                    [attr.aria-pressed]="chefe.viewerHasDefeated"
+                    (click)="alternarDerrotado(chefe)"
+                  >
+                    <i
+                      class="ti"
+                      [class.ti-circle-check]="chefe.viewerHasDefeated"
+                      [class.ti-circle]="!chefe.viewerHasDefeated"
+                      aria-hidden="true"
+                    ></i>
+                  </button>
+                }
+
+                <span class="chefes__ordem">{{ chefe.displayOrder }}</span>
+
+                <div class="chefes__nome-bloco">
+                  <span class="chefes__nome">{{ chefe.name }}</span>
+                  @if (chefe.mandatory) {
+                    <span class="chefes__tag chefes__tag--obrigatorio">obrigatório</span>
+                  } @else {
+                    <span class="chefes__tag">opcional</span>
+                  }
+                </div>
+
+                @if (!linhaRevelada(chefe.id)) {
+                  <button
+                    class="chefes__revelar"
+                    type="button"
+                    aria-label="revelar contexto deste chefe"
+                    (click)="revelarLinha(chefe.id)"
+                  >
+                    <i class="ti ti-eye-off" aria-hidden="true"></i>
+                  </button>
+                } @else if (chefe.hasImage) {
+                  <span class="chefes__miniatura" aria-hidden="true"></span>
+                }
+
+                <a
+                  class="chefes__ir"
+                  [routerLink]="['/chefes', chefe.id]"
+                  [attr.aria-label]="'ver ' + chefe.name"
+                >
+                  <i class="ti ti-chevron-right" aria-hidden="true"></i>
+                </a>
+              </li>
+            }
+          </ul>
+        </div>
+      }
+    </div>
+  }
+</section>

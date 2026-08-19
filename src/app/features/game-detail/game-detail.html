@@ -32,6 +32,12 @@
           >
             <i class="ti ti-sword" aria-hidden="true"></i> itens
           </a>
+          <a
+            class="game-detail__btn game-detail__btn--secondary"
+            [routerLink]="['/games', g.ref, 'chefes']"
+          >
+            <i class="ti ti-skull" aria-hidden="true"></i> chefes
+          </a>
           @if (auth.isLoggedIn()) {
             <a
               class="game-detail__btn game-detail__btn--secondary"

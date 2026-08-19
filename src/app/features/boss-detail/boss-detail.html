@@ -1,0 +1,150 @@
+<section class="chefe">
+  @if (loading()) {
+    <pf-page-loader message="Carregando chefe…" />
+  } @else if (error()) {
+    <div class="chefe__empty">
+      <i class="ti ti-alert-circle chefe__empty-icon" aria-hidden="true"></i>
+      <p class="chefe__empty-title">{{ error() }}</p>
+    </div>
+  } @else if (boss(); as b) {
+    <a class="chefe__back" [routerLink]="['/games', b.gameId, 'chefes']">
+      <i class="ti ti-arrow-left" aria-hidden="true"></i> chefes de {{ b.gameName }}
+    </a>
+
+    <header class="chefe__header">
+      @if (imagem()) {
+        <img class="chefe__imagem" [src]="imagem()" [alt]="b.name" loading="lazy" />
+      } @else {
+        <span class="chefe__imagem chefe__imagem--vazia" aria-hidden="true">
+          <i class="ti ti-sword"></i>
+        </span>
+      }
+
+      <div class="chefe__identidade">
+        @if (b.mandatory) {
+          <span class="chefe__tag chefe__tag--obrigatorio">obrigatório</span>
+        } @else {
+          <span class="chefe__tag">opcional</span>
+        }
+
+        <h1 class="chefe__nome">{{ b.name }}</h1>
+        <p class="chefe__jogo">{{ b.gameName }}</p>
+
+        @if (logado()) {
+          <button
+            class="chefe__marcar"
+            type="button"
+            [class.chefe__marcar--feito]="b.viewerHasDefeated"
+            [attr.aria-pressed]="b.viewerHasDefeated"
+            (click)="alternarDerrotado()"
+          >
+            @if (b.viewerHasDefeated) {
+              <i class="ti ti-circle-check" aria-hidden="true"></i> você derrotou este chefe
+            } @else {
+              <i class="ti ti-circle" aria-hidden="true"></i> marcar como derrotado
+            }
+          </button>
+        }
+      </div>
+    </header>
+
+    @if (b.location) {
+      <section class="chefe__bloco chefe__bloco--onde">
+        <h2 class="chefe__bloco-title">
+          <i class="ti ti-map-pin" aria-hidden="true"></i> onde fica
+        </h2>
+        <p class="chefe__texto">{{ b.location }}</p>
+      </section>
+    }
+
+    <!--
+      "Como matar" vem antes de tudo que não seja "onde fica": quem abriu está morrendo
+      para o chefe agora. E "não funciona" é bloco próprio, não um parágrafo no meio —
+      saber o que não tentar economiza mais tentativas do que saber o que tentar.
+    -->
+    @if (b.weaknesses.length || b.whatWorks || b.whatFails) {
+      <section class="chefe__bloco">
+        <h2 class="chefe__bloco-title">
+          <i class="ti ti-sword" aria-hidden="true"></i> como matar
+        </h2>
+
+        @if (b.weaknesses.length) {
+          <ul class="chefe__fraquezas">
+            @for (fraqueza of b.weaknesses; track fraqueza) {
+              <li class="chefe__fraqueza">{{ fraqueza }}</li>
+            }
+          </ul>
+        }
+
+        @if (b.whatWorks) {
+          <p class="chefe__texto">
+            <strong class="chefe__rotulo">funciona:</strong> {{ b.whatWorks }}
+          </p>
+        }
+        @if (b.whatFails) {
+          <p class="chefe__texto">
+            <strong class="chefe__rotulo">não funciona:</strong> {{ b.whatFails }}
+          </p>
+        }
+      </section>
+    }
+
+    @if (b.phases.length) {
+      <section class="chefe__bloco">
+        <h2 class="chefe__bloco-title">
+          <i class="ti ti-refresh-dot" aria-hidden="true"></i> fases
+        </h2>
+        @for (fase of b.phases; track fase.id) {
+          <div class="chefe__fase">
+            <p class="chefe__fase-titulo">{{ fase.title }}</p>
+            @if (fase.description) {
+              <p class="chefe__texto">{{ fase.description }}</p>
+            }
+          </div>
+        }
+      </section>
+    }
+
+    @if (b.drops.length) {
+      <section class="chefe__bloco">
+        <h2 class="chefe__bloco-title">
+          <i class="ti ti-gift" aria-hidden="true"></i> o que dropa
+        </h2>
+        <div class="chefe__links">
+          @for (drop of b.drops; track drop.itemId) {
+            <a class="chefe__link chefe__link--item" [routerLink]="['/itens', drop.itemId]">
+              <i class="ti ti-sparkles" aria-hidden="true"></i> {{ drop.name }}
+            </a>
+          }
+        </div>
+      </section>
+    }
+
+    <!-- O caminho de volta para o guia: é o que este site tem e uma wiki não tem. -->
+    @if (b.guides.length) {
+      <section class="chefe__bloco">
+        <h2 class="chefe__bloco-title">
+          <i class="ti ti-route" aria-hidden="true"></i> em que guias aparece
+        </h2>
+        <div class="chefe__links">
+          @for (guia of b.guides; track guia.questId) {
+            <a class="chefe__link" [routerLink]="['/games', b.gameId, 'quests', guia.questId]">
+              <i class="ti ti-map" aria-hidden="true"></i> {{ guia.title }}
+            </a>
+          }
+        </div>
+      </section>
+    }
+
+    @if (b.lore) {
+      <section class="chefe__lore">
+        <button class="chefe__lore-toggle" type="button" (click)="alternarLore()">
+          {{ loreAberta() ? 'recolher descrição e lore' : 'mostrar descrição e lore' }}
+        </button>
+        @if (loreAberta()) {
+          <p class="chefe__lore-texto">{{ b.lore }}</p>
+        }
+      </section>
+    }
+  }
+</section>

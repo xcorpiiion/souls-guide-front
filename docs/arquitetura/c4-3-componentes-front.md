@@ -73,6 +73,7 @@ flowchart LR
         lore["lore.service"]
         ending["ending.service"]
         item["item.service"]
+        boss["boss.service"]
         questVersion["quest-version.service"]
         loreVersion["lore-version.service"]
         questCondition["quest-condition.service"]

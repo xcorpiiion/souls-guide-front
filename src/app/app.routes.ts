@@ -75,6 +75,27 @@ export const routes: Routes = [
     loadComponent: () => import('./features/item-detail/item-detail').then((m) => m.ItemDetail),
   },
   {
+    path: 'games/:id/chefes',
+    data: {
+      seo: {
+        titulo: 'Chefes',
+        descricao:
+          'Todos os chefes na ordem recomendada, com o que é obrigatório e o que é opcional.',
+      } satisfies SeoPagina,
+    },
+    loadComponent: () => import('./features/chefes/chefes').then((m) => m.Chefes),
+  },
+  {
+    path: 'chefes/:id',
+    data: {
+      seo: {
+        titulo: 'Chefe',
+        descricao: 'Onde fica, o que funciona, o que não funciona e o que ele dropa.',
+      } satisfies SeoPagina,
+    },
+    loadComponent: () => import('./features/boss-detail/boss-detail').then((m) => m.BossDetail),
+  },
+  {
     path: 'games/:id/run',
     data: {
       seo: {
