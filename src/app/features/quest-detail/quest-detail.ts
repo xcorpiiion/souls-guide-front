@@ -24,6 +24,7 @@ import { QuestVersionService } from '../../core/services/quest-version.service';
 import { PersonalQuestService } from '../../core/services/personal-quest.service';
 import { StorageService } from '../../core/services/storage.service';
 import { resumo, SeoService } from '../../core/services/seo.service';
+import { refDe } from '../../shared/utils/ref';
 import { AuthService } from '@xcorpiiion/ng-core';
 import {
   CopyToProfileModal,
@@ -78,6 +79,15 @@ export class QuestDetail implements OnInit {
   protected readonly previewVersion = signal<number | null>(
     Number(this.route.snapshot.queryParamMap.get('version')) || null,
   );
+  /**
+   * A referência do jogo para montar link e canônico — não para chamar a API.
+   *
+   * Guarda o que veio na rota quando é slug (`lies-of-p`), porque a resposta da quest traz
+   * o id do jogo mas não o slug dele. Quem chegou pelo id fica com o id, e o endereço
+   * legível continua sendo o que o sitemap publica.
+   */
+  private readonly gameRef = signal<string>(this.route.snapshot.paramMap.get('gameId') ?? '');
+
   protected readonly emptySet = new Set<string>();
   protected readonly snapshotNodes = signal<QuestNode[] | null>(null);
   protected readonly snapshotEdges = signal<QuestEdge[] | null>(null);
@@ -172,7 +182,10 @@ export class QuestDetail implements OnInit {
         next: (api) => {
           const questId = this.questId();
           const summary = questApiToSummary(api);
-          if (!this.gameId()) this.gameId.set(String(api.gameId));
+          // O parametro da rota pode ser o slug do jogo ("lies-of-p"), e as outras chamadas
+          // desta tela querem o id numerico. A resposta da quest sempre traz ele.
+          this.gameId.set(String(api.gameId));
+          if (!this.gameRef()) this.gameRef.set(String(api.gameId));
           this.quest.set({
             ...summary,
             nodes: (api.nodes ?? []).map((n) => ({
@@ -351,6 +364,9 @@ export class QuestDetail implements OnInit {
       descricao,
       imagem: this.capaDoCabecalho(),
       tipo: 'article',
+      // O endereco definitivo e sempre o legivel, mesmo quando a pessoa chegou pelo id:
+      // sem isto, as duas URLs disputam entre si o peso que deveria ser de uma so.
+      canonical: publico ? `/games/${this.gameRef()}/quests/${refDe(q.id, q.slug)}` : null,
       indexavel: publico,
       autor: q.author ?? q.ownerNickname ?? null,
     });

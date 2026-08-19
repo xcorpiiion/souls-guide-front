@@ -91,6 +91,31 @@ describe('SeoService', () => {
     expect(links[0].getAttribute('href')).toBe(`${doc.location.origin}${doc.location.pathname}`);
   });
 
+  /**
+   * A mesma página abre por `/games/17/quests/45` e por
+   * `/games/elden-ring/quests/45-ranni-a-bruxa`. Sem declarar qual é o endereço
+   * definitivo, o buscador vê duas páginas iguais e divide entre elas o peso de uma só.
+   */
+  it('declara como canônico o caminho que a página pediu, não o da barra de endereços', () => {
+    service.aplicar({
+      titulo: 'Ranni',
+      descricao: 'x',
+      canonical: '/games/elden-ring/quests/45-ranni-a-bruxa',
+    });
+
+    expect(doc.head.querySelector('link[rel="canonical"]')!.getAttribute('href')).toBe(
+      `${doc.location.origin}/games/elden-ring/quests/45-ranni-a-bruxa`,
+    );
+  });
+
+  it('sem caminho declarado, o canônico é a URL atual', () => {
+    service.aplicar({ titulo: 'a', descricao: 'b' });
+
+    expect(doc.head.querySelector('link[rel="canonical"]')!.getAttribute('href')).toBe(
+      `${doc.location.origin}${doc.location.pathname}`,
+    );
+  });
+
   describe('estruturado()', () => {
     it('injeta o JSON-LD com o @context', () => {
       service.estruturado({ '@type': 'Article', headline: 'Ranni' });

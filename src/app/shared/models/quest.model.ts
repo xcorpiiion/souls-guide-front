@@ -49,6 +49,8 @@ export interface QuestApi extends QuestGuideDTO {
 }
 
 export interface QuestSummary {
+  /** Endereço legível na URL. Ausente em conteúdo criado antes da migração V34. */
+  slug?: string | null;
   id: string;
   title: string;
   gameId: string;
@@ -81,6 +83,7 @@ export interface QuestSummary {
 export function questApiToSummary(q: QuestApi): QuestSummary {
   return {
     id: String(q.id),
+    slug: q.slug,
     title: q.title,
     description: q.description,
     gameId: String(q.gameId),

@@ -11,6 +11,8 @@ export type GameListItem = GameSummaryDTO;
 
 // Shape usado nas listagens e cards do front
 export interface GameSummary {
+  /** Endereço legível na URL. Ausente em conteúdo criado antes da migração V34. */
+  slug?: string | null;
   id: string;
   name: string;
   shortName: string;
@@ -40,6 +42,7 @@ export type GameDetailData = GameSummary & {
 export function gameListItemToSummary(g: GameListItem): GameSummary {
   return {
     id: String(g.id),
+    slug: g.slug,
     name: g.name,
     shortName: g.shortName,
     accentClass: g.accentClass,
@@ -59,6 +62,7 @@ export function gameListItemToSummary(g: GameListItem): GameSummary {
 export function gameToSummary(g: Game): GameSummary {
   return {
     id: String(g.id),
+    slug: g.slug,
     name: g.name,
     shortName: g.name.split(' ')[0],
     accentClass: 'accent-default',

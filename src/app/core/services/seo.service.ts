@@ -15,6 +15,16 @@ export interface SeoPagina {
    * resultado de busca — e para conteúdo de perfil, que é do dono e não do público.
    */
   indexavel?: boolean;
+  /**
+   * O caminho que esta página declara como seu endereço definitivo, quando ele não é o da
+   * barra de endereços.
+   *
+   * Existe por causa do slug: a mesma página abre por `/games/17/quests/45` e por
+   * `/games/elden-ring/quests/45-ranni-a-bruxa`. Sem dizer qual é o definitivo, o
+   * buscador vê duas páginas com o mesmo conteúdo e divide entre elas o peso que deveria
+   * ser de uma só.
+   */
+  canonical?: string | null;
   publicadoEm?: string | null;
   atualizadoEm?: string | null;
   autor?: string | null;
@@ -76,7 +86,7 @@ export class SeoService {
       : NOME_DO_SITE;
     const descricao = resumo(pagina.descricao) || DESCRICAO_PADRAO;
     const imagem = this.absolutizar(pagina.imagem || IMAGEM_PADRAO);
-    const url = this.urlCanonica();
+    const url = this.urlCanonica(pagina.canonical);
     const indexavel = pagina.indexavel !== false;
 
     this.title.setTitle(titulo);
@@ -143,10 +153,16 @@ export class SeoService {
   }
 
   /** A URL da página, sem query — filtro e paginação não são páginas diferentes. */
-  private urlCanonica(): string {
+  private urlCanonica(caminho?: string | null): string {
     const loc = this.doc.location;
     if (!loc) return '';
-    return `${this.origem()}${loc.pathname}`;
+
+    const path = caminho?.trim()
+      ? caminho.startsWith('/')
+        ? caminho
+        : `/${caminho}`
+      : loc.pathname;
+    return `${this.origem()}${path}`;
   }
 
   private absolutizar(url: string): string {

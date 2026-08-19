@@ -14,6 +14,7 @@ import { LoreService } from '../../../core/services/lore.service';
 import { PersonalLoreService } from '../../../core/services/personal-lore.service';
 import { StorageService } from '../../../core/services/storage.service';
 import { resumo, SeoService } from '../../../core/services/seo.service';
+import { refDe } from '../../../shared/utils/ref';
 import { AuthService } from '@xcorpiiion/ng-core';
 import {
   LoreBlock,
@@ -119,6 +120,8 @@ export class LoreDetail implements OnInit {
       imagem: a.coverImageFileKey ? this.storage.previewUrl(a.coverImageFileKey) : null,
       tipo: 'article',
       indexavel: publico,
+      // Ver o comentario irmao no QuestDetail.
+      canonical: publico ? `/lore/${refDe(a.id, a.slug)}` : null,
     });
 
     this.seo.estruturado(

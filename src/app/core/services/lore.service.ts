@@ -5,6 +5,7 @@ import { LoreApi, LoreSummary, loreApiToSummary } from '../../shared/models/lore
 import { FollowResponse } from '../../shared/models/quest.model';
 import { LikeResponse } from './personal-quest.service';
 import { LoreTypeApi } from '../../features/lore-create/lore-create';
+import { paraId } from '../../shared/utils/ref';
 
 export interface CreateLoreRequest {
   title: string;
@@ -41,7 +42,8 @@ export class LoreService {
   }
 
   get(id: string): Observable<LoreApi> {
-    return this.api.get<LoreApi>(id);
+    // Ver o comentário irmão no QuestService.
+    return this.api.get<LoreApi>(paraId(id));
   }
 
   create(data: CreateLoreRequest): Observable<LoreApi> {

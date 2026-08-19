@@ -70,6 +70,8 @@ export class GameDetail implements OnInit {
         resumo(g.description) ||
         `Guias de quest, finais e lore de ${g.name}, escritos e revisados pela comunidade.`,
       imagem: g.imageUrl ?? null,
+      // O jogo tem slug proprio, e o endpoint resolve os dois formatos.
+      canonical: g.slug ? `/games/${g.slug}` : null,
     });
 
     this.seo.estruturado({ '@type': 'VideoGame', name: g.name, description: g.description ?? '' });

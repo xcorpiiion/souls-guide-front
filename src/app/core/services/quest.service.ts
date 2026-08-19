@@ -10,6 +10,7 @@ import {
   questApiToSummary,
 } from '../../shared/models/quest.model';
 import { LikeResponse } from './personal-quest.service';
+import { paraId } from '../../shared/utils/ref';
 
 export interface QuestRequest {
   title: string;
@@ -45,7 +46,9 @@ export class QuestService {
   }
 
   get(id: string): Observable<QuestApi> {
-    return this.api.get<QuestApi>(id);
+    // A URL pode trazer "45-ranni-a-bruxa"; o endpoint quer o id. Normalizar aqui faz
+    // toda tela aceitar o endereço legível sem precisar mudar uma por uma.
+    return this.api.get<QuestApi>(paraId(id));
   }
 
   listNodes(questId: string): Observable<QuestNode[]> {
