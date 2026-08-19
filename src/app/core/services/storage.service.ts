@@ -1,6 +1,6 @@
 import { inject, Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { catchError, forkJoin, map, Observable, of, switchMap } from 'rxjs';
+import { catchError, forkJoin, map, Observable, of, switchMap, throwError } from 'rxjs';
 import type {
   ConfirmUploadRequest,
   FileMetadata,
@@ -12,6 +12,29 @@ import { HttpService, skipAuth } from '@xcorpiiion/ng-core';
 
 /** A que entidade um arquivo pertence. Casa com o ownerKind gravado na storage-api. */
 export type FileOwnerKind = 'QUEST' | 'LORE' | 'GAME' | 'BOSS';
+
+/**
+ * Enquanto isto for `false`, o site não aceita nem exibe imagem enviada por usuário.
+ *
+ * ## Por que existe
+ * Não há ferramenta de moderação de imagem, e imagem é o formato em que conteúdo
+ * impróprio entra sem ninguém ler: um texto ofensivo é lido por quem passa e denunciado;
+ * uma imagem já foi vista antes de alguém reagir.
+ *
+ * ## Por que é uma constante, e não a remoção do código
+ * É medida temporária, e religar precisa ser uma linha. Espalhar a remoção por dez telas
+ * faria a volta depender de alguém lembrar de todas — e é o tipo de coisa de que ninguém
+ * lembra inteiro.
+ *
+ * ## Onde ela pega
+ * Aqui, que é o funil dos dois lados: `upload` recusa, e `previewUrl` e `resolve` devolvem
+ * vazio — então toda tela de leitura para de mostrar sem precisar saber disso. As telas de
+ * escrita escondem o botão por cima, para não oferecer o que vai falhar.
+ *
+ * **A capa do jogo não passa por aqui**: ela é URL da Steam, não upload, e continua
+ * aparecendo.
+ */
+export const IMAGENS_DE_USUARIO_HABILITADAS = false;
 
 /**
  * Arquivo que já subiu mas ainda não foi confirmado. Enquanto está assim ele não tem
@@ -53,6 +76,12 @@ export class StorageService {
    * Se desistir, o registro fica pendente e a limpeza de órfãos recolhe sozinha.
    */
   upload(file: File, purpose: FilePurpose): Observable<PendingUpload> {
+    // As telas já escondem o botão. Isto é a segunda tranca: se alguma superfície escapar,
+    // o envio falha aqui em vez de gravar no bucket em silêncio.
+    if (!IMAGENS_DE_USUARIO_HABILITADAS) {
+      return throwError(() => new Error('Envio de imagem desligado enquanto não há moderação.'));
+    }
+
     const request: UploadTicketRequest = {
       fileName: file.name,
       contentType: file.type,
@@ -106,6 +135,8 @@ export class StorageService {
     ownerKind: FileOwnerKind,
     ownerId: string,
   ): Observable<Map<string, string>> {
+    if (!IMAGENS_DE_USUARIO_HABILITADAS) return of(new Map());
+
     const wanted = new Set(fileKeys.filter((k) => !!k));
     if (!wanted.size) return of(new Map());
 
@@ -141,7 +172,8 @@ export class StorageService {
    *
    * Este endereço não envelhece: a storage-api redireciona para a URL assinada do momento.
    */
-  previewUrl(fileKey: string): string {
+  previewUrl(fileKey: string): string | null {
+    if (!IMAGENS_DE_USUARIO_HABILITADAS) return null;
     return this.api.url(`${fileKey}/preview`);
   }
 

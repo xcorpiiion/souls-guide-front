@@ -1,6 +1,10 @@
 import { ChangeDetectionStrategy, Component, inject, input, output, signal } from '@angular/core';
 import type { FilePurpose } from '@xcorpiiion/canonico';
-import { PendingUpload, StorageService } from '../../../core/services/storage.service';
+import {
+  IMAGENS_DE_USUARIO_HABILITADAS,
+  PendingUpload,
+  StorageService,
+} from '../../../core/services/storage.service';
 
 /** Como a superfície se apresenta. Ver a nota no `variant`. */
 export type ImageUploaderVariant = 'cover' | 'inline';
@@ -39,6 +43,14 @@ export class ImageUploader {
   readonly cleared = output<void>();
 
   private readonly storage = inject(StorageService);
+
+  /**
+   * O template inteiro fica atrás disto.
+   *
+   * A guarda mora aqui, e não em cada tela que usa o componente: são cinco, e a que
+   * esquecesse ofereceria um botão que falha no meio do formulário.
+   */
+  protected readonly imagensHabilitadas = IMAGENS_DE_USUARIO_HABILITADAS;
 
   protected readonly localPreview = signal<string | null>(null);
   protected readonly uploading = signal(false);

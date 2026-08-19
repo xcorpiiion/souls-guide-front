@@ -14,7 +14,11 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { LoreService } from '../../core/services/lore.service';
 import { PersonalLoreService } from '../../core/services/personal-lore.service';
 import { GameService } from '../../core/services/game.service';
-import { PendingUpload, StorageService } from '../../core/services/storage.service';
+import {
+  IMAGENS_DE_USUARIO_HABILITADAS,
+  PendingUpload,
+  StorageService,
+} from '../../core/services/storage.service';
 import { PfPageLoader } from '@xcorpiiion/ui';
 import { ImageUploader } from '../../shared/components/image-uploader/image-uploader';
 import { GameSummary } from '../../shared/models/game.model';
@@ -43,6 +47,9 @@ export class LoreEditor implements OnInit, OnDestroy, HasUnsavedChanges {
   private readonly fb = inject(FormBuilder);
   private readonly destroy$ = new Subject<void>();
   private readonly gameSearch$ = new Subject<string>();
+
+  /** Ver a constante: a barra de ferramentas esconde o botão de imagem. */
+  protected readonly imagensHabilitadas = IMAGENS_DE_USUARIO_HABILITADAS;
 
   protected readonly loreId = this.route.snapshot.paramMap.get('id') ?? '';
   private readonly isPersonal = this.route.snapshot.queryParamMap.get('personal') === 'true';

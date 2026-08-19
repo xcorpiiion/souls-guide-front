@@ -6,6 +6,7 @@
  * texto produziria um artigo que funciona hoje e mostra imagem quebrada semana que vem.
  * Quem exibe troca a chave pela URL no momento de renderizar.
  */
+import { IMAGENS_DE_USUARIO_HABILITADAS } from '../../core/services/storage.service';
 
 const IMAGE_BLOCK = /^!\[([^\]]*)\]\(file:([^)\s]+)\)$/;
 
@@ -27,15 +28,26 @@ export function extractImageFileKeys(content: string): string[] {
     .filter((key): key is string => !!key);
 }
 
-/** Quebra o texto em blocos tipados, do jeito que a tela de leitura consome. */
+/**
+ * Quebra o texto em blocos tipados, do jeito que a tela de leitura consome.
+ *
+ * <p>Com imagem desligada, o bloco de imagem não vira um espaço vazio na leitura: ele
+ * simplesmente não é produzido. O texto do artigo continua inteiro — só a imagem sai.
+ */
 export function parseLoreContent(content: string): LoreBlock[] {
-  return splitBlocks(content).map((block) => {
-    const image = IMAGE_BLOCK.exec(block);
-    if (image) return { kind: 'image', alt: image[1], fileKey: image[2] };
-    if (block.startsWith('## ')) return { kind: 'heading', text: block.slice(3) };
-    if (block.startsWith('> ')) return { kind: 'quote', text: block.slice(2) };
-    return { kind: 'paragraph', text: block };
-  });
+  return splitBlocks(content)
+    .map((block): LoreBlock | null => {
+      const image = IMAGE_BLOCK.exec(block);
+      if (image) {
+        return IMAGENS_DE_USUARIO_HABILITADAS
+          ? { kind: 'image', alt: image[1], fileKey: image[2] }
+          : null;
+      }
+      if (block.startsWith('## ')) return { kind: 'heading', text: block.slice(3) };
+      if (block.startsWith('> ')) return { kind: 'quote', text: block.slice(2) };
+      return { kind: 'paragraph', text: block };
+    })
+    .filter((block): block is LoreBlock => block !== null);
 }
 
 /**
@@ -46,9 +58,13 @@ export function renderMarkdown(md: string, resolved?: ReadonlyMap<string, string
   return md
     .replace(/^!\[([^\]]*)\]\(file:([^)\s]+)\)$/gm, (_, alt: string, key: string) => {
       const url = resolved?.get(key);
-      return url
-        ? `<img src="${escapeAttribute(url)}" alt="${escapeAttribute(alt)}" />`
-        : `<p class="lore-image-pending">imagem enviando…</p>`;
+      if (url) return `<img src="${escapeAttribute(url)}" alt="${escapeAttribute(alt)}" />`;
+
+      // Com imagem desligada, nenhuma chave resolve — e o marcador de "enviando" ficaria
+      // mentindo para sempre em todo artigo que já tem imagem no texto. Some o bloco.
+      return IMAGENS_DE_USUARIO_HABILITADAS
+        ? `<p class="lore-image-pending">imagem enviando…</p>`
+        : '';
     })
     .replace(/^### (.+)$/gm, '<h3>$1</h3>')
     .replace(/^## (.+)$/gm, '<h2>$1</h2>')

@@ -11,7 +11,11 @@ import { Router, RouterLink } from '@angular/router';
 import { Subject, debounceTime, distinctUntilChanged, switchMap, takeUntil } from 'rxjs';
 import { LoreService } from '../../core/services/lore.service';
 import { GameService } from '../../core/services/game.service';
-import { PendingUpload, StorageService } from '../../core/services/storage.service';
+import {
+  IMAGENS_DE_USUARIO_HABILITADAS,
+  PendingUpload,
+  StorageService,
+} from '../../core/services/storage.service';
 import { GameSummary } from '../../shared/models/game.model';
 import { ImageUploader } from '../../shared/components/image-uploader/image-uploader';
 import {
@@ -38,6 +42,9 @@ export class LoreCreate implements OnDestroy {
   private readonly fb = inject(FormBuilder);
   private readonly destroy$ = new Subject<void>();
   private readonly gameSearch$ = new Subject<string>();
+
+  /** Ver a constante: a barra de ferramentas esconde o botão de imagem. */
+  protected readonly imagensHabilitadas = IMAGENS_DE_USUARIO_HABILITADAS;
 
   protected readonly form = this.fb.group({
     title: ['', [Validators.required, Validators.minLength(3)]],

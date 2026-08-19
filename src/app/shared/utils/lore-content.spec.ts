@@ -5,6 +5,7 @@ import {
   parseLoreContent,
   renderMarkdown,
 } from './lore-content';
+import { IMAGENS_DE_USUARIO_HABILITADAS } from '../../core/services/storage.service';
 
 describe('loreImageMarkdown', () => {
   it('escreve a chave, nunca a URL', () => {
@@ -34,9 +35,18 @@ describe('parseLoreContent', () => {
     expect(parseLoreContent(content)).toEqual([
       { kind: 'heading', text: 'Título' },
       { kind: 'quote', text: 'citação' },
-      { kind: 'image', fileKey: 'k1', alt: 'alt' },
+      // O bloco de imagem some enquanto imagem de usuário está desligada, e some inteiro
+      // — em vez de virar um espaço vazio no meio do artigo.
+      ...(IMAGENS_DE_USUARIO_HABILITADAS ? [{ kind: 'image', fileKey: 'k1', alt: 'alt' }] : []),
       { kind: 'paragraph', text: 'parágrafo' },
     ]);
+  });
+
+  it('o texto do artigo sobrevive à imagem removida', () => {
+    const blocos = parseLoreContent('![alt](file:k1)\n\ntexto que fica');
+
+    expect(blocos.some((b) => b.kind === 'image')).toBe(IMAGENS_DE_USUARIO_HABILITADAS);
+    expect(blocos).toContainEqual({ kind: 'paragraph', text: 'texto que fica' });
   });
 
   it('descarta blocos vazios', () => {
@@ -50,11 +60,25 @@ describe('renderMarkdown', () => {
     expect(html).toContain('<img src="https://cdn/x.png" alt="Ranni" />');
   });
 
-  it('mostra marcador em vez de imagem quebrada quando a chave não resolveu', () => {
+  /**
+   * Desligado, nenhuma chave resolve nunca — então o marcador de "enviando" ficaria
+   * mentindo para sempre em todo artigo que já tem imagem no texto. O bloco some.
+   */
+  it('não deixa marcador de envio quando imagem de usuário está desligada', () => {
     const html = renderMarkdown('![Ranni](file:k1)');
+
     expect(html).not.toContain('<img');
-    expect(html).toContain('imagem enviando');
+    expect(html).not.toContain('imagem enviando');
   });
+
+  it.skipIf(!IMAGENS_DE_USUARIO_HABILITADAS)(
+    'mostra marcador em vez de imagem quebrada quando a chave não resolveu',
+    () => {
+      const html = renderMarkdown('![Ranni](file:k1)');
+      expect(html).not.toContain('<img');
+      expect(html).toContain('imagem enviando');
+    },
+  );
 
   it('escapa aspas do alt para não quebrar o atributo', () => {
     const html = renderMarkdown('![a"b](file:k1)', new Map([['k1', 'https://cdn/x.png']]));

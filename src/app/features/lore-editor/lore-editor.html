@@ -204,17 +204,21 @@
               <button type="button" class="lore-create__tb-btn" title="citação (> texto)">
                 <i class="ti ti-blockquote"></i>
               </button>
-              <span class="lore-create__tb-sep"></span>
-              <label class="lore-create__tb-btn" title="inserir imagem no texto">
-                <i [class]="insertingImage() ? 'ti ti-loader-2' : 'ti ti-photo-plus'"></i>
-                <input
-                  type="file"
-                  accept="image/png,image/jpeg,image/webp"
-                  hidden
-                  [disabled]="insertingImage()"
-                  (change)="insertInlineImage($event, contentArea)"
-                />
-              </label>
+              <!-- Ver IMAGENS_DE_USUARIO_HABILITADAS: imagem no texto é a superfície
+                   mais exposta do site, e sai enquanto não há moderação. -->
+              @if (imagensHabilitadas) {
+                <span class="lore-create__tb-sep"></span>
+                <label class="lore-create__tb-btn" title="inserir imagem no texto">
+                  <i [class]="insertingImage() ? 'ti ti-loader-2' : 'ti ti-photo-plus'"></i>
+                  <input
+                    type="file"
+                    accept="image/png,image/jpeg,image/webp"
+                    hidden
+                    [disabled]="insertingImage()"
+                    (change)="insertInlineImage($event, contentArea)"
+                  />
+                </label>
+              }
             </div>
             <textarea
               #contentArea
