@@ -88,6 +88,51 @@ describe('GameDetail', () => {
     expect(fixture.componentInstance['activeTab']()).toBe('lore');
   });
 
+  /**
+   * O jogo usa slug puro na URL (ADR 0013), e a lista de quests é filtrada por `gameId`.
+   *
+   * Comparar o `gameId` numérico que a API devolve com a referência crua da URL fazia a
+   * página aberta pelo endereço legível dizer "nenhuma quest" com quests no banco — e só
+   * o cabeçalho funcionava, porque só ele passa pelo endpoint que aceita slug.
+   *
+   * O resto da suíte não pegava isso porque abria tudo por `'1'`, o formato antigo.
+   */
+  it.each(['1', 'elden-ring'])('lista as quests da página aberta por %s', (referencia) => {
+    const questDoJogo = {
+      id: 'q1',
+      gameId: '1',
+      title: 'Ranni',
+      status: 'CANONICO',
+      hidden: false,
+      isOwner: false,
+      isPersonal: false,
+    };
+    const questService = {
+      list: vi.fn(() => of({ ...emptyPage, content: [questDoJogo], totalElements: 1 })),
+    };
+
+    TestBed.configureTestingModule({
+      imports: [GameDetail],
+      providers: [
+        provideAuth({ baseUrl: 'http://localhost/auth' }),
+        provideRouter([]),
+        {
+          provide: ActivatedRoute,
+          useValue: { snapshot: { paramMap: convertToParamMap({ id: referencia }) } },
+        },
+        { provide: GameService, useValue: gameServiceMock },
+        { provide: QuestService, useValue: questService },
+        { provide: LoreService, useValue: loreServiceMock },
+      ],
+    });
+
+    const fixture = TestBed.createComponent(GameDetail);
+    fixture.detectChanges();
+
+    expect(fixture.componentInstance['gameId']()).toBe('1');
+    expect(fixture.componentInstance['quests']()).toHaveLength(1);
+  });
+
   it('deve exibir mensagem de não encontrado quando service retorna erro', () => {
     const errService = {
       get: vi.fn(() => {

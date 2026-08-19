@@ -323,7 +323,7 @@
             <a
               class="game-detail__ending-card"
               [class.game-detail__ending-card--achieved]="ending.userHasAchieved"
-              [routerLink]="['/games', gameId, 'finais', ending.id]"
+              [routerLink]="['/games', g.ref, 'finais', ending.id]"
             >
               <div class="game-detail__ending-head">
                 <span

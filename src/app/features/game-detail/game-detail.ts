@@ -53,7 +53,22 @@ export class GameDetail implements OnInit {
   private readonly el = inject(ElementRef);
   readonly auth = inject(AuthService);
 
-  protected readonly gameId = this.route.snapshot.paramMap.get('id') ?? '';
+  /** A referência como veio na URL: id ou slug. É o que o endpoint do jogo resolve. */
+  protected readonly referencia = this.route.snapshot.paramMap.get('id') ?? '';
+
+  /**
+   * O id numérico, que só existe depois que o jogo carrega.
+   *
+   * **Não dá para tirar da URL.** O jogo usa slug puro (ADR 0013), e por isso
+   * `paraId('lies-of-p')` devolve o próprio texto — de propósito, para o servidor
+   * resolver. Mas tudo que vem depois — quests, lore, finais, seguir, copiar — precisa
+   * do id de verdade.
+   *
+   * Usar a referência aqui era o bug: `q.gameId === 'lies-of-p'` nunca casa, e a página
+   * aberta pelo endereço legível dizia "nenhuma quest" com nove quests no banco. Só o
+   * cabeçalho funcionava, porque só ele passa pelo endpoint que aceita slug.
+   */
+  protected readonly gameId = signal('');
 
   /**
    * O número de quests e de finais entra na descrição porque é o que distingue a
@@ -119,12 +134,18 @@ export class GameDetail implements OnInit {
   });
 
   ngOnInit(): void {
-    this.gameService.get(this.gameId).subscribe({
+    this.gameService.get(this.referencia).subscribe({
       next: (g: Game) => {
         this.game.set(gameToSummary(g));
         this.gameFollowing.set(g.userIsFollowing ?? false);
         this.aplicarSeo();
         this.loading.set(false);
+
+        // O resto depende do id, e o id só existe agora. É uma ida a mais ao servidor
+        // antes das listas — o preço de a URL ser legível, e o único jeito de a página
+        // aberta pelo slug mostrar o mesmo que a aberta pelo id.
+        this.gameId.set(String(g.id));
+        this.carregarConteudo();
       },
       error: () => {
         this.error.set('Jogo não encontrado.');
@@ -136,20 +157,25 @@ export class GameDetail implements OnInit {
         this.loading.set(false);
       },
     });
+  }
+
+  /** Quests, lore e finais do jogo. Só roda depois que o id numérico está resolvido. */
+  private carregarConteudo(): void {
+    const id = this.gameId();
 
     this.questService.list(0, 50).subscribe({
       next: (page) => {
-        this.quests.set(page.content.filter((q) => q.gameId === this.gameId));
+        this.quests.set(page.content.filter((q) => q.gameId === id));
         this.questsLoading.set(false);
       },
       error: () => this.questsLoading.set(false),
     });
 
     this.loreService.list(0, 50).subscribe({
-      next: (page) => this.loreArticles.set(page.content.filter((l) => l.gameId === this.gameId)),
+      next: (page) => this.loreArticles.set(page.content.filter((l) => l.gameId === id)),
     });
 
-    this.endingService.listByGame(this.gameId).subscribe({
+    this.endingService.listByGame(id).subscribe({
       next: (list) => {
         this.endings.set(list);
         this.endingsLoading.set(false);
@@ -199,8 +225,8 @@ export class GameDetail implements OnInit {
     this.togglingFollow.set(true);
 
     const call = this.gameFollowing()
-      ? this.gameService.unfollowGame(this.gameId)
-      : this.gameService.followGame(this.gameId);
+      ? this.gameService.unfollowGame(this.gameId())
+      : this.gameService.followGame(this.gameId());
 
     const delta = this.gameFollowing() ? -1 : 1;
 
@@ -244,7 +270,7 @@ export class GameDetail implements OnInit {
         filter((ok) => ok),
         switchMap(() => {
           this.copyingAll.set(true);
-          return this.personalQuestService.copyAllFromGame(this.gameId);
+          return this.personalQuestService.copyAllFromGame(this.gameId());
         }),
       )
       .subscribe({
