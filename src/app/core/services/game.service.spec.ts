@@ -30,7 +30,7 @@ describe('GameService', () => {
 
   describe('list()', () => {
     it('chama GET /games com page e size', () => {
-      service.list(0, 12).subscribe();
+      service.list().subscribe();
       const req = http.expectOne((r) => r.url === BASE);
       expect(req.request.params.get('page')).toBe('0');
       expect(req.request.params.get('size')).toBe('12');
@@ -39,14 +39,14 @@ describe('GameService', () => {
     });
 
     it('inclui param name quando fornecido', () => {
-      service.list(0, 12, 'elden').subscribe();
+      service.list({ name: 'elden' }).subscribe();
       const req = http.expectOne((r) => r.url === BASE);
       expect(req.request.params.get('name')).toBe('elden');
       req.flush(PAGE_STUB);
     });
 
     it('não inclui param name quando vazio', () => {
-      service.list(1, 12, undefined).subscribe();
+      service.list({ page: 1 }).subscribe();
       const req = http.expectOne((r) => r.url === BASE);
       expect(req.request.params.has('name')).toBe(false);
       expect(req.request.params.get('page')).toBe('1');

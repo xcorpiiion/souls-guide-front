@@ -4,6 +4,7 @@ import { map, Observable } from 'rxjs';
 import {
   FeaturedGame,
   Game,
+  GameGenre,
   GameListItem,
   gameListItemToSummary,
   GameSummary,
@@ -24,6 +25,15 @@ export interface CreateGameRequest {
   tags?: string[];
 }
 
+/** Busca e filtros do catálogo de jogos. Tudo opcional; ausente não vira default aqui. */
+export interface GameQuery {
+  name?: string;
+  genre?: GameGenre | null;
+  seriesId?: number | null;
+  page?: number;
+  size?: number;
+}
+
 /** Busca, filtro e ordem da aba de contribuidores. Tudo opcional; nada vira default aqui. */
 export interface ContributorQuery {
   q?: string;
@@ -37,10 +47,27 @@ export interface ContributorQuery {
 export class GameService {
   private readonly api = inject(HttpService).resource('games');
 
-  list(page = 0, size = 20, name?: string): Observable<Page<GameSummary>> {
-    // `name` undefined sai da query; `page = 0` fica.
+  /**
+   * O catálogo, com os filtros que vierem.
+   *
+   * Gênero e série vão para o servidor, e não para um `filter` no cliente: a página traz
+   * 12 jogos de cada vez, e filtrar só o que já chegou responderia "nenhum jogo de Silent
+   * Hill" enquanto eles estivessem na página 3.
+   *
+   * Filtrar por série também troca a ordem, e quem decide isso é o back-end: alfabética
+   * dentro de uma série poria 'Resident Evil 7' antes de 'Resident Evil 2'. Ver ADR 0019
+   * do souls-guide-api.
+   */
+  list(query: GameQuery = {}): Observable<Page<GameSummary>> {
+    // Campo `undefined` sai da query; `page = 0` fica.
     return this.api
-      .page<GameListItem>('', { page, size, name })
+      .page<GameListItem>('', {
+        page: query.page ?? 0,
+        size: query.size ?? 12,
+        name: query.name?.trim() || undefined,
+        genre: query.genre ?? undefined,
+        seriesId: query.seriesId ?? undefined,
+      })
       .pipe(map((p) => mapPage(p, gameListItemToSummary)));
   }
 

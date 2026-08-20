@@ -77,7 +77,7 @@ export class Lore implements OnInit {
   });
 
   ngOnInit(): void {
-    this.gameService.list(0, 50).subscribe({
+    this.gameService.list({ size: 50 }).subscribe({
       next: (page) => this.allGames.set(page.content),
       error: () => {
         /* silenciado — filtro de jogo fica vazio */

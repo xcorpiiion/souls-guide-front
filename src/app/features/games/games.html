@@ -13,9 +13,64 @@
       class="games__search-input"
       type="search"
       placeholder="Buscar jogo…"
+      aria-label="Buscar jogo"
       [ngModel]="searchTerm()"
       (ngModelChange)="onSearchInput($event)"
     />
+  </div>
+
+  <div class="games__filters">
+    <div class="games__filter-row" role="group" aria-label="Filtrar por gênero">
+      <span class="games__filter-label">gênero</span>
+      <button
+        class="games__chip"
+        type="button"
+        [class.games__chip--active]="genre() === null"
+        (click)="onGenre(null)"
+      >
+        todos
+      </button>
+      @for (g of genreFilters; track g) {
+        <button
+          class="games__chip"
+          type="button"
+          [class.games__chip--active]="genre() === g"
+          [attr.aria-pressed]="genre() === g"
+          (click)="onGenre(g)"
+        >
+          {{ genreLabel[g] }}
+        </button>
+      }
+    </div>
+
+    @if (series().length > 0) {
+      <div
+        class="games__filter-row games__filter-row--scroll"
+        role="group"
+        aria-label="Filtrar por série"
+      >
+        <span class="games__filter-label">série</span>
+        <button
+          class="games__chip"
+          type="button"
+          [class.games__chip--active]="seriesId() === null"
+          (click)="onSeries(null)"
+        >
+          todas
+        </button>
+        @for (s of series(); track s.id) {
+          <button
+            class="games__chip"
+            type="button"
+            [class.games__chip--active]="seriesId() === s.id"
+            [attr.aria-pressed]="seriesId() === s.id"
+            (click)="onSeries(s.id)"
+          >
+            {{ s.name }}
+          </button>
+        }
+      </div>
+    }
   </div>
 
   @if (error()) {
@@ -25,19 +80,36 @@
   @if (loading()) {
     <pf-page-loader message="Carregando jogos…" />
   } @else if (games().length === 0) {
-    <p class="games__empty">Nenhum jogo encontrado.</p>
+    <div class="games__empty">
+      <i class="ti ti-mood-sad" aria-hidden="true"></i>
+      <p class="games__empty-title">Nenhum jogo encontrado</p>
+      <p class="games__empty-hint">Tente outro termo ou remova os filtros.</p>
+    </div>
   } @else {
     <div class="games__grid">
       @for (game of games(); track trackById($index, game)) {
-        <article class="game-card">
-          <div class="game-card__banner game-card__banner--{{ game.accentClass }}">
+        <article class="game-card game-card--{{ genreClass[game.genre] }}">
+          <div class="game-card__banner">
             <span class="game-card__short">{{ game.shortName }}</span>
-            <span class="game-card__badge game-card__badge--{{ game.accentClass }}">{{
-              game.name
-            }}</span>
+            <span class="game-card__genre">{{ genreLabel[game.genre] }}</span>
           </div>
 
           <div class="game-card__body">
+            <!--
+              A série filtra a lista aqui mesmo, em vez de levar para /series/:slug: a
+              página da série ainda não existe, e link que abre 404 é pior do que link que
+              não abre nada. Quando ela existir, isto vira um routerLink.
+            -->
+            @if (game.seriesName) {
+              <button class="game-card__series" type="button" (click)="onSeriesByName(game)">
+                {{ game.seriesName }}
+              </button>
+            } @else {
+              <span class="game-card__series game-card__series--none">sem série</span>
+            }
+
+            <h2 class="game-card__title">{{ game.name }}</h2>
+
             <div class="game-card__stats">
               <div class="game-card__stat">
                 <span class="game-card__stat-value">{{ game.questCount }}</span>
@@ -48,30 +120,15 @@
                 <span class="game-card__stat-label">lore</span>
               </div>
               <div class="game-card__stat">
-                <span class="game-card__stat-value">{{ game.followersCount }}</span>
+                <span class="game-card__stat-value">{{ seguidores(game.followersCount) }}</span>
                 <span class="game-card__stat-label">seguindo</span>
               </div>
             </div>
 
             <div class="game-card__divider"></div>
 
-            <div class="game-card__top-quest">
-              <span class="game-card__top-quest-label">Quest mais seguida</span>
-              @if (game.topQuestTitle) {
-                <span class="game-card__top-quest-title">{{ game.topQuestTitle }}</span>
-                <span class="game-card__top-quest-meta">
-                  {{ game.topQuestSteps }} etapas · {{ game.topQuestFollowers }} seguindo
-                </span>
-              } @else {
-                <span class="game-card__top-quest-empty">Nenhuma quest ainda</span>
-                <span class="game-card__top-quest-meta">Seja o primeiro a contribuir</span>
-              }
-            </div>
-
             <div class="game-card__actions">
-              <a class="game-card__btn game-card__btn--primary" [routerLink]="['/games', game.ref]">
-                Ver comunidade
-              </a>
+              <a class="game-card__btn" [routerLink]="['/games', game.ref]">Ver comunidade</a>
             </div>
           </div>
 
@@ -83,43 +140,21 @@
       }
     </div>
 
-    @if (totalPages() > 1) {
-      <nav class="games__pagination" aria-label="Paginação">
+    @if (hasMore()) {
+      <div class="games__more">
         <button
-          class="games__page-btn games__page-btn--arrow"
+          class="games__more-btn"
           type="button"
-          [disabled]="currentPage() === 0"
-          (click)="goToPage(currentPage() - 1)"
-          aria-label="Página anterior"
+          [disabled]="loadingMore()"
+          (click)="onLoadMore()"
         >
-          <i class="ti ti-chevron-left"></i>
-        </button>
-
-        @for (page of pageNumbers(); track $index) {
-          @if (page === -1) {
-            <span class="games__page-ellipsis">…</span>
+          @if (loadingMore()) {
+            Carregando…
           } @else {
-            <button
-              class="games__page-btn"
-              type="button"
-              [class.games__page-btn--active]="page === currentPage()"
-              (click)="goToPage(page)"
-            >
-              {{ page + 1 }}
-            </button>
+            Mostrar mais ({{ games().length }} de {{ totalElements() }})
           }
-        }
-
-        <button
-          class="games__page-btn games__page-btn--arrow"
-          type="button"
-          [disabled]="currentPage() === totalPages() - 1"
-          (click)="goToPage(currentPage() + 1)"
-          aria-label="Próxima página"
-        >
-          <i class="ti ti-chevron-right"></i>
         </button>
-      </nav>
+      </div>
     }
   }
 </section>

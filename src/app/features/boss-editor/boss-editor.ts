@@ -152,7 +152,7 @@ export class BossEditor implements OnInit {
     const id = this.route.snapshot.paramMap.get('id');
     const jogoDaRota = this.route.snapshot.paramMap.get('gameId');
 
-    this.gameService.list(0, 100).subscribe({
+    this.gameService.list({ size: 100 }).subscribe({
       next: (page) => {
         this.jogos.set(page.content);
         if (!this.jogoId() && jogoDaRota) {

@@ -14,6 +14,8 @@ const MOCK_GAME: Game = {
   name: 'Elden Ring',
   imageUrl: '',
   description: 'Open world RPG',
+  genre: 'SOULS_LIKE',
+  features: ['QUEST_GRAPH', 'ENDINGS', 'BOSSES', 'ITEMS', 'LORE', 'QUEST_MAP'],
   followerCount: 0,
   userIsFollowing: false,
 };

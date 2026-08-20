@@ -2,38 +2,52 @@
 @use 'styles/variables' as v;
 @use 'styles/mixins' as m;
 
-// ─── Cores por jogo ──────────────────────────────────────────────────────────
-$game-colors: (
-  'er': (
-    #2a1f0a,
-    #6b4c1a,
-    #c9a84c,
-    rgba(201, 168, 76, 0.18),
+// ─── Cores por gênero ────────────────────────────────────────────────────────
+//
+// A cor do card passou a sair do GÊNERO, e não do jogo. Antes era um mapa com uma
+// entrada por jogo ('er', 'ds3', 'bb', 'lop', 'lotf'): funcionava enquanto o acervo
+// tinha cinco jogos, e com quarenta significaria escolher uma cor nova a cada cadastro —
+// e jogo cadastrado pela tela nunca teria nenhuma.
+//
+// Ordem: (texto, fundo do selo, borda do selo, fundo da faixa, borda da faixa)
+$genre-colors: (
+  'souls': (
+    v.$color-gold,
+    rgba(201, 168, 76, 0.14),
+    rgba(201, 168, 76, 0.35),
+    #1e180a,
+    rgba(201, 168, 76, 0.3),
   ),
-  'ds3': (
-    #1a0a0a,
-    #5c1a1a,
-    #e85050,
-    rgba(232, 80, 80, 0.18),
+  'survival': (
+    v.$color-ember-light,
+    rgba(184, 76, 42, 0.14),
+    rgba(184, 76, 42, 0.35),
+    #1a0e0a,
+    rgba(184, 76, 42, 0.3),
   ),
-  'bb': (
-    #140a1a,
-    #4a1a5c,
-    #c870e8,
-    rgba(200, 112, 232, 0.18),
+  'psycho': (
+    #7f9bbd,
+    rgba(90, 122, 154, 0.14),
+    rgba(90, 122, 154, 0.35),
+    #0e1620,
+    rgba(90, 122, 154, 0.3),
   ),
-  'lop': (
-    #0a1a1a,
-    #1a5c5c,
-    #40c8c8,
-    rgba(64, 200, 200, 0.18),
+  'action': (
+    v.$color-warning,
+    rgba(196, 127, 42, 0.14),
+    rgba(196, 127, 42, 0.35),
+    #1c1206,
+    rgba(196, 127, 42, 0.3),
   ),
-  'lotf': (
-    #0a0f1a,
-    #1a2a5c,
-    #6090e8,
-    rgba(96, 144, 232, 0.18),
-  ),
+  // Jogo recém-cadastrado, ainda sem família declarada. Neutro de propósito: inventar
+  // uma cor faria "sem gênero" parecer um gênero.
+  'other': (
+      v.$color-text-muted,
+      rgba(138, 130, 120, 0.12),
+      rgba(138, 130, 120, 0.3),
+      #16161a,
+      v.$color-border,
+    ),
 );
 
 // ─── Page ────────────────────────────────────────────────────────────────────
@@ -49,7 +63,7 @@ $game-colors: (
 
 .games__header {
   @include m.flex-between;
-  margin-bottom: v.$space-8;
+  margin-bottom: v.$space-6;
   gap: v.$space-4;
   flex-wrap: wrap;
 }
@@ -95,8 +109,7 @@ $game-colors: (
   transition: background v.$transition-fast;
 
   @include m.on-hover {
-    border-color: v.$color-gold;
-    color: v.$color-gold;
+    background: v.$color-gold-light;
   }
 }
 
@@ -108,7 +121,7 @@ $game-colors: (
   border: 1px solid v.$color-border;
   border-radius: v.$radius-md;
   padding: 0 v.$space-4;
-  margin-bottom: v.$space-6;
+  margin-bottom: v.$space-4;
   transition: border-color v.$transition-fast;
 
   &:focus-within {
@@ -124,6 +137,7 @@ $game-colors: (
 
 .games__search-input {
   flex: 1;
+  min-width: 0;
   background: transparent;
   border: none;
   outline: none;
@@ -141,48 +155,58 @@ $game-colors: (
   }
 }
 
-.games__loading,
-.games__empty,
-.games__error {
-  text-align: center;
-  color: v.$color-text-muted;
-  padding: v.$space-12 0;
-  font-size: v.$font-size-sm;
-}
-
-.games__error {
-  color: #e85050;
-}
-
-.games__pagination {
+// ─── Filtros ─────────────────────────────────────────────────────────────────
+.games__filters {
   display: flex;
-  align-items: center;
-  justify-content: center;
+  flex-direction: column;
   gap: v.$space-2;
-  margin-top: v.$space-8;
-  flex-wrap: wrap;
+  margin-bottom: v.$space-6;
 }
 
-.games__page-btn {
+.games__filter-row {
   display: flex;
   align-items: center;
-  justify-content: center;
-  min-width: 36px;
-  height: 36px;
-  padding: 0 v.$space-2;
+  gap: v.$space-2;
+  flex-wrap: wrap;
+
+  // A lista de séries cresce a cada série nova e não pode quebrar em cinco linhas
+  // empurrando o catálogo para baixo da dobra: ela rola na horizontal.
+  &--scroll {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    padding-bottom: 2px;
+    scrollbar-width: thin;
+
+    > * {
+      flex: 0 0 auto;
+    }
+  }
+}
+
+.games__filter-label {
+  font-size: 10.5px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: v.$color-text-faint;
+  flex: 0 0 auto;
+}
+
+.games__chip {
+  font-family: v.$font-body;
+  font-size: v.$font-size-xs;
+  color: v.$color-text-muted;
   background: v.$color-bg-surface;
   border: 1px solid v.$color-border;
-  border-radius: v.$radius-sm;
-  color: v.$color-text-muted;
-  font-family: v.$font-body;
-  font-size: v.$font-size-sm;
+  border-radius: v.$radius-full;
+  padding: 7px 13px;
   cursor: pointer;
+  white-space: nowrap;
   transition:
+    background v.$transition-fast,
     border-color v.$transition-fast,
-    color v.$transition-fast,
-    background v.$transition-fast;
+    color v.$transition-fast;
 
-  &:hover:not(:disabled) {
+  @include m.on-hover {
     border-color: v.$color-border-focus;
     color: v.$color-text;
   }
@@ -191,25 +215,73 @@ $game-colors: (
     background: v.$color-gold;
     border-color: v.$color-gold;
     color: #0f0d0b;
-    font-weight: 600;
-    cursor: default;
-  }
+    font-weight: 500;
 
-  &--arrow {
-    font-size: v.$font-size-base;
-  }
-
-  &:disabled {
-    opacity: 0.3;
-    cursor: not-allowed;
+    @include m.on-hover {
+      background: v.$color-gold-light;
+      border-color: v.$color-gold-light;
+      color: #0f0d0b;
+    }
   }
 }
 
-.games__page-ellipsis {
-  color: v.$color-text-muted;
+// ─── Estados ─────────────────────────────────────────────────────────────────
+.games__error {
+  text-align: center;
+  color: #e85050;
+  padding: v.$space-6 0;
   font-size: v.$font-size-sm;
-  padding: 0 v.$space-1;
-  user-select: none;
+}
+
+.games__empty {
+  text-align: center;
+  padding: v.$space-16 v.$space-5;
+
+  i {
+    font-size: 30px;
+    color: v.$color-text-faint;
+  }
+}
+
+.games__empty-title {
+  font-size: v.$font-size-sm;
+  color: v.$color-text;
+  margin: v.$space-3 0 v.$space-1;
+}
+
+.games__empty-hint {
+  font-size: v.$font-size-sm;
+  color: v.$color-text-muted;
+}
+
+// ─── Mostrar mais ────────────────────────────────────────────────────────────
+.games__more {
+  display: flex;
+  justify-content: center;
+  margin-top: v.$space-6;
+}
+
+.games__more-btn {
+  font-family: v.$font-body;
+  font-size: v.$font-size-sm;
+  color: v.$color-text;
+  background: v.$color-bg-surface;
+  border: 1px solid #3a3630;
+  border-radius: v.$radius-md;
+  padding: 10px 18px;
+  cursor: pointer;
+  transition:
+    border-color v.$transition-fast,
+    background v.$transition-fast;
+
+  @include m.on-hover {
+    border-color: v.$color-border-focus;
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: progress;
+  }
 }
 
 .games__grid {
@@ -238,6 +310,21 @@ $game-colors: (
     border-color: v.$color-border-focus;
     transform: translateY(-2px);
   }
+
+  @each $key, $vals in $genre-colors {
+    &--#{$key} {
+      .game-card__banner {
+        background-color: list.nth($vals, 4);
+        border-bottom: 1px solid list.nth($vals, 5);
+      }
+
+      .game-card__genre {
+        color: list.nth($vals, 1);
+        background-color: list.nth($vals, 2);
+        border: 1px solid list.nth($vals, 3);
+      }
+    }
+  }
 }
 
 // ─── Banner ──────────────────────────────────────────────────────────────────
@@ -246,18 +333,12 @@ $game-colors: (
   display: flex;
   align-items: flex-end;
   justify-content: space-between;
+  gap: v.$space-2;
   padding: v.$space-3 v.$space-4;
-
-  @each $key, $vals in $game-colors {
-    &--#{$key} {
-      background-color: list.nth($vals, 1);
-      border-bottom: 1px solid list.nth($vals, 2);
-    }
-  }
 }
 
 .game-card__short {
-  font-size: 2rem;
+  font-size: 1.8rem;
   font-weight: 600;
   color: #fff;
   opacity: 0.15;
@@ -266,35 +347,61 @@ $game-colors: (
   font-family: v.$font-display;
 }
 
-.game-card__badge {
+.game-card__genre {
   font-size: 10px;
   font-weight: 500;
-  letter-spacing: 0.1em;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
   padding: 3px v.$space-2;
   border-radius: v.$radius-md;
-
-  @each $key, $vals in $game-colors {
-    &--#{$key} {
-      color: list.nth($vals, 3);
-      background-color: list.nth($vals, 4);
-      border: 1px solid rgba(list.nth($vals, 3), 0.35);
-    }
-  }
+  white-space: nowrap;
 }
 
 // ─── Body ────────────────────────────────────────────────────────────────────
 .game-card__body {
   display: flex;
   flex-direction: column;
-  gap: v.$space-4;
-  padding: v.$space-4;
+  gap: v.$space-3;
+  padding: v.$space-4 v.$space-4 v.$space-1;
   flex: 1;
+}
+
+.game-card__series {
+  font-size: 11px;
+  color: v.$color-text-muted;
+  text-decoration: none;
+  font-family: v.$font-body;
+  background: none;
+  border: none;
+  padding: 0;
+  text-align: left;
+  cursor: pointer;
+  @include m.truncate-text;
+
+  @include m.on-hover {
+    color: v.$color-gold;
+  }
+
+  // Lies of P não pertence a série nenhuma, e a linha não some: sem ela o título de
+  // um card sobe e desalinha a fileira inteira.
+  &--none {
+    color: v.$color-text-faint;
+    font-style: italic;
+    cursor: default;
+  }
+}
+
+.game-card__title {
+  font-family: v.$font-display;
+  font-size: v.$font-size-lg;
+  font-weight: 500;
+  color: v.$color-text;
+  line-height: 1.25;
 }
 
 .game-card__stats {
   display: flex;
-  gap: v.$space-6;
+  gap: v.$space-5;
 }
 
 .game-card__stat {
@@ -304,7 +411,7 @@ $game-colors: (
 }
 
 .game-card__stat-value {
-  font-size: v.$font-size-xl;
+  font-size: v.$font-size-base;
   font-weight: 500;
   color: v.$color-text;
   line-height: 1;
@@ -320,36 +427,6 @@ $game-colors: (
   background-color: v.$color-border;
 }
 
-// ─── Top quest ───────────────────────────────────────────────────────────────
-.game-card__top-quest {
-  display: flex;
-  flex-direction: column;
-  gap: 3px;
-}
-
-.game-card__top-quest-label {
-  font-size: 10px;
-  color: v.$color-text-muted;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-}
-
-.game-card__top-quest-title {
-  font-size: v.$font-size-sm;
-  color: v.$color-text;
-}
-
-.game-card__top-quest-empty {
-  font-size: v.$font-size-sm;
-  color: v.$color-text-faint;
-  font-style: italic;
-}
-
-.game-card__top-quest-meta {
-  font-size: v.$font-size-xs;
-  color: v.$color-text-muted;
-}
-
 // ─── Actions ─────────────────────────────────────────────────────────────────
 .game-card__actions {
   display: flex;
@@ -363,35 +440,18 @@ $game-colors: (
   border-radius: v.$radius-md;
   font-family: v.$font-body;
   font-size: v.$font-size-sm;
+  font-weight: 500;
   cursor: pointer;
   text-align: center;
   text-decoration: none;
   white-space: nowrap;
-  transition:
-    background v.$transition-fast,
-    color v.$transition-fast,
-    border-color v.$transition-fast;
+  background: v.$color-gold;
+  border: none;
+  color: #0f0d0b;
+  transition: background v.$transition-fast;
 
-  &--primary {
-    background: v.$color-gold;
-    border: none;
-    color: #0f0d0b;
-    font-weight: 500;
-
-    @include m.on-hover {
-      background: v.$color-gold-light;
-    }
-  }
-
-  &--secondary {
-    background: transparent;
-    border: 0.5px solid v.$color-border-focus;
-    color: v.$color-text;
-
-    @include m.on-hover {
-      background: rgba(255, 255, 255, 0.06);
-      border-color: v.$color-gold;
-    }
+  @include m.on-hover {
+    background: v.$color-gold-light;
   }
 }
 
@@ -399,9 +459,11 @@ $game-colors: (
 .game-card__footer {
   display: flex;
   justify-content: space-between;
+  gap: v.$space-2;
   padding: v.$space-2 v.$space-4;
+  margin-top: v.$space-3;
   border-top: 1px solid v.$color-border;
-  background-color: v.$color-bg;
+  background-color: #141414;
 }
 
 .game-card__footer-item {

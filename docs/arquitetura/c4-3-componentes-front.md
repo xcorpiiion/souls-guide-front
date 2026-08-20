@@ -69,6 +69,7 @@ Um por área do domínio. Todos em `src/app/core/services/`.
 flowchart LR
     subgraph conteudo ["Conteúdo público"]
         game["game.service"]
+        gameSeries["game-series.service"]
         quest["quest.service"]
         lore["lore.service"]
         ending["ending.service"]
@@ -103,7 +104,7 @@ flowchart LR
     end
 
     classDef s fill:#1168bd,stroke:#0b4884,color:#fff
-    class game,quest,lore,ending,item,boss,questVersion,loreVersion,questCondition,questMap,comment,personalQuest,personalLore,profile,progress,questProgress,run,user,notification,moderacao,discordLogin,seo,atualizacao,storage,loading,monitoring s
+    class game,gameSeries,quest,lore,ending,item,boss,questVersion,loreVersion,questCondition,questMap,comment,personalQuest,personalLore,profile,progress,questProgress,run,user,notification,moderacao,discordLogin,seo,atualizacao,storage,loading,monitoring s
 ```
 
 Quatro deles não falam com o `souls-guide-api`:

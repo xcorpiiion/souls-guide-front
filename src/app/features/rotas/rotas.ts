@@ -66,7 +66,7 @@ export class Rotas implements OnInit {
         distinctUntilChanged((a, b) => a.q === b.q && a.page === b.page),
         switchMap(({ q, page }) => {
           this.loading.set(true);
-          return this.gameService.list(page, PAGE_SIZE, q || undefined);
+          return this.gameService.list({ page, size: PAGE_SIZE, name: q || undefined });
         }),
         takeUntilDestroyed(this.destroyRef),
       )

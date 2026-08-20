@@ -70,7 +70,7 @@ export class Home implements OnInit {
   ngOnInit(): void {
     forkJoin({
       games: this.gameService.getFeatured(),
-      gamesTotal: this.gameService.list(0, 1),
+      gamesTotal: this.gameService.list({ size: 1 }),
       quests: this.questService.list(0, 20),
       lore: this.loreService.list(0, 12),
     }).subscribe({
