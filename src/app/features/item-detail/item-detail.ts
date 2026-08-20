@@ -1,6 +1,14 @@
-import { ChangeDetectionStrategy, Component, OnInit, inject, signal } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  OnInit,
+  computed,
+  inject,
+  signal,
+} from '@angular/core';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { HttpErrorResponse } from '@angular/common/http';
+import { AuthService } from '@xcorpiiion/ng-core';
 import { PfPageLoader } from '@xcorpiiion/ui';
 import type { ItemDTO } from '@xcorpiiion/canonico';
 import { ItemService } from '../../core/services/item.service';
@@ -27,8 +35,12 @@ export class ItemDetail implements OnInit {
   private readonly itemService = inject(ItemService);
   private readonly storage = inject(StorageService);
   private readonly seo = inject(SeoService);
+  private readonly auth = inject(AuthService);
 
   protected readonly typeLabel = ITEM_TYPE_LABEL;
+
+  /** Escrever exige token: sem sessão o lápis levaria a uma tela que não salva. */
+  protected readonly logado = computed(() => this.auth.isLoggedIn());
 
   protected readonly loading = signal(true);
   protected readonly error = signal<string | null>(null);

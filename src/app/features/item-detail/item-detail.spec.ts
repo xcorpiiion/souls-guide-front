@@ -3,6 +3,7 @@ import { ActivatedRoute, convertToParamMap, provideRouter } from '@angular/route
 import { describe, it, expect } from 'vitest';
 import { of, throwError } from 'rxjs';
 import type { ItemDTO } from '@xcorpiiion/canonico';
+import { AuthService } from '@xcorpiiion/ng-core';
 import { ItemDetail } from './item-detail';
 import { ItemService } from '../../core/services/item.service';
 import { StorageService } from '../../core/services/storage.service';
@@ -35,6 +36,7 @@ function montar(resposta: unknown): ComponentFixture<ItemDetail> {
       },
       { provide: ItemService, useValue: { get: () => resposta } },
       { provide: StorageService, useValue: STORAGE },
+      { provide: AuthService, useValue: { isLoggedIn: () => true } },
     ],
   });
 

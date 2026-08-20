@@ -9,8 +9,9 @@ import {
 } from '@angular/core';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
-import { Subject, debounceTime } from 'rxjs';
+import { Subject, debounceTime, shareReplay, switchMap } from 'rxjs';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { AuthService } from '@xcorpiiion/ng-core';
 import { PfPageLoader } from '@xcorpiiion/ui';
 import type { ItemDTO, ItemType } from '@xcorpiiion/canonico';
 import { ItemService } from '../../core/services/item.service';
@@ -30,12 +31,32 @@ export class Itens implements OnInit {
   private readonly itemService = inject(ItemService);
   private readonly gameService = inject(GameService);
   private readonly seo = inject(SeoService);
+  private readonly auth = inject(AuthService);
   private readonly destroyRef = inject(DestroyRef);
+
+  /** Escrever exige token: para quem não está logado o convite não leva a lugar nenhum. */
+  protected readonly logado = computed(() => this.auth.isLoggedIn());
 
   protected readonly typeLabel = ITEM_TYPE_LABEL;
   protected readonly types = ITEM_TYPE_ORDER;
 
-  protected readonly gameId = this.route.snapshot.paramMap.get('id') ?? '';
+  /**
+   * O que veio na URL é uma **referência**, não um id: `1-lies-of-p`, e num link antigo
+   * só `lies-of-p`. Serve para montar link de volta, e é o que o endpoint de jogo sabe
+   * resolver — os outros, não.
+   */
+  protected readonly gameRef = this.route.snapshot.paramMap.get('id') ?? '';
+
+  /**
+   * O jogo resolvido, uma vez só.
+   *
+   * `/items?gameId=` recebe `Long`: mandar a referência da URL responde 400, e foi o que
+   * a página fez enquanto passava `gameRef` direto — o nome do jogo carregava e a lista
+   * de itens vinha vazia com erro no console. O id numérico só existe depois desta
+   * chamada, então a listagem sai dela, e não ao lado dela.
+   */
+  private readonly jogo$ = this.gameService.get(this.gameRef).pipe(shareReplay(1));
+
   protected readonly gameName = signal<string>('');
 
   protected readonly itens = signal<ItemDTO[]>([]);
@@ -56,8 +77,19 @@ export class Itens implements OnInit {
 
   protected readonly vazio = computed(() => !this.loading() && this.itens().length === 0);
 
+  /**
+   * Vazio porque ninguém cadastrou, e não porque o filtro não achou.
+   *
+   * A diferença decide o que a tela oferece: sem filtro nenhum aplicado, o que falta é
+   * alguém cadastrar — e é aí que cabe o convite. Com filtro, o catálogo pode estar cheio,
+   * e um "cadastre o primeiro" seria mentira.
+   */
+  protected readonly catalogoVazio = computed(
+    () => this.vazio() && !this.busca().trim() && this.tipo() === null,
+  );
+
   ngOnInit(): void {
-    this.gameService.get(this.gameId).subscribe({
+    this.jogo$.subscribe({
       next: (game) => {
         this.gameName.set(game.name);
         this.seo.aplicar({
@@ -88,13 +120,23 @@ export class Itens implements OnInit {
   private carregar(): void {
     this.loading.set(true);
 
-    this.itemService.list({ gameId: this.gameId, type: this.tipo(), q: this.busca() }).subscribe({
-      next: (page) => {
-        this.itens.set(page.content);
-        this.total.set(page.totalElements);
-        this.loading.set(false);
-      },
-      error: () => this.loading.set(false),
-    });
+    this.jogo$
+      .pipe(
+        switchMap((game) =>
+          this.itemService.list({
+            gameId: String(game.id),
+            type: this.tipo(),
+            q: this.busca(),
+          }),
+        ),
+      )
+      .subscribe({
+        next: (page) => {
+          this.itens.set(page.content);
+          this.total.set(page.totalElements);
+          this.loading.set(false);
+        },
+        error: () => this.loading.set(false),
+      });
   }
 }

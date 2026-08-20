@@ -43,4 +43,14 @@ export class ItemService {
   update(id: string, body: ItemRequest): Observable<ItemDTO> {
     return this.api.put<ItemDTO>(id, body);
   }
+
+  /**
+   * Só admin: no servidor a rota é `hasRole('ADMIN')`.
+   *
+   * Editar é aberto a qualquer pessoa logada porque dá para corrigir de volta. Excluir
+   * não tem volta, e por isso fica numa mão só.
+   */
+  delete(id: string): Observable<void> {
+    return this.api.delete<void>(id);
+  }
 }

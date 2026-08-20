@@ -8,11 +8,21 @@
     </div>
   } @else if (item(); as i) {
     <header class="item__header">
-      @if (i.gameId) {
-        <a class="item__back" [routerLink]="['/games', i.gameId, 'itens']">
-          <i class="ti ti-arrow-left" aria-hidden="true"></i> itens de {{ i.gameName }}
-        </a>
-      }
+      <div class="item__navegacao">
+        @if (i.gameId) {
+          <a class="item__back" [routerLink]="['/games', i.gameId, 'itens']">
+            <i class="ti ti-arrow-left" aria-hidden="true"></i> itens de {{ i.gameName }}
+          </a>
+        }
+
+        <!-- Editar é aberto a qualquer pessoa logada: o item é conteúdo da comunidade, e
+             quem passa por aqui e vê o campo vazio é quem tem a informação na mão. -->
+        @if (logado()) {
+          <a class="item__editar" [routerLink]="['/itens', i.id, 'editar']">
+            <i class="ti ti-pencil" aria-hidden="true"></i> editar
+          </a>
+        }
+      </div>
 
       <div class="item__topo">
         @if (imagem()) {

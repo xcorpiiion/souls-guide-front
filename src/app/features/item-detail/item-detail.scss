@@ -6,7 +6,15 @@
   padding: 40px 24px 80px;
 }
 
-.item__back {
+.item__navegacao {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.item__back,
+.item__editar {
   display: inline-flex;
   align-items: center;
   gap: 6px;
@@ -17,12 +25,15 @@
   border-radius: v.$radius-md;
   border: 0.5px solid v.$color-border;
   background: v.$color-bg-surface;
-  margin-bottom: 20px;
 
   &:hover {
     color: v.$color-gold;
     background: v.$color-bg-elevated;
   }
+}
+
+.item__editar {
+  margin-left: auto;
 }
 
 .item__topo {

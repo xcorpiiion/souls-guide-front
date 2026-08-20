@@ -15,6 +15,9 @@ import { RenderMode, ServerRoute } from '@angular/ssr';
 export const serverRoutes: ServerRoute[] = [
   // Sem sessão não há o que renderizar aqui.
   { path: 'login', renderMode: RenderMode.Client },
+  // A volta do Discord lê `sessionStorage` e a query string e termina em navegação:
+  // renderizar no servidor produziria uma tela que o navegador refaz inteira.
+  { path: 'login/discord', renderMode: RenderMode.Client },
   { path: 'forgot-password', renderMode: RenderMode.Client },
   { path: 'reset-password', renderMode: RenderMode.Client },
   { path: 'profile', renderMode: RenderMode.Client },
@@ -35,6 +38,8 @@ export const serverRoutes: ServerRoute[] = [
   { path: 'lore/:id/edit', renderMode: RenderMode.Client },
   { path: 'games/:gameId/chefes/novo', renderMode: RenderMode.Client },
   { path: 'chefes/:id/editar', renderMode: RenderMode.Client },
+  { path: 'games/:gameId/itens/novo', renderMode: RenderMode.Client },
+  { path: 'itens/:id/editar', renderMode: RenderMode.Client },
 
   // O resto é conteúdo: jogo, quest, lore, final, perfil público, listagens.
   { path: '**', renderMode: RenderMode.Server },

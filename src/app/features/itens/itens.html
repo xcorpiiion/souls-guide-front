@@ -1,6 +1,6 @@
 <section class="itens">
   <header class="itens__header">
-    <a class="itens__back" [routerLink]="['/games', gameId]">
+    <a class="itens__back" [routerLink]="['/games', gameRef]">
       <i class="ti ti-arrow-left" aria-hidden="true"></i> voltar para o jogo
     </a>
 
@@ -23,30 +23,54 @@
       />
     </label>
 
-    <div class="itens__tipos" role="group" aria-label="filtrar por tipo">
-      <button
-        class="itens__tipo"
-        type="button"
-        [class.itens__tipo--ativo]="tipo() === null"
-        (click)="filtrarPor(null)"
-      >
-        todos
-      </button>
-      @for (t of types; track t) {
+    <div class="itens__linha">
+      <div class="itens__tipos" role="group" aria-label="filtrar por tipo">
         <button
           class="itens__tipo"
           type="button"
-          [class.itens__tipo--ativo]="tipo() === t"
-          (click)="filtrarPor(t)"
+          [class.itens__tipo--ativo]="tipo() === null"
+          (click)="filtrarPor(null)"
         >
-          {{ typeLabel[t] }}
+          todos
         </button>
+        @for (t of types; track t) {
+          <button
+            class="itens__tipo"
+            type="button"
+            [class.itens__tipo--ativo]="tipo() === t"
+            (click)="filtrarPor(t)"
+          >
+            {{ typeLabel[t] }}
+          </button>
+        }
+      </div>
+
+      @if (logado()) {
+        <a class="itens__adicionar" [routerLink]="['/games', gameRef, 'itens', 'novo']">
+          <i class="ti ti-plus" aria-hidden="true"></i> adicionar
+        </a>
       }
     </div>
   </div>
 
   @if (loading()) {
     <pf-page-loader message="Carregando itens…" />
+  } @else if (catalogoVazio()) {
+    <div class="itens__empty">
+      <i class="ti ti-sword-off itens__empty-icon" aria-hidden="true"></i>
+      <p class="itens__empty-title">nenhum item cadastrado</p>
+      <p class="itens__empty-text">
+        o catálogo é escrito pela comunidade, e {{ gameName() }} ainda não tem nenhum item
+        registrado.
+      </p>
+      <!-- O texto convidava e não oferecia nada: é justamente aqui que a pessoa está mais
+           disposta a cadastrar. -->
+      @if (logado()) {
+        <a class="itens__cta" [routerLink]="['/games', gameRef, 'itens', 'novo']">
+          <i class="ti ti-plus" aria-hidden="true"></i> cadastrar o primeiro item
+        </a>
+      }
+    </div>
   } @else if (vazio()) {
     <div class="itens__empty">
       <i class="ti ti-search-off itens__empty-icon" aria-hidden="true"></i>

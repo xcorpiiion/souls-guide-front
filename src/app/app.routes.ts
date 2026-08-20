@@ -65,6 +65,30 @@ export const routes: Routes = [
     loadComponent: () => import('./features/itens/itens').then((m) => m.Itens),
   },
   {
+    path: 'games/:gameId/itens/novo',
+    data: {
+      seo: {
+        titulo: 'Cadastrar item',
+        descricao: 'Acrescente um item ao catálogo da comunidade.',
+        indexavel: false,
+      } satisfies SeoPagina,
+    },
+    loadComponent: () => import('./features/item-editor/item-editor').then((m) => m.ItemEditor),
+    canActivate: [authGuard],
+  },
+  {
+    path: 'itens/:id/editar',
+    data: {
+      seo: {
+        titulo: 'Editar item',
+        descricao: 'Corrija ou complete o que está cadastrado.',
+        indexavel: false,
+      } satisfies SeoPagina,
+    },
+    loadComponent: () => import('./features/item-editor/item-editor').then((m) => m.ItemEditor),
+    canActivate: [authGuard],
+  },
+  {
     path: 'itens/:id',
     data: {
       seo: {
@@ -95,6 +119,7 @@ export const routes: Routes = [
       } satisfies SeoPagina,
     },
     loadComponent: () => import('./features/boss-editor/boss-editor').then((m) => m.BossEditor),
+    canActivate: [authGuard],
   },
   {
     path: 'chefes/:id/editar',
@@ -106,6 +131,7 @@ export const routes: Routes = [
       } satisfies SeoPagina,
     },
     loadComponent: () => import('./features/boss-editor/boss-editor').then((m) => m.BossEditor),
+    canActivate: [authGuard],
   },
   {
     path: 'chefes/:id',
@@ -165,6 +191,21 @@ export const routes: Routes = [
       } satisfies SeoPagina,
     },
     loadComponent: () => import('./features/login/login').then((m) => m.Login),
+  },
+  {
+    // A volta do Discord. O caminho tem que ser exatamente o `redirect_uri` cadastrado no
+    // portal e o `DISCORD_REDIRECT_URI` do back — os três são o mesmo texto, e o Discord
+    // compara byte a byte.
+    path: 'login/discord',
+    data: {
+      seo: {
+        titulo: 'Entrando com Discord',
+        descricao: 'Concluindo o login com Discord.',
+        indexavel: false,
+      } satisfies SeoPagina,
+    },
+    loadComponent: () =>
+      import('./features/login/discord-callback/discord-callback').then((m) => m.DiscordCallback),
   },
   {
     path: 'games/:gameId/finais/:endingId',

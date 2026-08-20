@@ -1,0 +1,278 @@
+<section class="editor">
+  <button class="editor__back" type="button" (click)="cancelar()">
+    <i class="ti ti-arrow-left" aria-hidden="true"></i> itens de {{ jogoNome() }}
+  </button>
+
+  <header class="editor__header">
+    <h1 class="editor__title">{{ editando() ? 'editar item' : 'cadastrar item' }}</h1>
+    <p class="editor__subtitle">
+      <i class="ti ti-sword" aria-hidden="true"></i>
+      {{
+        editando()
+          ? 'editando entrada existente'
+          : 'contribuição da comunidade — só nome, jogo e tipo são obrigatórios'
+      }}
+    </p>
+  </header>
+
+  <!--
+    O erro não limpa nada: o formulário continua preenchido para a pessoa tentar de novo.
+    Perder o texto digitado é o pior desfecho possível aqui.
+  -->
+  @if (erroDeRede()) {
+    <div class="editor__aviso editor__aviso--erro" role="alert">
+      <i class="ti ti-wifi-off" aria-hidden="true"></i>
+      <span>
+        não foi possível salvar. nada foi perdido, o formulário continua preenchido — tente de novo.
+      </span>
+    </div>
+  }
+
+  @if (salvoAviso(); as aviso) {
+    <div class="editor__aviso editor__aviso--ok" role="status">
+      <i class="ti ti-circle-check" aria-hidden="true"></i>
+      <span>{{ aviso }}</span>
+    </div>
+  }
+
+  <!-- Enquanto salva, o formulário inteiro trava de uma vez: um segundo clique no meio do
+       envio criaria o item duas vezes. -->
+  <fieldset class="editor__campos" [disabled]="salvando()">
+    <!-- ─── identidade ───────────────────────────────────────── -->
+    <div class="editor__card">
+      <p class="editor__card-title">identidade</p>
+
+      <div class="editor__campo">
+        <label for="nome">nome <span class="editor__obrigatorio">*</span></label>
+        <input
+          id="nome"
+          type="text"
+          autocomplete="off"
+          placeholder="ex: Talismã do Punho de Ferro"
+          [class.editor__input--alerta]="nomeDuplicado()"
+          [ngModel]="nome()"
+          (ngModelChange)="onNome($event)"
+        />
+        @if (nomeDuplicado(); as existente) {
+          <span class="editor__alerta">
+            <i class="ti ti-alert-triangle" aria-hidden="true"></i>
+            já existe "{{ existente }}" cadastrado em {{ jogoNome() }}. confira antes de duplicar.
+          </span>
+        }
+      </div>
+
+      <div class="editor__campo">
+        <span class="editor__rotulo">jogo <span class="editor__obrigatorio">*</span></span>
+        <!--
+          O mesmo dropdown do resto do site, e não um <select> cru: a lista passa de vinte
+          e cinco jogos, e sem a busca dentro dele escolher vira rolagem.
+
+          allowAll fica falso porque aqui "todos os jogos" não é um estado salvável — o
+          item pertence a um.
+        -->
+        <app-game-filter-dropdown
+          [games]="nomesDeJogos()"
+          [selected]="jogoNome()"
+          [allowAll]="false"
+          placeholder="escolha o jogo"
+          (selectedChange)="onJogoPorNome($event)"
+        />
+      </div>
+
+      <div class="editor__campo">
+        <span class="editor__rotulo">tipo <span class="editor__obrigatorio">*</span></span>
+        <!-- Os mesmos oito rótulos e a mesma ordem do filtro da listagem: cadastro e busca
+             precisam falar a mesma língua, senão a pessoa procura pelo nome que não existe. -->
+        <div class="editor__tipos" role="group" aria-label="tipo do item">
+          @for (t of tipos; track t) {
+            <button
+              type="button"
+              class="editor__tipo"
+              [class.editor__tipo--ativo]="tipo() === t"
+              [attr.aria-pressed]="tipo() === t"
+              (click)="tipo.set(t)"
+            >
+              {{ tipoLabel[t] }}
+            </button>
+          }
+        </div>
+      </div>
+    </div>
+
+    <!-- ─── onde encontrar ───────────────────────────────────── -->
+    <div class="editor__card">
+      <p class="editor__card-title">
+        <i class="ti ti-map-pin" aria-hidden="true"></i> onde encontrar
+      </p>
+
+      <div class="editor__campo">
+        <textarea
+          rows="2"
+          maxlength="500"
+          placeholder="ex: no baú atrás do trono, depois de derrotar o Guardião da Chama"
+          [ngModel]="local()"
+          (ngModelChange)="local.set($event)"
+        ></textarea>
+      </div>
+
+      <div class="editor__campo editor__campo--guia">
+        <span class="editor__rotulo">
+          aparece em um guia <span class="editor__opcional">(opcional)</span>
+        </span>
+
+        <!-- Três telas, uma de cada vez: vínculo pronto, escolha do passo, busca do guia. -->
+        @if (vinculo(); as v) {
+          <span class="editor__vinculo">
+            <i class="ti ti-route" aria-hidden="true"></i>
+            aparece em <strong>{{ v.questTitle }}</strong
+            >, no passo "{{ v.nodeTitle }}"
+            <button type="button" aria-label="remover vínculo com guia" (click)="desfazerVinculo()">
+              <i class="ti ti-x" aria-hidden="true"></i>
+            </button>
+          </span>
+        }
+
+        @if (escolhendoPasso()) {
+          <div>
+            <div class="editor__passos-topo">
+              <span>
+                passos de <strong>{{ guiaPendente()?.title }}</strong>
+              </span>
+              <button type="button" class="editor__trocar" (click)="trocarGuia()">
+                ‹ trocar guia
+              </button>
+            </div>
+
+            <div class="editor__resultados">
+              @for (passo of passos(); track passo.id) {
+                <button type="button" (click)="escolherPasso(passo)">
+                  <i class="ti ti-corner-down-right" aria-hidden="true"></i> {{ passo.label }}
+                </button>
+              }
+              @if (passos().length === 0) {
+                <p class="editor__sem-resultado">este guia ainda não tem passos cadastrados.</p>
+              }
+            </div>
+          </div>
+        }
+
+        @if (buscandoGuia()) {
+          <div>
+            <div class="editor__busca">
+              <i class="ti ti-search" aria-hidden="true"></i>
+              <input
+                type="text"
+                autocomplete="off"
+                placeholder="procurar um guia deste jogo…"
+                [ngModel]="guiaBusca()"
+                (ngModelChange)="onGuiaBusca($event)"
+              />
+            </div>
+
+            @if (guiaBusca().trim()) {
+              <div class="editor__resultados">
+                @for (res of guiaResultados(); track res.id) {
+                  <button type="button" (click)="escolherGuia(res)">
+                    <i class="ti ti-map" aria-hidden="true"></i> {{ res.title }}
+                  </button>
+                }
+                @if (guiaSemResultado()) {
+                  <p class="editor__sem-resultado">nenhum guia deste jogo com esse nome.</p>
+                }
+              </div>
+            }
+          </div>
+        }
+      </div>
+    </div>
+
+    <!-- ─── descrição ────────────────────────────────────────── -->
+    <div class="editor__card editor__card--dobra">
+      <button
+        class="editor__dobra"
+        type="button"
+        [attr.aria-expanded]="descricaoAberta()"
+        (click)="descricaoAberta.set(!descricaoAberta())"
+      >
+        <span><i class="ti ti-file-text" aria-hidden="true"></i> descrição</span>
+        <i
+          class="ti"
+          [class.ti-chevron-up]="descricaoAberta()"
+          [class.ti-chevron-down]="!descricaoAberta()"
+          aria-hidden="true"
+        ></i>
+      </button>
+
+      @if (descricaoAberta()) {
+        <div class="editor__dobra-corpo">
+          <textarea
+            rows="6"
+            maxlength="4000"
+            placeholder="história do item, curiosidades, referências — tudo que não é essencial pra achar ou usar o item"
+            [ngModel]="descricao()"
+            (ngModelChange)="descricao.set($event)"
+          ></textarea>
+          <span class="editor__contador">{{ descricao().length }}/4000</span>
+        </div>
+      }
+    </div>
+  </fieldset>
+
+  @if (editando() && admin) {
+    <div class="editor__zona-perigo">
+      @if (confirmandoExclusao()) {
+        <div class="editor__confirmar">
+          <span>excluir este item permanentemente?</span>
+          <button type="button" class="editor__btn-mini" (click)="confirmandoExclusao.set(false)">
+            cancelar
+          </button>
+          <button
+            type="button"
+            class="editor__btn-mini editor__btn-mini--perigo"
+            (click)="excluir()"
+          >
+            confirmar exclusão
+          </button>
+        </div>
+      } @else {
+        <button type="button" class="editor__excluir" (click)="confirmandoExclusao.set(true)">
+          <i class="ti ti-trash" aria-hidden="true"></i> excluir item
+        </button>
+      }
+    </div>
+  }
+
+  <!-- Grudado no rodapé: o formulário rola, e o botão de salvar não pode depender de a
+       pessoa chegar até o fim para existir. -->
+  <div class="editor__acoes">
+    <button type="button" class="editor__btn editor__btn--fantasma" (click)="cancelar()">
+      cancelar
+    </button>
+
+    @if (!editando()) {
+      <button
+        type="button"
+        class="editor__btn editor__btn--secundario"
+        [disabled]="!podeSalvar()"
+        (click)="salvarEProximo()"
+      >
+        <i class="ti ti-arrow-right" aria-hidden="true"></i> salvar e cadastrar próximo
+      </button>
+    }
+
+    <button
+      type="button"
+      class="editor__btn editor__btn--principal"
+      [disabled]="!podeSalvar()"
+      (click)="salvar()"
+    >
+      <i
+        class="ti"
+        [class.ti-loader-2]="salvando()"
+        [class.ti-device-floppy]="!salvando()"
+        aria-hidden="true"
+      ></i>
+      {{ salvando() ? 'salvando…' : editando() ? 'salvar alterações' : 'salvar item' }}
+    </button>
+  </div>
+</section>
