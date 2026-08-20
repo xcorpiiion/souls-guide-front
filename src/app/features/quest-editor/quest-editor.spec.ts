@@ -12,7 +12,6 @@ const MOCK_QUEST_API: QuestApi = {
   id: 1,
   title: MOCK_QUEST.title,
   description: MOCK_QUEST.description ?? '',
-  status: MOCK_QUEST.status,
   userId: 'user-1',
   gameId: 1,
   gameName: MOCK_QUEST.gameName,

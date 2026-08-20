@@ -1,6 +1,7 @@
 import {
   ChangeDetectionStrategy,
   Component,
+  DestroyRef,
   ElementRef,
   HostListener,
   computed,
@@ -8,10 +9,17 @@ import {
   OnInit,
   signal,
 } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { RouterLink, ActivatedRoute } from '@angular/router';
-import { filter, switchMap } from 'rxjs/operators';
+import { Subject } from 'rxjs';
+import { debounceTime, distinctUntilChanged, filter, switchMap } from 'rxjs/operators';
 import { Game, gameToSummary, GameSummary } from '../../shared/models/game.model';
-import { QuestStatus, QuestSummary } from '../../shared/models/quest.model';
+import {
+  Contributor,
+  ContributorRole,
+  ContributorSort,
+} from '../../shared/models/game-contributor.model';
+import { QuestSummary } from '../../shared/models/quest.model';
 import { LoreSummary } from '../../shared/models/lore-article.model';
 import { ENDING_KIND_LABEL, EndingSummary } from '../../shared/models/ending.model';
 import { GameService } from '../../core/services/game.service';
@@ -26,12 +34,6 @@ import { ToastService } from '@xcorpiiion/ui';
 import { PfPageLoader } from '@xcorpiiion/ui';
 
 type Tab = 'quests' | 'lore' | 'endings' | 'contributors';
-type QuestFilter = QuestStatus | 'todos';
-
-interface FilterOption {
-  value: QuestFilter;
-  label: string;
-}
 
 @Component({
   selector: 'app-game-detail',
@@ -51,6 +53,7 @@ export class GameDetail implements OnInit {
   private readonly confirm = inject(ConfirmService);
   private readonly toast = inject(ToastService);
   private readonly el = inject(ElementRef);
+  private readonly destroyRef = inject(DestroyRef);
   readonly auth = inject(AuthService);
 
   /** A referência como veio na URL: id ou slug. É o que o endpoint do jogo resolve. */
@@ -107,18 +110,47 @@ export class GameDetail implements OnInit {
   /** Resumos revelados um a um — spoiler de final é o mais caro de vazar sem querer. */
   protected readonly revealedEndingIds = signal<ReadonlySet<string>>(new Set());
 
+  // ─── Contribuidores ─────────────────────────────────────────────────────────
+  // A aba mostrava "lista de contribuidores em breve" e o card do topo mostrava zero,
+  // porque `gameToSummary` não tem de onde tirar a contagem — o GET /games/{id} devolve
+  // o jogo, não o acervo. Agora os dois números saem do mesmo endpoint da lista.
+  private static readonly CONTRIBUTORS_PAGE_SIZE = 30;
+
+  private readonly buscaDeContribuidor$ = new Subject<string>();
+
+  protected readonly contributors = signal<Contributor[]>([]);
+  protected readonly topContributors = signal<Contributor[]>([]);
+  protected readonly contributorsLoading = signal(true);
+  protected readonly contributorsError = signal(false);
+  /** O total do jogo, sem filtro: é o número do card do topo e o do rótulo da aba. */
+  protected readonly contributorsTotal = signal(0);
+  /** O total do filtro atual, que é contra quem o "mostrar mais" se compara. */
+  protected readonly contributorsFiltered = signal(0);
+  protected readonly contributorQuery = signal('');
+  protected readonly contributorRole = signal<ContributorRole | null>(null);
+  protected readonly contributorSort = signal<ContributorSort>('CONTRIBUTIONS');
+  private readonly contributorPage = signal(0);
+
+  protected readonly hasMoreContributors = computed(
+    () => this.contributors().length < this.contributorsFiltered(),
+  );
+
+  protected readonly contributorFilterAtivo = computed(
+    () => this.contributorQuery().trim().length > 0 || this.contributorRole() !== null,
+  );
+
+  /**
+   * O pódio só aparece sem filtro. Com "editores" marcado, um top 3 geral em cima de uma
+   * lista que não contém aquelas pessoas informa menos do que confunde.
+   */
+  protected readonly showTopContributors = computed(
+    () => !this.contributorFilterAtivo() && this.topContributors().length > 0,
+  );
+
   protected readonly activeTab = signal<Tab>('quests');
-  protected readonly activeFilter = signal<QuestFilter>('todos');
   protected readonly showHidden = signal(false);
   protected readonly showContribMenu = signal(false);
   protected readonly copyingAll = signal(false);
-
-  protected readonly filters: FilterOption[] = [
-    { value: 'todos', label: 'todos' },
-    { value: 'CANONICO', label: 'canônico' },
-    { value: 'CONSOLIDADO', label: 'consolidado' },
-    { value: 'TEORIA', label: 'teoria' },
-  ];
 
   protected readonly hiddenCount = computed(() => this.quests().filter((q) => q.hidden).length);
 
@@ -126,14 +158,34 @@ export class GameDetail implements OnInit {
     this.quests().filter((q) => !q.isOwner && !q.isPersonal),
   );
 
-  protected readonly filteredQuests = computed(() => {
-    const filter = this.activeFilter();
-    const byStatus =
-      filter === 'todos' ? this.quests() : this.quests().filter((q) => q.status === filter);
-    return this.showHidden() ? byStatus : byStatus.filter((q) => !q.hidden);
+  protected readonly filteredQuests = computed(() =>
+    this.showHidden() ? this.quests() : this.quests().filter((q) => !q.hidden),
+  );
+
+  /**
+   * O plural na mão porque a frase muda inteira, não só a letra final: "1 pessoa já
+   * escreveu" contra "2 pessoas já escreveram". Jogo novo tem um contribuidor só, e é
+   * justamente aí que o "pessoa(s) já escreveram" aparece para quem acabou de publicar.
+   */
+  protected readonly contributorsSubtitle = computed(() => {
+    const total = this.contributorsTotal();
+    const jogo = this.game()?.name ?? '';
+    return total === 1
+      ? `1 pessoa já escreveu ou revisou conteúdo de ${jogo}`
+      : `${total} pessoas já escreveram ou revisaram conteúdo de ${jogo}`;
   });
 
+  protected contribuicoesLabel(total: number): string {
+    return total === 1 ? '1 contribuição' : `${total} contribuições`;
+  }
+
   ngOnInit(): void {
+    // Digitar não dispara uma requisição por tecla, e o `distinctUntilChanged` evita a
+    // ida ao servidor quando o texto volta ao que já estava carregado.
+    this.buscaDeContribuidor$
+      .pipe(debounceTime(300), distinctUntilChanged(), takeUntilDestroyed(this.destroyRef))
+      .subscribe(() => this.recarregarContribuidores());
+
     this.gameService.get(this.referencia).subscribe({
       next: (g: Game) => {
         this.game.set(gameToSummary(g));
@@ -182,6 +234,75 @@ export class GameDetail implements OnInit {
       },
       error: () => this.endingsLoading.set(false),
     });
+
+    // Junto das outras listas, e não ao abrir a aba: o card "contribuidores" fica no
+    // cabeçalho, sempre à vista, e só saberia o número depois que alguém clicasse.
+    this.carregarContribuidores(false);
+  }
+
+  protected onContributorSearch(valor: string): void {
+    this.contributorQuery.set(valor);
+    this.buscaDeContribuidor$.next(valor);
+  }
+
+  protected setContributorRole(role: ContributorRole | null): void {
+    if (this.contributorRole() === role) return;
+    this.contributorRole.set(role);
+    this.recarregarContribuidores();
+  }
+
+  protected setContributorSort(valor: string): void {
+    this.contributorSort.set(valor as ContributorSort);
+    this.recarregarContribuidores();
+  }
+
+  protected loadMoreContributors(): void {
+    if (this.contributorsLoading() || !this.hasMoreContributors()) return;
+    this.contributorPage.update((p) => p + 1);
+    this.carregarContribuidores(true);
+  }
+
+  private recarregarContribuidores(): void {
+    this.contributorPage.set(0);
+    this.carregarContribuidores(false);
+  }
+
+  private carregarContribuidores(append: boolean): void {
+    const semFiltro = !this.contributorFilterAtivo();
+    this.contributorsLoading.set(true);
+    this.contributorsError.set(false);
+
+    this.gameService
+      .contributors(this.gameId(), {
+        q: this.contributorQuery(),
+        role: this.contributorRole(),
+        sort: this.contributorSort(),
+        page: this.contributorPage(),
+        size: GameDetail.CONTRIBUTORS_PAGE_SIZE,
+      })
+      .subscribe({
+        next: (page) => {
+          this.contributors.update((atual) =>
+            append ? [...atual, ...page.content] : page.content,
+          );
+          this.contributorsFiltered.set(page.totalElements);
+
+          if (semFiltro) {
+            this.contributorsTotal.set(page.totalElements);
+
+            // O pódio sai da primeira página sem filtro, que já vem ordenada por
+            // contribuições: pedir os três de novo ao servidor traria a mesma resposta.
+            if (this.contributorPage() === 0 && this.contributorSort() === 'CONTRIBUTIONS') {
+              this.topContributors.set(page.content.slice(0, 3));
+            }
+          }
+          this.contributorsLoading.set(false);
+        },
+        error: () => {
+          this.contributorsError.set(true);
+          this.contributorsLoading.set(false);
+        },
+      });
   }
 
   protected isEndingRevealed(ending: EndingSummary): boolean {
@@ -240,10 +361,6 @@ export class GameDetail implements OnInit {
     });
   }
 
-  protected setFilter(filter: QuestFilter): void {
-    this.activeFilter.set(filter);
-  }
-
   protected toggleContribMenu(): void {
     this.showContribMenu.update((v) => !v);
   }
@@ -294,5 +411,9 @@ export class GameDetail implements OnInit {
 
   protected trackById(_: number, item: { id: string }): string {
     return item.id;
+  }
+
+  protected trackByUserId(_: number, item: Contributor): string {
+    return item.userId;
   }
 }

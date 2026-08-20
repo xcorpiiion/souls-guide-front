@@ -9,7 +9,7 @@ import {
 } from '@angular/core';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
-import { Subject, debounceTime } from 'rxjs';
+import { Subject, debounceTime, shareReplay, switchMap } from 'rxjs';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { PfPageLoader } from '@xcorpiiion/ui';
 import { AuthService } from '@xcorpiiion/ng-core';
@@ -48,7 +48,21 @@ export class Chefes implements OnInit {
   private readonly auth = inject(AuthService);
   private readonly destroyRef = inject(DestroyRef);
 
-  protected readonly gameId = this.route.snapshot.paramMap.get('id') ?? '';
+  /**
+   * A **referência** do jogo na URL — `1-lies-of-p`, ou só `lies-of-p` num link antigo.
+   * Serve para os links de volta, e é o que o endpoint de jogo sabe resolver.
+   */
+  protected readonly gameRef = this.route.snapshot.paramMap.get('id') ?? '';
+
+  /**
+   * O jogo resolvido, uma vez só.
+   *
+   * `/bosses?gameId=` e `/bosses/my-progress?gameId=` recebem `Long`, como o `/items`:
+   * mandar a referência da URL responde 400. O id numérico só existe depois desta chamada,
+   * então a lista e o progresso saem dela.
+   */
+  private readonly jogo$ = this.gameService.get(this.gameRef).pipe(shareReplay(1));
+
   protected readonly gameName = signal('');
 
   protected readonly chefes = signal<BossSummary[]>([]);
@@ -88,7 +102,7 @@ export class Chefes implements OnInit {
   ngOnInit(): void {
     this.spoilerLiberado.set(this.lerPreferencia());
 
-    this.gameService.get(this.gameId).subscribe({
+    this.jogo$.subscribe({
       next: (game) => {
         this.gameName.set(game.name);
         this.seo.aplicar({
@@ -178,12 +192,16 @@ export class Chefes implements OnInit {
   private carregar(): void {
     this.loading.set(true);
 
-    this.bossService
-      .list({
-        gameId: this.gameId,
-        mandatory: this.apenasObrigatorios(),
-        q: this.busca(),
-      })
+    this.jogo$
+      .pipe(
+        switchMap((game) =>
+          this.bossService.list({
+            gameId: String(game.id),
+            mandatory: this.apenasObrigatorios(),
+            q: this.busca(),
+          }),
+        ),
+      )
       .subscribe({
         next: (chefes) => {
           this.chefes.set(chefes);
@@ -201,7 +219,7 @@ export class Chefes implements OnInit {
   private carregarProgresso(): void {
     if (!this.logado()) return;
 
-    this.bossService.progresso(this.gameId).subscribe({
+    this.jogo$.pipe(switchMap((game) => this.bossService.progresso(String(game.id)))).subscribe({
       next: (progresso) => {
         this.total.set(progresso.total);
         this.derrotados.set(progresso.defeated);

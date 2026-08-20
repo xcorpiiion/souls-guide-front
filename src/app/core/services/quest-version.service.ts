@@ -7,7 +7,6 @@ export interface QuestVersionSnapshot {
   versionNumber: number;
   title: string;
   description: string | null;
-  status: string;
   nodes: QuestNode[];
   edges: QuestEdge[];
 }
@@ -22,8 +21,6 @@ export interface VersionDiff {
   titleNew: string | null;
   descriptionOld: string | null;
   descriptionNew: string | null;
-  statusOld: string | null;
-  statusNew: string | null;
   nodesAdded: number;
   nodesRemoved: number;
 }

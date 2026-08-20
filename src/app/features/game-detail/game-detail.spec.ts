@@ -28,7 +28,27 @@ const emptyPage = {
   first: true,
 };
 
-const gameServiceMock = { get: vi.fn(() => of(MOCK_GAME)) };
+const CONTRIBUIDOR = {
+  userId: '7',
+  handle: 'vini',
+  displayName: 'Vinícius',
+  initials: 'VI',
+  quests: 2,
+  lore: 1,
+  edits: 4,
+  contributions: 7,
+  since: 'jan/2024',
+  role: 'FOUNDER' as const,
+  roleLabel: 'fundador',
+  hasBadge: true,
+};
+
+const contributorsPage = { ...emptyPage, content: [CONTRIBUIDOR], totalElements: 1 };
+
+const gameServiceMock = {
+  get: vi.fn(() => of(MOCK_GAME)),
+  contributors: vi.fn(() => of(contributorsPage)),
+};
 const questServiceMock = { list: vi.fn(() => of(emptyPage)) };
 const loreServiceMock = { list: vi.fn(() => of(emptyPage)) };
 
@@ -131,6 +151,50 @@ describe('GameDetail', () => {
 
     expect(fixture.componentInstance['gameId']()).toBe('1');
     expect(fixture.componentInstance['quests']()).toHaveLength(1);
+  });
+
+  /**
+   * O card do cabeçalho mostrava zero por construção: `gameToSummary` não tem de onde
+   * tirar a contagem, porque o GET /games/{id} devolve o jogo e não o acervo. O número
+   * agora vem do total da lista de contribuidores, e é por isso que ela carrega junto
+   * das outras — não ao abrir a aba.
+   */
+  it('usa o total do endpoint de contribuidores no card e na aba', () => {
+    const fixture = createFixture('1');
+
+    expect(gameServiceMock.contributors).toHaveBeenCalled();
+    expect(fixture.componentInstance['contributorsTotal']()).toBe(1);
+    expect(
+      fixture.nativeElement.querySelector('.game-detail__stat-val--accent')?.textContent?.trim(),
+    ).toBe('1');
+  });
+
+  it('lista os contribuidores na aba, com o crachá de quem tem', () => {
+    const fixture = createFixture('1');
+    const tabs = Array.from(
+      fixture.nativeElement.querySelectorAll('.game-detail__tab'),
+    ) as HTMLButtonElement[];
+
+    tabs.find((t) => t.textContent?.includes('contribuidores'))?.click();
+    fixture.detectChanges();
+
+    const linhas = fixture.nativeElement.querySelectorAll('.game-detail__contributor-row');
+    expect(linhas.length).toBe(1);
+    expect(linhas[0].textContent).toContain('Vinícius');
+    expect(linhas[0].textContent).toContain('fundador');
+    expect(linhas[0].textContent).toContain('desde jan/2024');
+  });
+
+  it('pede ao servidor de novo ao trocar o filtro de papel', () => {
+    const fixture = createFixture('1');
+    gameServiceMock.contributors.mockClear();
+
+    fixture.componentInstance['setContributorRole']('EDITOR');
+
+    expect(gameServiceMock.contributors).toHaveBeenCalledWith(
+      '1',
+      expect.objectContaining({ role: 'EDITOR', page: 0 }),
+    );
   });
 
   it('deve exibir mensagem de não encontrado quando service retorna erro', () => {

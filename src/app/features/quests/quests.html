@@ -70,19 +70,6 @@
         />
       </div>
 
-      <div class="qs__filter-row">
-        @for (f of statusFilters; track f.id) {
-          <button
-            class="qs__chip"
-            [class.qs__chip--active]="statusFilter() === f.id"
-            type="button"
-            (click)="setStatusFilter(f.id)"
-          >
-            {{ f.label }}
-          </button>
-        }
-      </div>
-
       @if (allGames().length) {
         <div class="qs__filter-row qs__filter-row--games">
           <div class="qs__game-dd" [class.qs__game-dd--open]="gameDropdownOpen()">
@@ -256,9 +243,6 @@
               <div class="qs__card-badges">
                 <span class="qs__game-badge qs__game-badge--{{ quest.gameId }}">
                   <i class="ti ti-device-gamepad-2" aria-hidden="true"></i> {{ quest.gameName }}
-                </span>
-                <span class="qs__badge qs__badge--{{ quest.status | lowercase }}">
-                  {{ statusLabel(quest.status) }}
                 </span>
               </div>
               <div class="qs__card-top">

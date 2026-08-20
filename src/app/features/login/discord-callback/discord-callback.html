@@ -1,0 +1,16 @@
+<div class="login">
+  <div class="login__card">
+    <h1 class="login__title">Soul<span class="login__accent">Guide</span></h1>
+
+    @if (errorMsg()) {
+      <div class="login__error" role="alert">{{ errorMsg() }}</div>
+      <a class="dc__back-link" routerLink="/login">Voltar para o login →</a>
+    } @else {
+      <div class="dc__loading">
+        <i class="ti ti-brand-discord dc__icon" aria-hidden="true"></i>
+        <p class="dc__title">Entrando com Discord…</p>
+        <p class="dc__desc">Só um instante.</p>
+      </div>
+    }
+  </div>
+</div>

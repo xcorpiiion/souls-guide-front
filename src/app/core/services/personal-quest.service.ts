@@ -1,18 +1,13 @@
 import { inject, Injectable } from '@angular/core';
 import { HttpService } from '@xcorpiiion/ng-core';
 import { map, Observable } from 'rxjs';
-import {
-  QuestApi,
-  QuestSummary,
-  QuestStatus,
-  questApiToSummary,
-} from '../../shared/models/quest.model';
+import { QuestApi, QuestSummary, questApiToSummary } from '../../shared/models/quest.model';
 
 export interface CreatePersonalQuestRequest {
   title: string;
   description?: string;
   gameId: number;
-  status?: QuestStatus;
+
   coverImageFileKey?: string;
   isPublic: boolean;
   allowCopy: boolean;
@@ -21,7 +16,7 @@ export interface CreatePersonalQuestRequest {
 export interface UpdatePersonalQuestRequest {
   title?: string;
   description?: string;
-  status?: QuestStatus;
+
   coverImageFileKey?: string;
   isPublic?: boolean;
   allowCopy?: boolean;

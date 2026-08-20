@@ -15,7 +15,6 @@ const MOCK_QUEST_API: QuestApi = {
   id: 1,
   title: MOCK_QUEST.title,
   description: MOCK_QUEST.description ?? '',
-  status: MOCK_QUEST.status,
   userId: 'user-1',
   gameId: 1,
   gameName: MOCK_QUEST.gameName,
@@ -112,12 +111,6 @@ describe('QuestDetail', () => {
     );
     expect(fixture.nativeElement.querySelector('.quest-detail__not-found')).toBeTruthy();
     expect(fixture.nativeElement.querySelector('.quest-detail')).toBeFalsy();
-  });
-
-  it('deve exibir o badge de status da quest', () => {
-    const fixture = createFixture('elden-ring', 'er-q1');
-    const badge = fixture.nativeElement.querySelector('.quest-detail__status');
-    expect(badge?.textContent?.trim()).toBe('canonico');
   });
 
   describe('likes', () => {

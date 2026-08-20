@@ -9,6 +9,7 @@ import {
 } from '@angular/forms';
 import { AuthService } from '@xcorpiiion/ng-core';
 import { environment } from '../../../environments/environment';
+import { DiscordLoginService } from '../../core/services/discord-login.service';
 
 @Component({
   selector: 'app-login',
@@ -22,6 +23,14 @@ export class Login implements OnInit {
   private readonly auth = inject(AuthService);
   private readonly router = inject(Router);
   private readonly fb = inject(FormBuilder);
+  private readonly discord = inject(DiscordLoginService);
+
+  /**
+   * Sem client id configurado o botão não aparece, em vez de aparecer e falhar.
+   * É a mesma decisão do back, que responde 400 em `/auth/discord` quando não há
+   * aplicativo cadastrado — os dois lados desligam juntos.
+   */
+  protected readonly discordDisponivel = this.discord.configurado;
 
   protected readonly activeTab = signal<'login' | 'signup'>('login');
   protected readonly loading = signal(false);
@@ -52,6 +61,29 @@ export class Login implements OnInit {
       return;
     }
 
+    this.iniciarGoogle();
+  }
+
+  /**
+   * Monta o botão do Google, se o script dele já tiver chegado.
+   *
+   * <p>O `<script>` do GSI é `async` no `index.html`, então **não há garantia** de que
+   * `google` exista quando o `ngOnInit` roda: numa carga lenta, com o CDN bloqueado por
+   * extensão, ou sem rede, o `ReferenceError` estourava aqui e derrubava a inicialização
+   * do componente inteiro — levando junto o login por senha e o botão do Discord, que não
+   * têm nada a ver com o Google.
+   *
+   * <p>Agora ele espera o `load` do próprio script e tenta de novo. Se o script nunca
+   * chegar, o resto da tela continua funcionando e só o botão do Google não aparece.
+   */
+  private iniciarGoogle(): void {
+    if (typeof google === 'undefined') {
+      document
+        .querySelector<HTMLScriptElement>('script[src*="accounts.google.com/gsi"]')
+        ?.addEventListener('load', () => this.iniciarGoogle(), { once: true });
+      return;
+    }
+
     google.accounts.id.initialize({
       client_id: environment.googleClientId,
       callback: (response) => this.handleGoogleResponse(response),
@@ -64,6 +96,18 @@ export class Login implements OnInit {
       text: 'signin_with',
       locale: 'pt-BR',
     });
+  }
+
+  /**
+   * Sai da página: quem conclui o login é `/login/discord`, na volta.
+   *
+   * <p>Diferente do Google, que resolve tudo sem sair daqui — o Discord exige a passagem
+   * pela tela de autorização dele, porque o que ele devolve é um código, não um token.
+   */
+  protected entrarComDiscord(): void {
+    this.loading.set(true);
+    this.errorMsg.set(null);
+    this.discord.iniciar();
   }
 
   protected setTab(tab: 'login' | 'signup'): void {

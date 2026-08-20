@@ -128,8 +128,22 @@
 
     <div class="login__divider"><span>ou</span></div>
 
-    <div class="login__google-wrap" [class.login__google-wrap--disabled]="loading()">
-      <div id="google-btn" class="login__google-btn"></div>
+    <div class="login__social">
+      <div class="login__google-wrap" [class.login__google-wrap--disabled]="loading()">
+        <div id="google-btn" class="login__google-btn"></div>
+      </div>
+
+      @if (discordDisponivel) {
+        <button
+          class="login__btn-discord"
+          type="button"
+          [disabled]="loading()"
+          (click)="entrarComDiscord()"
+        >
+          <i class="ti ti-brand-discord" aria-hidden="true"></i>
+          Entrar com Discord
+        </button>
+      }
     </div>
   </div>
 </div>

@@ -41,7 +41,7 @@
           @if (auth.isLoggedIn()) {
             <a
               class="game-detail__btn game-detail__btn--secondary"
-              [routerLink]="['/games', g.ref, 'run']"
+              [routerLink]="['/games', g.id, 'run']"
             >
               <i class="ti ti-progress" aria-hidden="true"></i> minha run
             </a>
@@ -109,7 +109,9 @@
           <span class="game-detail__stat-label">seguidores</span>
         </div>
         <div class="game-detail__stat">
-          <span class="game-detail__stat-val">{{ g.contributorsCount }}</span>
+          <span class="game-detail__stat-val game-detail__stat-val--accent">{{
+            contributorsTotal()
+          }}</span>
           <span class="game-detail__stat-label">contribuidores</span>
         </div>
       </div>
@@ -156,6 +158,7 @@
         (click)="setTab('contributors')"
       >
         contribuidores
+        <span class="game-detail__tab-count">{{ contributorsTotal() }}</span>
       </button>
     </div>
 
@@ -163,16 +166,38 @@
       <div class="game-detail__content" role="tabpanel">
         <div class="game-detail__section-header">
           <span class="game-detail__section-title">quests</span>
-          <div class="game-detail__filters" role="group" aria-label="filtrar por status">
-            @for (f of filters; track f.value) {
+
+          <!--
+            As ações ficavam depois da lista. Com nove quests, quem quisesse acrescentar
+            uma rolava o catálogo inteiro para descobrir que o botão existe — e quem não
+            rolasse concluía que não dava para contribuir.
+          -->
+          <div class="game-detail__quest-actions">
+            <a class="game-detail__add-card" [routerLink]="['/games', g.ref, 'quests', 'new']"
+              >+ adicionar quest</a
+            >
+            @if (auth.isLoggedIn() && copyableQuests().length > 0) {
               <button
-                class="game-detail__filter-pill"
-                [class.game-detail__filter-pill--active]="activeFilter() === f.value"
+                class="game-detail__copy-all-btn"
                 type="button"
-                (click)="setFilter(f.value)"
+                [disabled]="copyingAll()"
+                (click)="copyAll()"
               >
-                {{ f.label }}
+                @if (copyingAll()) {
+                  <i class="ti ti-loader-2 game-detail__spin" aria-hidden="true"></i> copiando…
+                } @else {
+                  <i class="ti ti-copy" aria-hidden="true"></i>
+                  copiar todas ({{ copyableQuests().length }})
+                }
               </button>
+            }
+            <a class="game-detail__conditions-link" [routerLink]="['/games', g.id, 'conditions']">
+              <i class="ti ti-git-branch" aria-hidden="true"></i> gerenciar condições
+            </a>
+            @if (auth.isLoggedIn()) {
+              <a class="game-detail__conditions-link" [routerLink]="['/games', g.id, 'quest-map']">
+                <i class="ti ti-map-2" aria-hidden="true"></i> organizar rota
+              </a>
             }
           </div>
         </div>
@@ -227,11 +252,6 @@
                 }
               </div>
               <div class="game-detail__quest-right">
-                <span
-                  [class]="'game-detail__status game-detail__status--' + quest.status.toLowerCase()"
-                >
-                  {{ quest.status.toLowerCase() }}
-                </span>
                 <span class="game-detail__quest-followers">{{ quest.followers }}</span>
               </div>
             </li>
@@ -246,35 +266,6 @@
             <li class="game-detail__quest-empty">Nenhuma quest com esse status ainda.</li>
           }
         </ul>
-
-        <div class="game-detail__quest-actions">
-          <a class="game-detail__add-card" [routerLink]="['/games', g.ref, 'quests', 'new']"
-            >+ adicionar quest</a
-          >
-          @if (auth.isLoggedIn() && copyableQuests().length > 0) {
-            <button
-              class="game-detail__copy-all-btn"
-              type="button"
-              [disabled]="copyingAll()"
-              (click)="copyAll()"
-            >
-              @if (copyingAll()) {
-                <i class="ti ti-loader-2 game-detail__spin" aria-hidden="true"></i> copiando…
-              } @else {
-                <i class="ti ti-copy" aria-hidden="true"></i>
-                copiar todas ({{ copyableQuests().length }})
-              }
-            </button>
-          }
-          <a class="game-detail__conditions-link" [routerLink]="['/games', g.ref, 'conditions']">
-            <i class="ti ti-git-branch" aria-hidden="true"></i> gerenciar condições
-          </a>
-          @if (auth.isLoggedIn()) {
-            <a class="game-detail__conditions-link" [routerLink]="['/games', g.ref, 'quest-map']">
-              <i class="ti ti-map-2" aria-hidden="true"></i> organizar rota
-            </a>
-          }
-        </div>
       </div>
     }
 
@@ -377,8 +368,187 @@
     }
 
     @if (activeTab() === 'contributors') {
-      <div class="game-detail__content game-detail__content--empty" role="tabpanel">
-        <p class="game-detail__empty">Lista de contribuidores em breve.</p>
+      <div class="game-detail__content" role="tabpanel">
+        @if (contributorsError()) {
+          <p class="game-detail__empty">
+            Não foi possível carregar os contribuidores. Tente de novo em instantes.
+          </p>
+        } @else if (contributorsTotal() === 0 && !contributorsLoading()) {
+          <div class="game-detail__contributor-blank">
+            <i class="ti ti-users-group" aria-hidden="true"></i>
+            <p class="game-detail__contributor-blank-title">Ninguém contribuiu ainda</p>
+            <p class="game-detail__contributor-blank-text">
+              Seja o primeiro a escrever uma quest ou um lore para {{ g.name }}.
+            </p>
+          </div>
+        } @else {
+          <div class="game-detail__section-header">
+            <div>
+              <span class="game-detail__section-title">contribuidores</span>
+              <p class="game-detail__contributor-subtitle">
+                {{ contributorsSubtitle() }}
+              </p>
+            </div>
+          </div>
+
+          <div class="game-detail__contributor-filters">
+            <label class="game-detail__contributor-search">
+              <i class="ti ti-search" aria-hidden="true"></i>
+              <input
+                type="text"
+                placeholder="buscar por nome"
+                aria-label="buscar contribuidor"
+                [value]="contributorQuery()"
+                (input)="onContributorSearch($any($event.target).value)"
+              />
+            </label>
+
+            <!--
+              Os chips filtram por *o que a pessoa fez*, não pelo crachá que aparece na
+              linha: quem fundou e escreveu continua dentro de "autores", senão a aba de
+              autores esconderia justamente quem mais escreveu.
+            -->
+            <div class="game-detail__contributor-chips" role="group" aria-label="filtrar por papel">
+              <button
+                class="game-detail__contributor-chip"
+                [class.game-detail__contributor-chip--active]="contributorRole() === null"
+                type="button"
+                (click)="setContributorRole(null)"
+              >
+                todos
+              </button>
+              <button
+                class="game-detail__contributor-chip"
+                [class.game-detail__contributor-chip--active]="contributorRole() === 'AUTHOR'"
+                type="button"
+                (click)="setContributorRole('AUTHOR')"
+              >
+                autores
+              </button>
+              <button
+                class="game-detail__contributor-chip"
+                [class.game-detail__contributor-chip--active]="contributorRole() === 'EDITOR'"
+                type="button"
+                (click)="setContributorRole('EDITOR')"
+              >
+                editores
+              </button>
+            </div>
+
+            <select
+              class="game-detail__contributor-sort"
+              aria-label="ordenar contribuidores"
+              [value]="contributorSort()"
+              (change)="setContributorSort($any($event.target).value)"
+            >
+              <option value="CONTRIBUTIONS">mais contribuições</option>
+              <option value="RECENT">mais recentes</option>
+              <option value="NAME">nome (a-z)</option>
+            </select>
+          </div>
+
+          @if (showTopContributors()) {
+            <p class="game-detail__contributor-label">topo do ranking</p>
+            <div class="game-detail__contributor-podium">
+              @for (top of topContributors(); track trackByUserId($index, top)) {
+                <a
+                  class="game-detail__contributor-card game-detail__contributor-card--{{
+                    $index + 1
+                  }}"
+                  [routerLink]="['/usuarios', top.handle]"
+                >
+                  <i
+                    class="ti {{
+                      $index === 0 ? 'ti-crown' : 'ti-medal'
+                    }} game-detail__contributor-rank"
+                    aria-hidden="true"
+                  ></i>
+                  <span class="game-detail__contributor-avatar" aria-hidden="true">{{
+                    top.initials
+                  }}</span>
+                  <span class="game-detail__contributor-name">{{ top.displayName }}</span>
+                  <span
+                    class="game-detail__contributor-badge game-detail__contributor-badge--{{
+                      top.role.toLowerCase()
+                    }}"
+                  >
+                    {{ top.roleLabel }}
+                  </span>
+                  <span class="game-detail__contributor-total">{{
+                    contribuicoesLabel(top.contributions)
+                  }}</span>
+                </a>
+              }
+            </div>
+          }
+
+          <p class="game-detail__contributor-label">todos os contribuidores</p>
+
+          @if (contributors().length > 0) {
+            <ul class="game-detail__contributor-list">
+              @for (c of contributors(); track trackByUserId($index, c)) {
+                <li class="game-detail__contributor-row">
+                  <a class="game-detail__contributor-person" [routerLink]="['/usuarios', c.handle]">
+                    <span class="game-detail__contributor-avatar" aria-hidden="true">{{
+                      c.initials
+                    }}</span>
+                    <span class="game-detail__contributor-identity">
+                      <span class="game-detail__contributor-line">
+                        <span class="game-detail__contributor-name">{{ c.displayName }}</span>
+                        @if (c.hasBadge) {
+                          <span
+                            class="game-detail__contributor-badge game-detail__contributor-badge--{{
+                              c.role.toLowerCase()
+                            }}"
+                          >
+                            {{ c.roleLabel }}
+                          </span>
+                        }
+                      </span>
+                      <span class="game-detail__contributor-since">desde {{ c.since }}</span>
+                    </span>
+                  </a>
+                  <div class="game-detail__contributor-counts">
+                    <span title="quests"
+                      ><i class="ti ti-map" aria-hidden="true"></i>{{ c.quests }}</span
+                    >
+                    <span title="lore"
+                      ><i class="ti ti-book" aria-hidden="true"></i>{{ c.lore }}</span
+                    >
+                    <span title="edições"
+                      ><i class="ti ti-edit" aria-hidden="true"></i>{{ c.edits }}</span
+                    >
+                  </div>
+                </li>
+              }
+            </ul>
+          } @else if (!contributorsLoading()) {
+            <div class="game-detail__contributor-blank">
+              <i class="ti ti-users-group" aria-hidden="true"></i>
+              <p class="game-detail__contributor-blank-title">Nenhum contribuidor encontrado</p>
+              <p class="game-detail__contributor-blank-text">
+                Nada bate com o que você procurou neste filtro.
+              </p>
+            </div>
+          }
+
+          @if (hasMoreContributors()) {
+            <div class="game-detail__contributor-more">
+              <button
+                class="game-detail__btn game-detail__btn--secondary"
+                type="button"
+                [disabled]="contributorsLoading()"
+                (click)="loadMoreContributors()"
+              >
+                @if (contributorsLoading()) {
+                  <i class="ti ti-loader-2 game-detail__spin" aria-hidden="true"></i>
+                } @else {
+                  mostrar mais ({{ contributors().length }} de {{ contributorsFiltered() }})
+                }
+              </button>
+            </div>
+          }
+        }
       </div>
     }
   </div>

@@ -15,8 +15,8 @@ import { resumo, SeoService } from '../../core/services/seo.service';
 import { AuthService } from '@xcorpiiion/ng-core';
 import { ProfileService } from '../../core/services/profile.service';
 import { UserPublicProfile, ActivityEvent, UserSummary } from '../../shared/models/user.model';
-import { QuestSummary, QuestStatus } from '../../shared/models/quest.model';
-import { LoreSummary } from '../../shared/models/lore-article.model';
+import { QuestSummary } from '../../shared/models/quest.model';
+import { LoreStatus, LoreSummary } from '../../shared/models/lore-article.model';
 import { GameSummary } from '../../shared/models/game.model';
 
 type UsuarioTab = 'quests' | 'lore' | 'jogos' | 'seguidores';
@@ -248,7 +248,7 @@ export class Usuario implements OnInit {
     }
   }
 
-  protected statusLabel(s: QuestStatus): string {
+  protected statusLabel(s: LoreStatus): string {
     return ({ TEORIA: 'teoria', CONSOLIDADO: 'consolidado', CANONICO: 'canônico' } as const)[s];
   }
 

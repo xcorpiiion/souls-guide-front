@@ -220,38 +220,12 @@
   }
 }
 
-// ─── filter chips ──────────────────────────────────────────────────────────────
+// ─── filtro de jogo ────────────────────────────────────────────────────────────
 .qs__filter-row {
   display: flex;
   flex-wrap: wrap;
   gap: 6px;
   margin-bottom: 8px;
-}
-
-.qs__chip {
-  padding: 4px 14px;
-  border-radius: 20px;
-  font-family: v.$font-body;
-  font-size: 12px;
-  border: 1px solid v.$color-border;
-  background: v.$color-bg;
-  color: v.$color-text-muted;
-  cursor: pointer;
-  transition:
-    border-color 0.12s,
-    color 0.12s,
-    background 0.12s;
-
-  &:hover {
-    border-color: rgba(v.$color-gold, 0.4);
-    color: v.$color-text;
-  }
-
-  &--active {
-    background: rgba(v.$color-gold, 0.1);
-    border-color: rgba(v.$color-gold, 0.4);
-    color: v.$color-gold;
-  }
 }
 
 .qs__game-dd {
@@ -557,31 +531,6 @@
 
   .ti {
     font-size: 12px;
-  }
-}
-
-// ─── badges ────────────────────────────────────────────────────────────────────
-.qs__badge {
-  font-size: 10px;
-  padding: 2px 8px;
-  border-radius: 10px;
-  white-space: nowrap;
-  flex-shrink: 0;
-
-  &--canonico {
-    background: rgba(v.$color-gold, 0.1);
-    color: v.$color-gold;
-    border: 1px solid rgba(v.$color-gold, 0.25);
-  }
-  &--consolidado {
-    background: rgba(122, 154, 90, 0.1);
-    color: #7a9a5a;
-    border: 1px solid rgba(122, 154, 90, 0.25);
-  }
-  &--teoria {
-    background: rgba(90, 122, 154, 0.1);
-    color: #5a7a9a;
-    border: 1px solid rgba(90, 122, 154, 0.25);
   }
 }
 

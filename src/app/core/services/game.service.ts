@@ -8,6 +8,13 @@ import {
   gameListItemToSummary,
   GameSummary,
 } from '../../shared/models/game.model';
+import {
+  Contributor,
+  ContributorApi,
+  ContributorRole,
+  ContributorSort,
+  contributorApiToView,
+} from '../../shared/models/game-contributor.model';
 
 export interface CreateGameRequest {
   name: string;
@@ -15,6 +22,15 @@ export interface CreateGameRequest {
   releaseYear?: number;
   description?: string;
   tags?: string[];
+}
+
+/** Busca, filtro e ordem da aba de contribuidores. Tudo opcional; nada vira default aqui. */
+export interface ContributorQuery {
+  q?: string;
+  role?: ContributorRole | null;
+  sort?: ContributorSort;
+  page?: number;
+  size?: number;
 }
 
 @Injectable({ providedIn: 'root' })
@@ -40,6 +56,25 @@ export class GameService {
 
   get(id: string): Observable<Game> {
     return this.api.get<Game>(`${id}`);
+  }
+
+  /**
+   * Quem construiu o acervo do jogo.
+   *
+   * Aceita id ou slug, como `get` — é a mesma referência que veio na URL da página.
+   * Busca e filtro vão para o servidor de propósito: o nome pelo qual se procura vem da
+   * user-api, e filtrar no cliente só encontraria quem já está na página carregada.
+   */
+  contributors(gameRef: string, query: ContributorQuery = {}): Observable<Page<Contributor>> {
+    return this.api
+      .page<ContributorApi>(`${gameRef}/contributors`, {
+        q: query.q?.trim() || undefined,
+        role: query.role ?? undefined,
+        sort: query.sort ?? 'CONTRIBUTIONS',
+        page: query.page ?? 0,
+        size: query.size ?? 30,
+      })
+      .pipe(map((p) => mapPage(p, contributorApiToView)));
   }
 
   create(data: CreateGameRequest): Observable<Game> {

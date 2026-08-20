@@ -1,4 +1,3 @@
-import { LowerCasePipe } from '@angular/common';
 import {
   ChangeDetectionStrategy,
   Component,
@@ -13,7 +12,7 @@ import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { Subject, debounceTime, distinctUntilChanged, switchMap } from 'rxjs';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { QuestNodeType, QuestStatus, QuestSummary } from '../../shared/models/quest.model';
+import { QuestNodeType, QuestSummary } from '../../shared/models/quest.model';
 
 interface MiniNode {
   id: string;
@@ -36,25 +35,17 @@ import { QuestService } from '../../core/services/quest.service';
 import { GameService } from '../../core/services/game.service';
 import { AuthService } from '@xcorpiiion/ng-core';
 
-const STATUS_FILTERS: { id: QuestStatus | ''; label: string }[] = [
-  { id: '', label: 'todos' },
-  { id: 'CANONICO', label: 'canônico' },
-  { id: 'CONSOLIDADO', label: 'consolidado' },
-  { id: 'TEORIA', label: 'teoria' },
-];
-
 const PAGE_SIZE = 10;
 
 interface QuestFilters {
   q: string;
   gameId: string;
-  status: QuestStatus | '';
   page: number;
 }
 
 @Component({
   selector: 'app-quests',
-  imports: [RouterLink, LowerCasePipe, FormsModule],
+  imports: [RouterLink, FormsModule],
   templateUrl: './quests.html',
   styleUrl: './quests.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -66,7 +57,6 @@ export class Quests implements OnInit {
   private readonly destroyRef = inject(DestroyRef);
   readonly auth = inject(AuthService);
 
-  protected readonly statusFilters = STATUS_FILTERS;
   protected readonly skeletonItems = Array.from({ length: PAGE_SIZE });
 
   protected readonly loading = signal(true);
@@ -78,7 +68,6 @@ export class Quests implements OnInit {
 
   protected readonly searchTerm = signal('');
   protected readonly gameFilter = signal('');
-  protected readonly statusFilter = signal<QuestStatus | ''>('');
 
   // seletor de jogo para nova quest
   protected readonly showGamePicker = signal(false);
@@ -115,20 +104,11 @@ export class Quests implements OnInit {
     this.load$
       .pipe(
         debounceTime(250),
-        distinctUntilChanged(
-          (a, b) =>
-            a.q === b.q && a.gameId === b.gameId && a.status === b.status && a.page === b.page,
-        ),
-        switchMap(({ q, gameId, status, page }) => {
+        distinctUntilChanged((a, b) => a.q === b.q && a.gameId === b.gameId && a.page === b.page),
+        switchMap(({ q, gameId, page }) => {
           this.loading.set(true);
           this.error.set(null);
-          return this.questService.list(
-            page,
-            PAGE_SIZE,
-            q || undefined,
-            gameId || undefined,
-            status || undefined,
-          );
+          return this.questService.list(page, PAGE_SIZE, q || undefined, gameId || undefined);
         }),
         takeUntilDestroyed(this.destroyRef),
       )
@@ -182,7 +162,6 @@ export class Quests implements OnInit {
     this.load$.next({
       q: this.searchTerm(),
       gameId: this.gameFilter(),
-      status: this.statusFilter(),
       page,
     });
   }
@@ -215,12 +194,6 @@ export class Quests implements OnInit {
     }
   }
 
-  protected setStatusFilter(id: QuestStatus | ''): void {
-    this.statusFilter.set(id);
-    this.currentPage.set(0);
-    this.emit(0);
-  }
-
   protected goToPage(page: number): void {
     if (page < 0 || page >= this.totalPages()) return;
     this.currentPage.set(page);
@@ -238,15 +211,6 @@ export class Quests implements OnInit {
     if (current < total - 3) pages.push(-1);
     pages.push(total - 1);
     return pages;
-  }
-
-  protected statusLabel(s: QuestStatus): string {
-    const map: Record<QuestStatus, string> = {
-      TEORIA: 'teoria',
-      CONSOLIDADO: 'consolidado',
-      CANONICO: 'canônico',
-    };
-    return map[s];
   }
 
   protected followersLabel(n: number): string {

@@ -51,29 +51,20 @@ describe('QuestService', () => {
       req.flush(PAGE_STUB);
     });
 
-    it('inclui status quando fornecido', () => {
-      service.list(0, 10, undefined, undefined, 'CANONICO').subscribe();
-      const req = http.expectOne((r) => r.url === BASE);
-      expect(req.request.params.get('status')).toBe('CANONICO');
-      req.flush(PAGE_STUB);
-    });
-
     it('envia todos os filtros juntos', () => {
-      service.list(2, 10, 'ranni', '1', 'TEORIA').subscribe();
+      service.list(2, 10, 'ranni', '1').subscribe();
       const req = http.expectOne((r) => r.url === BASE);
       expect(req.request.params.get('page')).toBe('2');
       expect(req.request.params.get('q')).toBe('ranni');
       expect(req.request.params.get('gameId')).toBe('1');
-      expect(req.request.params.get('status')).toBe('TEORIA');
       req.flush(PAGE_STUB);
     });
 
-    it('não inclui q, gameId ou status quando undefined', () => {
+    it('não inclui q nem gameId quando undefined', () => {
       service.list(0, 10).subscribe();
       const req = http.expectOne((r) => r.url === BASE);
       expect(req.request.params.has('q')).toBe(false);
       expect(req.request.params.has('gameId')).toBe(false);
-      expect(req.request.params.has('status')).toBe(false);
       req.flush(PAGE_STUB);
     });
 
@@ -89,7 +80,6 @@ describe('QuestService', () => {
               id: 42,
               title: 'Ranni',
               description: 'desc',
-              status: 'CANONICO',
               userId: 'u1',
               gameId: 1,
               gameName: 'Elden Ring',
@@ -166,7 +156,6 @@ describe('QuestService', () => {
           id: 1,
           title: 'Quest A',
           description: '',
-          status: 'CANONICO',
           userId: 'u1',
           gameId: 1,
           gameName: 'Elden Ring',
@@ -200,7 +189,6 @@ describe('QuestService', () => {
           id: 2,
           title: 'Quest B',
           description: '',
-          status: 'TEORIA',
           userId: 'u2',
           gameId: 1,
           gameName: 'Elden Ring',

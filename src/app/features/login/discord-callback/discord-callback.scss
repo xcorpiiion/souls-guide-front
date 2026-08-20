@@ -1,0 +1,62 @@
+@use 'styles/variables' as v;
+@use 'styles/auth-card';
+
+.dc__loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: v.$space-3;
+  text-align: center;
+  padding: v.$space-4 0;
+}
+
+.dc__icon {
+  font-size: 36px;
+  color: #5865f2;
+  // A pulsação é o único sinal de que algo está acontecendo: a chamada costuma durar
+  // menos de um segundo, e uma tela parada nesse tempo parece travada.
+  animation: dc-pulse 1.2s ease-in-out infinite;
+}
+
+@keyframes dc-pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.45;
+  }
+}
+
+// Quem prefere menos movimento não perde informação nenhuma: o texto já diz o que está
+// acontecendo.
+@media (prefers-reduced-motion: reduce) {
+  .dc__icon {
+    animation: none;
+  }
+}
+
+.dc__title {
+  font-size: v.$font-size-base;
+  font-weight: 500;
+  color: v.$color-text;
+  margin: 0;
+}
+
+.dc__desc {
+  font-size: 13px;
+  color: v.$color-text-muted;
+  margin: 0;
+}
+
+.dc__back-link {
+  margin-top: 16px;
+  font-size: 12px;
+  color: v.$color-text-muted;
+  text-decoration: none;
+  transition: color 0.15s;
+
+  &:hover {
+    color: v.$color-gold;
+  }
+}

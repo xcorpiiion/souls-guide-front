@@ -18,7 +18,6 @@ const QUEST_RANNI: QuestSummary = {
   stepCount: 7,
   forkCount: 1,
   endingCount: 2,
-  status: 'CANONICO',
   followers: 0,
   author: null,
 };

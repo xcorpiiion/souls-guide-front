@@ -54,19 +54,6 @@
             (input)="description.set($any($event.target).value); markDirty()"
           ></textarea>
         </label>
-
-        <label class="qe__field qe__field--status">
-          <span class="qe__label">status</span>
-          <select
-            class="qe__input qe__input--select"
-            [value]="questStatus()"
-            (change)="questStatus.set($any($event.target).value); markDirty()"
-          >
-            @for (s of statuses; track s.value) {
-              <option [value]="s.value">{{ s.label }}</option>
-            }
-          </select>
-        </label>
       </div>
 
       <div class="qe__cover">

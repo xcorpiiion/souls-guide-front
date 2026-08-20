@@ -17,7 +17,6 @@ const MOCK_QUEST_SUMMARY: QuestSummary = {
   stepCount: 3,
   forkCount: 0,
   endingCount: 1,
-  status: 'CANONICO',
   followers: 0,
   author: null,
 };
@@ -26,7 +25,6 @@ const MOCK_QUEST_API: QuestApi = {
   id: 45,
   title: 'Questline de Ranni, a Bruxa',
   description: '',
-  status: 'CANONICO',
   userId: 'u1',
   gameId: 1,
   gameName: 'Elden Ring',

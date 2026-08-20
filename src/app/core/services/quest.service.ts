@@ -15,7 +15,6 @@ import { paraId } from '../../shared/utils/ref';
 export interface QuestRequest {
   title: string;
   description: string;
-  status: string;
   gameId: number;
   /** Chave do arquivo de capa na storage-api. As dos passos vão em cada nó. */
   coverImageFileKey?: string;
@@ -27,15 +26,9 @@ export interface QuestRequest {
 export class QuestService {
   private readonly api = inject(HttpService).resource('quests');
 
-  list(
-    page = 0,
-    size = 20,
-    q?: string,
-    gameId?: string,
-    status?: string,
-  ): Observable<Page<QuestSummary>> {
+  list(page = 0, size = 20, q?: string, gameId?: string): Observable<Page<QuestSummary>> {
     return this.api
-      .page<QuestApi>('', { page, size, q, gameId, status })
+      .page<QuestApi>('', { page, size, q, gameId })
       .pipe(map((p) => mapPage(p, questApiToSummary)));
   }
 

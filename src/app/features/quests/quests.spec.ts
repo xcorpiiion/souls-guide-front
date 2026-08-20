@@ -18,7 +18,6 @@ const MOCK_QUESTS: QuestSummary[] = [
     stepCount: 7,
     forkCount: 1,
     endingCount: 2,
-    status: 'CANONICO',
     followers: 4800,
     author: 'vincruz',
     description: 'A bruxa das estrelas',
@@ -32,7 +31,6 @@ const MOCK_QUESTS: QuestSummary[] = [
     stepCount: 4,
     forkCount: 0,
     endingCount: 3,
-    status: 'CONSOLIDADO',
     followers: 980,
     author: null,
     description: 'A noite de caça',
@@ -127,23 +125,13 @@ describe('Quests', () => {
     expect(fixture.nativeElement.querySelector('.qs__pagination')).not.toBeNull();
   });
 
-  it('setStatusFilter chama service com status correto e reseta página', async () => {
-    const { component } = await setup();
-    questServiceMock.list.mockClear();
-    questServiceMock.list.mockReturnValue(of(makePage([])));
-    component.setStatusFilter('CANONICO');
-    vi.advanceTimersByTime(250);
-    expect(questServiceMock.list).toHaveBeenCalledWith(0, 10, undefined, undefined, 'CANONICO');
-    expect(component.currentPage()).toBe(0);
-  });
-
   it('onSearchInput chama service com q correto', async () => {
     const { component } = await setup();
     questServiceMock.list.mockClear();
     questServiceMock.list.mockReturnValue(of(makePage([])));
     component.onSearchInput('ranni');
     vi.advanceTimersByTime(250);
-    expect(questServiceMock.list).toHaveBeenCalledWith(0, 10, 'ranni', undefined, undefined);
+    expect(questServiceMock.list).toHaveBeenCalledWith(0, 10, 'ranni', undefined);
   });
 
   it('goToPage atualiza currentPage e chama service', async () => {
@@ -153,7 +141,7 @@ describe('Quests', () => {
     component.goToPage(1);
     vi.advanceTimersByTime(250);
     expect(component.currentPage()).toBe(1);
-    expect(questServiceMock.list).toHaveBeenCalledWith(1, 10, undefined, undefined, undefined);
+    expect(questServiceMock.list).toHaveBeenCalledWith(1, 10, undefined, undefined);
   });
 
   it('goToPage ignora página fora do intervalo', async () => {
@@ -163,15 +151,6 @@ describe('Quests', () => {
     component.goToPage(5);
     vi.advanceTimersByTime(250);
     expect(questServiceMock.list).not.toHaveBeenCalled();
-  });
-
-  describe('statusLabel()', () => {
-    it('mapeia todos os status', async () => {
-      const { component } = await setup();
-      expect(component.statusLabel('CANONICO')).toBe('canônico');
-      expect(component.statusLabel('CONSOLIDADO')).toBe('consolidado');
-      expect(component.statusLabel('TEORIA')).toBe('teoria');
-    });
   });
 
   describe('followersLabel()', () => {

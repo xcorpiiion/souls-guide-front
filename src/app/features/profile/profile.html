@@ -353,9 +353,6 @@
                           <i class="ti ti-copy-off" aria-hidden="true"></i> sem cópia
                         }
                       </button>
-                      <span class="pf__badge pf__badge--{{ quest.status | lowercase }}">
-                        {{ statusLabel(quest.status) }}
-                      </span>
                     </div>
                   </div>
                   <div class="pf__personal-card-actions">
@@ -413,9 +410,6 @@
                     <span class="pf__quest-title">{{ quest.title }}</span>
                     <span class="pf__quest-meta">{{ quest.gameName }}</span>
                   </div>
-                  <span class="pf__badge pf__badge--{{ quest.status | lowercase }}">{{
-                    statusLabel(quest.status)
-                  }}</span>
                   <i class="ti ti-chevron-right pf__quest-arrow" aria-hidden="true"></i>
                 </a>
               }
@@ -673,9 +667,6 @@
                   <span class="pf__quest-title">{{ quest.title }}</span>
                   <span class="pf__quest-meta">{{ quest.gameName }}</span>
                 </div>
-                <span class="pf__badge pf__badge--{{ quest.status | lowercase }}">{{
-                  statusLabel(quest.status)
-                }}</span>
                 <i class="ti ti-chevron-right pf__quest-arrow" aria-hidden="true"></i>
               </a>
             }
@@ -810,9 +801,6 @@
                     {{ quest.likeCount }}</span
                   >
                 </div>
-                <span class="pf__badge pf__badge--{{ quest.status | lowercase }}">{{
-                  statusLabel(quest.status)
-                }}</span>
                 <i class="ti ti-chevron-right pf__quest-arrow" aria-hidden="true"></i>
               </a>
             }

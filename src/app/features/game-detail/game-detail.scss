@@ -362,37 +362,6 @@ $game-colors: (
   }
 }
 
-// ─── Filters ─────────────────────────────────────────────────────────────────
-.game-detail__filters {
-  display: flex;
-  gap: v.$space-2;
-}
-
-.game-detail__filter-pill {
-  @include m.reset-button;
-  font-size: v.$font-size-xs;
-  padding: 3px v.$space-3;
-  border-radius: v.$radius-full;
-  border: 1px solid v.$color-border;
-  background-color: v.$color-bg-elevated;
-  color: v.$color-text-muted;
-  transition:
-    border-color v.$transition-fast,
-    color v.$transition-fast,
-    background-color v.$transition-fast;
-
-  @include m.on-hover {
-    border-color: v.$color-border-focus;
-    color: v.$color-text;
-  }
-
-  &--active {
-    background-color: var(--accent-bg);
-    border-color: var(--accent);
-    color: var(--accent);
-  }
-}
-
 // ─── Quest list ──────────────────────────────────────────────────────────────
 .game-detail__quest-list {
   list-style: none;
@@ -824,4 +793,350 @@ $game-colors: (
   margin-top: v.$space-2;
   font-size: 11px;
   color: v.$color-text-muted;
+}
+
+// ─── Ações da aba de quests, agora no cabeçalho ──────────────────
+// Elas ficavam depois da lista: com nove quests, quem quisesse acrescentar uma rolava o
+// catálogo inteiro para descobrir que o botão existe. No cabeçalho estão sempre à vista,
+// e por isso precisam ser compactas — o tamanho de card que tinham lá embaixo empurraria
+// a lista para fora da tela.
+.game-detail__section-header .game-detail__quest-actions {
+  flex-wrap: wrap;
+  align-items: center;
+  gap: v.$space-2;
+
+  .game-detail__add-card,
+  .game-detail__copy-all-btn,
+  .game-detail__conditions-link {
+    flex: 0 0 auto;
+    padding: v.$space-2 v.$space-3;
+    border-radius: v.$radius-md;
+    font-size: v.$font-size-xs;
+    // Alvo de toque no celular, onde o cabeçalho quebra em duas linhas.
+    min-height: 34px;
+  }
+
+  // Deixa de ser o card tracejado do fim da lista e vira a ação principal do cabeçalho.
+  .game-detail__add-card {
+    display: flex;
+    align-items: center;
+    border-style: solid;
+    border-color: v.$color-gold-dark;
+    background: rgb(201 168 76 / 8%);
+    color: v.$color-gold;
+
+    &:hover {
+      background: rgb(201 168 76 / 14%);
+      color: v.$color-gold-light;
+    }
+  }
+}
+
+@include m.breakpoint-down('sm') {
+  .game-detail__section-header {
+    flex-wrap: wrap;
+    gap: v.$space-2;
+  }
+}
+
+// ─── Aba de contribuidores ───────────────────────────────────────────────────
+// O número dos contribuidores é o único do cabeçalho que fala de gente, e não de
+// conteúdo — o dourado é o que separa "quem construiu" de "o que existe".
+.game-detail__stat-val--accent {
+  color: v.$color-gold;
+}
+
+.game-detail__contributor-subtitle {
+  margin: v.$space-1 0 0;
+  font-size: v.$font-size-sm;
+  color: v.$color-text-muted;
+  text-transform: none;
+  letter-spacing: normal;
+}
+
+.game-detail__contributor-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: v.$space-2;
+  margin-bottom: v.$space-5;
+}
+
+.game-detail__contributor-search {
+  flex: 1 1 200px;
+  display: flex;
+  align-items: center;
+  gap: v.$space-2;
+  padding: 9px v.$space-3;
+  background-color: v.$color-bg-surface;
+  border: 1px solid v.$color-border;
+  border-radius: v.$radius-md;
+  color: v.$color-text-muted;
+
+  &:focus-within {
+    border-color: v.$color-border-focus;
+  }
+
+  input {
+    flex: 1;
+    min-width: 0;
+    background: none;
+    border: none;
+    outline: none;
+    color: v.$color-text;
+    font-family: inherit;
+    font-size: v.$font-size-sm;
+  }
+}
+
+.game-detail__contributor-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: v.$space-2;
+}
+
+.game-detail__contributor-chip {
+  padding: v.$space-2 v.$space-3;
+  font-family: inherit;
+  font-size: v.$font-size-xs;
+  color: v.$color-text-muted;
+  background-color: v.$color-bg-surface;
+  border: 1px solid v.$color-border;
+  border-radius: v.$radius-full;
+  cursor: pointer;
+  white-space: nowrap;
+  // Alvo de toque no celular, onde a linha de filtros quebra.
+  min-height: 34px;
+
+  @include m.on-hover {
+    color: v.$color-text;
+  }
+
+  &--active {
+    color: v.$color-gold;
+    background-color: rgb(201 168 76 / 12%);
+    border-color: v.$color-gold-dark;
+  }
+}
+
+.game-detail__contributor-sort {
+  padding: 9px v.$space-2;
+  font-family: inherit;
+  font-size: v.$font-size-sm;
+  color: v.$color-text;
+  background-color: v.$color-bg-surface;
+  border: 1px solid v.$color-border;
+  border-radius: v.$radius-md;
+  cursor: pointer;
+}
+
+.game-detail__contributor-label {
+  margin: 0 0 v.$space-3;
+  font-size: 10px;
+  color: v.$color-text-muted;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.game-detail__contributor-podium {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: v.$space-3;
+  margin-bottom: v.$space-6;
+
+  @include m.breakpoint-down('sm') {
+    grid-template-columns: 1fr;
+  }
+}
+
+.game-detail__contributor-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: v.$space-2;
+  padding: v.$space-5 v.$space-3 v.$space-4;
+  background-color: v.$color-bg-surface;
+  border: 1px solid v.$color-border;
+  border-radius: v.$radius-lg;
+  text-decoration: none;
+
+  @include m.on-hover {
+    border-color: v.$color-gold-dark;
+  }
+
+  // O primeiro lugar é o único com fundo próprio: três cartões destacados não
+  // destacam nenhum.
+  &--1 {
+    background-color: rgb(201 168 76 / 6%);
+    border-color: v.$color-gold-dark;
+
+    .game-detail__contributor-rank {
+      color: v.$color-gold;
+    }
+
+    .game-detail__contributor-avatar {
+      color: v.$color-gold;
+      background-color: rgb(201 168 76 / 14%);
+    }
+  }
+
+  &--3 .game-detail__contributor-rank {
+    color: v.$color-ember-light;
+  }
+}
+
+.game-detail__contributor-rank {
+  position: absolute;
+  top: v.$space-2;
+  left: v.$space-2;
+  font-size: 15px;
+  color: v.$color-text-muted;
+}
+
+.game-detail__contributor-avatar {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: v.$radius-full;
+  font-family: v.$font-display;
+  font-size: v.$font-size-sm;
+  color: v.$color-gold;
+  background-color: rgb(201 168 76 / 12%);
+
+  .game-detail__contributor-card & {
+    width: 52px;
+    height: 52px;
+    font-size: v.$font-size-lg;
+  }
+}
+
+.game-detail__contributor-name {
+  font-size: v.$font-size-sm;
+  color: v.$color-text;
+}
+
+.game-detail__contributor-total {
+  font-size: v.$font-size-xs;
+  color: v.$color-text-muted;
+}
+
+// Crachá derivado do que a pessoa fez, não de cargo: não existe papel por jogo neste
+// domínio. "Autor" é a maioria e por isso não ganha crachá na lista — só no pódio,
+// onde as três posições precisam dizer a mesma coisa.
+.game-detail__contributor-badge {
+  padding: 1px v.$space-2;
+  font-size: 10px;
+  letter-spacing: 0.04em;
+  border-radius: v.$radius-full;
+  color: v.$color-text-muted;
+  border: 1px solid v.$color-border;
+
+  &--founder {
+    color: v.$color-gold;
+    background-color: rgb(201 168 76 / 14%);
+    border-color: v.$color-gold-dark;
+  }
+
+  &--editor {
+    color: v.$color-ember-light;
+    background-color: rgb(184 76 42 / 14%);
+    border-color: rgb(184 76 42 / 35%);
+  }
+}
+
+.game-detail__contributor-list {
+  list-style: none;
+  margin: 0 0 v.$space-4;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: v.$space-2;
+}
+
+.game-detail__contributor-row {
+  display: flex;
+  align-items: center;
+  gap: v.$space-3;
+  padding: v.$space-2 v.$space-3;
+  background-color: v.$color-bg-surface;
+  border: 1px solid v.$color-border;
+  border-radius: v.$radius-md;
+
+  @include m.on-hover {
+    border-color: v.$color-gold-dark;
+  }
+}
+
+.game-detail__contributor-person {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: v.$space-3;
+  text-decoration: none;
+}
+
+.game-detail__contributor-identity {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.game-detail__contributor-line {
+  display: flex;
+  align-items: center;
+  gap: v.$space-2;
+  flex-wrap: wrap;
+}
+
+.game-detail__contributor-since {
+  font-size: 11px;
+  color: v.$color-text-faint;
+}
+
+.game-detail__contributor-counts {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  gap: v.$space-4;
+  font-size: v.$font-size-xs;
+  color: v.$color-text-muted;
+
+  span {
+    display: flex;
+    align-items: center;
+    gap: v.$space-1;
+  }
+}
+
+.game-detail__contributor-blank {
+  text-align: center;
+  padding: v.$space-12 v.$space-5;
+  color: v.$color-text-faint;
+
+  i {
+    font-size: 30px;
+  }
+}
+
+.game-detail__contributor-blank-title {
+  margin: v.$space-3 0 v.$space-1;
+  font-size: v.$font-size-sm;
+  color: v.$color-text;
+}
+
+.game-detail__contributor-blank-text {
+  margin: 0;
+  font-size: v.$font-size-sm;
+  color: v.$color-text-muted;
+}
+
+.game-detail__contributor-more {
+  display: flex;
+  justify-content: center;
 }

@@ -10,7 +10,6 @@ export const QUESTS_DETAIL: QuestDetailData[] = [
     stepCount: 7,
     forkCount: 1,
     endingCount: 2,
-    status: 'CANONICO',
     followers: 4800,
     author: null,
     description:
@@ -102,7 +101,6 @@ export const QUESTS_DETAIL: QuestDetailData[] = [
     stepCount: 5,
     forkCount: 0,
     endingCount: 1,
-    status: 'CANONICO',
     followers: 2300,
     author: 'vincruz',
     description:
@@ -169,7 +167,6 @@ export const QUESTS_DETAIL: QuestDetailData[] = [
     stepCount: 6,
     forkCount: 1,
     endingCount: 2,
-    status: 'CANONICO',
     followers: 1900,
     author: null,
     description:
@@ -246,7 +243,6 @@ export const QUESTS_DETAIL: QuestDetailData[] = [
     stepCount: 5,
     forkCount: 1,
     endingCount: 2,
-    status: 'CANONICO',
     followers: 1400,
     author: null,
     description:
@@ -307,7 +303,6 @@ export const QUESTS_DETAIL: QuestDetailData[] = [
     stepCount: 4,
     forkCount: 0,
     endingCount: 3,
-    status: 'CONSOLIDADO',
     followers: 980,
     author: 'lore_bb',
     description:
@@ -352,7 +347,6 @@ export const QUESTS_DETAIL: QuestDetailData[] = [
     stepCount: 5,
     forkCount: 1,
     endingCount: 2,
-    status: 'CONSOLIDADO',
     followers: 760,
     author: null,
     description:

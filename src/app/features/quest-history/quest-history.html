@@ -153,19 +153,6 @@
                     </span>
                   </div>
                 }
-                @if (v.diff.statusOld || v.diff.statusNew) {
-                  <div class="qh__diff-row">
-                    <span class="qh__diff-label">status</span>
-                    <span>
-                      @if (v.diff.statusOld) {
-                        <span class="qh__old">{{ v.diff.statusOld }}</span>
-                      }
-                      @if (v.diff.statusNew) {
-                        <span class="qh__new">{{ v.diff.statusNew }}</span>
-                      }
-                    </span>
-                  </div>
-                }
                 @if (v.diff.nodesAdded) {
                   <div class="qh__diff-row">
                     <span class="qh__diff-label">nós adicionados</span>

@@ -10,8 +10,8 @@ import {
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { forkJoin } from 'rxjs';
-import { QuestStatus, QuestSummary } from '../../shared/models/quest.model';
-import { LoreSummary } from '../../shared/models/lore-article.model';
+import { QuestSummary } from '../../shared/models/quest.model';
+import { LoreStatus, LoreSummary } from '../../shared/models/lore-article.model';
 import { AuthService } from '@xcorpiiion/ng-core';
 import { ProfileService } from '../../core/services/profile.service';
 import { PersonalQuestService } from '../../core/services/personal-quest.service';
@@ -517,11 +517,20 @@ export class Profile implements OnInit {
             this.editing.set(false);
           }, 1500);
         },
-        error: () => {
-          this.errorMsg.set('Não foi possível salvar as alterações.');
+        error: (erro) => {
+          // O apelido é o handle da URL pública do perfil, e agora é único. Quem escolher
+          // um que já é de outra pessoa recebe 409 — e precisa saber disso, senão tenta
+          // salvar de novo achando que foi falha de rede.
+          this.errorMsg.set(this.mensagemDoErroDePerfil(erro?.status));
           this.saving.set(false);
         },
       });
+  }
+
+  private mensagemDoErroDePerfil(status: number | undefined): string {
+    if (status === 409) return 'Esse apelido já está em uso. Escolha outro.';
+    if (status === 422) return 'Apelido inválido: use ao menos uma letra ou número.';
+    return 'Não foi possível salvar as alterações.';
   }
 
   protected savePassword(): void {
@@ -551,7 +560,7 @@ export class Profile implements OnInit {
       });
   }
 
-  protected statusLabel(s: QuestStatus): string {
+  protected statusLabel(s: LoreStatus): string {
     return ({ TEORIA: 'teoria', CONSOLIDADO: 'consolidado', CANONICO: 'canônico' } as const)[s];
   }
 

@@ -1,13 +1,7 @@
-import type {
-  QuestEdgeDTO,
-  QuestGuideDTO,
-  QuestNodeDTO,
-  QuestStatus as CanonicoQuestStatus,
-} from '@xcorpiiion/canonico';
+import type { QuestEdgeDTO, QuestGuideDTO, QuestNodeDTO } from '@xcorpiiion/canonico';
 import { refDe } from '../utils/ref';
 
 // Enums do contrato — fonte da verdade: lib canonico
-export type QuestStatus = CanonicoQuestStatus;
 export type { FollowResponse } from '@xcorpiiion/canonico';
 
 // Narrowings do front sobre campos que o back-end tipa como string
@@ -41,7 +35,6 @@ export interface QuestRelatedLink {
 // Shape retornado pela API em GET /quests, GET /quests/{id}
 // Base: QuestGuideDTO do canonico; campos de detalhe presentes só em GET /quests/{id}
 export interface QuestApi extends QuestGuideDTO {
-  status: QuestStatus;
   npcName?: string | null;
   isOwner?: boolean;
   nodes?: QuestNode[];
@@ -65,7 +58,6 @@ export interface QuestSummary {
   stepCount: number;
   forkCount: number;
   endingCount: number;
-  status: QuestStatus;
   followers: number;
   author: string | null;
   description?: string | null;
@@ -99,7 +91,6 @@ export function questApiToSummary(q: QuestApi): QuestSummary {
     stepCount: q.stepCount ?? q.nodes?.filter((n) => n.type === 'task').length ?? 0,
     forkCount: q.forkCount ?? q.nodes?.filter((n) => n.type === 'gateway').length ?? 0,
     endingCount: q.endingCount ?? q.nodes?.filter((n) => n.type === 'end').length ?? 0,
-    status: q.status ?? 'TEORIA',
     followers: q.followerCount ?? 0,
     author: q.userId ?? null,
     isPersonal: q.isPersonal ?? false,

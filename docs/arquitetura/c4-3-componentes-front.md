@@ -91,6 +91,7 @@ flowchart LR
         user["user.service"]
         notification["notification.service"]
         moderacao["moderacao.service"]
+        discordLogin["discord-login.service"]
     end
 
     subgraph infra ["Do app, não do domínio"]
@@ -102,16 +103,17 @@ flowchart LR
     end
 
     classDef s fill:#1168bd,stroke:#0b4884,color:#fff
-    class game,quest,lore,ending,item,questVersion,loreVersion,questCondition,questMap,comment,personalQuest,personalLore,profile,progress,questProgress,run,user,notification,moderacao,seo,atualizacao,storage,loading,monitoring s
+    class game,quest,lore,ending,item,boss,questVersion,loreVersion,questCondition,questMap,comment,personalQuest,personalLore,profile,progress,questProgress,run,user,notification,moderacao,discordLogin,seo,atualizacao,storage,loading,monitoring s
 ```
 
-Três deles não falam com o `souls-guide-api`:
+Quatro deles não falam com o `souls-guide-api`:
 
 | Service | Com quem fala |
 |---|---|
 | `user.service` | `user-api`, pelo gateway |
 | `storage.service` | `storage-api` para o ticket e os metadados, e **direto com o bucket** para o PUT dos bytes, numa URL assinada |
 | `monitoring.service` | Sentry, e só no navegador — ver 3.3 |
+| `discord-login.service` | ninguém: monta a URL de autorização do Discord e guarda o `state` no `sessionStorage`. Quem troca o código por token é a `authorization-api`, porque a troca exige o client secret |
 
 ---
 

@@ -145,31 +145,6 @@
   max-width: 600px;
 }
 
-.quest-detail__status {
-  font-size: 10px;
-  padding: 2px v.$space-2;
-  border-radius: v.$radius-full;
-  flex-shrink: 0;
-
-  &--canonico {
-    color: v.$color-canonico;
-    background-color: rgba(v.$color-canonico, 0.12);
-    border: 1px solid rgba(v.$color-canonico, 0.3);
-  }
-
-  &--consolidado {
-    color: v.$color-consolidado;
-    background-color: rgba(v.$color-consolidado, 0.12);
-    border: 1px solid rgba(v.$color-consolidado, 0.3);
-  }
-
-  &--teoria {
-    color: v.$color-teoria;
-    background-color: rgba(v.$color-teoria, 0.12);
-    border: 1px solid rgba(v.$color-teoria, 0.3);
-  }
-}
-
 .quest-detail__actions {
   display: flex;
   gap: v.$space-2;

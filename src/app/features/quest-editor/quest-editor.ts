@@ -8,7 +8,7 @@ import {
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
-import { QuestApi, QuestEdge, QuestNode, QuestStatus } from '../../shared/models/quest.model';
+import { QuestApi, QuestEdge, QuestNode } from '../../shared/models/quest.model';
 import { QuestService } from '../../core/services/quest.service';
 import { PersonalQuestService } from '../../core/services/personal-quest.service';
 import { PendingUpload, StorageService } from '../../core/services/storage.service';
@@ -48,7 +48,6 @@ export class QuestEditor implements OnInit, HasUnsavedChanges {
   // ─── quest metadata ───────────────────────────────────────────────────────
   protected readonly title = signal('');
   protected readonly description = signal('');
-  protected readonly questStatus = signal<QuestStatus>('TEORIA');
 
   // ─── graph state ─────────────────────────────────────────────────────────
   protected readonly nodes = signal<QuestNode[]>([]);
@@ -63,12 +62,6 @@ export class QuestEditor implements OnInit, HasUnsavedChanges {
   private readonly pendingKeys = signal<string[]>([]);
   /** O que a quest referenciava ao abrir — base para descobrir o que sobrou sem uso. */
   private readonly initialKeys = signal<string[]>([]);
-
-  protected readonly statuses: { value: QuestStatus; label: string }[] = [
-    { value: 'TEORIA', label: 'teoria' },
-    { value: 'CONSOLIDADO', label: 'consolidado' },
-    { value: 'CANONICO', label: 'canônico' },
-  ];
 
   constructor() {
     if (!this.isEdit) {
@@ -98,7 +91,6 @@ export class QuestEditor implements OnInit, HasUnsavedChanges {
   private loadFromApi(api: QuestApi): void {
     this.title.set(api.title);
     this.description.set(api.description ?? '');
-    this.questStatus.set(api.status ?? 'TEORIA');
     this.nodes.set(
       (api.nodes ?? []).map((n) => ({ ...n, id: String(n.id), status: n.status ?? 'VISIVEL' })),
     );
@@ -194,7 +186,6 @@ export class QuestEditor implements OnInit, HasUnsavedChanges {
     const communityRequest = {
       title: this.title() || 'Nova Quest',
       description: this.description(),
-      status: this.questStatus(),
       gameId: Number(this.gameId),
       coverImageFileKey: this.coverFileKey() ?? undefined,
       nodes: this.nodes(),
@@ -203,7 +194,6 @@ export class QuestEditor implements OnInit, HasUnsavedChanges {
     const personalRequest = {
       title: this.title() || 'Nova Quest',
       description: this.description(),
-      status: this.questStatus(),
       coverImageFileKey: this.coverFileKey() ?? undefined,
     };
 

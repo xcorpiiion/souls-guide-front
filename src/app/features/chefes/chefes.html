@@ -1,6 +1,6 @@
 <section class="chefes">
   <header class="chefes__header">
-    <a class="chefes__back" [routerLink]="['/games', gameId]">
+    <a class="chefes__back" [routerLink]="['/games', gameRef]">
       <i class="ti ti-arrow-left" aria-hidden="true"></i> voltar para o jogo
     </a>
 
@@ -72,7 +72,7 @@
       </button>
 
       @if (logado()) {
-        <a class="chefes__adicionar" [routerLink]="['/games', gameId, 'chefes', 'novo']">
+        <a class="chefes__adicionar" [routerLink]="['/games', gameRef, 'chefes', 'novo']">
           <i class="ti ti-plus" aria-hidden="true"></i> adicionar
         </a>
       }
@@ -92,7 +92,7 @@
       <!-- O texto convidava e não oferecia nada: é justamente aqui que a pessoa está
            mais disposta a cadastrar. -->
       @if (logado()) {
-        <a class="chefes__cta" [routerLink]="['/games', gameId, 'chefes', 'novo']">
+        <a class="chefes__cta" [routerLink]="['/games', gameRef, 'chefes', 'novo']">
           <i class="ti ti-plus" aria-hidden="true"></i> cadastrar o primeiro chefe
         </a>
       }
