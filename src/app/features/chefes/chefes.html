@@ -105,20 +105,20 @@
     </div>
   } @else {
     <div class="chefes__regioes">
-      @for (regiao of regioes(); track regiao.nome) {
+      @for (secao of secoes(); track secao.nome) {
         <div class="chefes__regiao">
-          <button class="chefes__regiao-titulo" type="button" (click)="alternarRegiao(regiao.nome)">
-            @if (regiaoRevelada(regiao.nome)) {
-              <i class="ti ti-map-pin" aria-hidden="true"></i> {{ regiao.nome }}
+          <button class="chefes__regiao-titulo" type="button" (click)="alternarSecao(secao.nome)">
+            @if (secaoRevelada(secao.nome)) {
+              <i class="ti ti-map-pin" aria-hidden="true"></i> {{ secao.nome }}
             } @else {
               <span class="chefes__regiao-oculta">
-                <i class="ti ti-eye-off" aria-hidden="true"></i> região oculta — toque para revelar
+                <i class="ti ti-eye-off" aria-hidden="true"></i> nome oculto — toque para revelar
               </span>
             }
           </button>
 
           <ul class="chefes__lista">
-            @for (chefe of regiao.chefes; track chefe.id) {
+            @for (chefe of secao.chefes; track chefe.id) {
               <li class="chefes__linha" [class.chefes__linha--derrotado]="chefe.viewerHasDefeated">
                 @if (logado()) {
                   <button

@@ -83,19 +83,30 @@ export function endingApiToSummary(e: EndingApi): EndingSummary {
 }
 
 /**
- * Os passos agrupados pelo ponto do jogo, preservando a ordem do guia. É assim que a
- * tela lê: "a run inteira" primeiro, depois cada capítulo. Passo sem `chapter` cai num
- * grupo sem título, em vez de sumir.
+ * Os passos agrupados pela seção do jogo, preservando a ordem do guia. É assim que a
+ * tela lê: "a run inteira" primeiro, depois cada parte. Passo sem seção cai num grupo sem
+ * título, em vez de sumir — e passo `AVOID` é exatamente esse caso, porque comportamento
+ * mantido a run inteira não pertence a parte nenhuma do jogo.
+ *
+ * A seção vem de `step.section` desde a ADR 0020 do back-end: era texto livre, e duas
+ * grafias da mesma parte abriam dois blocos no mesmo guia.
  */
 export interface EndingChapter {
   title: string;
   steps: EndingStepApi[];
 }
 
+/**
+ * Agrupa apenas o que está **em sequência**, e não todo passo com o mesmo nome.
+ *
+ * É diferente do agrupamento da lista de chefes de propósito: aqui a ordem é o guia, e
+ * voltar a uma parte do jogo mais adiante é normal. Fundir os dois trechos moveria um
+ * passo para antes de outro que precisa vir primeiro.
+ */
 export function groupStepsByChapter(steps: EndingStepApi[]): EndingChapter[] {
   const chapters: EndingChapter[] = [];
   for (const step of steps) {
-    const title = step.chapter?.trim() || '';
+    const title = step.section?.name?.trim() || '';
     const last = chapters[chapters.length - 1];
     if (last && last.title === title) {
       last.steps.push(step);

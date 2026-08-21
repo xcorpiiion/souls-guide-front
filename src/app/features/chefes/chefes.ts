@@ -16,7 +16,8 @@ import { AuthService } from '@xcorpiiion/ng-core';
 import { BossService } from '../../core/services/boss.service';
 import { GameService } from '../../core/services/game.service';
 import { SeoService } from '../../core/services/seo.service';
-import { agruparPorRegiao, type BossSummary } from '../../shared/models/boss.model';
+import { agruparChefesPorSecao, type BossSummary } from '../../shared/models/boss.model';
+import type { GameGenre } from '@xcorpiiion/canonico';
 
 /** Onde fica a preferência de spoiler. Vale para o site inteiro, não por jogo. */
 const CHAVE_SPOILER = 'soulguide:chefes:spoiler';
@@ -65,6 +66,9 @@ export class Chefes implements OnInit {
 
   protected readonly gameName = signal('');
 
+  /** A familia do jogo decide se a tela diz 'regiao' ou 'capitulo'. Ver ADR 0020. */
+  protected readonly genre = signal<GameGenre | null>(null);
+
   protected readonly chefes = signal<BossSummary[]>([]);
   protected readonly total = signal(0);
   protected readonly derrotados = signal(0);
@@ -75,12 +79,12 @@ export class Chefes implements OnInit {
 
   /** Revelado por linha e por região, sobrepondo a preferência salva. */
   protected readonly linhasReveladas = signal<Record<number, boolean>>({});
-  protected readonly regioesReveladas = signal<Record<string, boolean>>({});
+  protected readonly secoesReveladas = signal<Record<string, boolean>>({});
   protected readonly spoilerLiberado = signal(false);
 
   protected readonly logado = computed(() => this.auth.isLoggedIn());
 
-  protected readonly regioes = computed(() => agruparPorRegiao(this.chefes()));
+  protected readonly secoes = computed(() => agruparChefesPorSecao(this.chefes(), this.genre()));
 
   protected readonly progressoPct = computed(() => {
     const total = this.total();
@@ -105,6 +109,7 @@ export class Chefes implements OnInit {
     this.jogo$.subscribe({
       next: (game) => {
         this.gameName.set(game.name);
+        this.genre.set(game.genre ?? null);
         this.seo.aplicar({
           titulo: `Chefes de ${game.name}`,
           descricao: `Todos os chefes de ${game.name} na ordem recomendada — quais são obrigatórios, onde ficam e o que cada um dropa.`,
@@ -131,13 +136,13 @@ export class Chefes implements OnInit {
     this.carregar();
   }
 
-  protected regiaoRevelada(nome: string): boolean {
-    return this.regioesReveladas()[nome] ?? this.spoilerLiberado();
+  protected secaoRevelada(nome: string): boolean {
+    return this.secoesReveladas()[nome] ?? this.spoilerLiberado();
   }
 
-  protected alternarRegiao(nome: string): void {
-    const atual = this.regiaoRevelada(nome);
-    this.regioesReveladas.update((mapa) => ({ ...mapa, [nome]: !atual }));
+  protected alternarSecao(nome: string): void {
+    const atual = this.secaoRevelada(nome);
+    this.secoesReveladas.update((mapa) => ({ ...mapa, [nome]: !atual }));
   }
 
   protected linhaRevelada(id: number): boolean {
@@ -158,7 +163,7 @@ export class Chefes implements OnInit {
     const novo = !this.spoilerLiberado();
     this.spoilerLiberado.set(novo);
     this.linhasReveladas.set({});
-    this.regioesReveladas.set({});
+    this.secoesReveladas.set({});
     this.salvarPreferencia(novo);
   }
 

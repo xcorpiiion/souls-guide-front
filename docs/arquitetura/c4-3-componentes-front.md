@@ -70,6 +70,7 @@ flowchart LR
     subgraph conteudo ["Conteúdo público"]
         game["game.service"]
         gameSeries["game-series.service"]
+        gameSection["game-section.service"]
         quest["quest.service"]
         lore["lore.service"]
         ending["ending.service"]

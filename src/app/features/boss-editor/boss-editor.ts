@@ -14,12 +14,14 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ToastService } from '@xcorpiiion/ui';
 import type { BossPhaseRequest, BossRequest } from '@xcorpiiion/canonico';
 import { BossService } from '../../core/services/boss.service';
+import { GameSectionService } from '../../core/services/game-section.service';
 import { GameService } from '../../core/services/game.service';
 import { ItemService } from '../../core/services/item.service';
 import { QuestService } from '../../core/services/quest.service';
 import { SeoService } from '../../core/services/seo.service';
 import { GameFilterDropdown } from '../../shared/components/game-filter-dropdown/game-filter-dropdown';
 import { GameSummary } from '../../shared/models/game.model';
+import { GameSection, sectionLabelTitulo } from '../../shared/models/game-section.model';
 import { paraId } from '../../shared/utils/ref';
 
 /** Uma fase na tela. O `id` negativo é local: fase nova ainda não tem id do servidor. */
@@ -52,7 +54,7 @@ let sequencia = 0;
  * no celular. O outro é o **mutirão** — sentar e cadastrar os trinta chefes de um jogo
  * de uma vez. É o mutirão que tira o catálogo do zero, e ele morre num formulário que
  * volta para a lista a cada salvamento. Daí o "salvar e cadastrar próximo", que mantém
- * jogo e região e limpa o resto.
+ * jogo e seção e limpa o resto.
  *
  * <h2>Quase tudo é opcional</h2>
  * Só nome e jogo são obrigatórios. Um chefe com só o nome é contribuição válida — outra
@@ -72,6 +74,7 @@ export class BossEditor implements OnInit {
   private readonly router = inject(Router);
   private readonly bossService = inject(BossService);
   private readonly gameService = inject(GameService);
+  private readonly sectionService = inject(GameSectionService);
   private readonly itemService = inject(ItemService);
   private readonly questService = inject(QuestService);
   private readonly toast = inject(ToastService);
@@ -93,7 +96,32 @@ export class BossEditor implements OnInit {
 
   protected readonly nome = signal('');
   protected readonly mandatory = signal(true);
-  protected readonly regiao = signal('');
+
+  /**
+   * A parte do jogo em que o chefe fica. Era texto livre; hoje é escolha entre as seções
+   * cadastradas do jogo (ADR 0020 do back-end), porque duas grafias da mesma parte —
+   * "Delegacia" e "RPD" — viravam dois blocos na mesma lista.
+   */
+  protected readonly secoes = signal<GameSection[]>([]);
+  protected readonly secaoId = signal<number | null>(null);
+
+  /** O rótulo do campo muda com a família do jogo: 'Região' ou 'Capítulo'. */
+  protected readonly rotuloSecao = computed(() =>
+    sectionLabelTitulo(this.jogos().find((j) => String(j.id) === this.jogoId())?.genre ?? null),
+  );
+
+  /**
+   * A criação da seção mora dentro do editor do chefe de propósito.
+   *
+   * Sem ela, o jogo que ainda não tem seção nenhuma não teria por onde ganhar a primeira —
+   * e é justamente ele que precisa. Um cadastro que só aceita o que já existe fecha a
+   * porta que ele deveria abrir, que é o mesmo argumento do `GameFeature` declarado.
+   */
+  protected readonly criandoSecao = signal(false);
+  protected readonly secaoNova = signal('');
+  protected readonly salvandoSecao = signal(false);
+  protected readonly erroSecao = signal('');
+
   protected readonly ordem = signal<string>('');
   protected readonly ondeFica = signal('');
 
@@ -160,7 +188,10 @@ export class BossEditor implements OnInit {
           const alvo = page.content.find(
             (j) => String(j.id) === paraId(jogoDaRota) || j.slug === jogoDaRota,
           );
-          if (alvo) this.jogoId.set(String(alvo.id));
+          if (alvo) {
+            this.jogoId.set(String(alvo.id));
+            this.carregarSecoes();
+          }
         }
       },
     });
@@ -233,8 +264,9 @@ export class BossEditor implements OnInit {
       next: (b) => {
         this.nome.set(b.name);
         this.jogoId.set(String(b.gameId));
+        this.carregarSecoes();
         this.mandatory.set(b.mandatory);
-        this.regiao.set(b.region ?? '');
+        this.secaoId.set(b.section?.id ?? null);
         this.ordem.set(b.displayOrder ? String(b.displayOrder) : '');
         this.ondeFica.set(b.location ?? '');
         this.fraquezas.set([...b.weaknesses]);
@@ -287,11 +319,81 @@ export class BossEditor implements OnInit {
 
   private onJogo(valor: string): void {
     this.jogoId.set(valor);
-    // Drops e guias pertencem ao jogo: trocar de jogo torna a escolha anterior inválida.
+    // Drops, guias e seção pertencem ao jogo: trocar de jogo torna a escolha anterior
+    // inválida. A seção é a mais perigosa das três — como é id e não texto, uma seção de
+    // outro jogo não parece errada em tela nenhuma, e o back-end a recusa com 400.
     this.drops.set([]);
     this.guias.set([]);
     this.dropResultados.set([]);
     this.guiaResultados.set([]);
+    this.secaoId.set(null);
+    this.carregarSecoes();
+  }
+
+  // ─── seção do jogo ─────────────────────────────────────────────
+
+  private carregarSecoes(): void {
+    const jogo = Number(this.jogoId());
+    if (!jogo) {
+      this.secoes.set([]);
+      return;
+    }
+
+    this.sectionService
+      .list(jogo)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (secoes) => this.secoes.set(secoes),
+        // Falhar aqui não trava o cadastro: seção é opcional, e um chefe sem ela é
+        // contribuição válida que outra pessoa agrupa depois.
+        error: () => this.secoes.set([]),
+      });
+  }
+
+  protected abrirNovaSecao(): void {
+    this.criandoSecao.set(true);
+    this.secaoNova.set('');
+    this.erroSecao.set('');
+  }
+
+  protected cancelarNovaSecao(): void {
+    this.criandoSecao.set(false);
+    this.secaoNova.set('');
+    this.erroSecao.set('');
+  }
+
+  /**
+   * Cria a seção e já a seleciona.
+   *
+   * <p>A ordem vai como a última: quem cadastra em mutirão anda na ordem do jogo, e pedir
+   * o número aqui interromperia a única coisa que a tela está tentando não interromper.
+   * Acertar a ordem depois é arrastar na listagem.
+   *
+   * <p>O 409 de nome repetido não é erro a esconder: é a mensagem que diz qual grafia já
+   * existe, e é ela que impede o segundo bloco na lista.
+   */
+  protected criarSecao(): void {
+    const nome = this.secaoNova().trim();
+    const jogo = Number(this.jogoId());
+    if (!nome || !jogo || this.salvandoSecao()) return;
+
+    this.salvandoSecao.set(true);
+    this.erroSecao.set('');
+
+    this.sectionService
+      .create(jogo, { name: nome, description: null, orderIndex: this.secoes().length })
+      .subscribe({
+        next: (criada) => {
+          this.secoes.update((atuais) => [...atuais, criada]);
+          this.secaoId.set(criada.id);
+          this.salvandoSecao.set(false);
+          this.cancelarNovaSecao();
+        },
+        error: (e: { error?: { message?: string } }) => {
+          this.salvandoSecao.set(false);
+          this.erroSecao.set(e?.error?.message ?? 'não foi possível criar agora.');
+        },
+      });
   }
 
   // ─── fraquezas ─────────────────────────────────────────────────
@@ -502,7 +604,7 @@ export class BossEditor implements OnInit {
       name: this.nome().trim(),
       gameId: Number(this.jogoId()),
       mandatory: this.mandatory(),
-      region: this.regiao().trim() || null,
+      sectionId: this.secaoId(),
       // Sem número, vai zero: a ordem se acerta arrastando na listagem depois, e exigir
       // o número aqui travaria o mutirão logo na primeira entrada.
       displayOrder: this.ordem().trim() ? Number(this.ordem()) : 0,
@@ -519,9 +621,9 @@ export class BossEditor implements OnInit {
   }
 
   /**
-   * O mutirão: mantém jogo e região, limpa o resto.
+   * O mutirão: mantém jogo e seção, limpa o resto.
    *
-   * Chefes da mesma região vêm em sequência, então repetir esses dois campos a cada
+   * Chefes da mesma seção vêm em sequência, então repetir esses dois campos a cada
    * entrada é o atrito que faz alguém parar no terceiro chefe.
    */
   private prepararProximo(nomeSalvo: string): void {

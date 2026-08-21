@@ -104,15 +104,47 @@
 
     <div class="editor__grade">
       <div class="editor__campo">
-        <label for="regiao">região / capítulo</label>
-        <input
-          id="regiao"
-          type="text"
-          autocomplete="off"
-          placeholder="ex: Caelid, a Terra Escarlate"
-          [ngModel]="regiao()"
-          (ngModelChange)="regiao.set($event)"
-        />
+        <label for="secao">{{ rotuloSecao() }}</label>
+
+        @if (criandoSecao()) {
+          <div class="editor__secao-nova">
+            <input
+              id="secao-nova"
+              type="text"
+              autocomplete="off"
+              placeholder="nome da parte do jogo"
+              [ngModel]="secaoNova()"
+              (ngModelChange)="secaoNova.set($event)"
+              (keydown.enter)="criarSecao()"
+            />
+            <button type="button" [disabled]="salvandoSecao()" (click)="criarSecao()">
+              <i class="ti ti-check" aria-hidden="true"></i> criar
+            </button>
+            <button type="button" (click)="cancelarNovaSecao()">
+              <i class="ti ti-x" aria-hidden="true"></i>
+            </button>
+          </div>
+
+          @if (erroSecao()) {
+            <p class="editor__erro">{{ erroSecao() }}</p>
+          }
+        } @else {
+          <select id="secao" [ngModel]="secaoId()" (ngModelChange)="secaoId.set($event)">
+            <option [ngValue]="null">— nenhuma —</option>
+            @for (secao of secoes(); track secao.id) {
+              <option [ngValue]="secao.id">{{ secao.name }}</option>
+            }
+          </select>
+
+          <button
+            class="editor__link"
+            type="button"
+            [disabled]="!jogoId()"
+            (click)="abrirNovaSecao()"
+          >
+            <i class="ti ti-plus" aria-hidden="true"></i> nova
+          </button>
+        }
       </div>
       <div class="editor__campo">
         <label for="ordem">ordem recomendada</label>
