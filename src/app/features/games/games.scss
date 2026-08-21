@@ -156,71 +156,35 @@ $genre-colors: (
 }
 
 // ─── Filtros ─────────────────────────────────────────────────────────────────
+//
+// Dois selects, e não fileiras de chip. Chip mostra todas as opções de uma vez, o que é
+// bom com cinco e péssimo com quarenta: a fileira de séries quebrava em várias linhas (ou
+// rolava na horizontal, que no celular é gesto escondido) e empurrava o catálogo para
+// baixo da dobra. O select ocupa uma linha, não importa quantas séries existam.
+//
+// O componente é o `pf-select` do @xcorpiiion/ui, e não um dropdown escrito aqui: já
+// resolve teclado, clique fora, busca e agrupamento — e o front já tinha um dropdown
+// próprio a mais do que devia.
 .games__filters {
   display: flex;
-  flex-direction: column;
-  gap: v.$space-2;
+  gap: v.$space-3;
   margin-bottom: v.$space-6;
-}
 
-.games__filter-row {
-  display: flex;
-  align-items: center;
-  gap: v.$space-2;
-  flex-wrap: wrap;
+  // Os dois dividem a largura em telas estreitas e param de dividir quando não cabem:
+  // select de série com 90px é um campo que não mostra o que tem dentro.
+  .games__filter {
+    flex: 1 1 220px;
+    min-width: 0;
+  }
 
-  // A lista de séries cresce a cada série nova e não pode quebrar em cinco linhas
-  // empurrando o catálogo para baixo da dobra: ela rola na horizontal.
-  &--scroll {
-    flex-wrap: nowrap;
-    overflow-x: auto;
-    padding-bottom: 2px;
-    scrollbar-width: thin;
+  @media (max-width: 480px) {
+    flex-direction: column;
+    gap: v.$space-2;
 
-    > * {
+    // `flex-basis` vale para o eixo principal, e aqui ele virou o vertical: os 220px de
+    // largura de cima viravam 220px de ALTURA, deixando dois campos gigantes empilhados.
+    .games__filter {
       flex: 0 0 auto;
-    }
-  }
-}
-
-.games__filter-label {
-  font-size: 10.5px;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: v.$color-text-faint;
-  flex: 0 0 auto;
-}
-
-.games__chip {
-  font-family: v.$font-body;
-  font-size: v.$font-size-xs;
-  color: v.$color-text-muted;
-  background: v.$color-bg-surface;
-  border: 1px solid v.$color-border;
-  border-radius: v.$radius-full;
-  padding: 7px 13px;
-  cursor: pointer;
-  white-space: nowrap;
-  transition:
-    background v.$transition-fast,
-    border-color v.$transition-fast,
-    color v.$transition-fast;
-
-  @include m.on-hover {
-    border-color: v.$color-border-focus;
-    color: v.$color-text;
-  }
-
-  &--active {
-    background: v.$color-gold;
-    border-color: v.$color-gold;
-    color: #0f0d0b;
-    font-weight: 500;
-
-    @include m.on-hover {
-      background: v.$color-gold-light;
-      border-color: v.$color-gold-light;
-      color: #0f0d0b;
     }
   }
 }

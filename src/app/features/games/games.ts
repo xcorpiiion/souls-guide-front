@@ -22,7 +22,7 @@ import {
 import { GameSeries } from '../../shared/models/game-series.model';
 import { GameService } from '../../core/services/game.service';
 import { GameSeriesService } from '../../core/services/game-series.service';
-import { PfPageLoader } from '@xcorpiiion/ui';
+import { PfPageLoader, PfSelect, SelectOption } from '@xcorpiiion/ui';
 
 const PAGE_SIZE = 12;
 
@@ -36,7 +36,7 @@ interface Busca {
 
 @Component({
   selector: 'app-games',
-  imports: [RouterLink, FormsModule, PfPageLoader],
+  imports: [RouterLink, FormsModule, PfPageLoader, PfSelect],
   templateUrl: './games.html',
   styleUrl: './games.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -57,9 +57,33 @@ export class Games implements OnInit {
   protected readonly genre = signal<GameGenre | null>(null);
   protected readonly seriesId = signal<number | null>(null);
 
-  protected readonly genreFilters = GAME_GENRE_FILTERS;
   protected readonly genreLabel = GAME_GENRE_LABEL;
   protected readonly genreClass = GAME_GENRE_CLASS;
+
+  /**
+   * As opções do select de gênero, com "todos" na frente.
+   *
+   * A opção de valor nulo não é enfeite: é a única forma de voltar a ver o catálogo
+   * inteiro depois de escolher um gênero — o `placeholder` é só o texto do gatilho
+   * enquanto nada foi escolhido, e some assim que a primeira escolha acontece.
+   */
+  protected readonly genreOptions: SelectOption<GameGenre | null>[] = [
+    { value: null, label: 'Todos os gêneros' },
+    ...GAME_GENRE_FILTERS.map((g) => ({
+      value: g as GameGenre | null,
+      label: GAME_GENRE_LABEL[g],
+    })),
+  ];
+
+  protected readonly seriesOptions = computed<SelectOption<number | null>[]>(() => [
+    { value: null, label: 'Todas as séries' },
+    ...this.series().map((s) => ({
+      value: s.id as number | null,
+      // A contagem entra no rótulo porque a pergunta que traz alguém até aqui é "o que
+      // vocês têm de Resident Evil" — e "13" já é metade da resposta, antes do clique.
+      label: `${s.name} (${s.gameCount})`,
+    })),
+  ]);
 
   /** Ainda há página adiante: o que está na tela é menos do que o total do filtro. */
   protected readonly hasMore = computed(() => this.games().length < this.totalElements());
@@ -70,8 +94,8 @@ export class Games implements OnInit {
   ngOnInit(): void {
     this.busca$
       .pipe(
-        // Só digitar espera. Clicar num chip ou em "mostrar mais" dispara na hora — 300ms
-        // num clique é lentidão perceptível, e não há tecla seguinte para agrupar.
+        // Só digitar espera. Escolher no select ou pedir "mostrar mais" dispara na hora —
+        // 300ms num clique é lentidão perceptível, e não há tecla seguinte para agrupar.
         debounce((b) => timer(b.digitando ? 300 : 0)),
         switchMap((b) => {
           this.error.set(null);
@@ -109,10 +133,11 @@ export class Games implements OnInit {
   }
 
   /**
-   * As séries que viram chip.
+   * As séries que preenchem o select.
    *
    * Falhar aqui não mostra erro: a lista de jogos é o conteúdo da página, e o filtro de
-   * série é um atalho para ela. Sem as séries a tela continua inteira, com um chip a menos.
+   * série é um atalho para ela. Sem as séries o select fica só com "todas", e o catálogo
+   * continua inteiro na tela.
    */
   private carregarSeries(): void {
     this.seriesService
@@ -129,22 +154,29 @@ export class Games implements OnInit {
     this.buscar({ digitando: true });
   }
 
-  /** Clicar no chip que já está ativo desliga o filtro — é como um chip se desmarca. */
+  /**
+   * Escolher no select troca o filtro; não alterna.
+   *
+   * Enquanto isto era um chip, clicar no que já estava ativo desligava o filtro — é assim
+   * que chip se desmarca. Num select seria o contrário do esperado: escolher a opção que
+   * já está escolhida a manteria escolhida. Quem desliga é a opção "todos", que existe na
+   * lista com valor nulo.
+   */
   protected onGenre(g: GameGenre | null): void {
-    this.genre.set(g === null || this.genre() === g ? null : g);
+    this.genre.set(g);
     this.buscar({ digitando: false });
   }
 
   protected onSeries(id: number | null): void {
-    this.seriesId.set(id === null || this.seriesId() === id ? null : id);
+    this.seriesId.set(id);
     this.buscar({ digitando: false });
   }
 
   /**
    * Clicar na série dentro do card filtra a lista por ela.
    *
-   * O card carrega o nome e o slug da série, não o id — quem tem o id é a lista de chips.
-   * Série que não esteja entre os chips (o carregamento delas falhou) não faz nada, em
+   * O card carrega o nome e o slug da série, não o id — quem tem o id é a lista que
+   * abastece o select. Série que não esteja nela (o carregamento falhou) não faz nada, em
    * vez de limpar o filtro e parecer que o clique deu errado.
    */
   protected onSeriesByName(game: GameSummary): void {

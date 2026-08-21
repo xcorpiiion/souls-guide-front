@@ -168,8 +168,14 @@ describe('Games', () => {
       );
     });
 
-    /** É como um chip se desmarca: clicar no que já está ativo desliga o filtro. */
-    it('clicar no chip ativo desliga o filtro', async () => {
+    /**
+     * Select troca, não alterna.
+     *
+     * Enquanto isto era um chip, escolher o que já estava ativo desligava o filtro — é
+     * assim que chip se desmarca. Num select seria o contrário do esperado. Quem desliga
+     * é a opção "todos", de valor nulo.
+     */
+    it('escolher o mesmo gênero de novo mantém o filtro', async () => {
       const { component } = await setup();
       component.onGenre('SOULS_LIKE');
       vi.advanceTimersByTime(1);
@@ -178,12 +184,26 @@ describe('Games', () => {
       component.onGenre('SOULS_LIKE');
       vi.advanceTimersByTime(1);
 
+      expect(gameServiceMock.list).toHaveBeenCalledWith(
+        expect.objectContaining({ genre: 'SOULS_LIKE' }),
+      );
+    });
+
+    it('a opção nula limpa o filtro', async () => {
+      const { component } = await setup();
+      component.onGenre('SOULS_LIKE');
+      vi.advanceTimersByTime(1);
+      gameServiceMock.list.mockClear();
+
+      component.onGenre(null);
+      vi.advanceTimersByTime(1);
+
       expect(gameServiceMock.list).toHaveBeenCalledWith(expect.objectContaining({ genre: null }));
     });
 
     /**
-     * O chip dispara na hora; só a digitação espera. 300ms num clique é lentidão
-     * perceptível, e não há tecla seguinte para agrupar.
+     * Escolher no select dispara na hora; só a digitação espera. 300ms num clique é
+     * lentidão perceptível, e não há tecla seguinte para agrupar.
      */
     it('não espera o debounce da busca', async () => {
       const { component } = await setup();
@@ -197,13 +217,25 @@ describe('Games', () => {
   });
 
   describe('série', () => {
-    it('exibe um chip por série', async () => {
-      const { fixture } = await setup();
-      const chips = Array.from(
-        fixture.nativeElement.querySelectorAll('.games__filter-row--scroll .games__chip'),
-      ).map((el: any) => el.textContent?.trim());
-      expect(chips).toContain('Silent Hill');
-      expect(chips).toContain('Resident Evil');
+    /**
+     * A contagem entra no rótulo: a pergunta que traz alguém até aqui é "o que vocês têm
+     * de Resident Evil", e o número já é metade da resposta, antes do clique.
+     */
+    it('oferece uma opção por série, com a contagem no rótulo', async () => {
+      const { component } = await setup();
+      const rotulos = component.seriesOptions().map((o: any) => o.label);
+      expect(rotulos).toContain('Silent Hill (10)');
+      expect(rotulos).toContain('Resident Evil (13)');
+    });
+
+    /**
+     * A opção de valor nulo é a única forma de voltar ao catálogo inteiro: o placeholder
+     * é só o texto do gatilho enquanto nada foi escolhido, e some na primeira escolha.
+     */
+    it('a primeira opção limpa o filtro', async () => {
+      const { component } = await setup();
+      expect(component.seriesOptions()[0]).toEqual({ value: null, label: 'Todas as séries' });
+      expect(component.genreOptions[0]).toEqual({ value: null, label: 'Todos os gêneros' });
     });
 
     it('manda o seriesId escolhido para o servidor', async () => {
@@ -223,10 +255,11 @@ describe('Games', () => {
     it('a tela continua inteira quando as séries não carregam', async () => {
       seriesServiceMock.list.mockReturnValue(throwError(() => new Error('offline')));
 
-      const { fixture } = await setup();
+      const { fixture, component } = await setup();
 
       expect(fixture.nativeElement.querySelectorAll('.game-card').length).toBe(MOCK_GAMES.length);
-      expect(fixture.nativeElement.querySelector('.games__filter-row--scroll')).toBeNull();
+      // O select fica só com "todas", em vez de sumir e mudar o layout da barra.
+      expect(component.seriesOptions()).toEqual([{ value: null, label: 'Todas as séries' }]);
     });
   });
 

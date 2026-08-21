@@ -20,57 +20,30 @@
   </div>
 
   <div class="games__filters">
-    <div class="games__filter-row" role="group" aria-label="Filtrar por gênero">
-      <span class="games__filter-label">gênero</span>
-      <button
-        class="games__chip"
-        type="button"
-        [class.games__chip--active]="genre() === null"
-        (click)="onGenre(null)"
-      >
-        todos
-      </button>
-      @for (g of genreFilters; track g) {
-        <button
-          class="games__chip"
-          type="button"
-          [class.games__chip--active]="genre() === g"
-          [attr.aria-pressed]="genre() === g"
-          (click)="onGenre(g)"
-        >
-          {{ genreLabel[g] }}
-        </button>
-      }
-    </div>
+    <pf-select
+      class="games__filter"
+      label="Gênero"
+      placeholder="Todos os gêneros"
+      [options]="genreOptions"
+      [ngModel]="genre()"
+      (changed)="onGenre($any($event))"
+    />
 
-    @if (series().length > 0) {
-      <div
-        class="games__filter-row games__filter-row--scroll"
-        role="group"
-        aria-label="Filtrar por série"
-      >
-        <span class="games__filter-label">série</span>
-        <button
-          class="games__chip"
-          type="button"
-          [class.games__chip--active]="seriesId() === null"
-          (click)="onSeries(null)"
-        >
-          todas
-        </button>
-        @for (s of series(); track s.id) {
-          <button
-            class="games__chip"
-            type="button"
-            [class.games__chip--active]="seriesId() === s.id"
-            [attr.aria-pressed]="seriesId() === s.id"
-            (click)="onSeries(s.id)"
-          >
-            {{ s.name }}
-          </button>
-        }
-      </div>
-    }
+    <!--
+      A série é buscável e o gênero não: são cinco gêneros e a lista de séries cresce a
+      cada série cadastrada. Campo de busca em cinco opções é um passo a mais para nada.
+    -->
+    <pf-select
+      class="games__filter"
+      label="Série"
+      placeholder="Todas as séries"
+      searchable
+      searchPlaceholder="buscar série…"
+      emptyLabel="Nenhuma série encontrada."
+      [options]="seriesOptions()"
+      [ngModel]="seriesId()"
+      (changed)="onSeries($any($event))"
+    />
   </div>
 
   @if (error()) {
