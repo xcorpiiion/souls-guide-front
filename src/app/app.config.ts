@@ -18,6 +18,7 @@ import {
   Router,
   withComponentInputBinding,
   withNavigationErrorHandler,
+  withViewTransitions,
 } from '@angular/router';
 import * as Sentry from '@sentry/angular';
 import { routes } from './app.routes';
@@ -25,7 +26,7 @@ import { environment } from '../environments/environment';
 import { initSentry } from './core/services/monitoring.service';
 import { recarregarSeBundleVelho } from './core/stale-bundle';
 import { baseAbsolutaNoServidor } from './core/ssr/api-base';
-import { provideClientHydration } from '@angular/platform-browser';
+import { provideClientHydration, withEventReplay } from '@angular/platform-browser';
 import { provideServiceWorker } from '@angular/service-worker';
 
 initSentry();
@@ -47,6 +48,14 @@ export const appConfig: ApplicationConfig = {
       // tela simplesmente não troca. Só recarregar resolve — o index.html não
       // é cacheado justamente para isso funcionar.
       withNavigationErrorHandler((e) => recarregarSeBundleVelho(e.error)),
+      // Transição nativa do navegador entre rotas. Não é biblioteca de animação:
+      // é a View Transitions API, e onde ela não existe a navegação acontece
+      // igual, sem transição — por isso não há fallback a escrever.
+      //
+      // `skipInitialTransition` porque a primeira pintura vem do SSR: animar a
+      // entrada da tela que o servidor já mandou pronta é piscar conteúdo que
+      // já estava lá.
+      withViewTransitions({ skipInitialTransition: true }),
     ),
 
     // O que a lib não pode adivinhar: onde fica a auth-api, com que nome os
@@ -98,7 +107,15 @@ export const appConfig: ApplicationConfig = {
       deps: [Sentry.TraceService],
       multi: true,
     },
-    provideClientHydration(),
+    // O HTML sai pronto do servidor e fica visível antes de o JavaScript carregar.
+    // Clique nessa janela — que no celular em 4G é a regra, não a exceção — caía no
+    // vazio: não havia listener ainda, e evento não volta. `withEventReplay` grava o
+    // que aconteceu e reexecuta depois da hidratação.
+    //
+    // A hidratação incremental NÃO está aqui de propósito: no Angular 22 ela é o
+    // padrão do `provideClientHydration`, e `withIncrementalHydration()` virou
+    // deprecated. Quem a exercita é o `@defer (hydrate ...)` no template.
+    provideClientHydration(withEventReplay()),
     provideServiceWorker('ngsw-worker.js', {
       enabled: !isDevMode(),
       registrationStrategy: 'registerWhenStable:30000',

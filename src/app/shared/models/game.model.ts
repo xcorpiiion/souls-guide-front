@@ -66,6 +66,14 @@ export interface GameSummary {
   accentClass: string;
   /** A família do jogo. Nunca ausente: jogo sem gênero declarado é `OTHER`. */
   genre: GameGenre;
+  /**
+   * O que o jogo declara ter — e, por consequência, que seções a página dele mostra.
+   *
+   * Ausente na listagem, de propósito: `GameSummaryDTO` não carrega o campo, porque o
+   * card do catálogo não abre seção nenhuma. Quem lê isto é `temCapacidade`, nunca o
+   * campo cru — é lá que mora a regra da ausência.
+   */
+  features?: GameFeature[];
   /** A série, quando o jogo pertence a alguma. Lies of P não pertence a nenhuma. */
   seriesName?: string | null;
   seriesSlug?: string | null;
@@ -123,6 +131,7 @@ export function gameToSummary(g: Game): GameSummary {
     shortName: g.name.split(' ')[0],
     accentClass: 'accent-default',
     genre: g.genre,
+    features: g.features,
     seriesName: g.series?.name ?? null,
     seriesSlug: g.series?.slug ?? null,
     questCount: 0,
@@ -137,6 +146,26 @@ export function gameToSummary(g: Game): GameSummary {
     imageUrl: g.imageUrl,
     description: g.description,
   };
+}
+
+/**
+ * O jogo tem esta capacidade — ou seja, a página dele abre esta seção?
+ *
+ * **A resposta não sai do conteúdo cadastrado**, e é essa a regra inteira. Mostrar a aba
+ * de finais porque existe final gravado fecha justamente a porta que ela deveria abrir:
+ * Silent Hill 2 tem finais múltiplos e nenhum cadastrado ainda, e derivando ficaria
+ * **para sempre** sem a aba, sem ninguém ter por onde escrever o primeiro. A capacidade é
+ * uma afirmação sobre o jogo, não uma contagem de linhas (ADR 0019).
+ *
+ * **Conjunto ausente responde `true` para tudo**, e não `false`. O back garante que jogo
+ * nenhum é gravado sem capacidade nenhuma (`beforeSave`), então ausência aqui só pode ser
+ * o `GameSummaryDTO` da listagem, que não carrega o campo — nunca "este jogo não tem
+ * nada". Erra para o lado de mostrar demais, que se corrige pela tela de edição, em vez
+ * de esconder, que não.
+ */
+export function temCapacidade(g: GameSummary | null, f: GameFeature): boolean {
+  if (!g) return false;
+  return !g.features?.length || g.features.includes(f);
 }
 
 /**

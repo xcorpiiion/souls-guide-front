@@ -6,7 +6,8 @@ import { GameDetail } from './game-detail';
 import { GameService } from '../../core/services/game.service';
 import { QuestService } from '../../core/services/quest.service';
 import { LoreService } from '../../core/services/lore.service';
-import { Game } from '../../shared/models/game.model';
+import { EndingService } from '../../core/services/ending.service';
+import { Game, GameFeature } from '../../shared/models/game.model';
 import { provideAuth } from '@xcorpiiion/ng-core';
 
 const MOCK_GAME: Game = {
@@ -53,8 +54,9 @@ const gameServiceMock = {
 };
 const questServiceMock = { list: vi.fn(() => of(emptyPage)) };
 const loreServiceMock = { list: vi.fn(() => of(emptyPage)) };
+const endingServiceMock = { listByGame: vi.fn(() => of([])) };
 
-function createFixture(gameId: string): ComponentFixture<GameDetail> {
+function createFixture(gameId: string, jogo: Game = MOCK_GAME): ComponentFixture<GameDetail> {
   TestBed.configureTestingModule({
     imports: [GameDetail],
     providers: [
@@ -64,14 +66,26 @@ function createFixture(gameId: string): ComponentFixture<GameDetail> {
         provide: ActivatedRoute,
         useValue: { snapshot: { paramMap: convertToParamMap({ id: gameId }) } },
       },
-      { provide: GameService, useValue: gameServiceMock },
+      { provide: GameService, useValue: { ...gameServiceMock, get: vi.fn(() => of(jogo)) } },
       { provide: QuestService, useValue: questServiceMock },
       { provide: LoreService, useValue: loreServiceMock },
+      { provide: EndingService, useValue: endingServiceMock },
     ],
   });
   const fixture = TestBed.createComponent(GameDetail);
   fixture.detectChanges();
   return fixture;
+}
+
+/** O mesmo jogo, declarando só as capacidades listadas. */
+function jogoCom(...features: GameFeature[]): Game {
+  return { ...MOCK_GAME, features };
+}
+
+function abas(fixture: ComponentFixture<GameDetail>): string[] {
+  return Array.from(fixture.nativeElement.querySelectorAll('.game-detail__tab')).map(
+    (t) => (t as HTMLElement).textContent?.trim().split(/\s+/)[0] ?? '',
+  );
 }
 
 describe('GameDetail', () => {
@@ -197,6 +211,72 @@ describe('GameDetail', () => {
       '1',
       expect.objectContaining({ role: 'EDITOR', page: 0 }),
     );
+  });
+
+  /**
+   * A página era de souls-like sem dizer que era: seis seções, todas para todo jogo. Com
+   * o acervo de terror da V40 isso passou a mostrar aba vazia — que afirma ao leitor que
+   * o site tem aquele conteúdo e não escreveu, quando o jogo é que não tem.
+   *
+   * Quem responde é o `features` do jogo (ADR 0019), e a parte que estes testes travam é
+   * a que a tela tende a reintroduzir: derivar do conteúdo cadastrado.
+   */
+  describe('as seções saem do que o jogo declara ter', () => {
+    it('mostra só as abas das capacidades declaradas', () => {
+      const fixture = createFixture('1', jogoCom('LORE', 'ENDINGS'));
+      expect(abas(fixture)).toEqual(['lore', 'finais', 'contribuidores']);
+    });
+
+    /**
+     * `quests` era o valor inicial fixo do sinal. Silent Hill não tem grafo de quest, e
+     * abriria numa aba que não está nem no tablist — página em branco por padrão.
+     */
+    it('abre na primeira aba que existe, e não em quests', () => {
+      const fixture = createFixture('1', jogoCom('LORE', 'ENDINGS'));
+      expect(fixture.componentInstance['activeTab']()).toBe('lore');
+    });
+
+    /**
+     * A regressão que a ADR 0019 nomeia. A aba estava atrás de `endings().length > 0`:
+     * Silent Hill 2 tem finais múltiplos e nenhum escrito ainda, e a condição o deixaria
+     * sem a aba **para sempre**, sem porta por onde escrever o primeiro.
+     */
+    it('mostra a aba de finais com zero finais cadastrados', () => {
+      endingServiceMock.listByGame.mockReturnValueOnce(of([]));
+      const fixture = createFixture('1', jogoCom('ENDINGS'));
+
+      expect(fixture.componentInstance['endings']()).toHaveLength(0);
+      expect(abas(fixture)).toContain('finais');
+    });
+
+    it('não pede a lista das seções que o jogo não tem', () => {
+      questServiceMock.list.mockClear();
+      endingServiceMock.listByGame.mockClear();
+
+      createFixture('1', jogoCom('LORE'));
+
+      expect(questServiceMock.list).not.toHaveBeenCalled();
+      expect(endingServiceMock.listByGame).not.toHaveBeenCalled();
+    });
+
+    it('esconde os atalhos de itens e chefes de quem não os declara', () => {
+      const fixture = createFixture('1', jogoCom('LORE'));
+      const acoes: string =
+        fixture.nativeElement.querySelector('.game-detail__actions').textContent;
+
+      expect(acoes).not.toContain('itens');
+      expect(acoes).not.toContain('chefes');
+    });
+
+    /**
+     * Conjunto vazio não é "não tem nada": o back garante o preenchimento no `beforeSave`,
+     * então ausência aqui só pode ser um jogo que a listagem trouxe sem o campo. Erra para
+     * o lado de mostrar demais, que se corrige pela tela de edição, em vez de esconder.
+     */
+    it('mostra tudo quando o jogo chega sem capacidade nenhuma', () => {
+      const fixture = createFixture('1', jogoCom());
+      expect(abas(fixture)).toEqual(['quests', 'lore', 'finais', 'contribuidores']);
+    });
   });
 
   it('deve exibir mensagem de não encontrado quando service retorna erro', () => {

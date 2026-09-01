@@ -67,3 +67,55 @@
     }
   }
 }
+
+// ─── View transitions ──────────────────────────────────────────────────────────
+// A troca de rota passa pela View Transitions API (`withViewTransitions` no
+// app.config.ts). O navegador tira um retrato da tela velha e da nova e faz o
+// cross-fade sozinho; o que sobra para o CSS é a duração e a curva.
+//
+// O `::view-transition-old/new(root)` é o par padrão. Nomear um elemento com
+// `view-transition-name` o tira desse par e lhe dá transição própria — é o que
+// faz a capa do card virar o cabeçalho da página do jogo.
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation-duration: 0.22s;
+  animation-timing-function: ease;
+}
+
+// A capa compartilhada entre a listagem e o detalhe do jogo: o banner do card
+// vira o brasão do cabeçalho. Quem escolhe o card é o `capaAtiva` de games.ts —
+// o nome tem que ser único na página, e dois elementos com o mesmo
+// `view-transition-name` ao mesmo tempo abortam a transição inteira, calados.
+[data-vt='capa'] {
+  view-transition-name: capa;
+}
+
+::view-transition-group(capa) {
+  animation-duration: 0.3s;
+}
+
+// ─── Quem pediu para não animar ────────────────────────────────────────────────
+// Vale para tudo o que este arquivo define, e não só para as view transitions:
+// as animações de entrada, o stagger e o shimmer também param. Enxaqueca e
+// sensibilidade vestibular não são caso raro, e a preferência já está declarada
+// no sistema — ignorá-la é escolher não ouvir.
+//
+// É o único `!important` do projeto, e a regra do rules.md abre exceção aqui de
+// propósito: o que precisa ser derrotado são as animações declaradas dentro de
+// cada componente, que esta regra não tem como alcançar por especificidade.
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-group(*),
+  ::view-transition-old(*),
+  ::view-transition-new(*) {
+    animation: none !important;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

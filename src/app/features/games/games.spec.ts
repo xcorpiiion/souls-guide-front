@@ -308,4 +308,41 @@ describe('Games', () => {
     expect(fixture.nativeElement.querySelector('.games__empty')).not.toBeNull();
     expect(fixture.nativeElement.querySelectorAll('.game-card').length).toBe(0);
   });
+
+  /**
+   * A transição de capa para o detalhe do jogo.
+   *
+   * O que se testa aqui não é a animação — jsdom não tem View Transitions API e não
+   * teria como. É a única regra que quebra a transição de verdade: `view-transition-name`
+   * repetido na mesma página aborta a transição inteira, sem nada no console. Por isso o
+   * atributo tem que estar em um card só.
+   */
+  describe('view transition da capa', () => {
+    it('nenhum card nasce marcado', async () => {
+      const { fixture } = await setup();
+      expect(fixture.nativeElement.querySelectorAll('[data-vt="capa"]').length).toBe(0);
+    });
+
+    it('abrir um jogo marca só o card dele', async () => {
+      const { fixture, component } = await setup();
+
+      component.onAbrir(MOCK_GAMES[1]);
+      fixture.detectChanges();
+
+      const marcados = fixture.nativeElement.querySelectorAll('[data-vt="capa"]');
+      expect(marcados.length).toBe(1);
+      expect(marcados[0].closest('.game-card').textContent).toContain('Silent Hill 2 (2001)');
+    });
+
+    it('abrir outro jogo move a marca, em vez de acumular', async () => {
+      const { fixture, component } = await setup();
+
+      component.onAbrir(MOCK_GAMES[0]);
+      fixture.detectChanges();
+      component.onAbrir(MOCK_GAMES[1]);
+      fixture.detectChanges();
+
+      expect(fixture.nativeElement.querySelectorAll('[data-vt="capa"]').length).toBe(1);
+    });
+  });
 });

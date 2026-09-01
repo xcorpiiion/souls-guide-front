@@ -13,7 +13,13 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { RouterLink, ActivatedRoute } from '@angular/router';
 import { Subject } from 'rxjs';
 import { debounceTime, distinctUntilChanged, filter, switchMap } from 'rxjs/operators';
-import { Game, gameToSummary, GameSummary } from '../../shared/models/game.model';
+import {
+  Game,
+  GameFeature,
+  gameToSummary,
+  GameSummary,
+  temCapacidade,
+} from '../../shared/models/game.model';
 import {
   Contributor,
   ContributorRole,
@@ -147,7 +153,54 @@ export class GameDetail implements OnInit {
     () => !this.contributorFilterAtivo() && this.topContributors().length > 0,
   );
 
-  protected readonly activeTab = signal<Tab>('quests');
+  // ─── O que esta página mostra ───────────────────────────────────────────────
+  // A página era de souls-like sem dizer que era: seis seções, todas para todo jogo.
+  // Silent Hill 2 não tem grafo de quest e Resident Evil 5 não tem finais múltiplos, e
+  // nesse formato metade da página deles é aba vazia — que não é só feia, ela afirma que
+  // o site tem aquele conteúdo e não escreveu, quando o jogo é que não tem.
+  //
+  // Quem responde é o `features` do jogo, e não a contagem do que está cadastrado. Ver
+  // `temCapacidade` para por que derivar do conteúdo é a armadilha, e não a simplificação.
+
+  /** O jogo declara esta capacidade? É o único jeito de perguntar, no .ts e no template. */
+  protected tem(f: GameFeature): boolean {
+    return temCapacidade(this.game(), f);
+  }
+
+  /**
+   * As abas deste jogo, na ordem em que aparecem.
+   *
+   * `contributors` não é capacidade e por isso não se pergunta: ela é sobre o site, não
+   * sobre o jogo — todo jogo tem quem escreveu nele, mesmo o que não tem nada escrito.
+   */
+  protected readonly tabs = computed<Tab[]>(() => {
+    const g = this.game();
+    if (!g) return [];
+
+    const abas: Tab[] = [];
+    if (temCapacidade(g, 'QUEST_GRAPH')) abas.push('quests');
+    if (temCapacidade(g, 'LORE')) abas.push('lore');
+    if (temCapacidade(g, 'ENDINGS')) abas.push('endings');
+    abas.push('contributors');
+    return abas;
+  });
+
+  /**
+   * A aba pedida no clique — que pode não existir neste jogo.
+   *
+   * Ela é separada da aba ativa porque o padrão não é mais fixo: `quests` como valor
+   * inicial abriria Silent Hill numa aba de grafo que o jogo não tem, e vazia. A ativa é
+   * derivada, então "a primeira que existe" não precisa de nenhum conserto imperativo
+   * depois que o jogo carrega.
+   */
+  private readonly tabPedida = signal<Tab | null>(null);
+
+  protected readonly activeTab = computed<Tab>(() => {
+    const abas = this.tabs();
+    const pedida = this.tabPedida();
+    return pedida && abas.includes(pedida) ? pedida : (abas[0] ?? 'contributors');
+  });
+
   protected readonly showHidden = signal(false);
   protected readonly showContribMenu = signal(false);
   protected readonly copyingAll = signal(false);
@@ -211,29 +264,46 @@ export class GameDetail implements OnInit {
     });
   }
 
-  /** Quests, lore e finais do jogo. Só roda depois que o id numérico está resolvido. */
+  /**
+   * Quests, lore e finais do jogo. Só roda depois que o id numérico está resolvido.
+   *
+   * Cada lista só é pedida se o jogo declarar a capacidade. Não é economia de requisição:
+   * a lista que a página não vai mostrar chegaria vazia de qualquer jeito, e o `false` no
+   * `loading` precisa acontecer mesmo sem ninguém para responder — senão a aba que não
+   * existe deixa um spinner eterno atrás dela.
+   */
   private carregarConteudo(): void {
     const id = this.gameId();
 
-    this.questService.list(0, 50).subscribe({
-      next: (page) => {
-        this.quests.set(page.content.filter((q) => q.gameId === id));
-        this.questsLoading.set(false);
-      },
-      error: () => this.questsLoading.set(false),
-    });
+    if (this.tem('QUEST_GRAPH')) {
+      this.questService.list(0, 50).subscribe({
+        next: (page) => {
+          this.quests.set(page.content.filter((q) => q.gameId === id));
+          this.questsLoading.set(false);
+        },
+        error: () => this.questsLoading.set(false),
+      });
+    } else {
+      this.questsLoading.set(false);
+    }
 
-    this.loreService.list(0, 50).subscribe({
-      next: (page) => this.loreArticles.set(page.content.filter((l) => l.gameId === id)),
-    });
+    if (this.tem('LORE')) {
+      this.loreService.list(0, 50).subscribe({
+        next: (page) => this.loreArticles.set(page.content.filter((l) => l.gameId === id)),
+      });
+    }
 
-    this.endingService.listByGame(id).subscribe({
-      next: (list) => {
-        this.endings.set(list);
-        this.endingsLoading.set(false);
-      },
-      error: () => this.endingsLoading.set(false),
-    });
+    if (this.tem('ENDINGS')) {
+      this.endingService.listByGame(id).subscribe({
+        next: (list) => {
+          this.endings.set(list);
+          this.endingsLoading.set(false);
+        },
+        error: () => this.endingsLoading.set(false),
+      });
+    } else {
+      this.endingsLoading.set(false);
+    }
 
     // Junto das outras listas, e não ao abrir a aba: o card "contribuidores" fica no
     // cabeçalho, sempre à vista, e só saberia o número depois que alguém clicasse.
@@ -338,7 +408,7 @@ export class GameDetail implements OnInit {
   }
 
   protected setTab(tab: Tab): void {
-    this.activeTab.set(tab);
+    this.tabPedida.set(tab);
   }
 
   protected toggleFollow(): void {

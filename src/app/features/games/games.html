@@ -62,7 +62,7 @@
     <div class="games__grid">
       @for (game of games(); track trackById($index, game)) {
         <article class="game-card game-card--{{ genreClass[game.genre] }}">
-          <div class="game-card__banner">
+          <div class="game-card__banner" [attr.data-vt]="capaAtiva() === game.ref ? 'capa' : null">
             <span class="game-card__short">{{ game.shortName }}</span>
             <span class="game-card__genre">{{ genreLabel[game.genre] }}</span>
           </div>
@@ -101,7 +101,9 @@
             <div class="game-card__divider"></div>
 
             <div class="game-card__actions">
-              <a class="game-card__btn" [routerLink]="['/games', game.ref]">Ver comunidade</a>
+              <a class="game-card__btn" [routerLink]="['/games', game.ref]" (click)="onAbrir(game)"
+                >Ver comunidade</a
+              >
             </div>
           </div>
 

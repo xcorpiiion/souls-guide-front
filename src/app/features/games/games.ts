@@ -199,6 +199,22 @@ export class Games implements OnInit {
     return seguidoresLabel(total);
   }
 
+  /**
+   * Qual card é a origem da transição de capa para o detalhe do jogo.
+   *
+   * `view-transition-name` tem que ser único na página: doze cards com o mesmo
+   * nome não fazem doze transições, abortam a transição inteira — e em silêncio,
+   * sem nada no console. Por isso o nome vai num card só, o que foi clicado.
+   *
+   * Continua marcado depois de navegar, e é isso que faz o botão "voltar"
+   * animar de volta para o mesmo card.
+   */
+  protected readonly capaAtiva = signal<string | null>(null);
+
+  protected onAbrir(game: GameSummary): void {
+    this.capaAtiva.set(game.ref);
+  }
+
   protected trackById(_: number, game: GameSummary): string {
     return game.id;
   }

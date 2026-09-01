@@ -15,7 +15,11 @@
       </nav>
 
       <div class="game-detail__header">
-        <div class="game-detail__badge game-detail__badge--{{ g.accentClass }}" aria-hidden="true">
+        <div
+          class="game-detail__badge game-detail__badge--{{ g.accentClass }}"
+          data-vt="capa"
+          aria-hidden="true"
+        >
           {{ g.shortName }}
         </div>
         <div class="game-detail__title-block">
@@ -26,18 +30,22 @@
           <span class="game-detail__tag game-detail__tag--{{ g.accentClass }}">comunidade</span>
         </div>
         <div class="game-detail__actions">
-          <a
-            class="game-detail__btn game-detail__btn--secondary"
-            [routerLink]="['/games', g.ref, 'itens']"
-          >
-            <i class="ti ti-sword" aria-hidden="true"></i> itens
-          </a>
-          <a
-            class="game-detail__btn game-detail__btn--secondary"
-            [routerLink]="['/games', g.ref, 'chefes']"
-          >
-            <i class="ti ti-skull" aria-hidden="true"></i> chefes
-          </a>
+          @if (tem('ITEMS')) {
+            <a
+              class="game-detail__btn game-detail__btn--secondary"
+              [routerLink]="['/games', g.ref, 'itens']"
+            >
+              <i class="ti ti-sword" aria-hidden="true"></i> itens
+            </a>
+          }
+          @if (tem('BOSSES')) {
+            <a
+              class="game-detail__btn game-detail__btn--secondary"
+              [routerLink]="['/games', g.ref, 'chefes']"
+            >
+              <i class="ti ti-skull" aria-hidden="true"></i> chefes
+            </a>
+          }
           @if (auth.isLoggedIn()) {
             <a
               class="game-detail__btn game-detail__btn--secondary"
@@ -62,48 +70,63 @@
               }
             </button>
           }
-          <div class="game-detail__contrib-wrap">
-            <button
-              class="game-detail__btn game-detail__btn--primary"
-              type="button"
-              (click)="toggleContribMenu()"
-            >
-              + contribuir
-              <i class="ti ti-chevron-down" aria-hidden="true"></i>
-            </button>
-            @if (showContribMenu()) {
-              <div class="game-detail__contrib-menu">
-                <a
-                  class="game-detail__contrib-item"
-                  [routerLink]="['/games', g.ref, 'quests', 'new']"
-                  (click)="showContribMenu.set(false)"
-                >
-                  <i class="ti ti-map" aria-hidden="true"></i>
-                  nova quest
-                </a>
-                <a
-                  class="game-detail__contrib-item"
-                  [routerLink]="['/games', g.ref, 'lore', 'new']"
-                  (click)="showContribMenu.set(false)"
-                >
-                  <i class="ti ti-book" aria-hidden="true"></i>
-                  novo lore
-                </a>
-              </div>
-            }
-          </div>
+          <!--
+            O menu inteiro some quando o jogo não tem nem quest nem lore: um "+ contribuir"
+            que abre vazio é pior do que não existir, porque ele promete a porta e não a dá.
+          -->
+          @if (tem('QUEST_GRAPH') || tem('LORE')) {
+            <div class="game-detail__contrib-wrap">
+              <button
+                class="game-detail__btn game-detail__btn--primary"
+                type="button"
+                (click)="toggleContribMenu()"
+              >
+                + contribuir
+                <i class="ti ti-chevron-down" aria-hidden="true"></i>
+              </button>
+              @if (showContribMenu()) {
+                <div class="game-detail__contrib-menu">
+                  @if (tem('QUEST_GRAPH')) {
+                    <a
+                      class="game-detail__contrib-item"
+                      [routerLink]="['/games', g.ref, 'quests', 'new']"
+                      (click)="showContribMenu.set(false)"
+                    >
+                      <i class="ti ti-map" aria-hidden="true"></i>
+                      nova quest
+                    </a>
+                  }
+                  @if (tem('LORE')) {
+                    <a
+                      class="game-detail__contrib-item"
+                      [routerLink]="['/games', g.ref, 'lore', 'new']"
+                      (click)="showContribMenu.set(false)"
+                    >
+                      <i class="ti ti-book" aria-hidden="true"></i>
+                      novo lore
+                    </a>
+                  }
+                </div>
+              }
+            </div>
+          }
         </div>
       </div>
 
       <div class="game-detail__stats">
-        <div class="game-detail__stat">
-          <span class="game-detail__stat-val">{{ quests().length }}</span>
-          <span class="game-detail__stat-label">quests</span>
-        </div>
-        <div class="game-detail__stat">
-          <span class="game-detail__stat-val">{{ loreArticles().length }}</span>
-          <span class="game-detail__stat-label">lore</span>
-        </div>
+        <!-- "0 quests" num jogo que não tem quest é a mesma afirmação falsa da aba vazia. -->
+        @if (tem('QUEST_GRAPH')) {
+          <div class="game-detail__stat">
+            <span class="game-detail__stat-val">{{ quests().length }}</span>
+            <span class="game-detail__stat-label">quests</span>
+          </div>
+        }
+        @if (tem('LORE')) {
+          <div class="game-detail__stat">
+            <span class="game-detail__stat-val">{{ loreArticles().length }}</span>
+            <span class="game-detail__stat-label">lore</span>
+          </div>
+        }
         <div class="game-detail__stat">
           <span class="game-detail__stat-val">{{ g.followersCount }}</span>
           <span class="game-detail__stat-label">seguidores</span>
@@ -117,28 +140,39 @@
       </div>
     </div>
 
+    <!--
+      As abas saem do que o jogo declara ter, não do que já foi cadastrado nele.
+
+      A de finais estava atrás de `endings().length > 0`, que é exatamente a derivação que
+      a ADR 0019 proíbe: Silent Hill 2 tem finais múltiplos e nenhum escrito ainda, e a
+      condição o deixaria sem a aba para sempre — sem porta por onde escrever o primeiro.
+    -->
     <div class="game-detail__tabs" role="tablist">
-      <button
-        class="game-detail__tab"
-        [class.game-detail__tab--active]="activeTab() === 'quests'"
-        role="tab"
-        type="button"
-        (click)="setTab('quests')"
-      >
-        quests
-        <span class="game-detail__tab-count">{{ quests().length }}</span>
-      </button>
-      <button
-        class="game-detail__tab"
-        [class.game-detail__tab--active]="activeTab() === 'lore'"
-        role="tab"
-        type="button"
-        (click)="setTab('lore')"
-      >
-        lore
-        <span class="game-detail__tab-count">{{ loreArticles().length }}</span>
-      </button>
-      @if (endings().length > 0) {
+      @if (tem('QUEST_GRAPH')) {
+        <button
+          class="game-detail__tab"
+          [class.game-detail__tab--active]="activeTab() === 'quests'"
+          role="tab"
+          type="button"
+          (click)="setTab('quests')"
+        >
+          quests
+          <span class="game-detail__tab-count">{{ quests().length }}</span>
+        </button>
+      }
+      @if (tem('LORE')) {
+        <button
+          class="game-detail__tab"
+          [class.game-detail__tab--active]="activeTab() === 'lore'"
+          role="tab"
+          type="button"
+          (click)="setTab('lore')"
+        >
+          lore
+          <span class="game-detail__tab-count">{{ loreArticles().length }}</span>
+        </button>
+      }
+      @if (tem('ENDINGS')) {
         <button
           class="game-detail__tab"
           [class.game-detail__tab--active]="activeTab() === 'endings'"
@@ -194,7 +228,7 @@
             <a class="game-detail__conditions-link" [routerLink]="['/games', g.id, 'conditions']">
               <i class="ti ti-git-branch" aria-hidden="true"></i> gerenciar condições
             </a>
-            @if (auth.isLoggedIn()) {
+            @if (auth.isLoggedIn() && tem('QUEST_MAP')) {
               <a class="game-detail__conditions-link" [routerLink]="['/games', g.id, 'quest-map']">
                 <i class="ti ti-map-2" aria-hidden="true"></i> organizar rota
               </a>
