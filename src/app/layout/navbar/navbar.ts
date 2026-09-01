@@ -14,6 +14,7 @@ import { catchError, filter, startWith, switchMap, throttleTime } from 'rxjs/ope
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { AuthService } from '@xcorpiiion/ng-core';
 import { NotificationService } from '../../core/services/notification.service';
+import { PushService } from '../../core/services/push.service';
 import { ehAdmin as ehAdminNoToken } from '../../core/guards/admin.guard';
 import { I18nService } from '../../core/i18n/i18n.service';
 import { TPipe } from '../../core/i18n/t.pipe';
@@ -96,10 +97,33 @@ export class Navbar implements OnInit {
       .subscribe({ next: (r) => this.unreadCount.set(r.count) });
   }
 
+  protected readonly push = inject(PushService);
+
   protected toggleNotifPanel(): void {
     const opening = !this.notifOpen();
     this.notifOpen.set(opening);
-    if (opening) this.loadNotifications();
+    if (opening) {
+      this.loadNotifications();
+      // Só ao abrir o painel, e não na subida: o estado do push custa uma chamada e uma
+      // consulta ao service worker, e quem nunca abre notificação não deveria pagar
+      // nenhuma das duas. O serviço só consulta uma vez, então reabrir não repete.
+      void this.push.carregar();
+    }
+  }
+
+  /**
+   * Liga ou desliga o aviso com o site fechado.
+   *
+   * <p>Não há confirmação nem toast: pedir a permissão já é o diálogo do navegador, e
+   * recusar é uma resposta — quem clicou em "bloquear" disse o que queria, e um aviso
+   * vermelho depois disso é o site discutindo com a pessoa.
+   */
+  protected async alternarPush(): Promise<void> {
+    if (this.push.inscrito()) {
+      await this.push.desinscrever();
+    } else {
+      await this.push.inscrever();
+    }
   }
 
   private loadNotifications(): void {

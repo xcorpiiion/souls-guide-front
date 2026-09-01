@@ -54,6 +54,33 @@
           >
             <div class="navbar__notif-header">
               <span class="navbar__notif-title">Notificações</span>
+              <!--
+                O botão só existe quando o push é possível AQUI: com service worker, com
+                VAPID ligada no servidor e com a permissão não recusada. Oferecer um botão
+                que vai falhar é pior do que não oferecer o recurso — e permissão negada
+                não pode ser pedida de novo por código.
+              -->
+              @if (push.disponivel()) {
+                <button
+                  class="navbar__notif-push-btn"
+                  type="button"
+                  [class.navbar__notif-push-btn--on]="push.inscrito()"
+                  [disabled]="push.ocupado()"
+                  [attr.aria-pressed]="push.inscrito()"
+                  [attr.title]="
+                    push.inscrito()
+                      ? 'Parar de receber avisos com o site fechado'
+                      : 'Receber avisos com o site fechado'
+                  "
+                  (click)="alternarPush()"
+                >
+                  @if (push.inscrito()) {
+                    <i class="ti ti-bell-ringing" aria-hidden="true"></i>
+                  } @else {
+                    <i class="ti ti-bell-plus" aria-hidden="true"></i>
+                  }
+                </button>
+              }
               @if (unreadCount() > 0) {
                 <button
                   class="navbar__notif-mark-btn"

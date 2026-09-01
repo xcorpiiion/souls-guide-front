@@ -92,6 +92,7 @@ flowchart LR
         run["run.service"]
         user["user.service"]
         notification["notification.service"]
+        push["push.service"]
         moderacao["moderacao.service"]
         discordLogin["discord-login.service"]
     end
@@ -105,10 +106,10 @@ flowchart LR
     end
 
     classDef s fill:#1168bd,stroke:#0b4884,color:#fff
-    class game,gameSeries,quest,lore,ending,item,boss,questVersion,loreVersion,questCondition,questMap,comment,personalQuest,personalLore,profile,progress,questProgress,run,user,notification,moderacao,discordLogin,seo,atualizacao,storage,loading,monitoring s
+    class game,gameSeries,push,quest,lore,ending,item,boss,questVersion,loreVersion,questCondition,questMap,comment,personalQuest,personalLore,profile,progress,questProgress,run,user,notification,moderacao,discordLogin,seo,atualizacao,storage,loading,monitoring s
 ```
 
-Quatro deles não falam com o `souls-guide-api`:
+Cinco deles não falam **só** com o `souls-guide-api`:
 
 | Service | Com quem fala |
 |---|---|
@@ -116,6 +117,7 @@ Quatro deles não falam com o `souls-guide-api`:
 | `storage.service` | `storage-api` para o ticket e os metadados, e **direto com o bucket** para o PUT dos bytes, numa URL assinada |
 | `monitoring.service` | Sentry, e só no navegador — ver 3.3 |
 | `discord-login.service` | ninguém: monta a URL de autorização do Discord e guarda o `state` no `sessionStorage`. Quem troca o código por token é a `authorization-api`, porque a troca exige o client secret |
+| `push.service` | o `souls-guide-api` para a chave VAPID e a inscrição, e **o service worker** para o resto. É ele, e não o servidor, que sabe se *este* aparelho está inscrito — perguntar ao servidor daria a resposta de outro aparelho |
 
 ---
 

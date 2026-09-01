@@ -1,5 +1,6 @@
 import { Provider, EnvironmentProviders } from '@angular/core';
 import { provideApis } from '@xcorpiiion/ng-core';
+import { provideServiceWorker } from '@angular/service-worker';
 import { environment } from './environments/environment';
 
 /**
@@ -19,6 +20,18 @@ import { environment } from './environments/environment';
  */
 const providers: (Provider | EnvironmentProviders)[] = [
   provideApis({ bases: environment.apis, defaultBase: 'soulsGuide' }),
+
+  /**
+   * O `SwPush` pela mesma razão do `provideApis` acima: quem o injeta é o `PushService`,
+   * que a navbar injeta, que o `App` renderiza — então um spec do componente raiz falha
+   * com `NG0201: No provider found for SwPush` sem ter nada a ver com push.
+   *
+   * `enabled: false` é o que o teste quer de verdade: com ele o `SwPush.isEnabled` é
+   * falso, que é o mesmo estado de um navegador sem service worker. Quem precisa
+   * exercitar o push de fato substitui o `SwPush` no próprio TestBed, como o
+   * `push.service.spec.ts` faz.
+   */
+  provideServiceWorker('ngsw-worker.js', { enabled: false }),
 ];
 
 export default providers;

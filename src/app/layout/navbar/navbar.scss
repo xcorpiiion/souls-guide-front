@@ -230,6 +230,42 @@
     }
   }
 
+  // O botão de push, ao lado do "marcar como lido". Só aparece quando o recurso é
+  // possível neste navegador — ver o @if do template.
+  &__notif-push-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 26px;
+    height: 26px;
+    margin-left: auto;
+    margin-right: 8px;
+    padding: 0;
+    border: 1px solid v.$color-border;
+    border-radius: v.$radius-sm;
+    background: transparent;
+    color: v.$color-text-muted;
+    cursor: pointer;
+    transition:
+      color 0.15s ease,
+      border-color 0.15s ease;
+
+    &:hover:not(:disabled) {
+      color: v.$color-gold;
+      border-color: v.$color-gold;
+    }
+
+    &:disabled {
+      opacity: 0.5;
+      cursor: default;
+    }
+
+    &--on {
+      color: v.$color-gold;
+      border-color: v.$color-gold;
+    }
+  }
+
   &__notif-header {
     display: flex;
     align-items: center;
