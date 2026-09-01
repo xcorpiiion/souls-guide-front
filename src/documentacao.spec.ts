@@ -137,6 +137,22 @@ describe('documentação', () => {
     });
   });
 
+  /**
+   * Link relativo que aponta para **dentro deste repositório** tem que resolver.
+   *
+   * O que sai daqui — os dez `../../../../Back-end/soulsguide/...` que apontam para o ADR
+   * 0009 e para os diagramas C4 — é ignorado, e a razão não é preguiça: na CI só este
+   * repositório é clonado, então a pasta irmã não existe e **todos** eles quebram. Nesta
+   * máquina os dois repositórios são vizinhos e todos resolvem.
+   *
+   * Sem esta distinção o teste mentia dos dois lados ao mesmo tempo: verde na máquina de
+   * quem escreveu e vermelho na CI desde 26/08, por um defeito que ninguém introduziu e
+   * que nenhuma edição de documentação conseguiria consertar.
+   *
+   * O que se perde é a conferência dos links cross-repo. Ela não era possível de qualquer
+   * forma — conferi-los exigiria clonar o outro repositório no job, o que é caro e
+   * dependeria de qual branch dele está no ar.
+   */
   it('todo link relativo dentro de docs/ resolve', () => {
     for (const arquivo of todosOsMd(DOCS)) {
       // O TEMPLATE tem link de exemplo (`NNNN-....md`), que por definição não resolve.
@@ -146,6 +162,11 @@ describe('documentação', () => {
 
       for (const [, destino] of texto.matchAll(/\]\((?!https?:)([^)#]+)(?:#[^)]*)?\)/g)) {
         const alvo = resolve(dirname(arquivo), destino);
+
+        // Saiu do repositório: a CI não tem como conferir, e afirmar que tem deixa o
+        // teste vermelho para sempre por algo que não é defeito de documentação.
+        if (!alvo.startsWith(RAIZ)) continue;
+
         expect(existsSync(alvo), `${arquivo}: link quebrado para ${destino}`).toBe(true);
       }
     }
