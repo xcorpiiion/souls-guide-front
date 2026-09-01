@@ -20,7 +20,7 @@ Projeto pessoal/portfólio, sem fins financeiros.
 - **Frontend:** Angular 22, Zoneless, SCSS, Signals, Standalone, OnPush
 - **TypeScript:** 6.0 — o Angular 22 fixa `>=6.0 <6.1`, então a 7.0 ainda não entra
 - **Node:** 24 LTS — o Angular 22 exige `^22.22.3 || ^24.15.0 || >=26`, e o `ng` recusa rodar abaixo disso
-- **Testes:** Vitest
+- **Testes:** Vitest (unitario, jsdom) e Playwright (`e2e/`, contra o stack no ar)
 - **Grafo de quest:** SVG desenhado à mão, com o layout em `shared/utils/mini-graph.ts`.
   Não é `bpmn-js` — ele esteve no `package.json` até 01/09/2026 sem um único import no
   `src/`, 6,1 MB de dependência que nada carregava, e saiu
