@@ -1,4 +1,9 @@
-import { ComponentFixture, TestBed } from '@angular/core/testing';
+import {
+  ComponentFixture,
+  DeferBlockBehavior,
+  DeferBlockState,
+  TestBed,
+} from '@angular/core/testing';
 import { ActivatedRoute, convertToParamMap, provideRouter } from '@angular/router';
 import { describe, beforeEach, it, expect, vi } from 'vitest';
 import { of, throwError } from 'rxjs';
@@ -55,6 +60,7 @@ function createFixture(
   };
   TestBed.configureTestingModule({
     imports: [QuestDetail],
+    deferBlockBehavior: DeferBlockBehavior.Manual,
     providers: [
       provideRouter([]),
       {
@@ -330,6 +336,33 @@ describe('QuestDetail', () => {
       await comp.copyLink();
       expect(writeSpy).toHaveBeenCalledWith(window.location.href);
       expect(comp.copied()).toBe(true);
+    });
+  });
+
+  /**
+   * A seção de comentários é `@defer (on viewport)`.
+   *
+   * O que se trava aqui é que ela não seja paga por quem só abre o guia: são ~800 linhas
+   * de componente mais uma chamada HTTP na iniciação, e a seção nunca está na primeira
+   * dobra. `DeferBlockBehavior.Manual` é o que deixa afirmar as duas metades — que sem o
+   * gatilho não renderiza, e que com ele renderiza.
+   */
+  describe('comentários adiados', () => {
+    it('não renderiza a seção antes do gatilho, e reserva a altura', async () => {
+      const fixture = createFixture('elden-ring', 'er-q1');
+
+      expect(fixture.nativeElement.querySelector('app-comment-section')).toBeNull();
+      expect(fixture.nativeElement.querySelector('.comentarios-reserva')).not.toBeNull();
+    });
+
+    it('renderiza a seção quando o bloco resolve', async () => {
+      const fixture = createFixture('elden-ring', 'er-q1');
+
+      const [bloco] = await fixture.getDeferBlocks();
+      await bloco.render(DeferBlockState.Complete);
+
+      expect(fixture.nativeElement.querySelector('app-comment-section')).not.toBeNull();
+      expect(fixture.nativeElement.querySelector('.comentarios-reserva')).toBeNull();
     });
   });
 });

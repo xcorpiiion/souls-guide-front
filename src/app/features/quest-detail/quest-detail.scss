@@ -885,3 +885,10 @@
     object-fit: cover;
   }
 }
+
+// Altura reservada para a seção de comentários enquanto o `@defer` não resolve.
+// Sem ela a seção nasce e empurra a página para baixo debaixo de quem já estava
+// rolando — o layout shift que o `@defer` sozinho cria e ninguém mede.
+.comentarios-reserva {
+  min-height: 240px;
+}

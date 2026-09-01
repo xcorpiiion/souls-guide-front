@@ -210,7 +210,26 @@
     <div class="ld__comments">
       <app-report-button contentKind="LORE" [contentId]="a.id" />
 
-      <app-comment-section targetKind="lore" [targetId]="loreIdStr(a.id)" />
+      <!--
+        A seÃ§Ã£o de comentÃ¡rios Ã© o fim da pÃ¡gina e nunca estÃ¡ na primeira dobra.
+        SÃ£o ~800 linhas de componente, mais uma chamada HTTP na iniciaÃ§Ã£o, pagas
+        hoje por todo mundo que abre o guia â inclusive quem sÃ³ quer o passo a passo.
+      
+        Ã `on viewport` e nÃ£o `hydrate on viewport`: o segundo faria o servidor
+        renderizar os comentÃ¡rios, o que custa uma chamada Ã  API por pÃ¡gina
+        renderizada. O SSR daqui existe para o crawler ler o guia e o preview do link
+        sair certo, e comentÃ¡rio nÃ£o Ã© nenhum dos dois.
+      
+        O `prefetch on idle` busca o chunk enquanto a aba estÃ¡ parada, entÃ£o quem
+        rola atÃ© o fim nÃ£o espera download nenhum.
+      -->
+      @defer (on viewport; prefetch on idle) {
+        <app-comment-section targetKind="lore" [targetId]="loreIdStr(a.id)" />
+      } @placeholder (minimum 200ms) {
+        <!-- Reserva a altura: sem isto, a seÃ§Ã£o nascendo empurra a pÃ¡gina para
+             baixo debaixo do dedo de quem estava lendo. -->
+        <div class="comentarios-reserva" aria-hidden="true"></div>
+      }
     </div>
   </div>
 

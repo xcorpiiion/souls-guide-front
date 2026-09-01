@@ -21,7 +21,9 @@ Projeto pessoal/portfólio, sem fins financeiros.
 - **TypeScript:** 6.0 — o Angular 22 fixa `>=6.0 <6.1`, então a 7.0 ainda não entra
 - **Node:** 24 LTS — o Angular 22 exige `^22.22.3 || ^24.15.0 || >=26`, e o `ng` recusa rodar abaixo disso
 - **Testes:** Vitest
-- **BPMN:** bpmn-js@18 (editor e viewer de quests como grafo)
+- **Grafo de quest:** SVG desenhado à mão, com o layout em `shared/utils/mini-graph.ts`.
+  Não é `bpmn-js` — ele esteve no `package.json` até 01/09/2026 sem um único import no
+  `src/`, 6,1 MB de dependência que nada carregava, e saiu
 - **Drag-drop:** @angular/cdk@22
 - **CI/CD:** GitHub Actions + SonarCloud (repo público, free)
 - **Backend:** existe e está no ar — `souls-guide-api` (8095), `authorization-api`, `user-api` e
@@ -311,7 +313,7 @@ containers.
 ## Estado atual (agosto 2026)
 
 O front está em operação e ligado ao back-end real. Nada da lista de features iniciais
-continua em aberto: home, games, game-detail, quests (lista, kanban, bpmn, editor,
+continua em aberto: home, games, game-detail, quests (lista, kanban, grafo, editor,
 condições, histórico, mapa), lore (lista, criação, editor, histórico), finais, perfil,
 usuário, comunidade, busca e todo o fluxo de auth (login, Google, recuperação de senha)
 existem — 24 features, 22 services em `core/services`, 13 componentes compartilhados,
