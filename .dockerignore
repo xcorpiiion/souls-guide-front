@@ -3,3 +3,13 @@ dist
 .angular
 .git
 *.md
+
+# Saida do Playwright. Nao vai para a imagem, e o `.last-run.json` chega a quebrar o
+# `docker build` -- o daemon recusa o arquivo, e a mensagem ("invalid file request")
+# nao diz que a causa e o contexto de build.
+test-results
+playwright-report
+blob-report
+playwright/.cache
+e2e
+playwright.config.ts
