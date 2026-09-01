@@ -6,9 +6,12 @@ proxy_set_header X-Real-IP         $remote_addr;
 proxy_set_header X-Forwarded-For   $proxy_add_x_forwarded_for;
 proxy_set_header X-Forwarded-Proto $scheme;
 
-# As notificações chegam por SSE, e SSE com buffering ligado não chega: o nginx segura
-# os eventos esperando encher o buffer, e o navegador só recebe tudo quando a conexão
-# cai. Connection "" evita que o cabeçalho hop-by-hop feche o keep-alive do upstream.
+# Preparado para streaming, que hoje NAO existe: nao ha SSE em nenhum servico deste
+# stack -- a navbar pergunta o unread-count de minuto em minuto, e o aviso com o site
+# fechado vai por Web Push, que nao passa por aqui. Estas quatro linhas ficam porque
+# nao custam nada e, no dia em que houver streaming, com buffering ligado o nginx
+# seguraria os eventos ate encher o buffer. Connection "" evita que o cabecalho
+# hop-by-hop feche o keep-alive do upstream.
 proxy_http_version 1.1;
 proxy_set_header Connection "";
 proxy_buffering off;

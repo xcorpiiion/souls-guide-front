@@ -46,9 +46,14 @@ caminho relativo, quem serve o HTML também serve a API: o `nginx.conf` desta pa
 proxy para o `gateway-api` dentro da rede do compose, e o mesmo build atende localhost,
 o IP da LAN e a URL pública, sem CORS no caminho.
 
-`nginx-proxy-comum.inc` guarda os cabeçalhos de proxy repetidos. `proxy_buffering off`
-não é detalhe: as notificações chegam por SSE, e com buffering o navegador só recebe os
-eventos quando a conexão cai.
+`nginx-proxy-comum.inc` guarda os cabeçalhos de proxy repetidos.
+
+> **Não existe SSE neste stack.** Versões anteriores deste arquivo diziam que as
+> notificações chegavam por SSE, e que era isso que justificava `proxy_buffering off`.
+> Não há `EventSource` no front nem `SseEmitter` em nenhum dos serviços — a navbar
+> pergunta o `unread-count` num `interval(60_000)`. O `proxy_buffering off` e o
+> `proxy_read_timeout 3600s` ficam porque não custam nada e o dia em que houver streaming
+> eles já estarão certos; o que saiu foi a afirmação falsa sobre o que existe hoje.
 
 ---
 
@@ -289,6 +294,90 @@ catálogo de itens, denúncia e moderação. As telas **já traduzidas** são a 
 migram uma por uma trocando a frase pela chave.
 
 ---
+
+
+---
+
+## O que entrou em 01/09/2026
+
+Seis coisas do Angular 22 que o projeto ainda não usava, mais o Playwright. Cada uma
+resolve um defeito concreto, e nenhuma é enfeite.
+
+| O quê | Onde | O que conserta |
+|---|---|---|
+| `withEventReplay()` | `app.config.ts` | Clique antes da hidratação caía no vazio — no 4G, que é o caso comum, o primeiro toque não acontecia |
+| `withViewTransitions()` | `app.config.ts` | Transição nativa entre rotas, e a capa do card virando o brasão do detalhe |
+| `animate.enter` / `animate.leave` | navbar | As três gavetas sumiam no corte. CSS sozinho não anima remoção |
+| `@defer (on viewport)` | quest-detail, lore-detail | ~800 linhas de comentários + uma chamada HTTP eram pagas por quem só lia o guia |
+| `rxResource` | item-detail, boss-detail | O trio `loading`/`error`/valor escrito e apagado à mão em dois ramos de `subscribe` |
+| Signal Forms | reset-password | Validação cruzada sem tipo, lendo campo por string. Ver [ADR 0006](docs/adr/0006-signal-forms-entra-por-uma-tela.md) |
+| Playwright | `e2e/` | O que jsdom não vê. Ver [ADR 0005](docs/adr/0005-o-que-jsdom-nao-ve-tem-teste-de-navegador.md) |
+
+### O que quebra calado em cada uma
+
+- **`withIncrementalHydration()` não entra.** No Angular 22 a hidratação incremental já é o
+  padrão do `provideClientHydration`, e a função virou *deprecated*. Só o event replay é
+  opt-in.
+- **`view-transition-name` repetido aborta a transição inteira**, e em silêncio. Por isso o
+  nome vai num card só — o `capaAtiva` de `games.ts` — e há três testes travando isso.
+- **`resource.value()` lança** quando o recurso está em erro (`ResourceValueError`), ao
+  contrário do signal que ficava em `null`. Aliasar `value` direto faz o `@if (item(); as i)`
+  estourar exatamente no caminho em que a página deveria dizer "não encontrado". Sempre por
+  `hasValue()`.
+- **O `resource` embrulha erro que não parece `Error`** num `ResourceWrappedError`, com o
+  original em `.cause`. `HttpErrorResponse` passa direto, então ler só a superfície funciona
+  em produção e degrada o 404 para "não foi possível carregar" no primeiro erro embrulhado.
+  Use `statusHttp`/`naoEncontrado` de `shared/utils/http-error.ts`.
+- **Signal Forms não traz o `ReactiveFormsModule`**, e `(ngSubmit)` é output de
+  `NgForm`/`FormGroupDirective`. Sem esse módulo ele não se liga a nada — sem erro, sem
+  aviso, e o botão não faz nada. Use `(submit)` nativo com `preventDefault`.
+- **`@defer` sem `@placeholder` com altura cria layout shift**: a seção nasce e empurra a
+  página debaixo de quem está rolando.
+
+### O `bpmn-js` saiu
+
+Estava no `package.json` desde o início, este arquivo o dava como "editor e viewer de quests
+como grafo", e ele não tinha **um único import** no `src/` — nem estático nem dinâmico. Quem
+desenha o grafo é `shared/utils/mini-graph.ts`, SVG à mão. Eram 6,1 MB de `node_modules`
+mantidos por nada.
+
+---
+
+## O aviso que chega com o site fechado
+
+`GET /notifications` continua como está, e a navbar continua perguntando o `unread-count` de
+minuto em minuto. O que mudou é que quem quiser pode receber **com o site fechado**, por Web
+Push.
+
+O botão fica no painel de notificação, e só aparece quando o push é possível *aqui*. São
+quatro coisas alinhadas, e nenhuma avisa quando falta:
+
+| Precisa de | Se faltar |
+|---|---|
+| service worker | `ng serve` não registra: `SwPush.isEnabled` é falso |
+| chave VAPID no servidor | ela **nasce desligada**; `GET /push/public-key` responde `habilitada: false` |
+| permissão do navegador | uma vez **negada**, não pode ser pedida de novo por código |
+| HTTPS, ou localhost | o navegador recusa o registro |
+
+Por isso `PushService.disponivel` é separado de `inscrito`, e só vira verdade depois de o
+servidor confirmar: oferecer um botão que vai falhar é pior do que não oferecer o recurso.
+
+### O que quebra calado
+
+- **Quem sabe se *este* aparelho está inscrito é o navegador, não o servidor.** A pessoa tem
+  o celular e o computador, e o servidor responderia pelos dois.
+- **As chaves vão em base64url.** Base64 comum (`+`, `/`, `=`) faz a cifra falhar do outro
+  lado, e o erro chega como "push recusado" sem dizer por quê.
+- **Desinscrever avisa o servidor antes** de o navegador esquecer o endpoint. Na ordem
+  inversa não há mais o que mandar, e a linha fica no banco recebendo envio até o serviço de
+  push responder 410.
+- **A carga tem envelope obrigatório.** O `ngsw-worker` só chama `showNotification` se o JSON
+  tiver `notification.title`; sem essa chave ele entrega o evento para a aba aberta e não
+  mostra nada — exatamente o caso que o push existe para cobrir. Quem monta isso é o
+  back-end, e há teste lá travando.
+
+O desenho do lado do servidor está no
+[ADR 0024 do back-end](../../Back-end/soulsguide/docs/adr/0024-a-entrega-do-push-tem-evento-proprio.md).
 
 ## Documentação
 
