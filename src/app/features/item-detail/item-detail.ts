@@ -1,13 +1,6 @@
-import {
-  ChangeDetectionStrategy,
-  Component,
-  OnInit,
-  computed,
-  inject,
-  signal,
-} from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, effect, inject } from '@angular/core';
+import { rxResource } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, RouterLink } from '@angular/router';
-import { HttpErrorResponse } from '@angular/common/http';
 import { AuthService } from '@xcorpiiion/ng-core';
 import { PfPageLoader } from '@xcorpiiion/ui';
 import type { ItemDTO } from '@xcorpiiion/canonico';
@@ -15,6 +8,26 @@ import { ItemService } from '../../core/services/item.service';
 import { StorageService } from '../../core/services/storage.service';
 import { SeoService } from '../../core/services/seo.service';
 import { ITEM_TYPE_LABEL } from '../../shared/models/item.model';
+
+/**
+ * O status HTTP de um erro que passou por um `resource`.
+ *
+ * O `resource` não entrega o erro cru: o que não parece um `Error` — o que não tem `name`
+ * e `message` de texto — ele embrulha num `ResourceWrappedError` e guarda o original em
+ * `.cause`. `HttpErrorResponse` passa direto, porque parece; qualquer outra coisa que um
+ * interceptor lance, não.
+ *
+ * Ler só a superfície funciona em produção e falha no primeiro erro embrulhado — que é o
+ * modo de falha ruim, porque o 404 vira "não foi possível carregar" e a página deixa de
+ * dizer que o item não existe.
+ */
+function statusHttp(err: unknown): number {
+  const direto = (err as { status?: unknown })?.status;
+  if (typeof direto === 'number') return direto;
+
+  const causa = (err as { cause?: { status?: unknown } })?.cause?.status;
+  return typeof causa === 'number' ? causa : 0;
+}
 
 /**
  * A página de um item.
@@ -30,7 +43,7 @@ import { ITEM_TYPE_LABEL } from '../../shared/models/item.model';
   styleUrl: './item-detail.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class ItemDetail implements OnInit {
+export class ItemDetail {
   private readonly route = inject(ActivatedRoute);
   private readonly itemService = inject(ItemService);
   private readonly storage = inject(StorageService);
@@ -42,30 +55,66 @@ export class ItemDetail implements OnInit {
   /** Escrever exige token: sem sessão o lápis levaria a uma tela que não salva. */
   protected readonly logado = computed(() => this.auth.isLoggedIn());
 
-  protected readonly loading = signal(true);
-  protected readonly error = signal<string | null>(null);
-  protected readonly item = signal<ItemDTO | null>(null);
-  protected readonly imagem = signal<string | null>(null);
+  /**
+   * A busca do item.
+   *
+   * Substitui o trio `loading`/`error`/`item` que era escrito e mantido à mão, com o
+   * `subscribe` no `ngOnInit` — três signals que precisavam ser apagados na ordem certa
+   * nos dois ramos do callback, e um `OnInit` que existia só para disparar a chamada.
+   *
+   * **Isto sobrevive ao SSR.** O `ResourceImpl` registra um `PendingTask`, e é isso que
+   * faz o servidor esperar a resposta antes de serializar o HTML — sem isso o crawler
+   * leria a tela de "Carregando", que é exatamente o defeito que o SSR daqui existe para
+   * não ter.
+   */
+  private readonly recurso = rxResource({
+    params: () => this.route.snapshot.paramMap.get('id') ?? '',
+    stream: ({ params: id }) => this.itemService.get(id),
+  });
 
-  ngOnInit(): void {
-    const id = this.route.snapshot.paramMap.get('id') ?? '';
+  protected readonly loading = this.recurso.isLoading;
 
-    this.itemService.get(id).subscribe({
-      next: (item) => {
-        this.item.set(item);
-        this.imagem.set(item.imageFileKey ? this.storage.previewUrl(item.imageFileKey) : null);
+  /**
+   * O valor, ou nulo — e nunca `recurso.value` direto.
+   *
+   * `value()` **lança** quando o recurso está em erro (`ResourceValueError`), o que é o
+   * contrário do signal que estava aqui antes, que ficava em `null`. Aliasar `value` sem
+   * guarda faz o `@if (item(); as i)` do template estourar exatamente no caminho em que a
+   * página deveria mostrar "item não encontrado" — o erro engolindo a tela de erro.
+   */
+  protected readonly item = computed(() => (this.recurso.hasValue() ? this.recurso.value() : null));
+
+  protected readonly error = computed(() => {
+    const err = this.recurso.error();
+    if (!err) return null;
+    return statusHttp(err) === 404 ? 'Item não encontrado.' : 'Não foi possível carregar.';
+  });
+
+  protected readonly imagem = computed(() => {
+    const key = this.item()?.imageFileKey;
+    return key ? this.storage.previewUrl(key) : null;
+  });
+
+  /**
+   * O cabeçalho é aplicado **quando o dado chega**, e não na iniciação.
+   *
+   * Montado antes da resposta, o que o crawler lê é "Carregando" — o efeito roda de novo
+   * a cada mudança do recurso, que é o que garante a ordem certa sem ninguém orquestrar.
+   */
+  constructor() {
+    effect(() => {
+      const item = this.item();
+      if (item) {
         this.aplicarSeo(item);
-        this.loading.set(false);
-      },
-      error: (err: HttpErrorResponse) => {
-        this.error.set(err.status === 404 ? 'Item não encontrado.' : 'Não foi possível carregar.');
+        return;
+      }
+      if (this.error()) {
         this.seo.aplicar({
           titulo: 'Item não encontrado',
           descricao: 'Este item não existe ou foi removido.',
           indexavel: false,
         });
-        this.loading.set(false);
-      },
+      }
     });
   }
 
