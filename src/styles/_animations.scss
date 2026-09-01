@@ -119,3 +119,81 @@
     scroll-behavior: auto !important;
   }
 }
+
+// ─── Entrar e sair ─────────────────────────────────────────────────────────────
+// Estas classes são para as diretivas `animate.enter` e `animate.leave` do Angular.
+//
+// O que elas trazem que o CSS não tinha: a animação de **saída**. Uma animação de
+// entrada dispara sozinha quando o elemento é inserido, e o projeto já usava isso pelo
+// mixin `page-enter`. Sair, não: `@if` false remove o nó do DOM no mesmo quadro, e não
+// existe momento em que o CSS possa animar um elemento que já não está lá. É a diretiva
+// que segura a remoção até a animação terminar.
+//
+// Moram aqui, e não no SCSS de cada componente, porque a diretiva aplica a classe no
+// elemento e o encapsulamento do Angular não alcança o que é global — e porque as três
+// gavetas da navbar querem exatamente a mesma coisa.
+@keyframes sg-fade-out {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes sg-pop-out {
+  from {
+    opacity: 1;
+    transform: scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: scale(0.96);
+  }
+}
+
+@keyframes sg-slide-down-in {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes sg-slide-up-out {
+  from {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+}
+
+.sg-enter-pop {
+  animation: sg-scale-in 0.16s ease both;
+}
+
+.sg-leave-pop {
+  animation: sg-pop-out 0.13s ease both;
+}
+
+.sg-enter-fade {
+  animation: sg-fade-in 0.16s ease both;
+}
+
+.sg-leave-fade {
+  animation: sg-fade-out 0.13s ease both;
+}
+
+.sg-enter-slide {
+  animation: sg-slide-down-in 0.18s ease both;
+}
+
+.sg-leave-slide {
+  animation: sg-slide-up-out 0.14s ease both;
+}

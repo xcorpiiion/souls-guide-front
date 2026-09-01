@@ -46,6 +46,8 @@
         @if (notifOpen()) {
           <div
             class="navbar__notif-panel"
+            animate.enter="sg-enter-pop"
+            animate.leave="sg-leave-pop"
             (click)="$event.stopPropagation()"
             (keydown)="$event.stopPropagation()"
             tabindex="-1"
@@ -148,6 +150,8 @@
 @if (searchOpen()) {
   <div
     class="navbar__search-overlay"
+    animate.enter="sg-enter-fade"
+    animate.leave="sg-leave-fade"
     (click)="closeSearch()"
     (keydown.escape)="closeSearch()"
     role="dialog"
@@ -176,7 +180,7 @@
 
 <!-- mobile menu -->
 @if (mobileOpen()) {
-  <div class="navbar__mobile">
+  <div class="navbar__mobile" animate.enter="sg-enter-slide" animate.leave="sg-leave-slide">
     @for (link of navLinks; track link.path) {
       <a
         class="navbar__mobile-link"
