@@ -8,26 +8,7 @@ import { ItemService } from '../../core/services/item.service';
 import { StorageService } from '../../core/services/storage.service';
 import { SeoService } from '../../core/services/seo.service';
 import { ITEM_TYPE_LABEL } from '../../shared/models/item.model';
-
-/**
- * O status HTTP de um erro que passou por um `resource`.
- *
- * O `resource` não entrega o erro cru: o que não parece um `Error` — o que não tem `name`
- * e `message` de texto — ele embrulha num `ResourceWrappedError` e guarda o original em
- * `.cause`. `HttpErrorResponse` passa direto, porque parece; qualquer outra coisa que um
- * interceptor lance, não.
- *
- * Ler só a superfície funciona em produção e falha no primeiro erro embrulhado — que é o
- * modo de falha ruim, porque o 404 vira "não foi possível carregar" e a página deixa de
- * dizer que o item não existe.
- */
-function statusHttp(err: unknown): number {
-  const direto = (err as { status?: unknown })?.status;
-  if (typeof direto === 'number') return direto;
-
-  const causa = (err as { cause?: { status?: unknown } })?.cause?.status;
-  return typeof causa === 'number' ? causa : 0;
-}
+import { naoEncontrado } from '../../shared/utils/http-error';
 
 /**
  * A página de um item.
@@ -87,7 +68,7 @@ export class ItemDetail {
   protected readonly error = computed(() => {
     const err = this.recurso.error();
     if (!err) return null;
-    return statusHttp(err) === 404 ? 'Item não encontrado.' : 'Não foi possível carregar.';
+    return naoEncontrado(err) ? 'Item não encontrado.' : 'Não foi possível carregar.';
   });
 
   protected readonly imagem = computed(() => {

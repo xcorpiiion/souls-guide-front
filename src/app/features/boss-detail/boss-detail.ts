@@ -1,19 +1,20 @@
 import {
   ChangeDetectionStrategy,
   Component,
-  OnInit,
   computed,
+  effect,
   inject,
   signal,
 } from '@angular/core';
+import { rxResource } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, RouterLink } from '@angular/router';
-import { HttpErrorResponse } from '@angular/common/http';
 import { PfPageLoader } from '@xcorpiiion/ui';
 import { AuthService } from '@xcorpiiion/ng-core';
 import type { BossDTO } from '@xcorpiiion/canonico';
 import { BossService } from '../../core/services/boss.service';
 import { StorageService } from '../../core/services/storage.service';
 import { SeoService } from '../../core/services/seo.service';
+import { naoEncontrado } from '../../shared/utils/http-error';
 
 /**
  * A página de um chefe.
@@ -32,40 +33,57 @@ import { SeoService } from '../../core/services/seo.service';
   styleUrl: './boss-detail.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class BossDetail implements OnInit {
+export class BossDetail {
   private readonly route = inject(ActivatedRoute);
   private readonly bossService = inject(BossService);
   private readonly storage = inject(StorageService);
   private readonly seo = inject(SeoService);
   private readonly auth = inject(AuthService);
 
-  protected readonly loading = signal(true);
-  protected readonly error = signal<string | null>(null);
-  protected readonly boss = signal<BossDTO | null>(null);
-  protected readonly imagem = signal<string | null>(null);
+  private readonly recurso = rxResource({
+    params: () => this.route.snapshot.paramMap.get('id') ?? '',
+    stream: ({ params: id }) => this.bossService.get(id),
+  });
+
+  protected readonly loading = this.recurso.isLoading;
+
+  /**
+   * Nunca `recurso.value` direto: `value()` lança quando o recurso está em erro, e o
+   * `@if (boss(); as b)` do template estouraria justamente no caminho em que a página
+   * deveria dizer "chefe não encontrado".
+   */
+  protected readonly boss = computed(() => (this.recurso.hasValue() ? this.recurso.value() : null));
+
+  protected readonly error = computed(() => {
+    const err = this.recurso.error();
+    if (!err) return null;
+    return naoEncontrado(err) ? 'Chefe não encontrado.' : 'Não foi possível carregar.';
+  });
+
+  protected readonly imagem = computed(() => {
+    const key = this.boss()?.imageFileKey;
+    return key ? this.storage.previewUrl(key) : null;
+  });
+
   protected readonly loreAberta = signal(false);
 
   protected readonly logado = computed(() => this.auth.isLoggedIn());
 
-  ngOnInit(): void {
-    const id = this.route.snapshot.paramMap.get('id') ?? '';
-
-    this.bossService.get(id).subscribe({
-      next: (boss) => {
-        this.boss.set(boss);
-        this.imagem.set(boss.imageFileKey ? this.storage.previewUrl(boss.imageFileKey) : null);
+  /** O cabeçalho é aplicado quando o dado chega, não na iniciação — senão o crawler lê "Carregando". */
+  constructor() {
+    effect(() => {
+      const boss = this.boss();
+      if (boss) {
         this.aplicarSeo(boss);
-        this.loading.set(false);
-      },
-      error: (err: HttpErrorResponse) => {
-        this.error.set(err.status === 404 ? 'Chefe não encontrado.' : 'Não foi possível carregar.');
+        return;
+      }
+      if (this.error()) {
         this.seo.aplicar({
           titulo: 'Chefe não encontrado',
           descricao: 'Este chefe não existe ou foi removido.',
           indexavel: false,
         });
-        this.loading.set(false);
-      },
+      }
     });
   }
 
@@ -73,19 +91,27 @@ export class BossDetail implements OnInit {
     this.loreAberta.update((v) => !v);
   }
 
+  /**
+   * Marca o chefe como derrotado antes de o servidor confirmar, e desfaz se ele recusar.
+   *
+   * A escrita otimista continua valendo com o `resource`: `rxResource` devolve um recurso
+   * **gravável**, então o valor local é trocado por `recurso.set()` e devolvido no
+   * `error`. O que não dá é escrever no `computed` acima — ele é derivado, e a origem do
+   * dado é o recurso.
+   */
   protected alternarDerrotado(): void {
     const boss = this.boss();
     if (!boss || !this.logado()) return;
 
     const alvo = !boss.viewerHasDefeated;
-    this.boss.set({ ...boss, viewerHasDefeated: alvo });
+    this.recurso.set({ ...boss, viewerHasDefeated: alvo });
 
     const chamada = alvo
       ? this.bossService.marcarDerrotado(boss.id)
       : this.bossService.desmarcarDerrotado(boss.id);
 
     chamada.subscribe({
-      error: () => this.boss.set({ ...boss, viewerHasDefeated: !alvo }),
+      error: () => this.recurso.set({ ...boss, viewerHasDefeated: !alvo }),
     });
   }
 
