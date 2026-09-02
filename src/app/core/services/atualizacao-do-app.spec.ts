@@ -15,6 +15,7 @@ class SwUpdateFake {
   readonly versionUpdates = new Subject<{ type: string }>();
   isEnabled = true;
   activateUpdate = vi.fn().mockResolvedValue(true);
+  checkForUpdate = vi.fn().mockResolvedValue(false);
 }
 
 describe('AtualizacaoDoApp', () => {
@@ -88,5 +89,51 @@ describe('AtualizacaoDoApp', () => {
 
     expect(sw.activateUpdate).not.toHaveBeenCalled();
     expect(recarregou).toBe(0);
+  });
+
+  // A tela de rota desconhecida chama isto antes de se mostrar. O caso que motivou:
+  // /login/discord?code=... e um documento novo, vindo de fora do site, e o app sobe na
+  // versao que o service worker tem -- que pode ser de antes de a rota existir.
+  describe('recuperarRotaDesconhecida', () => {
+    beforeEach(() => sessionStorage.clear());
+
+    it('troca de versão e recarrega quando o service worker acha uma nova', async () => {
+      sw.checkForUpdate.mockResolvedValue(true);
+
+      await servico.recuperarRotaDesconhecida();
+
+      expect(sw.activateUpdate).toHaveBeenCalledTimes(1);
+      expect(recarregou).toBe(1);
+    });
+
+    it('não recarrega quando já está na versão mais nova', async () => {
+      sw.checkForUpdate.mockResolvedValue(false);
+
+      await servico.recuperarRotaDesconhecida();
+
+      // O 404 e de verdade: a tela precisa aparecer, e nao piscar numa recarga inutil.
+      expect(sw.activateUpdate).not.toHaveBeenCalled();
+      expect(recarregou).toBe(0);
+    });
+
+    it('tenta uma vez por aba, para um 404 legítimo não virar laço', async () => {
+      sw.checkForUpdate.mockResolvedValue(true);
+
+      await servico.recuperarRotaDesconhecida();
+      await servico.recuperarRotaDesconhecida();
+
+      expect(recarregou).toBe(1);
+    });
+
+    it('não faz nada com o service worker desligado', async () => {
+      sw.isEnabled = false;
+
+      await servico.recuperarRotaDesconhecida();
+
+      // Vale para o servidor e para desenvolvimento: isEnabled e falso nos dois, e e o
+      // que dispensa um isPlatformBrowser no servico.
+      expect(sw.checkForUpdate).not.toHaveBeenCalled();
+      expect(recarregou).toBe(0);
+    });
   });
 });

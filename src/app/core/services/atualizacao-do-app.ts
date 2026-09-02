@@ -39,6 +39,14 @@ export class AtualizacaoDoApp {
   private pendente = false;
 
   /**
+   * Uma tentativa de recuperação por aba.
+   *
+   * Sem a trava, um 404 legítimo logo depois de uma atualização viraria par
+   * erro-recarrega em laço. Mesmo raciocínio do `stale-bundle.ts`.
+   */
+  private static readonly CHAVE_TENTOU = 'sg_recarregou_por_rota';
+
+  /**
    * Chamado uma vez, pelo componente raiz.
    *
    * `isEnabled` é falso no servidor e em desenvolvimento, então isto não faz nada nos
@@ -76,5 +84,52 @@ export class AtualizacaoDoApp {
         this.pendente = false;
         void updates.activateUpdate().then(() => this.doc.location.reload());
       });
+  }
+
+  /**
+   * Chamado pela tela de rota não encontrada, antes de ela se mostrar.
+   *
+   * <h2>Por que o 404 do app é suspeito de ser versão velha</h2>
+   * A tabela de rotas mora no bundle. Quando um deploy acrescenta uma rota, quem está com
+   * o app cacheado pelo service worker continua com a tabela <b>antiga</b> — e o servidor
+   * não tem como ajudar: ele responde 200 com a casca, porque para ele a URL é válida.
+   * O router não acha nada, cai no `**`, e a pessoa vê "YOU DIED" numa página que existe.
+   *
+   * <p>O caso real foi a volta do login com Discord. `/login/discord?code=...` é um
+   * carregamento de documento inteiro, vindo de fora do site: o app sobe do zero, na
+   * versão que o service worker tem, e essa versão pode ser de antes de a rota existir.
+   * O {@link #iniciar} não alcança esse caso — ele troca de versão na próxima navegação
+   * de <i>router</i>, e aqui não houve navegação nenhuma, houve um documento novo.
+   *
+   * <h2>Por que aqui e não só no login do Discord</h2>
+   * Tratar só aquela rota resolveria o sintoma de hoje e deixaria a armadilha armada para
+   * a próxima rota nova. O 404 é o funil por onde <b>toda</b> rota desconhecida passa.
+   *
+   * <p>Custo de estar errado: um 404 de verdade paga uma ida ao {@code ngsw.json} antes de
+   * aparecer. Só há recarga quando o service worker confirma que existe versão nova — sem
+   * isso, a tela aparece na hora.
+   */
+  async recuperarRotaDesconhecida(): Promise<void> {
+    // Falso no servidor e em desenvolvimento, o que dispensa isPlatformBrowser aqui.
+    if (!this.updates?.isEnabled) return;
+
+    try {
+      if (sessionStorage.getItem(AtualizacaoDoApp.CHAVE_TENTOU)) return;
+    } catch {
+      // Sem sessionStorage não há como travar o laço; melhor não recarregar.
+      return;
+    }
+
+    // checkForUpdate vai ao ngsw.json; devolve true quando havia versão nova para baixar.
+    if (!(await this.updates.checkForUpdate())) return;
+
+    try {
+      sessionStorage.setItem(AtualizacaoDoApp.CHAVE_TENTOU, '1');
+    } catch {
+      return;
+    }
+
+    await this.updates.activateUpdate();
+    this.doc.location.reload();
   }
 }
