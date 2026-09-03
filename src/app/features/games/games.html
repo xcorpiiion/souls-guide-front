@@ -63,7 +63,17 @@
       @for (game of games(); track trackById($index, game)) {
         <article class="game-card game-card--{{ genreClass[game.genre] }}">
           <div class="game-card__banner" [attr.data-vt]="capaAtiva() === game.ref ? 'capa' : null">
-            <span class="game-card__short">{{ game.shortName }}</span>
+            <!--
+              Marca d'água: o nome curto em corpo grande, a 15% de opacidade, no banner.
+              É decoração — o nome de verdade está no <h2> logo abaixo.
+
+              `aria-hidden` porque ele é ruído para quem usa leitor de tela: sem isto, cada
+              card é anunciado duas vezes ("ER", depois "Elden Ring"). E é o que resolve o
+              contraste de 1,58:1 que o teste de acessibilidade acusava — subir a opacidade
+              até passar no AA transformaria a marca d'água num segundo título, que é o
+              oposto do que ela é.
+            -->
+            <span class="game-card__short" aria-hidden="true">{{ game.shortName }}</span>
             <span class="game-card__genre">{{ genreLabel[game.genre] }}</span>
           </div>
 

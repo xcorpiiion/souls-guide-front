@@ -349,7 +349,11 @@ $genre-colors: (
   // Lies of P não pertence a série nenhuma, e a linha não some: sem ela o título de
   // um card sobe e desalinha a fileira inteira.
   &--none {
-    color: v.$color-text-faint;
+    // `muted`, e não `faint`: em 11px sobre o card escuro, o faint dava 1,83:1 onde o AA
+    // pede 4,5:1 — texto que o teste de acessibilidade acusou e que, olhando a tela, de
+    // fato quase não se lê. O muted fica em 4,6:1 e continua sendo a cor mais discreta que
+    // passa; quem segue diferenciando "sem série" de um nome de série é o itálico.
+    color: v.$color-text-muted;
     font-style: italic;
     cursor: default;
   }

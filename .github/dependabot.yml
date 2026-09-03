@@ -1,0 +1,50 @@
+# Atualizacao de dependencia, aberta como PR.
+#
+# Este e o repositorio com a maior superficie dos oito: um `npm ls` do Angular passa de mil
+# pacotes, e nenhum deles herda versao de parent nenhum — nao existe equivalente do
+# platform-service-parent no lado npm. O que o Java resolve em um arquivo, aqui e o
+# package.json e mais nada.
+#
+# E o unico que serve conteudo direto para o navegador de quem visita. Vulnerabilidade em
+# dependencia de front nao fica dentro da rede do compose: ela chega no aparelho do leitor.
+#
+# Agrupado por semana, e major de fora do grupo: no Angular, major e migracao com
+# `ng update`, nao merge de PR.
+
+version: 2
+updates:
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+    open-pull-requests-limit: 5
+    groups:
+      angular:
+        patterns: ["@angular/*", "@angular-devkit/*", "zone.js", "rxjs"]
+        update-types: ["minor", "patch"]
+      resto:
+        patterns: ["*"]
+        exclude-patterns: ["@angular/*", "@angular-devkit/*", "zone.js", "rxjs"]
+        update-types: ["minor", "patch"]
+    commit-message:
+      prefix: "chore(deps)"
+    labels: ["dependencias"]
+
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: monthly
+    commit-message:
+      prefix: "chore(ci)"
+    labels: ["dependencias"]
+
+  # As duas imagens saem do mesmo Dockerfile, por --target: nginx para o `web` e node para
+  # o `ssr`. Patch de sistema operacional em qualquer uma das duas passa por aqui.
+  - package-ecosystem: docker
+    directory: /
+    schedule:
+      interval: monthly
+    commit-message:
+      prefix: "chore(docker)"
+    labels: ["dependencias"]
