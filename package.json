@@ -54,7 +54,7 @@
     "@playwright/test": "^1.62.1",
     "@types/express": "^5.0.1",
     "@types/google.accounts": "^0.0.18",
-    "@types/node": "^20.17.19",
+    "@types/node": "^26.4.1",
     "@vitest/coverage-v8": "^4.1.10",
     "@xcorpiiion/canonico": "^2026.0.1-dev.26",
     "angular-eslint": "22.1.0",
