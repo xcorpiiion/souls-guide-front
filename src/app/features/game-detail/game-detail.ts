@@ -88,14 +88,28 @@ export class GameDetail implements OnInit {
     const g = this.game();
     if (!g) return;
 
+    // Fora do escopo a página é ficha mínima, e a descrição não pode prometer guia que não
+    // existe nem vai existir — quem chega por essa promessa sai no primeiro segundo.
+    const doEscopo = g.dentroDoEscopo !== false;
+
     this.seo.aplicar({
       titulo: g.name,
-      descricao:
-        resumo(g.description) ||
-        `Guias de quest, finais e lore de ${g.name}, escritos e revisados pela comunidade.`,
+      descricao: doEscopo
+        ? resumo(g.description) ||
+          `Guias de quest, finais e lore de ${g.name}, escritos e revisados pela comunidade.`
+        : resumo(g.description) || `${g.name} no catálogo do SoulGuide.`,
       imagem: g.imageUrl ?? null,
       // O jogo tem slug proprio, e o endpoint resolve os dois formatos.
       canonical: g.slug ? `/games/${g.slug}` : null,
+      // Tirar o jogo do sitemap.xml não basta, e é por isso que esta linha existe: sitemap
+      // é convite, não cerca — quem chega por link direto é indexado do mesmo jeito. Ver
+      // ADR 0027 do souls-guide-api.
+      //
+      // A comparação é com `false`, e não um booleano cru: ausente significa resposta sem
+      // o campo, e o padrão seguro nesse caso é **indexar**. Deixar de marcar `noindex`
+      // numa ficha mínima se conserta na próxima visita do crawler; marcar `noindex` em
+      // Elden Ring por engano tira do índice a página que traz gente para o site.
+      indexavel: doEscopo,
     });
 
     this.seo.estruturado({ '@type': 'VideoGame', name: g.name, description: g.description ?? '' });

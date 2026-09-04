@@ -17,6 +17,7 @@ const MOCK_GAME: Game = {
   description: 'Open world RPG',
   genre: 'SOULS_LIKE',
   features: ['QUEST_GRAPH', 'ENDINGS', 'BOSSES', 'ITEMS', 'LORE', 'QUEST_MAP'],
+  dentroDoEscopo: true,
   followerCount: 0,
   userIsFollowing: false,
 };

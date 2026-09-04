@@ -74,6 +74,19 @@ export interface GameSummary {
    * campo cru — é lá que mora a regra da ausência.
    */
   features?: GameFeature[];
+  /**
+   * Se o jogo cabe na promessa do site.
+   *
+   * O catálogo é amplo no banco e estreito no site: a sincronização com a IGDB importa
+   * qualquer jogo, para a biblioteca do usuário se apoiar nele, mas só o do escopo é
+   * conteúdo. Fora dele a página é ficha mínima — sem aba nenhuma, porque `features` vem
+   * vazio, e com `noindex`.
+   *
+   * Ausente na listagem pelo mesmo motivo que `features`: `GameSummaryDTO` não carrega o
+   * campo, e não precisa — `GET /games` já devolve só os do escopo. Ver ADR 0027 do
+   * souls-guide-api.
+   */
+  dentroDoEscopo?: boolean;
   /** A série, quando o jogo pertence a alguma. Lies of P não pertence a nenhuma. */
   seriesName?: string | null;
   seriesSlug?: string | null;
@@ -132,6 +145,7 @@ export function gameToSummary(g: Game): GameSummary {
     accentClass: 'accent-default',
     genre: g.genre,
     features: g.features,
+    dentroDoEscopo: g.dentroDoEscopo,
     seriesName: g.series?.name ?? null,
     seriesSlug: g.series?.slug ?? null,
     questCount: 0,
