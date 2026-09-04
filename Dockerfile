@@ -1,7 +1,7 @@
 # syntax=docker/dockerfile:1
 
 # ── Stage 1: build ──────────────────────────────────────────────────────────────
-FROM node:24-alpine AS builder
+FROM node:26-alpine AS builder
 
 WORKDIR /app
 
@@ -39,7 +39,7 @@ EXPOSE 80
 # conhecimento que custou caro (o resolver do Docker, o `^~` que salvou o PUT da URL
 # assinada, o Cache-Control do index.html). Reescrever isso em Express para caber num
 # processo só seria trocar uma coisa que funciona por uma reescrita.
-FROM node:24-alpine AS ssr
+FROM node:26-alpine AS ssr
 
 WORKDIR /app
 
