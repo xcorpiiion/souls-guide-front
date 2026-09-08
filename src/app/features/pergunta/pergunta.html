@@ -1,0 +1,196 @@
+@if (loading()) {
+  <pf-page-loader />
+} @else if (error()) {
+  <div class="pergunta__erro">
+    <i class="ti ti-message-off" aria-hidden="true"></i>
+    <p>{{ error() }}</p>
+    <a routerLink="/games">ver os jogos</a>
+  </div>
+} @else if (question(); as q) {
+  <div class="pergunta">
+    <div class="pergunta__coluna">
+      <h1 class="pergunta__titulo">{{ q.title }}</h1>
+
+      <div class="pergunta__meta">
+        <span class="pergunta__autor">{{ q.authorName }}</span>
+        <span>·</span>
+        <span>{{ haQuanto(q.daysAgo) }}</span>
+        <span>·</span>
+        <span>{{ rotuloContagem() }}</span>
+        @if (q.resolved) {
+          <span class="pergunta__selo"
+            ><i class="ti ti-check" aria-hidden="true"></i> resolvida</span
+          >
+        }
+      </div>
+
+      <!-- A resposta aceita vem ANTES do corpo: quem chegou do buscador já sabe qual é a
+           pergunta — ele a digitou. O que falta é a resposta. -->
+      @if (aceita(); as a) {
+        <section class="aceita">
+          <div class="aceita__cabecalho">
+            <i class="ti ti-rosette-discount-check-filled" aria-hidden="true"></i>
+            <span>resposta aceita</span>
+          </div>
+
+          @if (escondido('a' + a.id, a.isSpoiler)) {
+            <button type="button" class="spoiler" (click)="revelar('a' + a.id)">
+              <i class="ti ti-eye-off" aria-hidden="true"></i> contém spoiler — toque para revelar
+            </button>
+          } @else {
+            <p class="aceita__texto">{{ a.body }}</p>
+            <div class="assinatura assinatura--aceita">
+              <div class="assinatura__quem">
+                <div class="avatar avatar--dourado">{{ iniciais(a.authorName) }}</div>
+                <div class="assinatura__nome">
+                  <div class="assinatura__nome-txt">{{ a.authorName }}</div>
+                  <div class="assinatura__handle">
+                    {{ a.authorHandle }} · {{ haQuanto(a.daysAgo) }}
+                  </div>
+                </div>
+              </div>
+              @if (a.viewerCanDelete) {
+                <button type="button" class="botao-fantasma">excluir</button>
+              }
+            </div>
+          }
+        </section>
+      }
+
+      @if (q.body) {
+        <section class="corpo">
+          <p class="rotulo">a pergunta</p>
+          @if (escondido('question', q.isSpoiler)) {
+            <button type="button" class="spoiler" (click)="revelar('question')">
+              <i class="ti ti-eye-off" aria-hidden="true"></i> contém spoiler — toque para revelar
+            </button>
+          } @else {
+            <p class="corpo__texto">{{ q.body }}</p>
+          }
+          @if (q.viewerCanDelete) {
+            <div class="corpo__acoes">
+              <button type="button" class="botao-fantasma">excluir pergunta</button>
+            </div>
+          }
+        </section>
+      }
+
+      @if (outras().length > 0) {
+        <section class="outras">
+          <p class="rotulo">{{ rotuloOutras() }}</p>
+          <ul class="outras__lista">
+            @for (a of outras(); track a.id) {
+              <li class="resposta">
+                @if (escondido('a' + a.id, a.isSpoiler)) {
+                  <button type="button" class="spoiler" (click)="revelar('a' + a.id)">
+                    <i class="ti ti-eye-off" aria-hidden="true"></i> contém spoiler — toque para
+                    revelar
+                  </button>
+                } @else {
+                  <p class="resposta__texto">{{ a.body }}</p>
+                }
+                <div class="assinatura">
+                  <div class="assinatura__quem">
+                    <div class="avatar">{{ iniciais(a.authorName) }}</div>
+                    <div class="assinatura__nome">
+                      <div class="assinatura__nome-txt">{{ a.authorName }}</div>
+                      <div class="assinatura__handle">
+                        {{ a.authorHandle }} · {{ haQuanto(a.daysAgo) }}
+                      </div>
+                    </div>
+                  </div>
+                  <div class="assinatura__acoes">
+                    @if (a.viewerCanAccept) {
+                      <button type="button" class="botao-aceitar" (click)="aceitar(a)">
+                        <i class="ti ti-check" aria-hidden="true"></i> marcar como resolvida
+                      </button>
+                    }
+                    @if (a.viewerCanDelete) {
+                      <button type="button" class="botao-fantasma">excluir</button>
+                    }
+                  </div>
+                </div>
+              </li>
+            }
+          </ul>
+        </section>
+      }
+
+      <!-- Sem resposta é o estado comum, e ele é um CONVITE, não um erro: a pergunta sem
+           resposta é o que atrai quem sabe responder. -->
+      @if (semRespostas()) {
+        <section class="vazio">
+          <i class="ti ti-message-2-question" aria-hidden="true"></i>
+          <p class="vazio__titulo">ninguém respondeu ainda</p>
+          <p class="vazio__texto">
+            se você já passou por isso em {{ q.gameName }}, sua resposta pode ser a primeira — e a
+            que fica.
+          </p>
+        </section>
+      }
+
+      <section class="compositor">
+        <p class="rotulo">sua resposta</p>
+        @if (auth.isLoggedIn()) {
+          <textarea
+            rows="4"
+            aria-label="escreva sua resposta"
+            [placeholder]="placeholderComposer()"
+            [ngModel]="composerBody()"
+            (ngModelChange)="composerBody.set($event)"
+          ></textarea>
+          <div class="compositor__acoes">
+            <button
+              type="button"
+              class="botao-spoiler"
+              [class.botao-spoiler--ativo]="composerSpoiler()"
+              (click)="composerSpoiler.set(!composerSpoiler())"
+            >
+              <i
+                class="ti"
+                [class.ti-eye-off]="composerSpoiler()"
+                [class.ti-eye]="!composerSpoiler()"
+                aria-hidden="true"
+              ></i>
+              marcar como spoiler
+            </button>
+            <button
+              type="button"
+              class="botao-primario"
+              [disabled]="enviando()"
+              (click)="responder()"
+            >
+              {{ enviando() ? 'enviando…' : 'responder' }}
+            </button>
+          </div>
+        } @else {
+          <a class="compositor__entrar" routerLink="/login">entre para responder</a>
+        }
+      </section>
+
+      <section class="relacionadas">
+        <p class="rotulo">outras perguntas sobre {{ q.gameName }}</p>
+        @if (related().length > 0) {
+          <ul class="relacionadas__lista">
+            @for (r of related(); track r.id) {
+              <li>
+                <a [routerLink]="['/perguntas', r.slug ?? r.id]">
+                  <span class="relacionadas__titulo">{{ r.title }}</span>
+                  <span class="relacionadas__contagem">
+                    @if (r.resolved) {
+                      <i class="ti ti-check" aria-hidden="true"></i>
+                    }
+                    {{ r.answerCount }}
+                  </span>
+                </a>
+              </li>
+            }
+          </ul>
+        }
+        <a class="relacionadas__voltar" [routerLink]="['/games', q.gameSlug ?? q.gameId]">
+          <i class="ti ti-arrow-left" aria-hidden="true"></i> tudo sobre {{ q.gameName }}
+        </a>
+      </section>
+    </div>
+  </div>
+}

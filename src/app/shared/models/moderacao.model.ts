@@ -32,4 +32,6 @@ export const CONTENT_KIND_LABEL: Record<ContentKind, string> = {
   LORE: 'lore',
   ENDING: 'final',
   COMMENT: 'comentário',
+  QUESTION: 'pergunta',
+  ANSWER: 'resposta',
 };

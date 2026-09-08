@@ -335,6 +335,18 @@ export const routes: Routes = [
       import('./features/lore/lore-detail/lore-detail').then((m) => m.LoreDetail),
   },
   {
+    // A página de aterrissagem do Q&A: quem chega vem do buscador, não da navegação.
+    // Aceita id ou slug — o endpoint resolve os dois (ADR 0013 do souls-guide-api).
+    path: 'perguntas/:referencia',
+    data: {
+      seo: {
+        titulo: 'Pergunta',
+        descricao: 'Uma pergunta sobre o jogo, respondida pela comunidade.',
+      } satisfies SeoPagina,
+    },
+    loadComponent: () => import('./features/pergunta/pergunta').then((m) => m.Pergunta),
+  },
+  {
     path: 'lore/:loreId/history',
     data: {
       seo: {

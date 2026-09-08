@@ -81,6 +81,7 @@ flowchart LR
         questCondition["quest-condition.service"]
         questMap["quest-map.service"]
         comment["comment.service"]
+        question["question.service"]
     end
 
     subgraph pessoal ["Do usuário"]
