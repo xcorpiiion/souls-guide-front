@@ -225,7 +225,22 @@ describe('GameDetail', () => {
   describe('as seções saem do que o jogo declara ter', () => {
     it('mostra só as abas das capacidades declaradas', () => {
       const fixture = createFixture('1', jogoCom('LORE', 'ENDINGS'));
-      expect(abas(fixture)).toEqual(['lore', 'finais', 'contribuidores']);
+      expect(abas(fixture)).toEqual(['lore', 'finais', 'meu', 'contribuidores']);
+    });
+
+    /**
+     * O arquivo não é capacidade: é o caderno de quem joga, e Silent Hill sem lore declarada
+     * continua tendo nota para guardar. Ver ADR 0032 do souls-guide-api.
+     */
+    it('mostra "meu arquivo" mesmo em jogo que não declara lore', () => {
+      const fixture = createFixture('1', jogoCom('ENDINGS'));
+      expect(abas(fixture)).toContain('meu');
+    });
+
+    /** Fora do escopo o jogo é ficha mínima, e o servidor recusa achado ali (ADR 0027). */
+    it('esconde "meu arquivo" de jogo fora do escopo', () => {
+      const fixture = createFixture('1', { ...jogoCom('LORE'), dentroDoEscopo: false });
+      expect(abas(fixture)).not.toContain('meu');
     });
 
     /**
@@ -276,7 +291,7 @@ describe('GameDetail', () => {
      */
     it('mostra tudo quando o jogo chega sem capacidade nenhuma', () => {
       const fixture = createFixture('1', jogoCom());
-      expect(abas(fixture)).toEqual(['quests', 'lore', 'finais', 'contribuidores']);
+      expect(abas(fixture)).toEqual(['quests', 'lore', 'finais', 'meu', 'contribuidores']);
     });
   });
 

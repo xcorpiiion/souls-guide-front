@@ -1,0 +1,693 @@
+<div class="arquivo">
+  <!-- ══ TELA 1 — visão geral ══ -->
+  @if (tela() === 'visao-geral') {
+    @if (!auth.isLoggedIn()) {
+      <section class="arquivo__vazio">
+        <i class="ti ti-lock arquivo__vazio-icone" aria-hidden="true"></i>
+        <h2 class="arquivo__vazio-titulo">seu arquivo é só seu</h2>
+        <p class="arquivo__vazio-texto">
+          entre para guardar as notas, documentos e diálogos que você encontrar — e começar a ligar
+          uma peça na outra. ninguém mais vê o que você registra.
+        </p>
+        <a class="botao botao--primario" routerLink="/login">entrar</a>
+      </section>
+    } @else {
+      <div class="arquivo__cabecalho">
+        <div>
+          <h2 class="arquivo__titulo">meu arquivo</h2>
+          <p class="arquivo__subtitulo">só você vê esta aba</p>
+        </div>
+        <button type="button" class="botao botao--primario" (click)="irParaRegistrar()">
+          <i class="ti ti-plus" aria-hidden="true"></i> registrar achado
+        </button>
+      </div>
+
+      @if (carregando()) {
+        <p class="arquivo__aviso">
+          <i class="ti ti-loader-2 arquivo__giro" aria-hidden="true"></i> abrindo seu arquivo…
+        </p>
+      } @else if (falhou()) {
+        <section class="arquivo__vazio">
+          <i class="ti ti-alert-circle arquivo__vazio-icone" aria-hidden="true"></i>
+          <h3 class="arquivo__vazio-titulo arquivo__vazio-titulo--menor">o arquivo não abriu</h3>
+          <p class="arquivo__vazio-texto">
+            nada foi perdido — o servidor não respondeu agora. tente de novo em instantes.
+          </p>
+          <button type="button" class="botao botao--secundario" (click)="carregar()">
+            tentar de novo
+          </button>
+        </section>
+      } @else if (vazio()) {
+        <section class="arquivo__vazio">
+          <i class="ti ti-notes arquivo__vazio-icone" aria-hidden="true"></i>
+          <h3 class="arquivo__vazio-titulo arquivo__vazio-titulo--menor">nada guardado ainda</h3>
+          <p class="arquivo__vazio-texto">
+            cole aqui o texto das notas, documentos e diálogos que for encontrando. depois é aqui
+            que você liga uma peça na outra até a história fazer sentido.
+          </p>
+          <button type="button" class="botao botao--primario" (click)="irParaRegistrar()">
+            <i class="ti ti-plus" aria-hidden="true"></i> registrar achado
+          </button>
+        </section>
+      } @else {
+        <div class="numeros">
+          <div class="numeros__item">
+            <div class="numeros__valor">{{ achados().length }}</div>
+            <div class="numeros__rotulo">achados</div>
+          </div>
+          <div class="numeros__item">
+            <div class="numeros__valor">{{ capitulos().length }}</div>
+            <div class="numeros__rotulo">capítulos</div>
+          </div>
+          <div class="numeros__item">
+            <div class="numeros__valor numeros__valor--apagado">{{ soltas().length }}</div>
+            <div class="numeros__rotulo">peças soltas</div>
+          </div>
+        </div>
+
+        <div class="alternador" role="tablist" aria-label="visão do arquivo">
+          <button
+            type="button"
+            role="tab"
+            class="alternador__opcao"
+            [class.alternador__opcao--ativa]="visao() === 'arquivo'"
+            [attr.aria-selected]="visao() === 'arquivo'"
+            (click)="mostrarVisao('arquivo')"
+          >
+            <i class="ti ti-list-details" aria-hidden="true"></i> arquivo
+          </button>
+          <button
+            type="button"
+            role="tab"
+            class="alternador__opcao"
+            [class.alternador__opcao--ativa]="visao() === 'ligacoes'"
+            [attr.aria-selected]="visao() === 'ligacoes'"
+            (click)="mostrarVisao('ligacoes')"
+          >
+            <i class="ti ti-affiliate" aria-hidden="true"></i> ligações
+          </button>
+        </div>
+
+        <!-- ── visão Arquivo ── -->
+        @if (visao() === 'arquivo') {
+          <div class="filtros">
+            <label class="filtros__busca">
+              <i class="ti ti-search" aria-hidden="true"></i>
+              <input
+                id="arquivo-busca"
+                type="text"
+                placeholder="buscar no texto dos achados"
+                aria-label="buscar no texto dos achados"
+                [value]="busca()"
+                (input)="busca.set($any($event.target).value)"
+              />
+            </label>
+            <div class="filtros__chips" role="group" aria-label="filtrar por tipo">
+              <button
+                type="button"
+                class="chip"
+                [class.chip--ativo]="filtroTipo() === 'todos'"
+                (click)="filtroTipo.set('todos')"
+              >
+                <i class="ti ti-stack-2" aria-hidden="true"></i> todos
+              </button>
+              @for (t of tipos; track t.key) {
+                <button
+                  type="button"
+                  class="chip"
+                  [class.chip--ativo]="filtroTipo() === t.key"
+                  (click)="filtroTipo.set(t.key)"
+                >
+                  <i [class]="t.icon" aria-hidden="true"></i> {{ t.label }}
+                </button>
+              }
+            </div>
+            <div class="filtros__linha">
+              <select
+                id="arquivo-capitulo"
+                class="campo filtros__capitulo"
+                aria-label="filtrar por capítulo"
+                [value]="filtroCapitulo()"
+                (change)="filtroCapitulo.set($any($event.target).value)"
+              >
+                <option value="todos">todos os capítulos</option>
+                @for (c of capitulos(); track c) {
+                  <option [value]="c">{{ c }}</option>
+                }
+              </select>
+              <button
+                type="button"
+                class="chip chip--quadrado"
+                [class.chip--ativo]="soSoltas()"
+                [attr.aria-pressed]="soSoltas()"
+                (click)="soSoltas.set(!soSoltas())"
+              >
+                <i [class]="soSoltas() ? 'ti ti-unlink' : 'ti ti-filter'" aria-hidden="true"></i>
+                só peças soltas
+              </button>
+            </div>
+          </div>
+
+          @if (grupos().length === 0) {
+            <p class="arquivo__aviso arquivo__aviso--centro">nenhum achado com esses filtros.</p>
+          }
+
+          <div class="grupos">
+            @for (g of grupos(); track g.chapter) {
+              <section>
+                <div class="grupos__cabecalho">
+                  <h3 class="grupos__capitulo">{{ g.chapter }}</h3>
+                  <div class="grupos__fio"></div>
+                  <span class="grupos__contagem">{{ g.items.length }}</span>
+                </div>
+                <ul class="grupos__lista">
+                  @for (it of g.items; track it.id) {
+                    <li>
+                      <button type="button" class="linha" (click)="abrirAchado(it.id)">
+                        <span class="linha__icone"
+                          ><i [class]="it.icon" aria-hidden="true"></i
+                        ></span>
+                        <span class="linha__corpo">
+                          <span class="linha__topo">
+                            <span class="linha__titulo">{{ it.title }}</span>
+                            <span class="etiqueta">{{ it.typeLabel }}</span>
+                          </span>
+                          <span class="linha__trecho">{{ it.firstLine }}</span>
+                          <span class="linha__meta">
+                            <span>{{ it.chapterLabel }}</span>
+                            <span
+                              class="linha__ligacoes"
+                              [class.linha__ligacoes--solta]="it.degree === 0"
+                            >
+                              <i class="ti ti-affiliate" aria-hidden="true"></i> {{ it.linkLabel }}
+                            </span>
+                          </span>
+                        </span>
+                      </button>
+                    </li>
+                  }
+                </ul>
+              </section>
+            }
+          </div>
+        }
+
+        <!-- ── visão Ligações ── -->
+        @if (visao() === 'ligacoes') {
+          @if (!celular()) {
+            <p class="arquivo__dica">clique num achado para acender os vizinhos.</p>
+            <div class="mural">
+              @if (nos().length === 0) {
+                <p class="arquivo__aviso arquivo__aviso--centro">
+                  nenhuma ligação ainda. abra um achado e ligue-o a outro — é aqui que a história
+                  começa a aparecer.
+                </p>
+              } @else {
+                <div
+                  class="mural__tela"
+                  [style.width.px]="muralLargura()"
+                  [style.height.px]="muralAltura()"
+                >
+                  <svg
+                    class="mural__arestas"
+                    [attr.width]="muralLargura()"
+                    [attr.height]="muralAltura()"
+                    aria-hidden="true"
+                  >
+                    @for (e of arestas(); track e.id) {
+                      <line
+                        [attr.x1]="e.x1"
+                        [attr.y1]="e.y1"
+                        [attr.x2]="e.x2"
+                        [attr.y2]="e.y2"
+                        [attr.stroke]="e.cor"
+                        [attr.stroke-width]="e.largura"
+                        [attr.stroke-dasharray]="e.tracejado"
+                        [attr.opacity]="e.opacidade"
+                      ></line>
+                    }
+                  </svg>
+                  @for (e of arestas(); track e.id) {
+                    <span
+                      class="mural__rotulo"
+                      [style.left.px]="e.rotuloX"
+                      [style.top.px]="e.rotuloY"
+                      [style.color]="e.cor"
+                      [style.border-color]="e.cor"
+                      [style.opacity]="e.opacidade"
+                      >{{ e.rotulo }}</span
+                    >
+                  }
+                  @for (n of nos(); track n.id) {
+                    <button
+                      type="button"
+                      class="cartao"
+                      [class.cartao--aceso]="n.aceso"
+                      [class.cartao--apagado]="n.apagado"
+                      [style.left.px]="n.x"
+                      [style.top.px]="n.y"
+                      [attr.aria-pressed]="n.aceso"
+                      (click)="alternarDestaque(n.id)"
+                      (dblclick)="abrirAchado(n.id)"
+                    >
+                      <span class="cartao__tipo">
+                        <i [class]="n.icon" aria-hidden="true"></i>
+                        <span class="etiqueta">{{ n.typeLabel }}</span>
+                      </span>
+                      <span class="cartao__titulo">{{ n.title }}</span>
+                      <span class="cartao__capitulo">{{ n.chapterLabel }}</span>
+                    </button>
+                  }
+                </div>
+              }
+
+              @if (soltas().length > 0) {
+                <div class="mural__soltas" [style.width.px]="nos().length ? muralLargura() : null">
+                  <p class="rotulo-mono">{{ rotuloFaixaSoltas() }}</p>
+                  <div class="mural__soltas-lista">
+                    @for (lp of soltasDoMural(); track lp.id) {
+                      <button type="button" class="solta" (click)="abrirAchado(lp.id)">
+                        <i [class]="lp.icon" aria-hidden="true"></i>
+                        <span class="solta__titulo">{{ lp.title }}</span>
+                      </button>
+                    }
+                    @if (soltas().length > 4) {
+                      <button type="button" class="solta solta--mais" (click)="verTodasAsSoltas()">
+                        + {{ soltas().length - 4 }} outras
+                      </button>
+                    }
+                  </div>
+                </div>
+              }
+            </div>
+          } @else if (fio(); as f) {
+            <!-- fio, no celular -->
+            <p class="arquivo__dica">siga o fio: abra um achado e toque nos ligados a ele.</p>
+            <div class="fio">
+              <div class="fio__tipo">
+                <i [class]="f.icon" aria-hidden="true"></i>
+                <span class="etiqueta etiqueta--clara">{{ f.typeLabel }}</span>
+              </div>
+              <p class="fio__titulo">{{ f.title }}</p>
+              <p class="fio__capitulo">{{ f.chapterLabel }}</p>
+              <button type="button" class="botao botao--pequeno" (click)="abrirAchado(f.id)">
+                abrir achado
+              </button>
+            </div>
+
+            <p class="rotulo-mono rotulo-mono--espaco">{{ f.neighboursLabel }}</p>
+            @if (f.neighbours.length === 0) {
+              <div class="tracejado">
+                <p class="tracejado__texto">
+                  esta peça ainda está solta. ligue-a a outra para o fio continuar.
+                </p>
+                <button type="button" class="botao botao--pequeno" (click)="abrirAchado(f.id)">
+                  ligar a outro achado
+                </button>
+              </div>
+            }
+            <ul class="grupos__lista">
+              @for (nb of f.neighbours; track nb.id) {
+                <li>
+                  <button type="button" class="vizinho" (click)="seguirFio(nb.otherId)">
+                    <span class="vizinho__relacao" [style.color]="nb.color">
+                      <i class="ti ti-arrow-right" aria-hidden="true"></i> {{ nb.short }}
+                    </span>
+                    <span class="vizinho__titulo">{{ nb.title }}</span>
+                    @if (nb.why) {
+                      <span class="vizinho__porque">“{{ nb.why }}”</span>
+                    }
+                  </button>
+                </li>
+              }
+            </ul>
+          }
+        }
+      }
+    }
+  }
+
+  <!-- ══ TELA 2 — registrar achado ══ -->
+  @if (tela() === 'registrar') {
+    <div class="coluna coluna--estreita">
+      <button type="button" class="voltar" (click)="voltarDoFormulario()">
+        <i class="ti ti-arrow-left" aria-hidden="true"></i>
+        {{ editandoId() === null ? 'meu arquivo' : 'voltar ao achado' }}
+      </button>
+
+      <h2 class="arquivo__titulo">
+        {{ editandoId() === null ? 'registrar achado' : 'editar achado' }}
+      </h2>
+      <p class="arquivo__subtitulo arquivo__subtitulo--espaco">
+        @if (editandoId() === null) {
+          cole o texto que você extraiu. rascunho guardado enquanto você digita.
+        } @else {
+          as ligações e a anotação continuam como estão.
+        }
+      </p>
+
+      <form class="formulario" (submit)="$event.preventDefault(); salvar(false)">
+        <div>
+          <p class="rotulo">tipo do achado</p>
+          <div class="tipos" role="radiogroup" aria-label="tipo do achado">
+            @for (t of tipos; track t.key) {
+              <button
+                type="button"
+                role="radio"
+                class="tipos__opcao"
+                [class.tipos__opcao--ativa]="formTipo() === t.key"
+                [attr.aria-checked]="formTipo() === t.key"
+                (click)="escolherTipo(t.key)"
+              >
+                <i [class]="t.icon" aria-hidden="true"></i>
+                <span>{{ t.label }}</span>
+              </button>
+            }
+          </div>
+        </div>
+
+        <div>
+          <label for="ach-titulo" class="rotulo">título</label>
+          <input
+            id="ach-titulo"
+            type="text"
+            class="campo"
+            maxlength="160"
+            placeholder="Bilhete dobrado no armário"
+            autocomplete="off"
+            [value]="formTitulo()"
+            (input)="escreverNoFormulario('titulo', $any($event.target).value)"
+          />
+        </div>
+
+        <div>
+          <div class="formulario__rotulo-linha">
+            <label for="ach-texto" class="rotulo rotulo--sem-margem">texto</label>
+            <span class="formulario__nota">quebras de linha preservadas</span>
+          </div>
+          <textarea
+            id="ach-texto"
+            class="campo campo--texto"
+            maxlength="20000"
+            [rows]="celular() ? 7 : 9"
+            placeholder="cole aqui o texto da nota, do documento ou da fala…"
+            [value]="formTexto()"
+            (input)="escreverNoFormulario('texto', $any($event.target).value)"
+          ></textarea>
+        </div>
+
+        <div>
+          <label for="ach-cap" class="rotulo">capítulo / local</label>
+          <input
+            id="ach-cap"
+            type="text"
+            class="campo"
+            maxlength="120"
+            placeholder="Cap. 3 — Vila"
+            autocomplete="off"
+            [value]="formCapitulo()"
+            (input)="escreverNoFormulario('capitulo', $any($event.target).value)"
+          />
+          @if (sugestoesDeCapitulo().length > 0) {
+            <div class="formulario__sugestoes">
+              @for (cs of sugestoesDeCapitulo(); track cs) {
+                <button
+                  type="button"
+                  class="chip chip--claro"
+                  [class.chip--ativo]="formCapitulo() === cs"
+                  (click)="escreverNoFormulario('capitulo', cs)"
+                >
+                  {{ cs }}
+                </button>
+              }
+            </div>
+            @if (editandoId() === null) {
+              <p class="formulario__ajuda">
+                vem preenchido com o último — você costuma registrar vários do mesmo capítulo.
+              </p>
+            }
+          }
+        </div>
+
+        @if (mostraQuemFala()) {
+          <div>
+            <label for="ach-fala" class="rotulo">
+              quem fala <span class="rotulo__opcional">— opcional</span>
+            </label>
+            <input
+              id="ach-fala"
+              type="text"
+              class="campo"
+              maxlength="120"
+              placeholder="Mulher de branco"
+              autocomplete="off"
+              [value]="formQuemFala()"
+              (input)="escreverNoFormulario('quemFala', $any($event.target).value)"
+            />
+          </div>
+        }
+
+        <div class="formulario__acoes">
+          <button
+            type="submit"
+            class="botao botao--primario botao--largo"
+            [disabled]="!podeSalvar()"
+          >
+            @if (salvando()) {
+              <i class="ti ti-loader-2 arquivo__giro" aria-hidden="true"></i> salvando…
+            } @else {
+              {{ editandoId() === null ? 'salvar' : 'salvar alterações' }}
+            }
+          </button>
+          @if (editandoId() === null) {
+            <button
+              type="button"
+              class="botao botao--secundario botao--largo"
+              [disabled]="!podeSalvar()"
+              (click)="salvar(true)"
+            >
+              salvar e registrar outro
+            </button>
+          }
+        </div>
+      </form>
+    </div>
+  }
+
+  <!-- ══ TELA 3 — detalhe do achado ══ -->
+  @if (tela() === 'detalhe') {
+    @if (detalhe(); as d) {
+      <div class="coluna">
+        <button type="button" class="voltar" (click)="irParaVisaoGeral()">
+          <i class="ti ti-arrow-left" aria-hidden="true"></i> meu arquivo
+        </button>
+
+        <div class="detalhe__meta">
+          <i [class]="d.icon" aria-hidden="true"></i>
+          <span class="etiqueta etiqueta--media">{{ d.typeLabel }}</span>
+          <span class="detalhe__ponto" aria-hidden="true">·</span>
+          <span class="detalhe__capitulo">{{ d.chapterLabel }}</span>
+        </div>
+        <h2 class="detalhe__titulo">{{ d.title }}</h2>
+
+        @if (d.speaker) {
+          <p class="detalhe__quem-fala">quem fala: {{ d.speaker }}</p>
+        }
+
+        <article class="documento">
+          <p class="documento__texto">{{ d.body }}</p>
+        </article>
+
+        <section class="detalhe__secao">
+          <div class="detalhe__secao-cabecalho">
+            <h3 class="rotulo-mono rotulo-mono--secao">{{ rotuloLigacoesDoDetalhe() }}</h3>
+            @if (achados().length > 1) {
+              <button type="button" class="botao botao--pequeno" (click)="abrirLigador()">
+                <i class="ti ti-plus" aria-hidden="true"></i> ligar a outro achado
+              </button>
+            }
+          </div>
+
+          @if (ligacoesDoDetalhe().length === 0) {
+            <div class="tracejado">
+              <p class="tracejado__texto tracejado__texto--esquerda">
+                @if (achados().length > 1) {
+                  peça solta. quando ligar este achado a outro, a história começa a aparecer no
+                  mural.
+                } @else {
+                  peça solta. registre outro achado para poder ligar os dois.
+                }
+              </p>
+            </div>
+          }
+
+          <ul class="grupos__lista">
+            @for (l of ligacoesDoDetalhe(); track l.id) {
+              <li class="ligacao">
+                <span class="ligacao__relacao" [style.color]="l.color" [style.background]="l.bg">{{
+                  l.label
+                }}</span>
+                <button type="button" class="ligacao__titulo" (click)="abrirAchado(l.otherId)">
+                  {{ l.title }}
+                </button>
+                @if (l.why) {
+                  <p class="ligacao__porque">“{{ l.why }}”</p>
+                }
+                <div class="ligacao__acoes">
+                  <button type="button" class="botao-fantasma" (click)="desfazerLigacao(l.id)">
+                    desfazer ligação
+                  </button>
+                </div>
+              </li>
+            }
+          </ul>
+        </section>
+
+        <section class="detalhe__secao">
+          <div class="detalhe__secao-cabecalho">
+            <h3 class="rotulo-mono rotulo-mono--secao">minha anotação</h3>
+            @if (anotacaoEstado() === 'guardando') {
+              <span class="detalhe__estado">guardando…</span>
+            } @else if (anotacaoEstado() === 'guardada') {
+              <span class="detalhe__estado"
+                ><i class="ti ti-check" aria-hidden="true"></i> guardada</span
+              >
+            }
+          </div>
+          <textarea
+            id="ach-anotacao"
+            class="campo campo--anotacao"
+            rows="3"
+            maxlength="4000"
+            aria-label="minha anotação"
+            placeholder="acho que essa voz é a mesma do capítulo 2…"
+            [value]="anotacao()"
+            (input)="escreverAnotacao($any($event.target).value)"
+            (blur)="gravarAnotacaoPendente()"
+          ></textarea>
+        </section>
+
+        <div class="detalhe__rodape">
+          <button type="button" class="botao botao--secundario" (click)="irParaEditar()">
+            <i class="ti ti-pencil" aria-hidden="true"></i> editar
+          </button>
+          <button type="button" class="botao botao--perigo" (click)="excluir()">
+            <i class="ti ti-trash" aria-hidden="true"></i> excluir
+          </button>
+        </div>
+
+        <!-- ligar a outro achado -->
+        @if (ligadorAberto()) {
+          <div class="folha">
+            <!-- O fundo é um botão de verdade: tocar fora fecha, e quem usa teclado tem o Esc
+                 e o "fechar" do cabeçalho. -->
+            <button
+              type="button"
+              class="folha__fundo"
+              tabindex="-1"
+              aria-label="fechar"
+              (click)="fecharLigador()"
+            ></button>
+            <div
+              class="folha__painel"
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="ligador-titulo"
+            >
+              <div class="folha__cabecalho">
+                <h3 id="ligador-titulo" class="folha__titulo">ligar a outro achado</h3>
+                <button
+                  type="button"
+                  class="folha__fechar"
+                  aria-label="fechar"
+                  (click)="fecharLigador()"
+                >
+                  <i class="ti ti-x" aria-hidden="true"></i>
+                </button>
+              </div>
+
+              <p class="rotulo">1 · qual achado</p>
+              <label class="filtros__busca filtros__busca--folha">
+                <i class="ti ti-search" aria-hidden="true"></i>
+                <input
+                  id="ligador-busca"
+                  type="text"
+                  placeholder="buscar entre meus achados"
+                  aria-label="buscar entre meus achados"
+                  [value]="ligadorBusca()"
+                  (input)="ligadorBusca.set($any($event.target).value)"
+                />
+              </label>
+              <ul class="folha__candidatos">
+                @for (lc of candidatos(); track lc.id) {
+                  <li>
+                    <button
+                      type="button"
+                      class="candidato"
+                      [class.candidato--escolhido]="ligadorEscolhido() === lc.id"
+                      [attr.aria-pressed]="ligadorEscolhido() === lc.id"
+                      (click)="ligadorEscolhido.set(lc.id)"
+                    >
+                      <i [class]="lc.icon" aria-hidden="true"></i>
+                      <span class="candidato__corpo">
+                        <span class="candidato__titulo">{{ lc.title }}</span>
+                        <span class="candidato__capitulo">{{ lc.chapterLabel }}</span>
+                      </span>
+                      @if (ligadorEscolhido() === lc.id) {
+                        <i class="ti ti-check candidato__marca" aria-hidden="true"></i>
+                      }
+                    </button>
+                  </li>
+                } @empty {
+                  <li class="arquivo__aviso">nenhum achado com esse nome.</li>
+                }
+              </ul>
+
+              <p class="rotulo">2 · que relação</p>
+              <div class="folha__relacoes" role="radiogroup" aria-label="que relação">
+                @for (r of ligacoesDisponiveis; track r.key) {
+                  <button
+                    type="button"
+                    role="radio"
+                    class="chip chip--alto"
+                    [class.chip--ativo]="ligadorTipo() === r.key"
+                    [attr.aria-checked]="ligadorTipo() === r.key"
+                    (click)="ligadorTipo.set(r.key)"
+                  >
+                    {{ r.label }}
+                  </button>
+                }
+              </div>
+
+              <label for="ligador-porque" class="rotulo">
+                3 · por quê <span class="rotulo__opcional">— opcional</span>
+              </label>
+              <textarea
+                id="ligador-porque"
+                class="campo campo--porque"
+                rows="2"
+                maxlength="300"
+                placeholder="o bilhete avisa sobre o sino"
+                [value]="ligadorPorque()"
+                (input)="ligadorPorque.set($any($event.target).value)"
+              ></textarea>
+
+              <button
+                type="button"
+                class="botao botao--primario botao--largo"
+                [disabled]="ligadorEscolhido() === null || ligando()"
+                (click)="criarLigacao()"
+              >
+                @if (ligando()) {
+                  <i class="ti ti-loader-2 arquivo__giro" aria-hidden="true"></i> ligando…
+                } @else {
+                  criar ligação
+                }
+              </button>
+            </div>
+          </div>
+        }
+      </div>
+    }
+  }
+</div>

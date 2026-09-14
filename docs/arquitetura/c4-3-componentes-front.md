@@ -91,6 +91,7 @@ flowchart LR
         progress["progress.service"]
         questProgress["quest-progress.service"]
         run["run.service"]
+        storyArchive["story-archive.service"]
         user["user.service"]
         notification["notification.service"]
         push["push.service"]
@@ -107,7 +108,7 @@ flowchart LR
     end
 
     classDef s fill:#1168bd,stroke:#0b4884,color:#fff
-    class game,gameSeries,push,quest,lore,ending,item,boss,questVersion,loreVersion,questCondition,questMap,comment,personalQuest,personalLore,profile,progress,questProgress,run,user,notification,moderacao,discordLogin,seo,atualizacao,storage,loading,monitoring s
+    class game,gameSeries,push,quest,lore,ending,item,boss,questVersion,loreVersion,questCondition,questMap,comment,personalQuest,personalLore,profile,progress,questProgress,run,storyArchive,user,notification,moderacao,discordLogin,seo,atualizacao,storage,loading,monitoring s
 ```
 
 Cinco deles não falam **só** com o `souls-guide-api`:

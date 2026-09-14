@@ -184,6 +184,19 @@
           <span class="game-detail__tab-count">{{ endings().length }}</span>
         </button>
       }
+      <!-- Sem contagem: o arquivo é pedido só quando a aba abre, e um "0" antes disso
+           mentiria para quem já tem cinquenta achados guardados. -->
+      @if (g.dentroDoEscopo !== false) {
+        <button
+          class="game-detail__tab"
+          [class.game-detail__tab--active]="activeTab() === 'arquivo'"
+          role="tab"
+          type="button"
+          (click)="setTab('arquivo')"
+        >
+          meu arquivo
+        </button>
+      }
       <button
         class="game-detail__tab"
         [class.game-detail__tab--active]="activeTab() === 'contributors'"
@@ -398,6 +411,12 @@
             <p class="game-detail__empty">Nenhum final mapeado ainda.</p>
           }
         </div>
+      </div>
+    }
+
+    @if (activeTab() === 'arquivo') {
+      <div class="game-detail__content" role="tabpanel">
+        <app-meu-arquivo [gameId]="gameId()" />
       </div>
     }
 

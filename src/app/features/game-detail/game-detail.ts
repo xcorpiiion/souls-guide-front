@@ -38,12 +38,13 @@ import { resumo, SeoService } from '../../core/services/seo.service';
 import { ConfirmService } from '@xcorpiiion/ui';
 import { ToastService } from '@xcorpiiion/ui';
 import { PfPageLoader } from '@xcorpiiion/ui';
+import { MeuArquivo } from '../meu-arquivo/meu-arquivo';
 
-type Tab = 'quests' | 'lore' | 'endings' | 'contributors';
+type Tab = 'quests' | 'lore' | 'endings' | 'arquivo' | 'contributors';
 
 @Component({
   selector: 'app-game-detail',
-  imports: [RouterLink, PfPageLoader],
+  imports: [RouterLink, PfPageLoader, MeuArquivo],
   templateUrl: './game-detail.html',
   styleUrl: './game-detail.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -186,6 +187,11 @@ export class GameDetail implements OnInit {
    *
    * `contributors` não é capacidade e por isso não se pergunta: ela é sobre o site, não
    * sobre o jogo — todo jogo tem quem escreveu nele, mesmo o que não tem nada escrito.
+   *
+   * `arquivo` também não é: é o caderno de quem joga, e todo jogo tem história para anotar,
+   * mesmo o que não declara lore. O que a esconde é o escopo — jogo fora dele é ficha
+   * mínima (ADR 0027), e o servidor recusa achado ali. A aba aparece para quem não está
+   * logado, e é ela que diz o que se ganha entrando.
    */
   protected readonly tabs = computed<Tab[]>(() => {
     const g = this.game();
@@ -195,6 +201,7 @@ export class GameDetail implements OnInit {
     if (temCapacidade(g, 'QUEST_GRAPH')) abas.push('quests');
     if (temCapacidade(g, 'LORE')) abas.push('lore');
     if (temCapacidade(g, 'ENDINGS')) abas.push('endings');
+    if (g.dentroDoEscopo !== false) abas.push('arquivo');
     abas.push('contributors');
     return abas;
   });
