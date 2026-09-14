@@ -1,0 +1,374 @@
+<button type="button" class="voltar" (click)="voltar.emit()">
+  <i class="ti ti-arrow-left" aria-hidden="true"></i> meu arquivo
+</button>
+
+<ol class="passos" aria-label="etapas">
+  <li>
+    <button
+      type="button"
+      class="passo"
+      [class.passo--atual]="passo() === 1"
+      [class.passo--feito]="passo() > 1"
+      [attr.aria-current]="passo() === 1 ? 'step' : null"
+      (click)="irPara(1)"
+    >
+      @if (passo() > 1) {
+        <i class="ti ti-check passo__feito" aria-hidden="true"></i>
+      } @else {
+        <span class="passo__numero">1</span>
+      }
+      escolher os achados
+    </button>
+  </li>
+  <li class="passos__traco" aria-hidden="true"></li>
+  <li>
+    <button
+      type="button"
+      class="passo"
+      [class.passo--atual]="passo() === 2"
+      [class.passo--feito]="passo() > 2"
+      [disabled]="escolhidos().length === 0"
+      [attr.aria-current]="passo() === 2 ? 'step' : null"
+      (click)="irPara(2)"
+    >
+      @if (passo() > 2) {
+        <i class="ti ti-check passo__feito" aria-hidden="true"></i>
+      } @else {
+        <span class="passo__numero">2</span>
+      }
+      ordenar o fio
+    </button>
+  </li>
+  <li class="passos__traco" aria-hidden="true"></li>
+  <li>
+    <button
+      type="button"
+      class="passo"
+      [class.passo--atual]="passo() === 3"
+      [disabled]="escolhidos().length === 0"
+      [attr.aria-current]="passo() === 3 ? 'step' : null"
+      (click)="irPara(3)"
+    >
+      <span class="passo__numero">3</span> escrever e publicar
+    </button>
+  </li>
+  @if (passo() === 1) {
+    <li class="passos__contagem">{{ escolhidos().length }} de {{ itens().length }} escolhidos</li>
+  }
+</ol>
+
+<!-- ══ 1 · escolher ══ -->
+@if (passo() === 1) {
+  <p class="explicacao">
+    Uma lore publicada é pública e vale para todo mundo. O que você escolher aqui sai do seu arquivo
+    privado e vira <b>citação</b> dentro do artigo — o texto do achado aparece; a sua anotação, não.
+  </p>
+
+  @if (itens().length > 9) {
+    <label class="busca">
+      <i class="ti ti-search" aria-hidden="true"></i>
+      <input
+        id="montar-busca"
+        type="text"
+        placeholder="buscar entre meus achados"
+        aria-label="buscar entre meus achados"
+        [value]="busca()"
+        (input)="busca.set($any($event.target).value)"
+      />
+    </label>
+  }
+
+  <div class="escolha">
+    @for (a of visiveis(); track a.id) {
+      <button
+        type="button"
+        class="opcao"
+        [class.opcao--escolhida]="escolhidosComoSet().has(a.id)"
+        [attr.aria-pressed]="escolhidosComoSet().has(a.id)"
+        (click)="alternar(a.id)"
+      >
+        <span class="opcao__topo">
+          <span class="opcao__caixa" aria-hidden="true">
+            @if (escolhidosComoSet().has(a.id)) {
+              <i class="ti ti-check"></i>
+            }
+          </span>
+          <span class="etiqueta">{{ a.typeLabel }} · {{ a.chapterLabel }}</span>
+        </span>
+        <span class="opcao__titulo">{{ a.title }}</span>
+      </button>
+    } @empty {
+      <p class="aviso">nenhum achado com esse texto.</p>
+    }
+  </div>
+
+  <div class="rodape">
+    <button type="button" class="botao botao--secundario" (click)="voltar.emit()">cancelar</button>
+    <button
+      type="button"
+      class="botao botao--primario"
+      [disabled]="escolhidos().length === 0"
+      (click)="irPara(2)"
+    >
+      ordenar o fio <i class="ti ti-arrow-right" aria-hidden="true"></i>
+    </button>
+  </div>
+}
+
+<!-- ══ 2 · ordenar ══ -->
+@if (passo() === 2) {
+  <p class="explicacao">
+    A ordem de leitura não é a ordem em que você encontrou. Arraste, e as ligações que você já criou
+    entre eles aparecem entre as linhas — é a estrutura do artigo antes de existir uma frase dele.
+  </p>
+
+  <div class="fila" cdkDropList [cdkDropListData]="ordem()" (cdkDropListDropped)="soltar($event)">
+    @for (a of ordem(); track a.id; let i = $index; let ultimo = $last) {
+      <div class="fila__item" cdkDrag cdkDragLockAxis="y">
+        <div class="linha">
+          <i class="ti ti-grip-vertical linha__alca" cdkDragHandle aria-hidden="true"></i>
+          <span class="linha__numero">{{ i + 1 }}</span>
+          <i [class]="a.icon + ' linha__icone'" aria-hidden="true"></i>
+          <span class="linha__titulo">{{ a.title }}</span>
+          <span class="linha__capitulo">{{ a.chapterLabel }}</span>
+          <span class="linha__mover">
+            <button
+              type="button"
+              class="linha__seta"
+              [disabled]="i === 0"
+              [attr.aria-label]="'subir ' + a.title"
+              (click)="mover(i, -1)"
+            >
+              <i class="ti ti-chevron-up" aria-hidden="true"></i>
+            </button>
+            <button
+              type="button"
+              class="linha__seta"
+              [disabled]="ultimo"
+              [attr.aria-label]="'descer ' + a.title"
+              (click)="mover(i, 1)"
+            >
+              <i class="ti ti-chevron-down" aria-hidden="true"></i>
+            </button>
+          </span>
+        </div>
+        @if (!ultimo) {
+          <div class="entre">
+            @if (entreVizinhos()[i]; as e) {
+              <span
+                class="entre__traco"
+                [class.entre__traco--ouro]="
+                  e.kind === 'SAME_SUBJECT' || e.kind === 'HAPPENS_BEFORE'
+                "
+                [class.entre__traco--brasa]="e.kind === 'CONTRADICTS'"
+              ></span>
+              <span
+                class="entre__rotulo"
+                [class.entre__rotulo--brasa]="e.kind === 'CONTRADICTS'"
+                [class.entre__rotulo--neutro]="e.kind === 'EXPLAINS' || e.kind === 'MENTIONS'"
+                >{{ e.rotulo }}</span
+              >
+            } @else {
+              <span class="entre__traco"></span>
+              <span class="entre__nada">sem ligação entre estes dois</span>
+            }
+            <span class="entre__resto"></span>
+          </div>
+        }
+      </div>
+    }
+  </div>
+
+  <div class="rodape">
+    <button type="button" class="botao botao--secundario" (click)="irPara(1)">
+      <i class="ti ti-arrow-left" aria-hidden="true"></i> escolher
+    </button>
+    <button type="button" class="botao botao--primario" (click)="irPara(3)">
+      escrever <i class="ti ti-arrow-right" aria-hidden="true"></i>
+    </button>
+  </div>
+}
+
+<!-- ══ 3 · escrever e publicar ══ -->
+@if (passo() === 3) {
+  <div class="escrita">
+    <div class="escrita__texto">
+      <label for="montar-titulo" class="rotulo">título da lore</label>
+      <input
+        id="montar-titulo"
+        type="text"
+        class="campo campo--titulo"
+        maxlength="200"
+        placeholder="Quem está tocando o sino"
+        autocomplete="off"
+        [value]="titulo()"
+        (input)="titulo.set($any($event.target).value)"
+      />
+
+      <div class="tipo" role="radiogroup" aria-label="do que ela fala">
+        <button
+          type="button"
+          role="radio"
+          class="chip"
+          [class.chip--ativo]="tipo() === 'WORLD'"
+          [attr.aria-checked]="tipo() === 'WORLD'"
+          (click)="tipo.set('WORLD')"
+        >
+          <i class="ti ti-map" aria-hidden="true"></i> do mundo
+        </button>
+        <button
+          type="button"
+          role="radio"
+          class="chip"
+          [class.chip--ativo]="tipo() === 'CHARACTER'"
+          [attr.aria-checked]="tipo() === 'CHARACTER'"
+          (click)="tipo.set('CHARACTER')"
+        >
+          <i class="ti ti-user-circle" aria-hidden="true"></i> de personagem
+        </button>
+        @if (tipo() === 'CHARACTER') {
+          <input
+            id="montar-personagem"
+            type="text"
+            class="campo campo--personagem"
+            maxlength="120"
+            placeholder="qual personagem"
+            aria-label="nome do personagem"
+            autocomplete="off"
+            [value]="personagem()"
+            (input)="personagem.set($any($event.target).value)"
+          />
+        }
+      </div>
+
+      <div class="rotulo-linha">
+        <span class="rotulo rotulo--sem-margem">o texto</span>
+        <span class="nota">as citações entram como blocos</span>
+      </div>
+
+      <div class="blocos">
+        @for (b of blocos(); track b.id) {
+          @if (b.kind === 'texto') {
+            <textarea
+              [id]="'montar-bloco-' + b.id"
+              class="bloco-texto"
+              rows="3"
+              aria-label="parágrafo"
+              placeholder="escreva aqui…"
+              [value]="b.valor"
+              (input)="escrever(b.id, $any($event.target).value)"
+            ></textarea>
+          } @else {
+            @if (achado(b.achadoId); as a) {
+              <div class="citacao">
+                <i class="ti ti-quote citacao__icone" aria-hidden="true"></i>
+                <span class="citacao__corpo">
+                  <span class="citacao__origem">citação · {{ a.title }}</span>
+                  <span class="citacao__trecho">{{ a.body }}</span>
+                </span>
+                <button
+                  type="button"
+                  class="citacao__tirar"
+                  [attr.aria-label]="'tirar a citação de ' + a.title"
+                  (click)="removerCitacao(b.id)"
+                >
+                  <i class="ti ti-x" aria-hidden="true"></i>
+                </button>
+              </div>
+            }
+          }
+        }
+        @if (restantes().length > 0) {
+          <button type="button" class="inserir" (click)="inserirCitacao()">
+            <i class="ti ti-quote" aria-hidden="true"></i> inserir citação ({{ restantes().length }}
+            {{ restantes().length === 1 ? 'restante' : 'restantes' }})
+          </button>
+        }
+      </div>
+    </div>
+
+    <aside class="escrita__lado">
+      <div class="previa">
+        <span class="rotulo-mono">prévia</span>
+        <h4 class="previa__titulo">{{ titulo() || 'sem título ainda' }}</h4>
+        <div class="previa__meta">
+          <span class="selo-teoria">teoria</span>
+          <span
+            >{{ gameName() }} · {{ citados().size }}
+            {{ citados().size === 1 ? 'citação' : 'citações' }}</span
+          >
+        </div>
+        <p class="previa__texto">
+          {{ primeiroParagrafo() || 'o primeiro parágrafo que você escrever aparece aqui.' }}
+        </p>
+      </div>
+
+      <div class="publico">
+        <span class="rotulo-mono rotulo-mono--ouro">o que fica público</span>
+        <ul class="publico__lista">
+          <li>
+            <i class="ti ti-check publico__sim" aria-hidden="true"></i> o texto
+            {{
+              citados().size === 1
+                ? 'do achado citado'
+                : 'dos ' + citados().size + ' achados citados'
+            }}
+          </li>
+          <li>
+            <i class="ti ti-check publico__sim" aria-hidden="true"></i> o título e o capítulo de
+            cada um
+          </li>
+          <li class="publico__nao">
+            <i class="ti ti-x publico__x" aria-hidden="true"></i> as suas anotações continuam
+            privadas
+          </li>
+          <li class="publico__nao">
+            <i class="ti ti-x publico__x" aria-hidden="true"></i>
+            {{
+              naoCitados() === 1
+                ? 'o outro achado continua privado'
+                : 'os outros ' + naoCitados() + ' achados continuam privados'
+            }}
+          </li>
+        </ul>
+      </div>
+
+      <div class="acoes">
+        <button
+          type="button"
+          class="botao botao--primario botao--largo"
+          [disabled]="!podePublicar()"
+          (click)="publicar()"
+        >
+          @if (enviando() === 'publicar') {
+            <i class="ti ti-loader-2 giro" aria-hidden="true"></i> publicando…
+          } @else {
+            <i class="ti ti-send" aria-hidden="true"></i> publicar como teoria
+          }
+        </button>
+        <button
+          type="button"
+          class="botao botao--secundario botao--largo"
+          [disabled]="!podePublicar()"
+          (click)="guardarRascunho()"
+        >
+          @if (enviando() === 'rascunho') {
+            <i class="ti ti-loader-2 giro" aria-hidden="true"></i> guardando…
+          } @else {
+            guardar rascunho
+          }
+        </button>
+        <p class="acoes__nota">
+          nasce como <b>teoria</b>, como qualquer lore do site. o rascunho fica no seu perfil,
+          visível só para você.
+        </p>
+      </div>
+    </aside>
+  </div>
+
+  <div class="rodape rodape--esquerda">
+    <button type="button" class="botao botao--secundario" (click)="irPara(2)">
+      <i class="ti ti-arrow-left" aria-hidden="true"></i> ordenar o fio
+    </button>
+  </div>
+}

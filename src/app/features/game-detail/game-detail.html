@@ -424,7 +424,7 @@
 
     @if (activeTab() === 'arquivo') {
       <div class="game-detail__content" role="tabpanel">
-        <app-meu-arquivo [gameId]="gameId()" />
+        <app-meu-arquivo [gameId]="gameId()" [gameName]="g.name" />
       </div>
     }
 

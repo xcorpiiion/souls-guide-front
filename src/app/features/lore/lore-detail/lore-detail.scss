@@ -312,6 +312,9 @@
   font-size: 16px;
   color: v.$color-text;
   line-height: 1.7;
+  // A citação montada a partir do arquivo traz o texto do achado com as quebras de linha, e
+  // a origem na última linha. Sem isto as falas de um diálogo viravam um parágrafo corrido.
+  white-space: pre-line;
 }
 
 // ─── footer / tags ─────────────────────────────────────────────────────────────

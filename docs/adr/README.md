@@ -31,6 +31,7 @@ verdade que o projeto combate. Quando um ADR daqui depender de um de lá, ele **
 | [0004](0004-tokens-sem-reset-e-tipografia-da-lib.md) | Os tokens da lib entram sem o reset e a tipografia dela | Aceita |
 | [0005](0005-o-que-jsdom-nao-ve-tem-teste-de-navegador.md) | O que o jsdom não vê tem teste de navegador, contra o stack no ar | Aceita |
 | [0006](0006-signal-forms-entra-por-uma-tela.md) | Signal Forms entra por uma tela, e não pelas sete | Aceita |
+| [0007](0007-a-citacao-da-lore-e-copia-do-achado.md) | A citação de uma lore é cópia do achado, e não referência a ele | Aceita |
 
 ## Como escrever um novo
 

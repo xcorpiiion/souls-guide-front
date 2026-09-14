@@ -1,0 +1,108 @@
+<p class="dica">
+  clique num achado para acender os vizinhos e apagar o resto. clique duas vezes para abrir.
+</p>
+
+<div class="mural">
+  @if (nos().length === 0) {
+    <p class="mural__vazio">
+      nenhuma ligação ainda. abra um achado e ligue-o a outro — é aqui que a história começa a
+      aparecer.
+    </p>
+  } @else {
+    <div class="mural__rolagem">
+      <div class="mural__colunas" [style.width.px]="largura()">
+        @for (c of colunas(); track c.nome) {
+          <span class="mural__coluna" [style.left.px]="c.x" [style.width.px]="cardW">{{
+            c.nome
+          }}</span>
+        }
+      </div>
+
+      <div class="mural__tela" [style.width.px]="largura()" [style.height.px]="altura()">
+        <svg
+          class="mural__fios"
+          [attr.width]="largura()"
+          [attr.height]="altura()"
+          aria-hidden="true"
+        >
+          @for (f of arcos(); track f.id) {
+            <path
+              [attr.d]="f.d"
+              fill="none"
+              [attr.stroke]="f.cor"
+              [attr.stroke-width]="f.largura"
+              [attr.stroke-dasharray]="f.tracejado"
+              [attr.opacity]="f.opacidade"
+            ></path>
+          }
+        </svg>
+
+        @for (f of arcos(); track f.id) {
+          <span
+            class="mural__rotulo"
+            [style.left.px]="f.meio.x"
+            [style.top.px]="f.meio.y"
+            [style.color]="f.corDoRotulo"
+            [style.border-color]="f.cor"
+            [style.opacity]="f.opacidade"
+            >{{ f.rotulo }}</span
+          >
+        }
+
+        @for (n of nos(); track n.id) {
+          <button
+            type="button"
+            class="no"
+            [class.no--aceso]="n.aceso"
+            [class.no--apagado]="n.apagado"
+            [class.no--brasa]="n.emBrasa"
+            [style.left.px]="n.x"
+            [style.top.px]="n.y"
+            [attr.aria-pressed]="n.aceso"
+            (click)="alternarDestaque(n.id)"
+            (dblclick)="abrir.emit(n.id)"
+          >
+            <span class="no__tipo">
+              <i [class]="n.icon" aria-hidden="true"></i>
+              <span>{{ n.typeLabel }}{{ n.aceso ? ' · aceso' : '' }}</span>
+            </span>
+            <span class="no__titulo">{{ n.title }}</span>
+            <span class="no__capitulo"
+              >{{ n.chapterLabel
+              }}{{ n.aceso ? ' · ' + n.fios + (n.fios === 1 ? ' fio' : ' fios') : '' }}</span
+            >
+          </button>
+        }
+      </div>
+    </div>
+  }
+
+  @if (soltas().length > 0) {
+    <div class="bandeja">
+      <div class="bandeja__cabecalho">
+        <span class="bandeja__rotulo"
+          >bandeja · {{ soltas().length }}
+          {{ soltas().length === 1 ? 'peça sem ligação' : 'peças sem ligação' }}</span
+        >
+        <span class="bandeja__linha"></span>
+        <button type="button" class="bandeja__proxima" (click)="ligarAProxima()">
+          <i class="ti ti-wand" aria-hidden="true"></i> ligar a próxima
+        </button>
+      </div>
+      <div class="bandeja__pecas">
+        @for (s of soltas(); track s.id) {
+          <button
+            type="button"
+            class="peca"
+            [attr.aria-label]="'ligar ' + s.title"
+            (click)="ligar.emit(s.id)"
+          >
+            <i [class]="s.icon" aria-hidden="true"></i>
+            <span class="peca__titulo">{{ s.title }}</span>
+            <i class="ti ti-plus peca__mais" aria-hidden="true"></i>
+          </button>
+        }
+      </div>
+    </div>
+  }
+</div>

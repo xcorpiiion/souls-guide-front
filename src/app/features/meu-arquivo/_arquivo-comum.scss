@@ -1,0 +1,243 @@
+// As peças que a aba "meu arquivo" e o "montar lore" desenham igual: botão, chip, campo,
+// rótulo e etiqueta. Valores do artboard "Meu arquivo - redesenho" — as cores são as do
+// site, e o que está literal aqui são os tons intermediários de cinza-quente do desenho, que
+// não existem como token.
+//
+// O dourado é escasso de propósito: botão principal, ficha acesa e "fala da mesma pessoa".
+// É uma aba de caderno — quem precisa chamar atenção é o texto que a pessoa colou.
+
+.botao {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-family: inherit;
+  font-size: 14px;
+  border-radius: 9px;
+  padding: 11px 18px;
+  min-height: 44px;
+  cursor: pointer;
+  text-decoration: none;
+  white-space: nowrap;
+  transition:
+    background-color 0.15s ease,
+    border-color 0.15s ease,
+    opacity 0.15s ease;
+
+  i {
+    font-size: 16px;
+  }
+
+  &:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+  }
+
+  &:focus-visible {
+    outline: 2px solid #c9a84c;
+    outline-offset: 2px;
+  }
+
+  &--primario {
+    font-weight: 500;
+    color: #0f0d0b;
+    background: var(--pf-color-primary, #c9a84c);
+    border: none;
+
+    &:hover:not(:disabled) {
+      background: #e2c06e;
+      color: #0f0d0b;
+    }
+  }
+
+  &--secundario {
+    color: #e8e0d0;
+    background: #242424;
+    border: 0.5px solid #2e2b26;
+
+    &:hover:not(:disabled) {
+      border-color: #4a453f;
+    }
+  }
+
+  &--contorno {
+    color: #b8b0a0;
+    background: #1a1a1a;
+    border: 0.5px solid #2e2b26;
+
+    &:hover:not(:disabled) {
+      color: #e8e0d0;
+      border-color: #4a453f;
+    }
+  }
+
+  &--perigo {
+    color: #b84c2a;
+    background: none;
+    border: 0.5px solid rgb(184 76 42 / 35%);
+
+    &:hover {
+      border-color: #b84c2a;
+    }
+  }
+
+  &--pequeno {
+    font-size: 12.5px;
+    border-radius: 8px;
+    padding: 8px 12px;
+    min-height: 38px;
+
+    i {
+      font-size: 15px;
+    }
+  }
+
+  &--largo {
+    width: 100%;
+    border-radius: 10px;
+    padding: 14px;
+    min-height: 48px;
+  }
+}
+
+.voltar {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-family: inherit;
+  font-size: 13px;
+  color: #8a8278;
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  margin-bottom: 18px;
+
+  i {
+    font-size: 16px;
+  }
+
+  &:hover {
+    color: #e8e0d0;
+  }
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: inherit;
+  font-size: 12.5px;
+  border-radius: 999px;
+  padding: 7px 11px;
+  min-height: 34px;
+  cursor: pointer;
+  white-space: nowrap;
+  color: #b8b0a0;
+  background: #1a1a1a;
+  border: 0.5px solid #2e2b26;
+
+  i {
+    font-size: 14px;
+  }
+
+  &:hover {
+    border-color: #4a453f;
+  }
+
+  &--ativo {
+    color: #e8e0d0;
+    background: #242424;
+    border-color: #4a453f;
+  }
+
+  &--tracejado {
+    border-style: dashed;
+    border-color: #3a3630;
+  }
+}
+
+.campo {
+  width: 100%;
+  font-family: inherit;
+  background: #1a1a1a;
+  border: 0.5px solid #2e2b26;
+  border-radius: 10px;
+  color: #e8e0d0;
+  font-size: 14.5px;
+  padding: 12px 14px;
+  min-height: 46px;
+  outline: none;
+
+  &::placeholder {
+    color: #6a655c;
+  }
+
+  &:focus {
+    border-color: #6a655c;
+  }
+}
+
+.rotulo {
+  display: block;
+  font-size: 11.5px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #6a655c;
+  margin: 0 0 8px;
+
+  &--sem-margem {
+    margin: 0;
+  }
+
+  &__opcional {
+    text-transform: none;
+    letter-spacing: 0;
+    color: #4a453f;
+  }
+}
+
+.rotulo-mono {
+  display: block;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10.5px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #6a655c;
+  margin: 0 0 10px;
+
+  &--ouro {
+    color: #c9a84c;
+  }
+}
+
+.etiqueta {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #6a655c;
+}
+
+.nota {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10.5px;
+  color: #4a453f;
+}
+
+.giro {
+  display: inline-block;
+  animation: arquivo-giro 0.9s linear infinite;
+}
+
+@keyframes arquivo-giro {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .giro {
+    animation: none;
+  }
+}

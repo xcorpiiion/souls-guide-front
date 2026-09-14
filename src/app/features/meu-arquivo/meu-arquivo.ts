@@ -12,7 +12,7 @@ import {
   signal,
   untracked,
 } from '@angular/core';
-import { isPlatformBrowser } from '@angular/common';
+import { NgTemplateOutlet, isPlatformBrowser } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
 import { RouterLink } from '@angular/router';
 import { AuthService } from '@xcorpiiion/ng-core';
@@ -25,99 +25,48 @@ import type {
   StoryLinkKind,
 } from '@xcorpiiion/canonico';
 import { StoryArchiveService } from '../../core/services/story-archive.service';
+import {
+  AchadoDaTela,
+  LIGACOES,
+  SEM_CAPITULO,
+  TIPOS,
+  contem,
+  decorar,
+  janela,
+  ligacoesVistasDe,
+  sugestoesPara,
+  tipoDe,
+  tituloDoTexto,
+  trechos,
+} from './arquivo.model';
+import { ArquivoMural } from './arquivo-mural/arquivo-mural';
+import { MontarLore } from './montar-lore/montar-lore';
 
-type Tela = 'visao-geral' | 'registrar' | 'detalhe';
+type Tela = 'visao-geral' | 'registrar' | 'detalhe' | 'montar';
 type Visao = 'arquivo' | 'ligacoes';
 
-interface TipoDeAchado {
-  readonly key: StoryFindingKind;
-  readonly label: string;
-  readonly icon: string;
-}
-
-interface TipoDeLigacao {
-  readonly key: StoryLinkKind;
-  readonly label: string;
-  readonly short: string;
-  readonly color: string;
-}
-
-/** Um achado já com o que a tela mostra ao lado dele. */
-interface AchadoDaTela extends StoryFindingDTO {
-  readonly icon: string;
-  readonly typeLabel: string;
-  readonly firstLine: string;
-  readonly chapterLabel: string;
-  readonly degree: number;
-  readonly linkLabel: string;
-}
-
-/** Uma ligação vista a partir de um dos achados. */
-interface LigacaoVista {
-  readonly id: number;
-  readonly otherId: number;
-  readonly title: string;
-  readonly label: string;
-  readonly short: string;
-  readonly color: string;
-  readonly bg: string;
-  readonly why: string | null;
-}
-
-export const TIPOS: readonly TipoDeAchado[] = [
-  { key: 'NOTE', label: 'nota', icon: 'ti ti-note' },
-  { key: 'DOCUMENT', label: 'documento', icon: 'ti ti-file-text' },
-  { key: 'DIALOGUE', label: 'diálogo', icon: 'ti ti-message-dots' },
-  { key: 'CUTSCENE', label: 'cutscene', icon: 'ti ti-movie' },
-];
-
-/**
- * Dourado e brasa são os únicos tipos com cor própria, e é de propósito: "fala da mesma
- * pessoa" é a ligação que monta a história, e "contradiz" é a que avisa que alguma coisa
- * está errada. As outras três são estrutura, e ficam no cinza.
- */
-export const LIGACOES: readonly TipoDeLigacao[] = [
-  {
-    key: 'SAME_SUBJECT',
-    label: 'fala da mesma pessoa/coisa',
-    short: 'mesma pessoa',
-    color: '#c9a84c',
-  },
-  { key: 'EXPLAINS', label: 'explica', short: 'explica', color: '#8a8278' },
-  { key: 'CONTRADICTS', label: 'contradiz', short: 'contradiz', color: '#b84c2a' },
-  { key: 'HAPPENS_BEFORE', label: 'acontece antes', short: 'acontece antes', color: '#8a8278' },
-  { key: 'MENTIONS', label: 'menciona', short: 'menciona', color: '#8a8278' },
-];
-
-const TIPO_POR_CHAVE = new Map(TIPOS.map((t) => [t.key, t]));
-const LIGACAO_POR_CHAVE = new Map(LIGACOES.map((l) => [l.key, l]));
-
-const SEM_CAPITULO = 'sem capítulo';
-
-// A geometria do mural. Os números são os do artboard: cartão de 230 por 96, e 155px de
-// folga entre colunas para caber o rótulo da ligação sem encostar em cartão nenhum.
-const CARD_W = 230;
-const CARD_H = 96;
-const PASSO_X = 385;
-const PASSO_Y = 170;
-const MARGEM = 20;
-const LARGURA_MINIMA = 1040;
+/** Quantas fichas a grade mostra antes de pedir "mostrar mais". */
+const FICHAS_POR_VEZ = 24;
+/** Quantos capítulos a espinha lista antes de recolher o resto. */
+const CAPITULOS_VISIVEIS = 9;
 
 /**
  * O arquivo pessoal de achados de um jogo — a aba "meu arquivo". Ver ADR 0032 do
- * souls-guide-api, e o artboard `Meu arquivo.dc.html`.
+ * souls-guide-api, e o artboard `Meu arquivo - redesenho.dc.html` ("A mesa").
  *
- * <p><b>As três telas moram aqui dentro</b>, e não em rotas: é assim que o desenho as trata,
- * como estados de uma aba, e é o que mantém a página do jogo em volta enquanto a pessoa
- * registra um achado atrás do outro.
+ * <p><b>O capítulo é a espinha</b>, fixa à esquerda; o achado é uma <b>ficha</b> com o texto do
+ * jogo à vista; e a ligação acende dentro da própria ficha, sem precisar ir ao mural. No
+ * computador registrar não é mais uma tela: é a faixa de colar no topo da aba.
  *
- * <p>O arquivo chega inteiro e tudo o mais é derivado dele — contagem, filtro, mural e fio.
- * Cada escrita atualiza a lista em memória em vez de recarregar, porque quem acabou de colar
- * uma nota quer vê-la na hora.
+ * <p>As telas moram aqui dentro, como estados da aba, e não em rotas — é o que mantém a
+ * página do jogo em volta enquanto a pessoa registra um achado atrás do outro.
+ *
+ * <p>O arquivo chega inteiro, e tudo o mais é derivado dele. Cada escrita atualiza a lista em
+ * memória em vez de recarregar: quem acabou de colar uma nota quer vê-la na hora.
  */
 @Component({
   selector: 'app-meu-arquivo',
-  imports: [RouterLink],
+  imports: [RouterLink, NgTemplateOutlet, ArquivoMural, MontarLore],
   templateUrl: './meu-arquivo.html',
   styleUrl: './meu-arquivo.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -133,9 +82,14 @@ export class MeuArquivo {
 
   /** O id numérico do jogo, como texto — o mesmo que a página do jogo já resolveu. */
   readonly gameId = input.required<string>();
+  /** O nome, para a prévia da lore montada. */
+  readonly gameName = input<string>('');
 
   protected readonly tipos = TIPOS;
-  protected readonly ligacoesDisponiveis = LIGACOES;
+  protected readonly relacoes = LIGACOES;
+  protected readonly semCapitulo = SEM_CAPITULO;
+  protected readonly trechos = trechos;
+  protected readonly tipoDe = tipoDe;
 
   // ─── Dados ─────────────────────────────────────────────────────────────────
   protected readonly carregando = signal(true);
@@ -148,30 +102,38 @@ export class MeuArquivo {
   protected readonly visao = signal<Visao>('arquivo');
   protected readonly celular = signal(false);
 
-  // ─── Filtros da visão Arquivo ──────────────────────────────────────────────
+  // ─── Filtros ───────────────────────────────────────────────────────────────
+  /** `null` é "todos"; `''` é "sem capítulo". */
+  protected readonly capitulo = signal<string | null>(null);
   protected readonly filtroTipo = signal<StoryFindingKind | 'todos'>('todos');
-  protected readonly filtroCapitulo = signal<string>('todos');
   protected readonly soSoltas = signal(false);
   protected readonly busca = signal('');
+  protected readonly capitulosAbertos = signal(false);
+  protected readonly limite = signal(FICHAS_POR_VEZ);
+  /** Com busca num capítulo, as fichas que não bateram ficam recolhidas até pedir. */
+  protected readonly mostrarOsOutros = signal(false);
 
-  // ─── Mural e fio ───────────────────────────────────────────────────────────
-  protected readonly destaqueId = signal<number | null>(null);
-  private readonly fioEscolhido = signal<number | null>(null);
-
-  // ─── Detalhe ───────────────────────────────────────────────────────────────
+  // ─── Ficha acesa, detalhe ──────────────────────────────────────────────────
+  protected readonly selecionadoId = signal<number | null>(null);
   protected readonly detalheId = signal<number | null>(null);
   protected readonly anotacao = signal('');
   protected readonly anotacaoEstado = signal<'' | 'guardando' | 'guardada'>('');
   private temporizadorAnotacao: ReturnType<typeof setTimeout> | null = null;
 
+  // ─── Ligar ─────────────────────────────────────────────────────────────────
   protected readonly ligadorAberto = signal(false);
   protected readonly ligadorBusca = signal('');
   protected readonly ligadorEscolhido = signal<number | null>(null);
   protected readonly ligadorTipo = signal<StoryLinkKind>('SAME_SUBJECT');
   protected readonly ligadorPorque = signal('');
+  protected readonly ligadorTodasRelacoes = signal(false);
   protected readonly ligando = signal(false);
 
+  // ─── Fio (celular) ─────────────────────────────────────────────────────────
+  private readonly fioEscolhido = signal<number | null>(null);
+
   // ─── Registrar / editar ────────────────────────────────────────────────────
+  protected readonly faixa = signal('');
   protected readonly editandoId = signal<number | null>(null);
   protected readonly formTipo = signal<StoryFindingKind>('NOTE');
   protected readonly formTitulo = signal('');
@@ -179,6 +141,10 @@ export class MeuArquivo {
   protected readonly formCapitulo = signal('');
   protected readonly formQuemFala = signal('');
   protected readonly salvando = signal(false);
+  protected readonly rascunhoGuardado = signal(false);
+
+  // ─── Montar lore ───────────────────────────────────────────────────────────
+  protected readonly montarCom = signal<number[]>([]);
 
   constructor() {
     if (this.noNavegador && typeof window.matchMedia === 'function') {
@@ -203,204 +169,125 @@ export class MeuArquivo {
 
   // ─── Derivados ─────────────────────────────────────────────────────────────
 
-  /** Quantas ligações cada achado tem, pelos dois lados. */
-  private readonly grau = computed(() => {
-    const grau = new Map<number, number>();
-    for (const l of this.ligacoes()) {
-      grau.set(l.fromId, (grau.get(l.fromId) ?? 0) + 1);
-      grau.set(l.toId, (grau.get(l.toId) ?? 0) + 1);
-    }
-    return grau;
-  });
-
-  protected readonly itens = computed<AchadoDaTela[]>(() => {
-    const grau = this.grau();
-    return this.achados().map((a) => this.decorar(a, grau.get(a.id) ?? 0));
-  });
+  protected readonly itens = computed<AchadoDaTela[]>(() =>
+    decorar(this.achados(), this.ligacoes()),
+  );
 
   private readonly porId = computed(() => new Map(this.itens().map((a) => [a.id, a])));
 
-  /** Os capítulos na ordem em que apareceram pela primeira vez. */
-  protected readonly capitulos = computed(() => {
-    const vistos: string[] = [];
-    for (const a of this.achados()) {
-      if (a.chapter && !vistos.includes(a.chapter)) vistos.push(a.chapter);
-    }
-    return vistos;
-  });
+  protected readonly vazio = computed(() => this.achados().length === 0);
 
   protected readonly soltas = computed(() => this.itens().filter((a) => a.degree === 0));
 
-  protected readonly vazio = computed(() => this.achados().length === 0);
+  protected readonly porcentagemSoltas = computed(() => {
+    const total = this.achados().length;
+    return total ? Math.round((this.soltas().length / total) * 100) : 0;
+  });
 
-  protected readonly grupos = computed(() => {
-    const q = this.busca().trim().toLowerCase();
-    const tipo = this.filtroTipo();
-    const capitulo = this.filtroCapitulo();
-    const soSoltas = this.soSoltas();
-
+  /**
+   * A espinha: os capítulos na ordem em que apareceram, com contagem e a marca de peça solta.
+   * "Sem capítulo" fica sempre no fim — é o estado de uma página sem cabeçalho, não um lugar
+   * da história.
+   */
+  protected readonly espinha = computed(() => {
     const ordem: string[] = [];
-    const porCapitulo = new Map<string, AchadoDaTela[]>();
+    const contagem = new Map<string, number>();
+    const comSolta = new Set<string>();
+    let semCapitulo = 0;
+    let semCapituloSolta = false;
 
     for (const a of this.itens()) {
-      if (tipo !== 'todos' && a.kind !== tipo) continue;
-      if (capitulo !== 'todos' && (a.chapter ?? '') !== capitulo) continue;
-      if (soSoltas && a.degree > 0) continue;
-      if (q && !`${a.title} ${a.body}`.toLowerCase().includes(q)) continue;
-
-      const chave = a.chapter || SEM_CAPITULO;
-      if (!porCapitulo.has(chave)) {
-        porCapitulo.set(chave, []);
-        ordem.push(chave);
+      if (!a.chapter) {
+        semCapitulo++;
+        if (a.degree === 0) semCapituloSolta = true;
+        continue;
       }
-      porCapitulo.get(chave)!.push(a);
+      if (!contagem.has(a.chapter)) ordem.push(a.chapter);
+      contagem.set(a.chapter, (contagem.get(a.chapter) ?? 0) + 1);
+      if (a.degree === 0) comSolta.add(a.chapter);
     }
 
-    return ordem.map((chapter) => ({
-      chapter,
-      items: porCapitulo.get(chapter)!,
+    return {
+      capitulos: ordem.map((nome) => ({
+        nome,
+        total: contagem.get(nome)!,
+        solta: comSolta.has(nome),
+      })),
+      semCapitulo,
+      semCapituloSolta,
+    };
+  });
+
+  protected readonly capitulosDaEspinha = computed(() => {
+    const todos = this.espinha().capitulos;
+    if (this.capitulosAbertos() || todos.length <= CAPITULOS_VISIVEIS + 1) return todos;
+    // O capítulo escolhido não pode sumir atrás do "+ N capítulos".
+    const visiveis = todos.slice(0, CAPITULOS_VISIVEIS);
+    const escolhido = todos.find((c) => c.nome === this.capitulo());
+    return escolhido && !visiveis.includes(escolhido) ? [...visiveis, escolhido] : visiveis;
+  });
+
+  protected readonly capitulosEscondidos = computed(
+    () => this.espinha().capitulos.length - this.capitulosDaEspinha().length,
+  );
+
+  /** Os achados do capítulo e dos filtros de tipo e de peça solta — antes da busca. */
+  private readonly doRecorte = computed(() => {
+    const capitulo = this.capitulo();
+    const tipo = this.filtroTipo();
+    const soSoltas = this.soSoltas();
+    return this.itens().filter(
+      (a) =>
+        (capitulo === null || (a.chapter ?? '') === capitulo) &&
+        (tipo === 'todos' || a.kind === tipo) &&
+        (!soSoltas || a.degree === 0),
+    );
+  });
+
+  private readonly queBatem = computed(() => {
+    const q = this.busca();
+    return this.doRecorte().filter((a) => contem(`${a.title}\n${a.body}`, q));
+  });
+
+  protected readonly buscando = computed(() => this.busca().trim().length > 0);
+
+  /** "4 de 18" — quantos bateram, sobre quantos havia no recorte. */
+  protected readonly contagemDaBusca = computed(
+    () => `${this.queBatem().length} de ${this.doRecorte().length}`,
+  );
+
+  protected readonly naoBateram = computed(() => {
+    if (!this.buscando()) return [];
+    const batem = new Set(this.queBatem().map((a) => a.id));
+    return this.doRecorte().filter((a) => !batem.has(a.id));
+  });
+
+  protected readonly fichas = computed(() => {
+    const lista =
+      this.buscando() && this.mostrarOsOutros()
+        ? [...this.queBatem(), ...this.naoBateram()]
+        : this.queBatem();
+    return lista.slice(0, this.limite()).map((a) => ({
+      ...a,
+      trecho: janela(a.body, this.busca()),
     }));
   });
 
-  // ─── Mural ─────────────────────────────────────────────────────────────────
-
-  /**
-   * Onde cada cartão fica.
-   *
-   * <p>O artboard tinha as posições à mão, para cinco achados de exemplo. Com o arquivo de
-   * verdade a posição sai do <b>capítulo</b>: uma coluna por capítulo, na ordem em que a
-   * pessoa os encontrou, e os achados de cada um empilhados. A história corre da esquerda
-   * para a direita, que é a leitura que o mural promete.
-   *
-   * <p>Só entra quem tem ligação. Peça solta não tem aresta para desenhar, e fica na faixa
-   * de baixo pedindo para ser ligada.
-   */
-  private readonly posicoes = computed(() => {
-    const colunas: string[] = [];
-    const linhasPorColuna = new Map<string, number>();
-    const posicoes = new Map<number, { x: number; y: number }>();
-
-    for (const a of this.itens()) {
-      if (a.degree === 0) continue;
-      const coluna = a.chapter || SEM_CAPITULO;
-      if (!linhasPorColuna.has(coluna)) {
-        linhasPorColuna.set(coluna, 0);
-        colunas.push(coluna);
-      }
-      const linha = linhasPorColuna.get(coluna)!;
-      linhasPorColuna.set(coluna, linha + 1);
-      posicoes.set(a.id, {
-        x: MARGEM + colunas.indexOf(coluna) * PASSO_X,
-        y: 30 + linha * PASSO_Y,
-      });
-    }
-
-    const maisLinhas = Math.max(0, ...linhasPorColuna.values());
-    return {
-      posicoes,
-      largura: Math.max(LARGURA_MINIMA, MARGEM * 2 + (colunas.length - 1) * PASSO_X + CARD_W),
-      altura: maisLinhas === 0 ? 0 : 30 + (maisLinhas - 1) * PASSO_Y + CARD_H + 30,
-    };
+  protected readonly restantes = computed(() => {
+    const total =
+      this.buscando() && this.mostrarOsOutros() ? this.doRecorte().length : this.queBatem().length;
+    return Math.max(0, total - this.limite());
   });
 
-  protected readonly muralLargura = computed(() => this.posicoes().largura);
-  protected readonly muralAltura = computed(() => this.posicoes().altura);
-
-  private readonly vizinhosDoDestaque = computed(() => {
-    const destaque = this.destaqueId();
-    const vizinhos = new Set<number>();
-    if (destaque === null) return vizinhos;
-    vizinhos.add(destaque);
-    for (const l of this.ligacoes()) {
-      if (l.fromId === destaque) vizinhos.add(l.toId);
-      if (l.toId === destaque) vizinhos.add(l.fromId);
-    }
-    return vizinhos;
+  protected readonly rotuloDoCapitulo = computed(() => {
+    const c = this.capitulo();
+    return c === null ? null : c || SEM_CAPITULO;
   });
 
-  protected readonly nos = computed(() => {
-    const { posicoes } = this.posicoes();
-    const destaque = this.destaqueId();
-    const vizinhos = this.vizinhosDoDestaque();
-
-    return this.itens()
-      .filter((a) => posicoes.has(a.id))
-      .map((a) => ({
-        ...a,
-        x: posicoes.get(a.id)!.x,
-        y: posicoes.get(a.id)!.y,
-        aceso: destaque === a.id,
-        apagado: destaque !== null && !vizinhos.has(a.id),
-      }));
-  });
-
-  protected readonly arestas = computed(() => {
-    const { posicoes } = this.posicoes();
-    const destaque = this.destaqueId();
-    const vizinhos = this.vizinhosDoDestaque();
-
-    return this.ligacoes()
-      .filter((l) => posicoes.has(l.fromId) && posicoes.has(l.toId))
-      .map((l) => {
-        const tipo = LIGACAO_POR_CHAVE.get(l.kind)!;
-        const a = posicoes.get(l.fromId)!;
-        const b = posicoes.get(l.toId)!;
-        const x1 = a.x + CARD_W / 2;
-        const y1 = a.y + CARD_H / 2;
-        const x2 = b.x + CARD_W / 2;
-        const y2 = b.y + CARD_H / 2;
-        const acesa = destaque === null || (vizinhos.has(l.fromId) && vizinhos.has(l.toId));
-        return {
-          id: l.id,
-          x1,
-          y1,
-          x2,
-          y2,
-          cor: tipo.color,
-          largura: acesa && destaque !== null ? 1.6 : 1,
-          tracejado: l.kind === 'CONTRADICTS' ? '5 4' : null,
-          opacidade: acesa ? 1 : 0.12,
-          rotulo: tipo.short,
-          rotuloX: (x1 + x2) / 2,
-          rotuloY: (y1 + y2) / 2,
-        };
-      });
-  });
-
-  protected readonly soltasDoMural = computed(() => this.soltas().slice(0, 4));
-
-  protected readonly rotuloFaixaSoltas = computed(() => {
-    const n = this.soltas().length;
-    return n === 1 ? 'peças soltas — 1 sem ligação' : `peças soltas — ${n} sem ligação`;
-  });
-
-  // ─── Fio (celular) ─────────────────────────────────────────────────────────
-
-  /**
-   * O achado de onde o fio parte. Sem escolha, é o primeiro que tem ligação — abrir o fio
-   * numa peça solta mostraria a tela de "esta peça está solta" para quem tem dez ligações.
-   */
-  protected readonly fio = computed(() => {
-    const escolhido = this.fioEscolhido();
-    const porId = this.porId();
-    const itens = this.itens();
-    const achado =
-      (escolhido !== null ? porId.get(escolhido) : undefined) ??
-      itens.find((a) => a.degree > 0) ??
-      itens[0];
-    if (!achado) return null;
-
-    const vizinhos = this.ligacoesVistasDe(achado.id);
-    return {
-      ...achado,
-      neighbours: vizinhos,
-      neighboursLabel:
-        vizinhos.length === 0
-          ? 'ligado a'
-          : vizinhos.length === 1
-            ? 'ligado a 1 achado'
-            : `ligado a ${vizinhos.length} achados`,
-    };
+  /** Os fios da ficha acesa, lidos a partir dela. */
+  protected readonly fiosDaSelecionada = computed(() => {
+    const id = this.selecionadoId();
+    return id === null ? [] : ligacoesVistasDe(id, this.ligacoes(), this.porId());
   });
 
   // ─── Detalhe ───────────────────────────────────────────────────────────────
@@ -412,25 +299,71 @@ export class MeuArquivo {
 
   protected readonly ligacoesDoDetalhe = computed(() => {
     const d = this.detalhe();
-    return d ? this.ligacoesVistasDe(d.id) : [];
+    return d ? ligacoesVistasDe(d.id, this.ligacoes(), this.porId()) : [];
   });
 
   protected readonly rotuloLigacoesDoDetalhe = computed(() => {
     const n = this.ligacoesDoDetalhe().length;
-    return n === 0 ? 'ligações' : n === 1 ? '1 ligação' : `${n} ligações`;
+    return n === 0 ? 'nenhuma ligação' : n === 1 ? '1 ligação' : `${n} ligações`;
+  });
+
+  protected readonly sugestoes = computed(() => {
+    const d = this.detalhe();
+    return d ? sugestoesPara(d.id, this.achados(), this.ligacoes()) : null;
   });
 
   /**
-   * Os achados que dá para ligar a este: todos menos ele, filtrados pela busca. Seis na tela
-   * são o bastante para achar pelo nome — quem tem 150 achados digita.
+   * Os achados que dá para ligar ao do detalhe: todos menos ele, filtrados pela busca. O
+   * escolhido fica sempre na lista, mesmo que a busca mude — senão a escolha some da tela
+   * e continua valendo.
    */
   protected readonly candidatos = computed(() => {
     const d = this.detalhe();
-    const q = this.ligadorBusca().trim().toLowerCase();
-    return this.itens()
+    const q = this.ligadorBusca();
+    const escolhido = this.ligadorEscolhido();
+    const lista = this.itens()
       .filter((a) => a.id !== d?.id)
-      .filter((a) => !q || a.title.toLowerCase().includes(q))
-      .slice(0, 6);
+      .filter((a) => a.id === escolhido || contem(a.title, q) || (q.trim() && contem(a.body, q)));
+    const primeiro = lista.find((a) => a.id === escolhido);
+    const resto = lista.filter((a) => a.id !== escolhido).slice(0, primeiro ? 5 : 6);
+    return primeiro ? [primeiro, ...resto] : resto;
+  });
+
+  /** No celular a folha mostra três relações e recolhe as outras duas. */
+  protected readonly relacoesDaFolha = computed(() => {
+    if (!this.celular() || this.ligadorTodasRelacoes()) return LIGACOES;
+    const principais = LIGACOES.filter((r) =>
+      ['SAME_SUBJECT', 'CONTRADICTS', 'HAPPENS_BEFORE'].includes(r.key),
+    );
+    const escolhida = LIGACOES.find((r) => r.key === this.ligadorTipo());
+    return escolhida && !principais.includes(escolhida) ? [...principais, escolhida] : principais;
+  });
+
+  // ─── Fio (celular) ─────────────────────────────────────────────────────────
+
+  /**
+   * O achado de onde o fio parte. Sem escolha, é o primeiro que tem ligação — abrir o fio
+   * numa peça solta mostraria "esta peça está solta" para quem tem dez ligações.
+   */
+  protected readonly fio = computed(() => {
+    const escolhido = this.fioEscolhido();
+    const itens = this.itens();
+    const achado =
+      (escolhido !== null ? this.porId().get(escolhido) : undefined) ??
+      itens.find((a) => a.degree > 0) ??
+      itens[0];
+    if (!achado) return null;
+    const vizinhos = ligacoesVistasDe(achado.id, this.ligacoes(), this.porId());
+    return {
+      ...achado,
+      vizinhos,
+      rotulo:
+        vizinhos.length === 0
+          ? 'ligado a nenhum achado'
+          : vizinhos.length === 1
+            ? 'ligado a 1 achado'
+            : `ligado a ${vizinhos.length} achados`,
+    };
   });
 
   // ─── Registrar ─────────────────────────────────────────────────────────────
@@ -451,8 +384,11 @@ export class MeuArquivo {
   );
 
   protected readonly podeSalvar = computed(
-    () =>
-      this.formTitulo().trim().length > 0 && this.formTexto().trim().length > 0 && !this.salvando(),
+    () => this.formTexto().trim().length > 0 && !this.salvando(),
+  );
+
+  protected readonly contagemDoTexto = computed(() =>
+    this.formTexto().length.toLocaleString('pt-BR'),
   );
 
   // ─── Carga ─────────────────────────────────────────────────────────────────
@@ -473,6 +409,45 @@ export class MeuArquivo {
     });
   }
 
+  // ─── Filtros ───────────────────────────────────────────────────────────────
+
+  protected escolherCapitulo(capitulo: string | null): void {
+    this.capitulo.set(capitulo);
+    this.recomecarGrade();
+  }
+
+  protected escolherTipoDoFiltro(tipo: StoryFindingKind | 'todos'): void {
+    this.filtroTipo.set(tipo);
+    this.recomecarGrade();
+  }
+
+  protected alternarSoltas(): void {
+    this.soSoltas.update((v) => !v);
+    this.recomecarGrade();
+  }
+
+  protected buscar(valor: string): void {
+    this.busca.set(valor);
+    this.recomecarGrade();
+  }
+
+  protected mostrarMais(): void {
+    this.limite.update((n) => n + FICHAS_POR_VEZ);
+  }
+
+  private recomecarGrade(): void {
+    this.limite.set(FICHAS_POR_VEZ);
+    this.mostrarOsOutros.set(false);
+    this.selecionadoId.set(null);
+  }
+
+  protected verAsSoltas(): void {
+    this.soSoltas.set(true);
+    this.capitulo.set(null);
+    this.visao.set('arquivo');
+    this.recomecarGrade();
+  }
+
   // ─── Navegação ─────────────────────────────────────────────────────────────
 
   protected irParaVisaoGeral(): void {
@@ -482,41 +457,100 @@ export class MeuArquivo {
     this.rolarParaCima();
   }
 
-  protected irParaRegistrar(): void {
+  protected mostrarVisao(visao: Visao): void {
+    this.visao.set(visao);
+    this.selecionadoId.set(null);
+  }
+
+  /** Um toque acende a ficha e mostra os fios dela; o segundo, na mesma, a abre. */
+  protected tocarFicha(id: number): void {
+    if (this.selecionadoId() === id) {
+      this.abrirAchado(id);
+    } else {
+      this.selecionadoId.set(id);
+    }
+  }
+
+  protected abrirAchado(id: number): void {
+    this.gravarAnotacaoPendente();
+    this.detalheId.set(id);
+    this.fioEscolhido.set(id);
+    this.anotacao.set(this.porId().get(id)?.note ?? '');
+    this.anotacaoEstado.set('');
+    this.ligadorAberto.set(false);
+    this.tela.set('detalhe');
+    this.rolarParaCima();
+  }
+
+  /** Abre o achado já com a folha de ligar à mostra — o "+" da bandeja e das sugestões. */
+  protected ligarAPartirDe(id: number, alvo: number | null = null): void {
+    this.abrirAchado(id);
+    this.abrirLigador(alvo);
+  }
+
+  protected ligarAProximaSolta(): void {
+    const primeira = this.soltas()[0];
+    if (primeira) this.ligarAPartirDe(primeira.id);
+  }
+
+  protected seguirFio(id: number): void {
+    this.fioEscolhido.set(id);
+  }
+
+  // ─── Registrar / editar ────────────────────────────────────────────────────
+
+  /**
+   * A faixa de colar. O texto colado leva direto ao registro, com o texto já no lugar — o
+   * tipo e o capítulo vêm depois, como a faixa promete.
+   *
+   * <p>O colar é interceptado, e não lido do campo: a faixa é uma linha só, e um `input`
+   * comeria as quebras de linha que a tela de registro promete preservar.
+   */
+  protected colarNaFaixa(evento: ClipboardEvent): void {
+    const texto = evento.clipboardData?.getData('text') ?? '';
+    if (!texto.trim()) return;
+    evento.preventDefault();
+    this.faixa.set('');
+    this.irParaRegistrar(texto);
+  }
+
+  protected registrarDaFaixa(): void {
+    const texto = this.faixa();
+    this.faixa.set('');
+    this.irParaRegistrar(texto);
+  }
+
+  protected irParaRegistrar(textoColado = ''): void {
     this.editandoId.set(null);
-    const rascunho = this.lerRascunho();
+    const rascunho = textoColado ? null : this.lerRascunho();
     this.formTipo.set(rascunho?.tipo ?? 'NOTE');
     this.formTitulo.set(rascunho?.titulo ?? '');
-    this.formTexto.set(rascunho?.texto ?? '');
+    this.formTexto.set(textoColado || rascunho?.texto || '');
     this.formQuemFala.set(rascunho?.quemFala ?? '');
     // Vem preenchido com o último capítulo: numa sessão de jogo a pessoa registra vários
-    // achados do mesmo lugar, um atrás do outro.
-    this.formCapitulo.set(rascunho?.capitulo ?? this.sugestoesDeCapitulo()[0] ?? '');
+    // achados do mesmo lugar, um atrás do outro. Com um capítulo escolhido na espinha, é
+    // ele — "cai no capítulo em que você está".
+    this.formCapitulo.set(
+      rascunho?.capitulo ?? this.capitulo() ?? this.sugestoesDeCapitulo()[0] ?? '',
+    );
+    this.rascunhoGuardado.set(!!rascunho);
     this.tela.set('registrar');
+    if (textoColado) this.guardarRascunho();
     this.rolarParaCima();
   }
 
   protected irParaEditar(): void {
     const d = this.detalhe();
     if (!d) return;
+    this.gravarAnotacaoPendente();
     this.editandoId.set(d.id);
     this.formTipo.set(d.kind);
     this.formTitulo.set(d.title);
     this.formTexto.set(d.body);
     this.formCapitulo.set(d.chapter ?? '');
     this.formQuemFala.set(d.speaker ?? '');
+    this.rascunhoGuardado.set(false);
     this.tela.set('registrar');
-    this.rolarParaCima();
-  }
-
-  protected abrirAchado(id: number): void {
-    this.gravarAnotacaoPendente();
-    this.detalheId.set(id);
-    this.anotacao.set(this.porId().get(id)?.note ?? '');
-    this.anotacaoEstado.set('');
-    this.ligadorAberto.set(false);
-    this.destaqueId.set(null);
-    this.tela.set('detalhe');
     this.rolarParaCima();
   }
 
@@ -528,26 +562,6 @@ export class MeuArquivo {
       this.irParaVisaoGeral();
     }
   }
-
-  protected mostrarVisao(visao: Visao): void {
-    this.visao.set(visao);
-    this.destaqueId.set(null);
-  }
-
-  protected verTodasAsSoltas(): void {
-    this.soSoltas.set(true);
-    this.mostrarVisao('arquivo');
-  }
-
-  protected alternarDestaque(id: number): void {
-    this.destaqueId.update((atual) => (atual === id ? null : id));
-  }
-
-  protected seguirFio(id: number): void {
-    this.fioEscolhido.set(id);
-  }
-
-  // ─── Registrar / editar ────────────────────────────────────────────────────
 
   protected escreverNoFormulario(
     campo: 'titulo' | 'texto' | 'capitulo' | 'quemFala',
@@ -574,7 +588,7 @@ export class MeuArquivo {
 
     const request = {
       kind: this.formTipo(),
-      title: this.formTitulo().trim(),
+      title: this.formTitulo().trim() || tituloDoTexto(this.formTexto()),
       body: this.formTexto(),
       chapter: this.formCapitulo().trim(),
       speaker: this.mostraQuemFala() ? this.formQuemFala().trim() : '',
@@ -607,6 +621,7 @@ export class MeuArquivo {
           this.formTitulo.set('');
           this.formTexto.set('');
           this.formQuemFala.set('');
+          this.rascunhoGuardado.set(false);
           this.rolarParaCima();
         } else {
           this.irParaVisaoGeral();
@@ -648,6 +663,7 @@ export class MeuArquivo {
             lista.filter((l) => l.fromId !== d.id && l.toId !== d.id),
           );
           if (this.fioEscolhido() === d.id) this.fioEscolhido.set(null);
+          if (this.selecionadoId() === d.id) this.selecionadoId.set(null);
           this.detalheId.set(null);
           this.toast.success('Achado excluído', 'As ligações dele saíram junto.');
           this.tela.set('visao-geral');
@@ -695,11 +711,12 @@ export class MeuArquivo {
 
   // ─── Ligar ─────────────────────────────────────────────────────────────────
 
-  protected abrirLigador(): void {
+  protected abrirLigador(alvo: number | null = null): void {
     this.ligadorBusca.set('');
-    this.ligadorEscolhido.set(null);
+    this.ligadorEscolhido.set(alvo);
     this.ligadorTipo.set('SAME_SUBJECT');
     this.ligadorPorque.set('');
+    this.ligadorTodasRelacoes.set(false);
     this.ligadorAberto.set(true);
   }
 
@@ -745,64 +762,19 @@ export class MeuArquivo {
     });
   }
 
+  // ─── Montar lore ───────────────────────────────────────────────────────────
+
+  protected montarLore(comAchado: number | null = null): void {
+    this.gravarAnotacaoPendente();
+    this.montarCom.set(comAchado === null ? [] : [comAchado]);
+    this.tela.set('montar');
+    this.rolarParaCima();
+  }
+
   // ─── Apoio ─────────────────────────────────────────────────────────────────
 
-  protected tipoLabel(tipo: StoryFindingKind): string {
-    return TIPO_POR_CHAVE.get(tipo)?.label ?? tipo;
-  }
-
-  protected tipoIcone(tipo: StoryFindingKind): string {
-    return TIPO_POR_CHAVE.get(tipo)?.icon ?? 'ti ti-note';
-  }
-
-  protected nomeDaLigacao(tipo: StoryLinkKind): string {
-    return LIGACAO_POR_CHAVE.get(tipo)?.label ?? tipo;
-  }
-
-  private decorar(a: StoryFindingDTO, grau: number): AchadoDaTela {
-    return {
-      ...a,
-      icon: this.tipoIcone(a.kind),
-      typeLabel: this.tipoLabel(a.kind),
-      firstLine: a.body.split('\n').find((linha) => linha.trim()) ?? '',
-      chapterLabel: a.chapter || SEM_CAPITULO,
-      degree: grau,
-      linkLabel: grau === 0 ? 'peça solta' : grau === 1 ? '1 ligação' : `${grau} ligações`,
-    };
-  }
-
-  /**
-   * As ligações de um achado, cada uma lida a partir dele.
-   *
-   * <p>A ligação é gravada numa direção só, e "acontece antes" é a única que muda de sentido
-   * com isso: lida a partir do destino, ela é "acontece depois". Mostrar "acontece antes" dos
-   * dois lados diria que cada achado veio antes do outro.
-   */
-  private ligacoesVistasDe(id: number): LigacaoVista[] {
-    const porId = this.porId();
-    return this.ligacoes()
-      .filter((l) => l.fromId === id || l.toId === id)
-      .map((l) => {
-        const tipo = LIGACAO_POR_CHAVE.get(l.kind)!;
-        const souDestino = l.toId === id;
-        const invertida = souDestino && l.kind === 'HAPPENS_BEFORE';
-        const otherId = souDestino ? l.fromId : l.toId;
-        return {
-          id: l.id,
-          otherId,
-          title: porId.get(otherId)?.title ?? '—',
-          label: invertida ? 'acontece depois' : tipo.label,
-          short: invertida ? 'acontece depois' : tipo.short,
-          color: tipo.color,
-          bg:
-            l.kind === 'CONTRADICTS'
-              ? 'rgb(184 76 42 / 12%)'
-              : l.kind === 'SAME_SUBJECT'
-                ? 'rgb(201 168 76 / 12%)'
-                : '#242424',
-          why: l.why ?? null,
-        };
-      });
+  protected corDaRelacao(kind: StoryLinkKind): 'ouro' | 'brasa' | 'neutra' {
+    return kind === 'CONTRADICTS' ? 'brasa' : kind === 'SAME_SUBJECT' ? 'ouro' : 'neutra';
   }
 
   /**
@@ -818,8 +790,8 @@ export class MeuArquivo {
   }
 
   // ─── Rascunho ──────────────────────────────────────────────────────────────
-  // Só do registro novo, e só neste navegador: é o que o desenho promete ("rascunho
-  // guardado enquanto você digita") para quem fecha a aba no meio de uma cutscene longa.
+  // Só do registro novo, e só neste navegador: é o que o desenho promete ("sair não perde o
+  // que foi colado") para quem fecha a aba no meio de uma cutscene longa.
 
   private chaveDoRascunho(): string {
     return `sg_arquivo_rascunho_${this.gameId()}`;
@@ -838,6 +810,7 @@ export class MeuArquivo {
           quemFala: this.formQuemFala(),
         }),
       );
+      this.rascunhoGuardado.set(this.formTexto().trim().length > 0);
     } catch {
       // Armazenamento bloqueado: o formulário continua funcionando, só não sobrevive à aba.
     }

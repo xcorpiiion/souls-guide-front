@@ -10,13 +10,13 @@ import { MeuArquivo } from './meu-arquivo';
 import { StoryArchiveService } from '../../core/services/story-archive.service';
 
 // Conteúdo fictício — o mesmo do artboard, para não dar spoiler de jogo nenhum.
-function achado(id: number, title: string, chapter: string | null): StoryFindingDTO {
+function achado(id: number, title: string, chapter: string | null, body?: string): StoryFindingDTO {
   return {
     id,
     gameId: 7,
     kind: 'NOTE',
     title,
-    body: `\n${title}, primeira linha.\nsegunda linha.`,
+    body: body ?? `${title}, primeira linha.\nsegunda linha.`,
     chapter,
     speaker: null,
     note: null,
@@ -25,27 +25,41 @@ function achado(id: number, title: string, chapter: string | null): StoryFinding
 }
 
 const ACHADOS: StoryFindingDTO[] = [
-  achado(1, 'Bilhete dobrado no armário', 'Cap. 1 — Escola'),
+  achado(
+    1,
+    'Bilhete dobrado no armário',
+    'Cap. 1 — Escola',
+    'Não volte pela ponte depois que o sino tocar.',
+  ),
   achado(2, 'Diário da enfermaria', 'Cap. 2 — Hospital'),
   achado(3, 'Conversa com a mulher de branco', 'Cap. 2 — Hospital'),
-  achado(4, 'O sino na praça', 'Cap. 3 — Vila'),
-  achado(5, 'Página solta sem cabeçalho', null),
+  achado(4, 'O sino na praça', 'Cap. 3 — Vila', 'A corda do sino ainda balança.'),
+  achado(5, 'Página solta sem cabeçalho', null, 'trinta e sete. trinta e oito.'),
 ];
 
 const LIGACOES: StoryLinkDTO[] = [
   { id: 10, fromId: 1, toId: 4, kind: 'HAPPENS_BEFORE', why: 'o bilhete avisa sobre o sino' },
   { id: 11, fromId: 2, toId: 3, kind: 'SAME_SUBJECT', why: null },
+  { id: 12, fromId: 3, toId: 1, kind: 'CONTRADICTS', why: null },
 ];
 
 const ARQUIVO: StoryArchiveDTO = { gameId: 7, findings: ACHADOS, links: LIGACOES };
 
+let service: { archive: ReturnType<typeof vi.fn>; register: ReturnType<typeof vi.fn> };
+
 function criar(logado = true): ComponentFixture<MeuArquivo> {
+  service = {
+    archive: vi.fn(() => of(ARQUIVO)),
+    register: vi.fn((_: string, r: { title: string; body: string }) =>
+      of({ ...achado(99, r.title, null, r.body) }),
+    ),
+  };
   TestBed.configureTestingModule({
     imports: [MeuArquivo],
     providers: [
       provideRouter([]),
       { provide: AuthService, useValue: { isLoggedIn: signal(logado), userId: signal('1') } },
-      { provide: StoryArchiveService, useValue: { archive: vi.fn(() => of(ARQUIVO)) } },
+      { provide: StoryArchiveService, useValue: service },
       { provide: ConfirmService, useValue: { ask: vi.fn(() => of(false)) } },
       { provide: ToastService, useValue: { success: vi.fn(), error: vi.fn() } },
     ],
@@ -59,47 +73,45 @@ function criar(logado = true): ComponentFixture<MeuArquivo> {
 }
 
 describe('MeuArquivo', () => {
-  beforeEach(() => TestBed.resetTestingModule());
+  beforeEach(() => {
+    TestBed.resetTestingModule();
+    localStorage.clear();
+  });
 
   it('convida a entrar quem não está logado, sem pedir o arquivo', () => {
     const fixture = criar(false);
-    const service = TestBed.inject(StoryArchiveService);
 
     expect(fixture.nativeElement.textContent).toContain('seu arquivo é só seu');
     expect(service.archive).not.toHaveBeenCalled();
   });
 
-  it('conta achados, capítulos e peças soltas', () => {
-    const fixture = criar();
-    const valores = Array.from(
-      fixture.nativeElement.querySelectorAll('.numeros__valor') as NodeListOf<HTMLElement>,
-    ).map((v) => v.textContent?.trim());
-
-    // Cinco achados; três capítulos (o sem capítulo não conta); só a página solta sem ligação.
-    expect(valores).toEqual(['5', '3', '1']);
-  });
-
   /**
-   * "Sem capítulo" é o estado real de uma página solta, e fica no fim — um grupo próprio, e
-   * não misturado a um capítulo nem escondido.
+   * A espinha segura a escala: cada capítulo com a contagem e a marca de peça solta, e "sem
+   * capítulo" separado no fim — é o estado de uma página sem cabeçalho, não um lugar da
+   * história.
    */
-  it('agrupa por capítulo na ordem em que foram registrados', () => {
-    const fixture = criar();
-    const grupos = fixture.componentInstance['grupos']().map((g) => g.chapter);
+  it('a espinha conta por capítulo e marca onde há peça solta', () => {
+    const espinha = criar().componentInstance['espinha']();
 
-    expect(grupos).toEqual([
-      'Cap. 1 — Escola',
-      'Cap. 2 — Hospital',
-      'Cap. 3 — Vila',
-      'sem capítulo',
+    expect(espinha.capitulos).toEqual([
+      { nome: 'Cap. 1 — Escola', total: 1, solta: false },
+      { nome: 'Cap. 2 — Hospital', total: 2, solta: false },
+      { nome: 'Cap. 3 — Vila', total: 1, solta: false },
     ]);
+    expect(espinha.semCapitulo).toBe(1);
+    expect(espinha.semCapituloSolta).toBe(true);
   });
 
-  it('o trecho da linha é a primeira linha com texto, e não a quebra do começo', () => {
-    const fixture = criar();
-    const primeiro = fixture.componentInstance['itens']()[0];
+  it('o primeiro toque acende a ficha e mostra os fios; o segundo a abre', () => {
+    const c = criar().componentInstance;
 
-    expect(primeiro.firstLine).toBe('Bilhete dobrado no armário, primeira linha.');
+    c['tocarFicha'](1);
+    expect(c['tela']()).toBe('visao-geral');
+    expect(c['fiosDaSelecionada']().map((f) => f.short)).toEqual(['acontece antes', 'contradiz']);
+
+    c['tocarFicha'](1);
+    expect(c['tela']()).toBe('detalhe');
+    expect(c['detalhe']()?.id).toBe(1);
   });
 
   /**
@@ -107,8 +119,7 @@ describe('MeuArquivo', () => {
    * bilhete, e o bilhete que acontece antes do sino — os dois vindo antes um do outro.
    */
   it('"acontece antes" lida a partir do destino vira "acontece depois"', () => {
-    const fixture = criar();
-    const c = fixture.componentInstance;
+    const c = criar().componentInstance;
 
     c['abrirAchado'](1);
     expect(c['ligacoesDoDetalhe']()[0].label).toBe('acontece antes');
@@ -117,36 +128,72 @@ describe('MeuArquivo', () => {
     expect(c['ligacoesDoDetalhe']()[0].label).toBe('acontece depois');
   });
 
-  it('o mural só desenha quem tem ligação, e cada capítulo vira uma coluna', () => {
-    const fixture = criar();
-    const nos = fixture.componentInstance['nos']();
+  it('a busca diz quantos bateram sobre quantos havia, e o capítulo recorta os dois', () => {
+    const c = criar().componentInstance;
 
-    expect(nos.map((n) => n.id)).toEqual([1, 2, 3, 4]);
-    const x = new Map(nos.map((n) => [n.id, n.x]));
-    expect(x.get(2)).toBe(x.get(3));
-    expect(x.get(1)).toBeLessThan(x.get(2)!);
-    expect(x.get(2)).toBeLessThan(x.get(4)!);
+    c['buscar']('sino');
+    expect(c['contagemDaBusca']()).toBe('2 de 5');
+
+    c['escolherCapitulo']('Cap. 3 — Vila');
+    expect(c['contagemDaBusca']()).toBe('1 de 1');
   });
 
-  it('acender um achado apaga quem não é vizinho dele', () => {
-    const fixture = criar();
-    const c = fixture.componentInstance;
+  it('com busca num capítulo, as fichas que não bateram ficam recolhidas até pedir', () => {
+    const c = criar().componentInstance;
+    c['escolherCapitulo']('Cap. 2 — Hospital');
+    c['buscar']('diário');
 
-    c['alternarDestaque'](2);
-    const apagados = c['nos']()
-      .filter((n) => n.apagado)
-      .map((n) => n.id);
+    expect(c['fichas']().map((a) => a.id)).toEqual([2]);
+    expect(c['naoBateram']().map((a) => a.id)).toEqual([3]);
 
-    expect(apagados).toEqual([1, 4]);
+    c['mostrarOsOutros'].set(true);
+    expect(c['fichas']().map((a) => a.id)).toEqual([2, 3]);
   });
 
-  it('o registro novo vem com o último capítulo usado', () => {
-    const fixture = criar();
-    const c = fixture.componentInstance;
+  it('o registro cai no capítulo escolhido na espinha, e sem escolha no último usado', () => {
+    const c = criar().componentInstance;
 
     c['irParaRegistrar']();
-
     // O último achado não tem capítulo; o último capítulo USADO é o da vila.
     expect(c['formCapitulo']()).toBe('Cap. 3 — Vila');
+
+    c['escolherCapitulo']('Cap. 1 — Escola');
+    c['irParaRegistrar']();
+    expect(c['formCapitulo']()).toBe('Cap. 1 — Escola');
+  });
+
+  it('colar na faixa leva ao registro com o texto inteiro, quebras de linha incluídas', () => {
+    const c = criar().componentInstance;
+    const texto = 'MULHER: Você já esteve aqui.\n\nEU: Nunca estive.';
+    const evento = {
+      clipboardData: { getData: () => texto },
+      preventDefault: vi.fn(),
+    } as unknown as ClipboardEvent;
+
+    c['colarNaFaixa'](evento);
+
+    expect(c['tela']()).toBe('registrar');
+    expect(c['formTexto']()).toBe(texto);
+  });
+
+  /** "Vazio, o título vira a primeira linha do texto" — e o servidor exige título. */
+  it('salvar sem título manda a primeira linha do texto como título', () => {
+    const c = criar().componentInstance;
+    c['irParaRegistrar']('A névoa se abre e a praça está vazia.\nA corda ainda balança.');
+
+    c['salvar'](false);
+
+    expect(service.register).toHaveBeenCalledWith(
+      '7',
+      expect.objectContaining({ title: 'A névoa se abre e a praça está vazia.' }),
+    );
+  });
+
+  it('"talvez ligue a" aponta quem repete uma palavra e ainda não está ligado', () => {
+    const c = criar().componentInstance;
+
+    // O sino (4) já está ligado ao bilhete (1), que também cita "sino": não há sugestão.
+    c['abrirAchado'](4);
+    expect(c['sugestoes']()).toBeNull();
   });
 });
