@@ -75,7 +75,9 @@ src/
       quest-detail/  quest-editor/  quest-conditions/  quest-map-organizer/
       rotas/  game-create/  not-found/
       lore/           # artigos de lore com sistema de status
-      lore-create/  lore-editor/  lore-history/
+      lore-nova/      # /lore/new: escolhe o jogo e abre o "montar lore" do arquivo (ADR 0008)
+      lore-editor/  lore-history/
+      meu-arquivo/    # a aba "meu arquivo" do jogo, o mural e o montar lore
       ending-detail/  # guia de final: passos por capítulo, inclusive AVOID
       profile/        # perfil do usuário, meus guias, doações
       usuario/  comunidade/  search/  login/  forgot-password/  reset-password/

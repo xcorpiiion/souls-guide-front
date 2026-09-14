@@ -302,12 +302,12 @@ export const routes: Routes = [
     path: 'lore/new',
     data: {
       seo: {
-        titulo: 'Novo artigo',
-        descricao: 'Escrever um artigo de lore.',
+        titulo: 'Montar uma lore',
+        descricao: 'Montar um artigo de lore com os achados do seu arquivo.',
         indexavel: false,
       } satisfies SeoPagina,
     },
-    loadComponent: () => import('./features/lore-create/lore-create').then((m) => m.LoreCreate),
+    loadComponent: () => import('./features/lore-nova/lore-nova').then((m) => m.LoreNova),
     canActivate: [authGuard],
   },
   {

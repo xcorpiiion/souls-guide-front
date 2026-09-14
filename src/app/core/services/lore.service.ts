@@ -1,10 +1,14 @@
 import { inject, Injectable } from '@angular/core';
 import { HttpService, Page, mapPage } from '@xcorpiiion/ng-core';
 import { map, Observable } from 'rxjs';
-import { LoreApi, LoreSummary, loreApiToSummary } from '../../shared/models/lore-article.model';
+import {
+  LoreApi,
+  LoreSummary,
+  LoreTypeApi,
+  loreApiToSummary,
+} from '../../shared/models/lore-article.model';
 import { FollowResponse } from '../../shared/models/quest.model';
 import { LikeResponse } from './personal-quest.service';
-import { LoreTypeApi } from '../../features/lore-create/lore-create';
 import { paraId } from '../../shared/utils/ref';
 
 export interface CreateLoreRequest {

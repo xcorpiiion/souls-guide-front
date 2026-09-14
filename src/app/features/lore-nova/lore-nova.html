@@ -1,0 +1,120 @@
+<section class="nova">
+  @switch (estado()) {
+    @case ('escolher') {
+      <a class="voltar" routerLink="/lore"
+        ><i class="ti ti-arrow-left" aria-hidden="true"></i> lore</a
+      >
+
+      <header class="nova__topo">
+        <h1 class="nova__titulo">montar uma lore</h1>
+        <p class="nova__texto">
+          uma lore nasce do seu arquivo: você escolhe os achados que registrou, ordena o fio e
+          escreve entre as citações. primeiro, de qual jogo?
+        </p>
+      </header>
+
+      <label class="rotulo" for="nova-jogo">jogo</label>
+      <div class="nova__busca">
+        <i class="ti ti-search" aria-hidden="true"></i>
+        <input
+          #campoBusca
+          id="nova-jogo"
+          class="campo nova__campo"
+          type="search"
+          autocomplete="off"
+          placeholder="buscar jogo"
+          [value]="consulta()"
+          (input)="digitar(campoBusca.value)"
+        />
+        @if (buscando()) {
+          <i class="ti ti-loader-2 giro" aria-hidden="true"></i>
+        }
+      </div>
+
+      @if (resultados().length > 0) {
+        <ul class="nova__jogos">
+          @for (g of resultados(); track g.id) {
+            <li>
+              <button type="button" class="nova__jogo" (click)="escolher(g)">
+                <span class="nova__sigla">{{ g.shortName }}</span>
+                <span class="nova__nome">{{ g.name }}</span>
+                <i class="ti ti-chevron-right" aria-hidden="true"></i>
+              </button>
+            </li>
+          }
+        </ul>
+      } @else if (consulta().trim().length >= 2 && !buscando()) {
+        <p class="nova__dica">nenhum jogo com esse nome.</p>
+      }
+    }
+
+    @case ('carregando') {
+      <p class="nova__dica" aria-live="polite">
+        <i class="ti ti-loader-2 giro" aria-hidden="true"></i> abrindo seu arquivo…
+      </p>
+    }
+
+    @case ('falhou') {
+      <div class="estado estado--erro">
+        <i class="ti ti-alert-circle estado__icone" aria-hidden="true"></i>
+        <h2 class="estado__titulo">o arquivo não abriu</h2>
+        <p class="estado__texto">
+          nada foi perdido — o servidor não respondeu agora. seus achados continuam lá.
+        </p>
+        <button type="button" class="botao botao--secundario" (click)="tentarDeNovo()">
+          <i class="ti ti-refresh" aria-hidden="true"></i> tentar de novo
+        </button>
+      </div>
+    }
+
+    @case ('fora-do-escopo') {
+      <div class="estado">
+        <i class="ti ti-books-off estado__icone" aria-hidden="true"></i>
+        <h2 class="estado__titulo">{{ jogo()?.name }} não tem guias aqui</h2>
+        <p class="estado__texto">
+          este jogo está no catálogo, mas fora das seções de guia — e sem arquivo não há de onde
+          montar a lore.
+        </p>
+        <button type="button" class="botao botao--secundario" (click)="trocarDeJogo()">
+          escolher outro jogo
+        </button>
+      </div>
+    }
+
+    @case ('pronto') {
+      @let g = jogo()!;
+      @if (itens().length === 0) {
+        <div class="estado">
+          <i class="ti ti-clipboard-text estado__icone" aria-hidden="true"></i>
+          <h2 class="estado__titulo">seu arquivo de {{ g.name }} está vazio</h2>
+          <p class="estado__texto">
+            a lore é montada com o que você encontrou. registre as notas, documentos e falas no
+            arquivo do jogo, e volte aqui para ligar tudo num texto.
+          </p>
+          <a
+            class="botao botao--primario botao--largo estado__botao"
+            [routerLink]="['/games', g.ref]"
+            [queryParams]="{ aba: 'arquivo' }"
+          >
+            <i class="ti ti-plus" aria-hidden="true"></i> registrar achado
+          </a>
+          <button type="button" class="nova__trocar" (click)="trocarDeJogo()">
+            escolher outro jogo
+          </button>
+        </div>
+      } @else {
+        <p class="nova__jogo-atual">
+          <span class="etiqueta">{{ g.name }}</span>
+          <button type="button" class="nova__trocar" (click)="trocarDeJogo()">trocar</button>
+        </p>
+        <app-montar-lore
+          [gameId]="g.id"
+          [gameName]="g.name"
+          [itens]="itens()"
+          [ligacoes]="ligacoes()"
+          (voltar)="trocarDeJogo()"
+        />
+      }
+    }
+  }
+</section>

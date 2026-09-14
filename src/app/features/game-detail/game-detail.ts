@@ -42,6 +42,17 @@ import { MeuArquivo } from '../meu-arquivo/meu-arquivo';
 
 type Tab = 'quests' | 'lore' | 'endings' | 'arquivo' | 'contributors';
 
+const ABAS: readonly Tab[] = ['quests', 'lore', 'endings', 'arquivo', 'contributors'];
+
+/**
+ * `?aba=arquivo` abre a página já na aba. É por onde o "nova lore" manda quem ainda não tem
+ * achado nenhum naquele jogo: cair na aba de quests e ter de achar o arquivo seria perder a
+ * pessoa no caminho. Aba que não existe, ou que o jogo não tem, cai no padrão.
+ */
+function abaDaQuery(valor: string | null): Tab | null {
+  return ABAS.find((a) => a === valor) ?? null;
+}
+
 @Component({
   selector: 'app-game-detail',
   imports: [RouterLink, PfPageLoader, MeuArquivo],
@@ -214,7 +225,9 @@ export class GameDetail implements OnInit {
    * derivada, então "a primeira que existe" não precisa de nenhum conserto imperativo
    * depois que o jogo carrega.
    */
-  private readonly tabPedida = signal<Tab | null>(null);
+  private readonly tabPedida = signal<Tab | null>(
+    abaDaQuery(this.route.snapshot.queryParamMap.get('aba')),
+  );
 
   protected readonly activeTab = computed<Tab>(() => {
     const abas = this.tabs();

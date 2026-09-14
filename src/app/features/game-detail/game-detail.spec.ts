@@ -59,7 +59,11 @@ const questServiceMock = { list: vi.fn(() => of(emptyPage)) };
 const loreServiceMock = { list: vi.fn(() => of(emptyPage)) };
 const endingServiceMock = { listByGame: vi.fn(() => of([])) };
 
-function createFixture(gameId: string, jogo: Game = MOCK_GAME): ComponentFixture<GameDetail> {
+function createFixture(
+  gameId: string,
+  jogo: Game = MOCK_GAME,
+  query: Record<string, string> = {},
+): ComponentFixture<GameDetail> {
   TestBed.configureTestingModule({
     imports: [GameDetail],
     providers: [
@@ -67,7 +71,12 @@ function createFixture(gameId: string, jogo: Game = MOCK_GAME): ComponentFixture
       provideRouter([]),
       {
         provide: ActivatedRoute,
-        useValue: { snapshot: { paramMap: convertToParamMap({ id: gameId }) } },
+        useValue: {
+          snapshot: {
+            paramMap: convertToParamMap({ id: gameId }),
+            queryParamMap: convertToParamMap(query),
+          },
+        },
       },
       { provide: GameService, useValue: { ...gameServiceMock, get: vi.fn(() => of(jogo)) } },
       { provide: QuestService, useValue: questServiceMock },
@@ -157,7 +166,12 @@ describe('GameDetail', () => {
         provideRouter([]),
         {
           provide: ActivatedRoute,
-          useValue: { snapshot: { paramMap: convertToParamMap({ id: referencia }) } },
+          useValue: {
+            snapshot: {
+              paramMap: convertToParamMap({ id: referencia }),
+              queryParamMap: convertToParamMap({}),
+            },
+          },
         },
         { provide: GameService, useValue: gameServiceMock },
         { provide: QuestService, useValue: questService },
@@ -249,6 +263,17 @@ describe('GameDetail', () => {
      * `quests` era o valor inicial fixo do sinal. Silent Hill não tem grafo de quest, e
      * abriria numa aba que não está nem no tablist — página em branco por padrão.
      */
+    /** `?aba=arquivo` é por onde a nova lore manda quem ainda não tem achado. */
+    it('abre na aba pedida pela URL', () => {
+      const fixture = createFixture('1', jogoCom('LORE', 'ENDINGS'), { aba: 'arquivo' });
+      expect(fixture.componentInstance['activeTab']()).toBe('arquivo');
+    });
+
+    it('ignora aba da URL que o jogo não tem', () => {
+      const fixture = createFixture('1', jogoCom('LORE'), { aba: 'quests' });
+      expect(fixture.componentInstance['activeTab']()).toBe('lore');
+    });
+
     it('abre na primeira aba que existe, e não em quests', () => {
       const fixture = createFixture('1', jogoCom('LORE', 'ENDINGS'));
       expect(fixture.componentInstance['activeTab']()).toBe('lore');
@@ -310,7 +335,12 @@ describe('GameDetail', () => {
         provideRouter([]),
         {
           provide: ActivatedRoute,
-          useValue: { snapshot: { paramMap: convertToParamMap({ id: '999' }) } },
+          useValue: {
+            snapshot: {
+              paramMap: convertToParamMap({ id: '999' }),
+              queryParamMap: convertToParamMap({}),
+            },
+          },
         },
         { provide: GameService, useValue: errService },
         { provide: QuestService, useValue: questServiceMock },

@@ -1,8 +1,12 @@
 import { inject, Injectable } from '@angular/core';
 import { HttpService } from '@xcorpiiion/ng-core';
 import { map, Observable } from 'rxjs';
-import { LoreApi, LoreSummary, loreApiToSummary } from '../../shared/models/lore-article.model';
-import { LoreTypeApi } from '../../features/lore-create/lore-create';
+import {
+  LoreApi,
+  LoreSummary,
+  LoreTypeApi,
+  loreApiToSummary,
+} from '../../shared/models/lore-article.model';
 import { LikeResponse } from './personal-quest.service';
 
 export type CopyLoreFilterType = 'all' | 'world' | 'character';

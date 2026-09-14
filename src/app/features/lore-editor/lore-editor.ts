@@ -22,7 +22,7 @@ import {
 import { PfPageLoader } from '@xcorpiiion/ui';
 import { ImageUploader } from '../../shared/components/image-uploader/image-uploader';
 import { GameSummary } from '../../shared/models/game.model';
-import { LoreType, LoreTypeApi } from '../lore-create/lore-create';
+import { LoreTypeApi, LoreTypeForm as LoreType } from '../../shared/models/lore-article.model';
 import { HasUnsavedChanges } from '@xcorpiiion/ng-core';
 import {
   extractImageFileKeys,
