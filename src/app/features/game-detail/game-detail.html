@@ -97,9 +97,14 @@
                     </a>
                   }
                   @if (tem('LORE')) {
+                    <!--
+                      A criação de lore não mora debaixo do jogo: é `/lore/new`, e o jogo vai
+                      na query. `/games/{ref}/lore/new` nunca existiu, e o link caía no 404.
+                    -->
                     <a
                       class="game-detail__contrib-item"
-                      [routerLink]="['/games', g.ref, 'lore', 'new']"
+                      routerLink="/lore/new"
+                      [queryParams]="{ jogo: g.id }"
                       (click)="showContribMenu.set(false)"
                     >
                       <i class="ti ti-book" aria-hidden="true"></i>
@@ -320,7 +325,10 @@
       <div class="game-detail__content" role="tabpanel">
         <div class="game-detail__section-header">
           <span class="game-detail__section-title">lore em destaque</span>
-          <a class="game-detail__section-link" routerLink="lore">ver todos →</a>
+          <!-- Relativo, este link ia para /games/{ref}/lore, que não existe. -->
+          <a class="game-detail__section-link" routerLink="/lore" [queryParams]="{ jogo: g.id }"
+            >ver todos →</a
+          >
         </div>
 
         @if (loreArticles().length > 0) {

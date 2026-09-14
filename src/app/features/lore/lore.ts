@@ -10,13 +10,13 @@ import {
   signal,
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { RouterLink } from '@angular/router';
+import { ActivatedRoute, RouterLink } from '@angular/router';
 import { Subject, debounceTime, distinctUntilChanged, switchMap } from 'rxjs';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { LoreCategory, LoreSummary } from '../../shared/models/lore-article.model';
 import { LoreService } from '../../core/services/lore.service';
 import { GameService } from '../../core/services/game.service';
-import { GameSummary } from '../../shared/models/game.model';
+import { GameSummary, gameToSummary } from '../../shared/models/game.model';
 
 const CATEGORY_FILTERS: { id: LoreCategory | ''; label: string }[] = [
   { id: '', label: 'todos' },
@@ -44,6 +44,7 @@ export class Lore implements OnInit {
   private readonly loreService = inject(LoreService);
   private readonly gameService = inject(GameService);
   private readonly destroyRef = inject(DestroyRef);
+  private readonly route = inject(ActivatedRoute);
 
   protected readonly categoryFilters = CATEGORY_FILTERS;
   protected readonly skeletonItems = Array.from({ length: PAGE_SIZE });
@@ -77,8 +78,31 @@ export class Lore implements OnInit {
   });
 
   ngOnInit(): void {
+    // O "ver todos" da página de um jogo chega com `?jogo=`. A lista de jogos do filtro traz
+    // só os 50 primeiros, e o catálogo tem mais de 200 — então o jogo da query é buscado à
+    // parte, senão o filtro valeria e o rótulo dele ficaria em branco.
+    const jogo = this.route.snapshot.queryParamMap.get('jogo');
+    if (jogo) {
+      this.gameFilter.set(jogo);
+      this.gameService.get(jogo).subscribe({
+        next: (g) => {
+          const resumo = gameToSummary(g);
+          this.allGames.update((lista) =>
+            lista.some((x) => x.id === resumo.id) ? lista : [...lista, resumo],
+          );
+        },
+        error: () => {
+          // Jogo inexistente: a lista sai vazia pelo filtro, o que já diz o bastante.
+        },
+      });
+    }
+
     this.gameService.list({ size: 50 }).subscribe({
-      next: (page) => this.allGames.set(page.content),
+      next: (page) =>
+        this.allGames.update((jaConhecidos) => [
+          ...page.content,
+          ...jaConhecidos.filter((x) => !page.content.some((p) => p.id === x.id)),
+        ]),
       error: () => {
         /* silenciado — filtro de jogo fica vazio */
       },

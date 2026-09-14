@@ -9,6 +9,8 @@ import { LoreService } from '../../core/services/lore.service';
 import { EndingService } from '../../core/services/ending.service';
 import { Game, GameFeature } from '../../shared/models/game.model';
 import { provideAuth } from '@xcorpiiion/ng-core';
+import { readFileSync } from 'node:fs';
+import { join, resolve } from 'node:path';
 
 const MOCK_GAME: Game = {
   id: 1,
@@ -318,5 +320,63 @@ describe('GameDetail', () => {
     // component will show loading state, not error — acceptable
     const f = TestBed.createComponent(GameDetail);
     expect(f.componentInstance).toBeTruthy();
+  });
+
+  /**
+   * Todo link que a página desenha leva a uma rota que existe.
+   *
+   * O "novo lore" do "+ contribuir" apontava para `/games/{ref}/lore/new`, e o "ver todos" da
+   * aba lore para `/games/{ref}/lore` — nenhum dos dois existe, e os dois caíam no YOU DIED.
+   * Nada avisava: `routerLink` aceita qualquer caminho, compila e desenha o `href`
+   * normalmente. Este teste confere cada `href` contra a tabela de `app.routes.ts`.
+   *
+   * A tabela é lida como **texto**, e não importada: importar o `app.routes` puxa para a
+   * compilação do teste todas as telas lazy, e a de login usa os tipos do Google, que a
+   * configuração de teste não carrega.
+   */
+  describe('os links da página', () => {
+    const routes = Array.from(
+      readFileSync(join(resolve(process.cwd()), 'src', 'app', 'app.routes.ts'), 'utf8').matchAll(
+        /^\s*path:\s*'([^']*)'/gm,
+      ),
+    ).map((m) => ({ path: m[1] }));
+
+    function padraoDe(caminho: string): RegExp {
+      const corpo = caminho
+        .split('/')
+        .map((parte) =>
+          parte.startsWith(':') ? '[^/]+' : parte.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'),
+        )
+        .join('/');
+      return new RegExp(`^/${corpo}$`);
+    }
+
+    const padroes = routes
+      .map((r) => r.path)
+      .filter((p): p is string => p !== undefined && p !== '**')
+      .map(padraoDe);
+
+    function linksQuebrados(fixture: ComponentFixture<GameDetail>): string[] {
+      const hrefs = Array.from(
+        fixture.nativeElement.querySelectorAll('a[href]') as NodeListOf<HTMLAnchorElement>,
+      ).map((a) => a.getAttribute('href')!.split(/[?#]/)[0]);
+      return hrefs.filter((h) => !padroes.some((p) => p.test(h)));
+    }
+
+    it('com o menu de contribuir aberto', () => {
+      const fixture = createFixture('1');
+      fixture.componentInstance['toggleContribMenu']();
+      fixture.detectChanges();
+
+      expect(linksQuebrados(fixture)).toEqual([]);
+    });
+
+    it('na aba lore', () => {
+      const fixture = createFixture('1');
+      fixture.componentInstance['setTab']('lore');
+      fixture.detectChanges();
+
+      expect(linksQuebrados(fixture)).toEqual([]);
+    });
   });
 });

@@ -7,7 +7,7 @@ import {
   computed,
 } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { Router, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { Subject, debounceTime, distinctUntilChanged, switchMap, takeUntil } from 'rxjs';
 import { LoreService } from '../../core/services/lore.service';
 import { GameService } from '../../core/services/game.service';
@@ -16,7 +16,7 @@ import {
   PendingUpload,
   StorageService,
 } from '../../core/services/storage.service';
-import { GameSummary } from '../../shared/models/game.model';
+import { GameSummary, gameToSummary } from '../../shared/models/game.model';
 import { ImageUploader } from '../../shared/components/image-uploader/image-uploader';
 import {
   extractImageFileKeys,
@@ -39,6 +39,7 @@ export class LoreCreate implements OnDestroy {
   private readonly gameService = inject(GameService);
   private readonly storage = inject(StorageService);
   private readonly router = inject(Router);
+  private readonly route = inject(ActivatedRoute);
   private readonly fb = inject(FormBuilder);
   private readonly destroy$ = new Subject<void>();
   private readonly gameSearch$ = new Subject<string>();
@@ -106,6 +107,18 @@ export class LoreCreate implements OnDestroy {
         },
         error: () => this.gameSearching.set(false),
       });
+
+    // Quem chega pelo "+ contribuir" da página de um jogo já disse de qual jogo é o artigo.
+    // Obrigar a buscar o jogo de novo seria perguntar o que a pessoa acabou de responder.
+    const jogo = this.route.snapshot.queryParamMap.get('jogo');
+    if (jogo) {
+      this.gameService.get(jogo).subscribe({
+        next: (g) => this.selectGame(gameToSummary(g)),
+        error: () => {
+          // Jogo inexistente na query: o formulário abre como se ela não viesse.
+        },
+      });
+    }
   }
 
   protected setType(t: LoreType): void {
