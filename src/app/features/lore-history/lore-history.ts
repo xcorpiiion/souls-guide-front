@@ -9,9 +9,16 @@ import {
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { AuthService } from '@xcorpiiion/ng-core';
 import { LoreVersionService, LoreVersion } from '../../core/services/lore-version.service';
+import { LoreService } from '../../core/services/lore.service';
+import { LoreApi } from '../../shared/models/lore-article.model';
 import { ToastService } from '@xcorpiiion/ui';
 import { PfPageLoader } from '@xcorpiiion/ui';
 
+/**
+ * O histórico de uma lore. Todos leem; só o autor volta a uma versão anterior (ADR 0034 do
+ * souls-guide-api). A votação para reverter saiu: com a lore só do autor, ela seria outras
+ * pessoas desfazendo o texto de quem escreveu.
+ */
 @Component({
   selector: 'app-lore-history',
   imports: [RouterLink, PfPageLoader],
@@ -22,6 +29,7 @@ import { PfPageLoader } from '@xcorpiiion/ui';
 export class LoreHistory implements OnInit {
   private readonly route = inject(ActivatedRoute);
   private readonly versionService = inject(LoreVersionService);
+  private readonly loreService = inject(LoreService);
   private readonly authService = inject(AuthService);
   private readonly toast = inject(ToastService);
 
@@ -35,15 +43,22 @@ export class LoreHistory implements OnInit {
         ? 'usuario'
         : 'community';
 
-  protected readonly isLoggedIn = this.authService.isLoggedIn;
   protected readonly versions = signal<LoreVersion[]>([]);
   protected readonly loading = signal(true);
   protected readonly reverting = signal<number | null>(null);
-  protected readonly voting = signal(false);
+  private readonly artigo = signal<LoreApi | null>(null);
 
   protected readonly current = computed(
     () => this.versions().find((v) => v.status === 'current') ?? null,
   );
+
+  /** A mesma conta da página da lore: na de perfil o dono é quem guarda; na outra, quem escreveu. */
+  protected readonly ehAutor = computed(() => {
+    const a = this.artigo();
+    if (!a || !this.authService.isLoggedIn()) return false;
+    const eu = String(this.authService.userId());
+    return a.isPersonal ? String(a.ownerId) === eu : String(a.userId) === eu;
+  });
 
   ngOnInit(): void {
     this.versionService.list(this.loreId).subscribe({
@@ -55,9 +70,15 @@ export class LoreHistory implements OnInit {
         this.loading.set(false);
       },
     });
+    // Sem o artigo, ninguém é autor: o botão de reverter fica escondido, que é o lado seguro.
+    this.loreService.get(this.loreId).subscribe({
+      next: (a) => this.artigo.set(a),
+      error: () => this.artigo.set(null),
+    });
   }
 
   protected revert(version: LoreVersion): void {
+    if (!this.ehAutor()) return;
     this.reverting.set(version.versionNumber);
     this.versionService.revert(this.loreId, version.versionNumber).subscribe({
       next: (newVersion) => {
@@ -76,10 +97,7 @@ export class LoreHistory implements OnInit {
         if (err.status === 400) {
           this.toast.error('Não permitido', 'Não é possível reverter para esta versão.');
         } else if (err.status === 403) {
-          this.toast.error(
-            'Acesso negado',
-            'Você está temporariamente banido de editar artigos de lore.',
-          );
+          this.toast.error('Não permitido', 'Só o autor altera esta lore.');
         } else if (err.status === 404) {
           this.toast.error('Não encontrado', 'Versão não encontrada.');
         } else {
@@ -87,49 +105,6 @@ export class LoreHistory implements OnInit {
         }
       },
     });
-  }
-
-  protected toggleVote(): void {
-    const cur = this.current();
-    if (!cur) return;
-    this.voting.set(true);
-
-    const action$ = cur.userHasVoted
-      ? this.versionService.removeVoteRevert(this.loreId)
-      : this.versionService.voteRevert(this.loreId);
-
-    action$.subscribe({
-      next: (updated) => {
-        this.versions.update((list) => list.map((v) => (v.status === 'current' ? updated : v)));
-        this.voting.set(false);
-        if (!cur.userHasVoted) {
-          this.toast.warning(
-            'Voto registrado',
-            `${updated.revertVotes}/${updated.revertVotesNeeded} votos para reverter automaticamente.`,
-          );
-        }
-      },
-      error: (err) => {
-        this.voting.set(false);
-        if (err.status === 409) {
-          this.toast.error('Voto duplicado', 'Você já votou nesta versão.');
-        } else if (err.status === 403) {
-          this.toast.error(
-            'Acesso negado',
-            'Você está temporariamente banido de editar artigos de lore.',
-          );
-        } else if (err.status === 404) {
-          this.toast.error('Não encontrado', 'Você não tem voto registrado nesta versão.');
-        } else {
-          this.toast.error('Erro', 'Não foi possível registrar seu voto.');
-        }
-      },
-    });
-  }
-
-  protected votePercent(v: LoreVersion): number {
-    if (!v.revertVotesNeeded) return 0;
-    return Math.min(100, Math.round((v.revertVotes / v.revertVotesNeeded) * 100));
   }
 
   protected initials(nickname: string): string {

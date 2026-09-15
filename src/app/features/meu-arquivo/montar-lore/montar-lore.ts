@@ -125,11 +125,6 @@ export class MontarLore implements OnInit {
       this.blocos.set(lerBlocos(artigo.content, () => this.proximoId++));
       this.esqueletoMontado = true;
       this.passo.set(3);
-    } else if (this.soMinha() && this.escolhidos().length === 0) {
-      // A lore só da pessoa começa do zero: a página em branco, e não a escolha de achados.
-      // Citar o arquivo continua possível, pelo "citar do meu arquivo" da escrita.
-      this.esqueletoMontado = true;
-      this.passo.set(3);
     }
     this.inicial = this.retrato();
   }
@@ -241,17 +236,13 @@ export class MontarLore implements OnInit {
     // Editando, a escrita já existe: dá para ir a ela sem escolher nada de novo.
     const semEscolha = this.escolhidos().length === 0;
     if (passo === 2 && semEscolha) return;
-    if (passo === 3 && semEscolha && !this.editando() && !this.soMinha()) return;
+    if (passo === 3 && semEscolha && !this.editando()) return;
     if (passo === 3 && !this.esqueletoMontado) {
       // A primeira ida à escrita já traz as citações na ordem do fio, com um parágrafo
       // antes de cada uma. É o esqueleto que a pessoa preenche, e não uma página em branco.
       // Só na primeira: voltar para reordenar e retornar não pode apagar o que foi escrito.
       this.montarEsqueleto();
       this.esqueletoMontado = true;
-    } else if (passo === 3 && this.soMinha()) {
-      // Na lore só sua a escrita veio primeiro: o que foi escolhido agora entra no fim do texto,
-      // em vez de esperar um "inserir citação" por achado.
-      this.inserirTodasAsRestantes();
     }
     this.passo.set(passo);
   }
@@ -306,18 +297,6 @@ export class MontarLore implements OnInit {
       ...lista,
       { id: this.proximoId++, kind: 'citacao', achadoId: proxima.id },
       { id: this.proximoId++, kind: 'texto', valor: '' },
-    ]);
-  }
-
-  private inserirTodasAsRestantes(): void {
-    const novas = this.restantes();
-    if (!novas.length) return;
-    this.blocos.update((lista) => [
-      ...lista,
-      ...novas.flatMap((a): Bloco[] => [
-        { id: this.proximoId++, kind: 'citacao', achadoId: a.id },
-        { id: this.proximoId++, kind: 'texto', valor: '' },
-      ]),
     ]);
   }
 

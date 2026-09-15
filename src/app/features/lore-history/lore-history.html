@@ -16,7 +16,12 @@
       <h1 class="qh__title">histórico de versões</h1>
       <p class="qh__subtitle">
         <i class="ti ti-git-branch" aria-hidden="true"></i>
-        {{ versions().length }} versões · reverter cria uma nova versão, nada é apagado
+        {{ versions().length }} versões ·
+        @if (ehAutor()) {
+          reverter cria uma nova versão, nada é apagado
+        } @else {
+          só o autor altera esta lore
+        }
       </p>
     </div>
   </header>
@@ -28,7 +33,7 @@
       @if (v.status === 'reverted' && $index > 0 && versions()[$index - 1].status !== 'reverted') {
         <div class="qh__divider">
           <i class="ti ti-arrow-back-up" aria-hidden="true"></i>
-          versão revertida por votos da comunidade
+          versão revertida
         </div>
       }
 
@@ -66,7 +71,7 @@
           </div>
 
           <div class="qh__actions">
-            @if (v.status !== 'current' && v.status !== 'reverted' && isLoggedIn()) {
+            @if (v.status !== 'current' && v.status !== 'reverted' && ehAutor()) {
               <button
                 class="qh__btn qh__btn--danger"
                 type="button"
@@ -118,57 +123,21 @@
           </div>
         }
 
-        <!-- votos de reversão (versão revertida) -->
-        @if (v.status === 'reverted') {
-          <div class="qh__vote-bar-row">
-            <i class="ti ti-arrow-back-up" aria-hidden="true"></i>
-            <span>{{ v.revertVotes }} de {{ v.revertVotesNeeded }} votos atingidos</span>
-            <div class="qh__vote-bar-wrap">
-              <div class="qh__vote-bar qh__vote-bar--danger" [style.width.%]="votePercent(v)"></div>
-            </div>
-            <span class="qh__reverted-label">revertida</span>
+        <!-- Versão derrubada por votos antes do ADR 0034: o registro fica, a votação não. -->
+        @if (v.status === 'reverted' && v.strikeIssued) {
+          <div class="qh__strike-banner">
+            <i class="ti ti-alert-triangle" aria-hidden="true"></i>
+            @{{ v.editedBy.nickname }} recebeu 1 strike por esta edição
           </div>
-          @if (v.strikeIssued) {
-            <div class="qh__strike-banner">
-              <i class="ti ti-alert-triangle" aria-hidden="true"></i>
-              @{{ v.editedBy.nickname }} recebeu 1 strike por esta edição
-            </div>
-          }
         }
       </div>
     }
 
-    <!-- painel de voto na versão atual -->
-    @if (current() && isLoggedIn()) {
-      <div class="qh__vote-panel">
-        <p class="qh__vote-panel-title">
-          <i class="ti ti-flag" aria-hidden="true"></i>
-          acha que a versão atual está errada?
-        </p>
-        <div class="qh__vote-panel-row">
-          <div class="qh__vote-bar-wrap">
-            <div class="qh__vote-bar" [style.width.%]="votePercent(current()!)"></div>
-          </div>
-          <span class="qh__vote-count">
-            {{ current()!.revertVotes }} / {{ current()!.revertVotesNeeded }} votos
-          </span>
-          <button
-            class="qh__btn"
-            [class.qh__btn--danger]="!current()!.userHasVoted"
-            [class.qh__btn--active]="current()!.userHasVoted"
-            type="button"
-            [disabled]="voting()"
-            (click)="toggleVote()"
-          >
-            <i class="ti ti-flag" aria-hidden="true"></i>
-            {{ current()!.userHasVoted ? 'remover voto' : 'votar para reverter' }}
-          </button>
-        </div>
-        <p class="qh__vote-hint">
-          {{ current()!.revertVotesNeeded }} votos de usuários diferentes revertem automaticamente
-          para a versão anterior.
-        </p>
-      </div>
+    @if (!ehAutor() && current()) {
+      <p class="qh__vote-hint">
+        <i class="ti ti-flag" aria-hidden="true"></i>
+        viu algo errado nesta lore? use <b>denunciar</b> na página dela.
+      </p>
     }
   }
 </section>

@@ -61,15 +61,8 @@ export class LoreNova {
     void this.router.navigate([], { queryParams: { jogo: jogo.id } });
   }
 
-  /**
-   * Voltar do montar lore: a lore só sua volta ao perfil, de onde veio; a da comunidade, à mesa
-   * do jogo, que é de onde os achados vêm.
-   */
-  protected voltar(): void {
-    if (this.destino === 'perfil') {
-      void this.router.navigate(['/profile']);
-      return;
-    }
+  /** Voltar do montar lore leva à mesa do jogo, que é de onde os achados vêm. */
+  protected voltarParaAMesa(): void {
     const g = this.jogo();
     void this.router.navigate(['/lore'], g ? { queryParams: { jogo: g.ref } } : {});
   }

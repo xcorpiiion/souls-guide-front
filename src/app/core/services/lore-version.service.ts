@@ -39,15 +39,8 @@ export class LoreVersionService {
     return this.api.get<LoreVersion[]>(`${loreId}/versions`);
   }
 
+  /** Só o autor (ADR 0034 do souls-guide-api). A votação para reverter saiu da lore. */
   revert(loreId: string, versionNumber: number): Observable<LoreVersion> {
     return this.api.post<LoreVersion>(`${loreId}/versions/${versionNumber}/revert`, {});
-  }
-
-  voteRevert(loreId: string): Observable<LoreVersion> {
-    return this.api.post<LoreVersion>(`${loreId}/versions/current/vote-revert`, {});
-  }
-
-  removeVoteRevert(loreId: string): Observable<LoreVersion> {
-    return this.api.delete<LoreVersion>(`${loreId}/versions/current/vote-revert`);
   }
 }

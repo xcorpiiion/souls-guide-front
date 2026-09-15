@@ -4,19 +4,24 @@ import { describe, beforeEach, it, expect, vi } from 'vitest';
 import { of, throwError } from 'rxjs';
 import { LoreHistory } from './lore-history';
 import { LoreVersionService } from '../../core/services/lore-version.service';
+import { LoreService } from '../../core/services/lore.service';
 import { AuthService } from '@xcorpiiion/ng-core';
 import { ToastService } from '@xcorpiiion/ui';
 import { LORE_HISTORY_MOCK } from './lore-history.mocks';
 
-function makeAuth(loggedIn: boolean) {
-  return { isLoggedIn: () => loggedIn } as unknown as AuthService;
+function makeAuth(loggedIn: boolean, userId: string) {
+  return { isLoggedIn: () => loggedIn, userId: () => userId } as unknown as AuthService;
 }
 
 const TOAST_MOCK = { success: vi.fn(), error: vi.fn(), warning: vi.fn() };
 
+/** A lore 42 é de quem tem id 1. */
+const ARTIGO = { id: 42, userId: '1', ownerId: null, isPersonal: false };
+
 function createFixture(
   versionSvcMock: Partial<LoreVersionService>,
   loggedIn = true,
+  userId = '1',
 ): ComponentFixture<LoreHistory> {
   TestBed.configureTestingModule({
     imports: [LoreHistory],
@@ -33,7 +38,8 @@ function createFixture(
         },
       },
       { provide: LoreVersionService, useValue: versionSvcMock },
-      { provide: AuthService, useValue: makeAuth(loggedIn) },
+      { provide: AuthService, useValue: makeAuth(loggedIn, userId) },
+      { provide: LoreService, useValue: { get: vi.fn(() => of(ARTIGO)) } },
       { provide: ToastService, useValue: TOAST_MOCK },
     ],
   });
@@ -121,78 +127,24 @@ describe('LoreHistory', () => {
     });
   });
 
-  describe('toggleVote()', () => {
-    it('registra voto e exibe toast de aviso', () => {
-      const updated = { ...LORE_HISTORY_MOCK[0], revertVotes: 3, userHasVoted: true };
-      const svcMock = {
-        list: vi.fn(() => of(LORE_HISTORY_MOCK)),
-        voteRevert: vi.fn(() => of(updated)),
-      };
-      const fixture = createFixture(svcMock);
-      const comp = fixture.componentInstance as any;
-      comp.toggleVote();
-      expect(svcMock.voteRevert).toHaveBeenCalledWith('42');
-      expect(TOAST_MOCK.warning).toHaveBeenCalled();
-      expect(comp.voting()).toBe(false);
+  /** ADR 0034 do souls-guide-api: publicada, todos leem; só o autor altera. */
+  describe('quem não é o autor', () => {
+    it('não vê "reverter para esta", nem votação, e é mandado à denúncia', () => {
+      const svcMock = { list: vi.fn(() => of(LORE_HISTORY_MOCK)), revert: vi.fn() };
+      const fixture = createFixture(svcMock, true, '99');
+      const el = fixture.nativeElement as HTMLElement;
+      expect(el.textContent).not.toContain('reverter para esta');
+      expect(el.textContent).not.toContain('votar para reverter');
+      expect(el.textContent).toContain('só o autor altera esta lore');
+      expect(el.textContent).toContain('denunciar');
+
+      (fixture.componentInstance as any).revert(LORE_HISTORY_MOCK[2]);
+      expect(svcMock.revert).not.toHaveBeenCalled();
     });
 
-    it('remove voto quando userHasVoted=true', () => {
-      const votedVersion = { ...LORE_HISTORY_MOCK[0], userHasVoted: true };
-      const versions = [votedVersion, ...LORE_HISTORY_MOCK.slice(1)];
-      const updated = { ...votedVersion, revertVotes: 1, userHasVoted: false };
-      const svcMock = {
-        list: vi.fn(() => of(versions)),
-        removeVoteRevert: vi.fn(() => of(updated)),
-      };
-      const fixture = createFixture(svcMock);
-      const comp = fixture.componentInstance as any;
-      comp.toggleVote();
-      expect(svcMock.removeVoteRevert).toHaveBeenCalledWith('42');
-      expect(comp.voting()).toBe(false);
-    });
-
-    it('não faz nada quando não há versão current', () => {
-      const versions = LORE_HISTORY_MOCK.map((v) => ({ ...v, status: 'active' as const }));
-      const svcMock = {
-        list: vi.fn(() => of(versions)),
-        voteRevert: vi.fn(() => of({} as any)),
-      };
-      const fixture = createFixture(svcMock);
-      const comp = fixture.componentInstance as any;
-      comp.toggleVote();
-      expect(svcMock.voteRevert).not.toHaveBeenCalled();
-    });
-
-    it('exibe toast de erro 409 ao votar duas vezes', () => {
-      const svcMock = {
-        list: vi.fn(() => of(LORE_HISTORY_MOCK)),
-        voteRevert: vi.fn(() => throwError(() => ({ status: 409 }))),
-      };
-      const fixture = createFixture(svcMock);
-      const comp = fixture.componentInstance as any;
-      comp.toggleVote();
-      expect(TOAST_MOCK.error).toHaveBeenCalled();
-      expect(comp.voting()).toBe(false);
-    });
-  });
-
-  describe('votePercent()', () => {
-    it('calcula a porcentagem corretamente', () => {
+    it('o autor vê o botão de reverter', () => {
       const fixture = createFixture({ list: vi.fn(() => of(LORE_HISTORY_MOCK)) });
-      const comp = fixture.componentInstance as any;
-      expect(comp.votePercent({ revertVotes: 2, revertVotesNeeded: 5 })).toBe(40);
-    });
-
-    it('retorna 0 quando revertVotesNeeded é 0', () => {
-      const fixture = createFixture({ list: vi.fn(() => of(LORE_HISTORY_MOCK)) });
-      const comp = fixture.componentInstance as any;
-      expect(comp.votePercent({ revertVotes: 2, revertVotesNeeded: 0 })).toBe(0);
-    });
-
-    it('limita a 100% mesmo com votos excedentes', () => {
-      const fixture = createFixture({ list: vi.fn(() => of(LORE_HISTORY_MOCK)) });
-      const comp = fixture.componentInstance as any;
-      expect(comp.votePercent({ revertVotes: 10, revertVotesNeeded: 5 })).toBe(100);
+      expect((fixture.nativeElement as HTMLElement).textContent).toContain('reverter para esta');
     });
   });
 
