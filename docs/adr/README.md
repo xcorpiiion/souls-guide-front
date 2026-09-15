@@ -32,7 +32,8 @@ verdade que o projeto combate. Quando um ADR daqui depender de um de lá, ele **
 | [0005](0005-o-que-jsdom-nao-ve-tem-teste-de-navegador.md) | O que o jsdom não vê tem teste de navegador, contra o stack no ar | Aceita |
 | [0006](0006-signal-forms-entra-por-uma-tela.md) | Signal Forms entra por uma tela, e não pelas sete | Aceita |
 | [0007](0007-a-citacao-da-lore-e-copia-do-achado.md) | A citação de uma lore é cópia do achado, e não referência a ele | Aceita |
-| [0008](0008-a-lore-nova-nasce-do-arquivo.md) | A lore nova nasce do arquivo, e o editor em branco sai | Aceita |
+| [0008](0008-a-lore-nova-nasce-do-arquivo.md) | A lore nova nasce do arquivo, e o editor em branco sai | Substituída por 0009 |
+| [0009](0009-a-lore-se-edita-como-se-monta.md) | A lore se edita no mesmo formato em que se monta, e o editor antigo sai inteiro | Aceita |
 
 ## Como escrever um novo
 

@@ -10,8 +10,6 @@ export type LoreStatus = CanonicoLoreStatus;
 export type LoreCategory = LoreType;
 /** O tipo como vai para a API. */
 export type LoreTypeApi = LoreType;
-/** O mesmo tipo, como o editor o guarda no seletor. */
-export type LoreTypeForm = 'world' | 'character';
 
 // Shape retornado pela API — LoreArticleDTO do canonico
 export type LoreApi = LoreArticleDTO;

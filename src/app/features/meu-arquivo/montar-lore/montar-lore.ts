@@ -8,7 +8,7 @@ import {
   output,
   signal,
 } from '@angular/core';
-import { Router } from '@angular/router';
+import { NavigationExtras, Router } from '@angular/router';
 import {
   CdkDrag,
   CdkDragDrop,
@@ -16,21 +16,21 @@ import {
   CdkDropList,
   moveItemInArray,
 } from '@angular/cdk/drag-drop';
+import { Observable, map, switchMap } from 'rxjs';
 import { ToastService } from '@xcorpiiion/ui';
 import type { StoryLinkDTO } from '@xcorpiiion/canonico';
-import { LoreService } from '../../../core/services/lore.service';
+import { CreateLoreRequest, LoreService } from '../../../core/services/lore.service';
 import { PersonalLoreService } from '../../../core/services/personal-lore.service';
-import { AchadoDaTela, LIGACAO_POR_CHAVE, SEM_CAPITULO, contem, tipoDe } from '../arquivo.model';
+import { LoreApi } from '../../../shared/models/lore-article.model';
+import { AchadoDaTela, LIGACAO_POR_CHAVE, contem, tipoDe } from '../arquivo.model';
+import { Bloco, juntarTextosVizinhos, lerBlocos, origemDe, serializar } from './blocos';
 
 type Passo = 1 | 2 | 3;
-
-type Bloco =
-  | { readonly id: number; readonly kind: 'texto'; readonly valor: string }
-  | { readonly id: number; readonly kind: 'citacao'; readonly achadoId: number };
+type Envio = 'publicar' | 'rascunho' | null;
 
 /**
  * Montar uma lore com o arquivo: escolher os achados, ordenar o fio, escrever entre as
- * citações e publicar. É o passo que o ADR 0032 deixou em aberto.
+ * citações e publicar. É o único jeito de escrever lore no site — criar e editar (ADR 0008).
  *
  * <h2>O que sai do arquivo, e o que não sai</h2>
  * Uma lore publicada é pública. O que a pessoa escolhe aqui vira <b>citação</b> dentro do
@@ -39,12 +39,17 @@ type Bloco =
  * botão de publicar.
  *
  * <h2>Por que a citação é texto, e não referência</h2>
- * O artigo guarda uma cópia do trecho, e não o id do achado. Referência obrigaria o artigo
- * público a ler um dado privado para se desenhar, e a apagar um achado quebraria a lore de
- * quem já leu. A cópia é o mesmo que acontece quando alguém cita um livro.
+ * O artigo guarda uma cópia do trecho, e não o id do achado (ADR 0007). A citação sai como
+ * bloco de citação do markdown (`> `), que a página do artigo já desenha.
  *
- * <p>A citação sai como bloco de citação do markdown (`> `), que a página do artigo já
- * desenha — nenhum formato novo no servidor.
+ * <h2>Editar</h2>
+ * Com `artigo`, a tela abre direto na escrita, com o texto salvo lido de volta em blocos
+ * (`blocos.ts`). As citações que já estavam lá são <b>fixas</b>: guardam o trecho copiado.
+ * Dá para voltar à escolha e acrescentar achados novos, que entram como citação comum.
+ *
+ * <p>O rascunho é uma lore pessoal e privada. Editá-lo oferece as mesmas duas saídas da
+ * criação: guardar de novo, ou publicar — e publicar tira o rascunho do perfil, senão a
+ * pessoa ficaria com duas cópias do mesmo texto divergindo.
  */
 @Component({
   selector: 'app-montar-lore',
@@ -65,6 +70,10 @@ export class MontarLore implements OnInit {
   readonly ligacoes = input.required<StoryLinkDTO[]>();
   /** Achados que já chegam escolhidos — o "usar numa lore" do detalhe. */
   readonly escolhidosIniciais = input<number[]>([]);
+  /** O artigo salvo, quando é edição. */
+  readonly artigo = input<LoreApi | null>(null);
+  /** O rótulo do "voltar" do topo: a aba diz "meu arquivo"; a página, "voltar". */
+  readonly rotuloVoltar = input('meu arquivo');
 
   readonly voltar = output<void>();
 
@@ -79,13 +88,41 @@ export class MontarLore implements OnInit {
   protected readonly blocos = signal<Bloco[]>([{ id: 1, kind: 'texto', valor: '' }]);
   private proximoId = 2;
   private esqueletoMontado = false;
-  protected readonly enviando = signal<'publicar' | 'rascunho' | null>(null);
+  protected readonly enviando = signal<Envio>(null);
+
+  /** O que estava salvo ao abrir, para o aviso de sair sem salvar. */
+  private inicial = '';
+  private salvo = false;
 
   protected readonly tipoDe = tipoDe;
+
+  protected readonly editando = computed(() => this.artigo() !== null);
+  /** Rascunho é a lore pessoal: guardar de novo, ou publicar. */
+  protected readonly editandoRascunho = computed(() => this.artigo()?.isPersonal === true);
 
   ngOnInit(): void {
     const existentes = new Set(this.itens().map((a) => a.id));
     this.escolhidos.set(this.escolhidosIniciais().filter((id) => existentes.has(id)));
+
+    const artigo = this.artigo();
+    if (artigo) {
+      this.titulo.set(artigo.title);
+      this.tipo.set(artigo.type === 'CHARACTER' ? 'CHARACTER' : 'WORLD');
+      this.personagem.set(artigo.characterName ?? '');
+      this.blocos.set(lerBlocos(artigo.content, () => this.proximoId++));
+      this.esqueletoMontado = true;
+      this.passo.set(3);
+    }
+    this.inicial = this.retrato();
+  }
+
+  /** Para o guard de rota: há texto que sairia sem ser salvo. */
+  temAlteracoes(): boolean {
+    return !this.salvo && this.retrato() !== this.inicial;
+  }
+
+  private retrato(): string {
+    return JSON.stringify([this.titulo(), this.tipo(), this.personagem(), this.conteudo()]);
   }
 
   private readonly porId = computed(() => new Map(this.itens().map((a) => [a.id, a])));
@@ -125,20 +162,32 @@ export class MontarLore implements OnInit {
     });
   });
 
-  protected readonly citados = computed(
-    () =>
-      new Set(
-        this.blocos()
-          .filter((b): b is Extract<Bloco, { kind: 'citacao' }> => b.kind === 'citacao')
-          .map((b) => b.achadoId),
-      ),
+  /**
+   * Os achados que o texto já cita: os escolhidos agora e os que uma citação fixa reconhece
+   * pela linha de origem. Sem o segundo, editar ofereceria "inserir citação" de um achado
+   * que já está no artigo.
+   */
+  protected readonly citados = computed(() => {
+    const origens = new Set(
+      this.blocos()
+        .filter((b): b is Extract<Bloco, { kind: 'fixa' }> => b.kind === 'fixa')
+        .map((b) => b.origem),
+    );
+    const ids = new Set<number>();
+    for (const b of this.blocos()) if (b.kind === 'citacao') ids.add(b.achadoId);
+    for (const a of this.itens()) if (origens.has(origemDe(a))) ids.add(a.id);
+    return ids;
+  });
+
+  protected readonly totalDeCitacoes = computed(
+    () => this.blocos().filter((b) => b.kind !== 'texto').length,
   );
 
   protected readonly restantes = computed(() =>
     this.ordem().filter((a) => !this.citados().has(a.id)),
   );
 
-  protected readonly conteudo = computed(() => this.serializar());
+  protected readonly conteudo = computed(() => serializar(this.blocos(), this.porId()));
 
   protected readonly primeiroParagrafo = computed(() => {
     const texto = this.blocos().find(
@@ -167,7 +216,10 @@ export class MontarLore implements OnInit {
   }
 
   protected irPara(passo: Passo): void {
-    if (passo > 1 && this.escolhidos().length === 0) return;
+    // Editando, a escrita já existe: dá para ir a ela sem escolher nada de novo.
+    const semEscolha = this.escolhidos().length === 0;
+    if (passo === 2 && semEscolha) return;
+    if (passo === 3 && semEscolha && !this.editando()) return;
     if (passo === 3 && !this.esqueletoMontado) {
       // A primeira ida à escrita já traz as citações na ordem do fio, com um parágrafo
       // antes de cada uma. É o esqueleto que a pessoa preenche, e não uma página em branco.
@@ -235,102 +287,107 @@ export class MontarLore implements OnInit {
     return this.porId().get(id);
   }
 
-  // ─── Publicar ──────────────────────────────────────────────────────────────
+  // ─── Salvar ────────────────────────────────────────────────────────────────
 
+  private pedido(): CreateLoreRequest {
+    const artigo = this.artigo();
+    return {
+      title: this.titulo().trim(),
+      type: this.tipo(),
+      gameId: this.gameId(),
+      characterName: this.tipo() === 'CHARACTER' ? this.personagem().trim() : undefined,
+      content: this.conteudo(),
+      // A escrita não mexe nestes dois; editar não pode apagá-los de quem já os tinha.
+      coverImageFileKey: artigo?.coverImageFileKey ?? undefined,
+      tags: artigo?.tags?.length ? artigo.tags : undefined,
+    };
+  }
+
+  /**
+   * "Publicar como teoria" na criação e no rascunho; "salvar alterações" numa lore publicada.
+   */
   protected publicar(): void {
     if (!this.podePublicar()) return;
-    this.enviando.set('publicar');
-    this.loreService
-      .create({
-        title: this.titulo().trim(),
-        type: this.tipo(),
-        gameId: this.gameId(),
-        characterName: this.tipo() === 'CHARACTER' ? this.personagem().trim() : undefined,
-        content: this.conteudo(),
-      })
-      .subscribe({
-        next: (artigo) => {
-          this.enviando.set(null);
-          this.toast.success('Lore publicada', 'Ela nasce como teoria.');
-          this.router.navigate(['/lore', artigo.id]);
-        },
-        error: () => {
-          this.enviando.set(null);
-          this.toast.error('Não foi possível publicar', 'O texto continua aqui. Tente de novo.');
-        },
-      });
+    const artigo = this.artigo();
+    const pedido = this.pedido();
+
+    let envio$: Observable<LoreApi>;
+    let aviso: [string, string];
+    if (artigo && !artigo.isPersonal) {
+      envio$ = this.loreService.update(String(artigo.id), pedido);
+      aviso = ['Alterações salvas', 'A versão anterior continua no histórico.'];
+    } else if (artigo) {
+      // Rascunho privado sai do perfil ao virar lore; lore pessoal pública é conteúdo de
+      // perfil com vida própria, e continua lá.
+      const publicada$ = this.loreService.create(pedido);
+      envio$ = artigo.isPublic
+        ? publicada$
+        : publicada$.pipe(
+            switchMap((nova) =>
+              this.personalLoreService.deletePersonal(String(artigo.id)).pipe(map(() => nova)),
+            ),
+          );
+      aviso = ['Lore publicada', 'Ela nasce como teoria.'];
+    } else {
+      envio$ = this.loreService.create(pedido);
+      aviso = ['Lore publicada', 'Ela nasce como teoria.'];
+    }
+
+    this.enviar('publicar', envio$, aviso, (salva) => [['/lore', salva.id]]);
   }
 
-  /**
-   * O rascunho é uma lore <b>pessoal e privada</b>: fica no perfil, só a pessoa vê, e dá para
-   * terminar pelo editor de lore. Não é um estado novo no servidor — é o que o perfil já
-   * oferece.
-   */
+  /** O rascunho é uma lore pessoal e privada: fica no perfil, e só a pessoa vê. */
   protected guardarRascunho(): void {
     if (!this.podePublicar()) return;
-    this.enviando.set('rascunho');
-    this.personalLoreService
-      .createPersonal({
-        title: this.titulo().trim(),
-        type: this.tipo(),
-        gameId: this.gameId(),
-        characterName: this.tipo() === 'CHARACTER' ? this.personagem().trim() : undefined,
-        content: this.conteudo(),
-        isPublic: false,
-        allowCopy: false,
-      })
-      .subscribe({
-        next: (artigo) => {
-          this.enviando.set(null);
-          this.toast.success('Rascunho guardado', 'Está no seu perfil, visível só para você.');
-          this.router.navigate(['/profile', 'lore', artigo.id], {
-            queryParams: { personal: 'true' },
-          });
-        },
-        error: () => {
-          this.enviando.set(null);
-          this.toast.error('Não foi possível guardar', 'O texto continua aqui. Tente de novo.');
-        },
-      });
+    const artigo = this.artigo();
+    if (artigo && !artigo.isPersonal) return;
+
+    const { title, type, characterName, content, tags } = this.pedido();
+    const envio$ = artigo
+      ? this.personalLoreService.updatePersonal(String(artigo.id), {
+          title,
+          type,
+          characterName,
+          content,
+          tags,
+        })
+      : this.personalLoreService.createPersonal({
+          title,
+          type,
+          gameId: this.gameId(),
+          characterName,
+          content,
+          isPublic: false,
+          allowCopy: false,
+        });
+
+    this.enviar(
+      'rascunho',
+      envio$,
+      ['Rascunho guardado', 'Está no seu perfil, visível só para você.'],
+      (salva) => [['/profile', 'lore', salva.id], { queryParams: { personal: 'true' } }],
+    );
   }
 
-  /**
-   * O markdown do artigo. Parágrafo é parágrafo; citação é um bloco de citação com o texto do
-   * achado e, na última linha, de onde ele veio.
-   *
-   * <p>Linha em branco dentro do texto de um achado vira quebra simples: no markdown do site,
-   * linha em branco separa blocos, e ela partiria a citação em duas.
-   */
-  private serializar(): string {
-    return this.blocos()
-      .map((b) => {
-        if (b.kind === 'texto') return b.valor.trim();
-        const a = this.porId().get(b.achadoId);
-        if (!a) return '';
-        const corpo = a.body
-          .split('\n')
-          .map((l) => l.trim())
-          .filter(Boolean)
-          .join('\n');
-        const origem = `— ${a.title} · ${tipoDe(a.kind).label}, ${a.chapter || SEM_CAPITULO}`;
-        return `> ${corpo}\n${origem}`;
-      })
-      .filter(Boolean)
-      .join('\n\n');
+  private enviar(
+    qual: Exclude<Envio, null>,
+    envio$: Observable<LoreApi>,
+    [titulo, texto]: [string, string],
+    destino: (salva: LoreApi) => [(string | number)[], NavigationExtras?],
+  ): void {
+    this.enviando.set(qual);
+    envio$.subscribe({
+      next: (salva) => {
+        this.enviando.set(null);
+        this.salvo = true;
+        this.toast.success(titulo, texto);
+        const [rota, extras] = destino(salva);
+        void this.router.navigate(rota, extras);
+      },
+      error: () => {
+        this.enviando.set(null);
+        this.toast.error('Não foi possível salvar', 'O texto continua aqui. Tente de novo.');
+      },
+    });
   }
-}
-
-/** Tirar uma citação do meio deixaria dois parágrafos colados; eles viram um só. */
-function juntarTextosVizinhos(lista: Bloco[]): Bloco[] {
-  const resultado: Bloco[] = [];
-  for (const b of lista) {
-    const anterior = resultado[resultado.length - 1];
-    if (b.kind === 'texto' && anterior?.kind === 'texto') {
-      const valor = [anterior.valor.trim(), b.valor.trim()].filter(Boolean).join('\n\n');
-      resultado[resultado.length - 1] = { ...anterior, valor };
-    } else {
-      resultado.push(b);
-    }
-  }
-  return resultado.length ? resultado : [{ id: 1, kind: 'texto', valor: '' }];
 }

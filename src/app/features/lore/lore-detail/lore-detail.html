@@ -139,7 +139,12 @@
                     : ['/lore', a.id, 'edit']
                 "
               >
-                <i class="ti ti-pencil" aria-hidden="true"></i> editar
+                @if (a.isPersonal && !a.isPublic) {
+                  <!-- Rascunho: é por aqui que ele vira lore publicada. -->
+                  <i class="ti ti-send" aria-hidden="true"></i> continuar rascunho
+                } @else {
+                  <i class="ti ti-pencil" aria-hidden="true"></i> editar
+                }
               </a>
             }
           </div>

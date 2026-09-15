@@ -8,6 +8,7 @@ import { MontarLore } from './montar-lore';
 import { LoreService } from '../../../core/services/lore.service';
 import { PersonalLoreService } from '../../../core/services/personal-lore.service';
 import { decorar } from '../arquivo.model';
+import { LoreApi } from '../../../shared/models/lore-article.model';
 
 const ACHADOS: StoryFindingDTO[] = [
   {
@@ -38,12 +39,38 @@ const LIGACOES: StoryLinkDTO[] = [
   { id: 10, fromId: 2, toId: 1, kind: 'HAPPENS_BEFORE', why: null },
 ];
 
-let loreService: { create: ReturnType<typeof vi.fn> };
-let personalLoreService: { createPersonal: ReturnType<typeof vi.fn> };
+let loreService: { create: ReturnType<typeof vi.fn>; update: ReturnType<typeof vi.fn> };
+let personalLoreService: {
+  createPersonal: ReturnType<typeof vi.fn>;
+  updatePersonal: ReturnType<typeof vi.fn>;
+  deletePersonal: ReturnType<typeof vi.fn>;
+};
 
-function criar(): ComponentFixture<MontarLore> {
-  loreService = { create: vi.fn(() => of({ id: 55 })) };
-  personalLoreService = { createPersonal: vi.fn(() => of({ id: 56 })) };
+/** Um artigo salvo: parágrafo, a citação do bilhete, e a cutscene ainda fora dele. */
+function artigo(extra: Partial<LoreApi> = {}): LoreApi {
+  return {
+    id: 3,
+    title: 'Teste',
+    content:
+      'Três coisas não fecham.\n\n> Se você ler isto,\nnão volte pela ponte.\n— Bilhete dobrado no armário · nota, Cap. 1 — Escola',
+    type: 'WORLD',
+    gameId: 7,
+    gameName: 'Silent Hill 2',
+    isPersonal: false,
+    isPublic: true,
+    tags: ['sino'],
+    coverImageFileKey: null,
+    ...extra,
+  } as LoreApi;
+}
+
+function criar(comArtigo: LoreApi | null = null): ComponentFixture<MontarLore> {
+  loreService = { create: vi.fn(() => of({ id: 55 })), update: vi.fn(() => of({ id: 3 })) };
+  personalLoreService = {
+    createPersonal: vi.fn(() => of({ id: 56 })),
+    updatePersonal: vi.fn(() => of({ id: 3 })),
+    deletePersonal: vi.fn(() => of(undefined)),
+  };
   TestBed.configureTestingModule({
     imports: [MontarLore],
     providers: [
@@ -60,6 +87,7 @@ function criar(): ComponentFixture<MontarLore> {
   fixture.componentRef.setInput('gameName', 'Silent Hill 2');
   fixture.componentRef.setInput('itens', decorar(ACHADOS, LIGACOES));
   fixture.componentRef.setInput('ligacoes', LIGACOES);
+  fixture.componentRef.setInput('artigo', comArtigo);
   fixture.detectChanges();
   return fixture;
 }
@@ -70,7 +98,7 @@ describe('MontarLore', () => {
   /**
    * Entre os vizinhos da ordem aparece a ligação que já existe — e lida de cima para baixo.
    * O sino acontece antes do bilhete; com o bilhete em cima, a linha entre os dois diz
-   * "acontece depois".
+   * 'acontece depois'.
    */
   it('mostra a ligação entre vizinhos no sentido da leitura', () => {
     const c = criar().componentInstance;
@@ -135,5 +163,69 @@ describe('MontarLore', () => {
     expect(personalLoreService.createPersonal).toHaveBeenCalledWith(
       expect.objectContaining({ isPublic: false, allowCopy: false, title: 'Rascunho do sino' }),
     );
+  });
+
+  describe('editando', () => {
+    it('abre direto na escrita, com a citação salva como bloco', () => {
+      const c = criar(artigo()).componentInstance;
+      expect(c['passo']()).toBe(3);
+      expect(c['titulo']()).toBe('Teste');
+      expect(c['blocos']().map((b) => b.kind)).toEqual(['texto', 'fixa', 'texto']);
+      expect(c.temAlteracoes()).toBe(false);
+    });
+
+    /** O bilhete já está no artigo; oferecer citá-lo de novo duplicaria a citação. */
+    it('reconhece o achado que a citação salva já cita', () => {
+      const c = criar(artigo()).componentInstance;
+      expect([...c['citados']()]).toEqual([1]);
+      c['alternar'](1);
+      c['alternar'](2);
+      expect(c['restantes']().map((a) => a.id)).toEqual([2]);
+    });
+
+    it('lore publicada salva por cima, mantendo tags', () => {
+      const c = criar(artigo()).componentInstance;
+      const ultimo = c['blocos']().at(-1)!;
+      c['escrever'](ultimo.id, 'E o sino.');
+      expect(c.temAlteracoes()).toBe(true);
+
+      c['publicar']();
+
+      expect(loreService.update).toHaveBeenCalledWith(
+        '3',
+        expect.objectContaining({ title: 'Teste', tags: ['sino'] }),
+      );
+      const enviado = loreService.update.mock.calls[0][1];
+      expect(enviado.content).toContain('> Se você ler isto,\nnão volte pela ponte.');
+      expect(enviado.content.endsWith('E o sino.')).toBe(true);
+      expect(loreService.create).not.toHaveBeenCalled();
+      expect(c.temAlteracoes()).toBe(false);
+    });
+
+    it('rascunho publicado vira lore e sai do perfil', () => {
+      const c = criar(artigo({ isPersonal: true, isPublic: false })).componentInstance;
+      c['publicar']();
+      expect(loreService.create).toHaveBeenCalled();
+      expect(personalLoreService.deletePersonal).toHaveBeenCalledWith('3');
+      expect(loreService.update).not.toHaveBeenCalled();
+    });
+
+    it('guardar o rascunho de novo atualiza, sem criar outro', () => {
+      const c = criar(artigo({ isPersonal: true, isPublic: false })).componentInstance;
+      c['guardarRascunho']();
+      expect(personalLoreService.updatePersonal).toHaveBeenCalledWith(
+        '3',
+        expect.objectContaining({ title: 'Teste' }),
+      );
+      expect(personalLoreService.createPersonal).not.toHaveBeenCalled();
+    });
+
+    it('lore publicada não tem rascunho', () => {
+      const f = criar(artigo());
+      const botoes = Array.from(
+        (f.nativeElement as HTMLElement).querySelectorAll('.acoes button'),
+      ).map((b) => b.textContent?.trim());
+      expect(botoes).toEqual(['salvar alterações']);
+    });
   });
 });

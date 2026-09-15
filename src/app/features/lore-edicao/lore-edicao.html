@@ -1,0 +1,42 @@
+<section class="edicao">
+  @switch (estado()) {
+    @case ('carregando') {
+      <p class="edicao__dica" aria-live="polite">
+        <i class="ti ti-loader-2 giro" aria-hidden="true"></i> abrindo a lore…
+      </p>
+    }
+
+    @case ('proibido') {
+      <div class="estado">
+        <i class="ti ti-lock estado__icone" aria-hidden="true"></i>
+        <h2 class="estado__titulo">esta lore não abriu para edição</h2>
+        <p class="estado__texto">ela não existe mais, ou é o rascunho de outra pessoa.</p>
+        <a class="botao botao--secundario" routerLink="/lore">ver as lores</a>
+      </div>
+    }
+
+    @case ('falhou') {
+      <div class="estado estado--erro">
+        <i class="ti ti-alert-circle estado__icone" aria-hidden="true"></i>
+        <h2 class="estado__titulo">a lore não abriu</h2>
+        <p class="estado__texto">o servidor não respondeu agora. nada foi alterado.</p>
+        <button type="button" class="botao botao--secundario" (click)="carregar()">
+          <i class="ti ti-refresh" aria-hidden="true"></i> tentar de novo
+        </button>
+      </div>
+    }
+
+    @case ('pronto') {
+      @let a = artigo()!;
+      <app-montar-lore
+        [gameId]="'' + a.gameId"
+        [gameName]="a.gameName"
+        [itens]="itens()"
+        [ligacoes]="ligacoes()"
+        [artigo]="a"
+        rotuloVoltar="voltar"
+        (voltar)="voltar()"
+      />
+    }
+  }
+</section>

@@ -1,5 +1,5 @@
 <button type="button" class="voltar" (click)="voltar.emit()">
-  <i class="ti ti-arrow-left" aria-hidden="true"></i> meu arquivo
+  <i class="ti ti-arrow-left" aria-hidden="true"></i> {{ rotuloVoltar() }}
 </button>
 
 <ol class="passos" aria-label="etapas">
@@ -45,7 +45,7 @@
       type="button"
       class="passo"
       [class.passo--atual]="passo() === 3"
-      [disabled]="escolhidos().length === 0"
+      [disabled]="escolhidos().length === 0 && !editando()"
       [attr.aria-current]="passo() === 3 ? 'step' : null"
       (click)="irPara(3)"
     >
@@ -258,6 +258,24 @@
               [value]="b.valor"
               (input)="escrever(b.id, $any($event.target).value)"
             ></textarea>
+          } @else if (b.kind === 'fixa') {
+            <div class="citacao">
+              <i class="ti ti-quote citacao__icone" aria-hidden="true"></i>
+              <span class="citacao__corpo">
+                <span class="citacao__origem"
+                  >citação · {{ b.origem.replace('— ', '') || 'sem origem' }}</span
+                >
+                <span class="citacao__trecho">{{ b.trecho }}</span>
+              </span>
+              <button
+                type="button"
+                class="citacao__tirar"
+                aria-label="tirar esta citação"
+                (click)="removerCitacao(b.id)"
+              >
+                <i class="ti ti-x" aria-hidden="true"></i>
+              </button>
+            </div>
           } @else {
             @if (achado(b.achadoId); as a) {
               <div class="citacao">
@@ -294,8 +312,8 @@
         <div class="previa__meta">
           <span class="selo-teoria">teoria</span>
           <span
-            >{{ gameName() }} · {{ citados().size }}
-            {{ citados().size === 1 ? 'citação' : 'citações' }}</span
+            >{{ gameName() }} · {{ totalDeCitacoes() }}
+            {{ totalDeCitacoes() === 1 ? 'citação' : 'citações' }}</span
           >
         </div>
         <p class="previa__texto">
@@ -309,9 +327,9 @@
           <li>
             <i class="ti ti-check publico__sim" aria-hidden="true"></i> o texto
             {{
-              citados().size === 1
+              totalDeCitacoes() === 1
                 ? 'do achado citado'
-                : 'dos ' + citados().size + ' achados citados'
+                : 'dos ' + totalDeCitacoes() + ' achados citados'
             }}
           </li>
           <li>
@@ -341,34 +359,50 @@
           (click)="publicar()"
         >
           @if (enviando() === 'publicar') {
-            <i class="ti ti-loader-2 giro" aria-hidden="true"></i> publicando…
+            <i class="ti ti-loader-2 giro" aria-hidden="true"></i>
+            {{ editando() && !editandoRascunho() ? 'salvando…' : 'publicando…' }}
+          } @else if (editando() && !editandoRascunho()) {
+            <i class="ti ti-device-floppy" aria-hidden="true"></i> salvar alterações
           } @else {
             <i class="ti ti-send" aria-hidden="true"></i> publicar como teoria
           }
         </button>
-        <button
-          type="button"
-          class="botao botao--secundario botao--largo"
-          [disabled]="!podePublicar()"
-          (click)="guardarRascunho()"
-        >
-          @if (enviando() === 'rascunho') {
-            <i class="ti ti-loader-2 giro" aria-hidden="true"></i> guardando…
-          } @else {
-            guardar rascunho
-          }
-        </button>
+        @if (!editando() || editandoRascunho()) {
+          <button
+            type="button"
+            class="botao botao--secundario botao--largo"
+            [disabled]="!podePublicar()"
+            (click)="guardarRascunho()"
+          >
+            @if (enviando() === 'rascunho') {
+              <i class="ti ti-loader-2 giro" aria-hidden="true"></i> guardando…
+            } @else {
+              guardar rascunho
+            }
+          </button>
+        }
         <p class="acoes__nota">
-          nasce como <b>teoria</b>, como qualquer lore do site. o rascunho fica no seu perfil,
-          visível só para você.
+          @if (editando() && !editandoRascunho()) {
+            a versão anterior continua no <b>histórico</b> da lore.
+          } @else {
+            nasce como <b>teoria</b>, como qualquer lore do site. o rascunho fica no seu perfil,
+            visível só para você.
+          }
         </p>
       </div>
     </aside>
   </div>
 
   <div class="rodape rodape--esquerda">
-    <button type="button" class="botao botao--secundario" (click)="irPara(2)">
-      <i class="ti ti-arrow-left" aria-hidden="true"></i> ordenar o fio
-    </button>
+    @if (escolhidos().length > 0) {
+      <button type="button" class="botao botao--secundario" (click)="irPara(2)">
+        <i class="ti ti-arrow-left" aria-hidden="true"></i> ordenar o fio
+      </button>
+    } @else {
+      <!-- Editando: a escrita abriu sem escolha nenhuma, e o caminho é acrescentar achados. -->
+      <button type="button" class="botao botao--secundario" (click)="irPara(1)">
+        <i class="ti ti-plus" aria-hidden="true"></i> citar mais achados
+      </button>
+    }
   </div>
 }

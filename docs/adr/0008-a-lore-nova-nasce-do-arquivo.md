@@ -1,6 +1,6 @@
 # ADR 0008 — A lore nova nasce do arquivo, e o editor em branco sai
 
-- **Status:** Aceita
+- **Status:** Substituída por [ADR 0009](0009-a-lore-se-edita-como-se-monta.md)
 - **Data:** 14/09/2026
 - **Trava:** src/app/features/lore-nova/lore-nova.spec.ts
 

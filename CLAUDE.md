@@ -76,7 +76,8 @@ src/
       rotas/  game-create/  not-found/
       lore/           # artigos de lore com sistema de status
       lore-nova/      # /lore/new: escolhe o jogo e abre o "montar lore" do arquivo (ADR 0008)
-      lore-editor/  lore-history/
+      lore-edicao/    # /lore/:id/edit: a mesma escrita do montar lore, sem editor à parte (ADR 0009)
+      lore-history/
       meu-arquivo/    # a aba "meu arquivo" do jogo, o mural e o montar lore
       ending-detail/  # guia de final: passos por capítulo, inclusive AVOID
       profile/        # perfil do usuário, meus guias, doações
@@ -405,7 +406,7 @@ containers.
 
 O front está em operação e ligado ao back-end real. Nada da lista de features iniciais
 continua em aberto: home, games, game-detail, quests (lista, kanban, grafo, editor,
-condições, histórico, mapa), lore (lista, criação, editor, histórico), finais, perfil,
+condições, histórico, mapa), lore (lista, montar, edição, histórico), finais, perfil,
 usuário, comunidade, busca e todo o fluxo de auth (login, Google, recuperação de senha)
 existem — 24 features, 22 services em `core/services`, 13 componentes compartilhados,
 2 guards e 3 interceptors.

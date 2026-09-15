@@ -1,0 +1,27 @@
+// Editar uma lore: a mesma escrita do "montar lore", numa página própria.
+@use '../meu-arquivo/arquivo-comum';
+
+:host {
+  display: block;
+}
+
+.edicao {
+  color: #e8e0d0;
+  font-family: 'Inter', sans-serif;
+  max-width: 1136px;
+  margin: 0 auto;
+  padding: 24px 16px 48px;
+
+  @media (min-width: 768px) {
+    padding: 32px 32px 64px;
+  }
+
+  &__dica {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    color: #8a8278;
+    margin: 0;
+  }
+}
