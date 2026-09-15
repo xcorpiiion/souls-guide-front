@@ -19,6 +19,8 @@ import { AuthService } from '@xcorpiiion/ng-core';
 import { ConfirmService, ToastService } from '@xcorpiiion/ui';
 import { filter, switchMap } from 'rxjs/operators';
 import type {
+  StoryCharacterDTO,
+  StoryCharacterRequest,
   StoryFindingDTO,
   StoryFindingKind,
   StoryLinkDTO,
@@ -27,9 +29,11 @@ import type {
 import { StoryArchiveService } from '../../core/services/story-archive.service';
 import {
   AchadoDaTela,
+  ELENCO_POR_CHAVE,
   LIGACOES,
   SEM_CAPITULO,
   TIPOS,
+  USO_DO_TIPO,
   contem,
   decorar,
   janela,
@@ -42,8 +46,14 @@ import {
 import { ArquivoMural } from './arquivo-mural/arquivo-mural';
 import { MontarLore } from './montar-lore/montar-lore';
 import { GuiaDoArquivo, PassoDoGuia } from './guia-do-arquivo/guia-do-arquivo';
+import { EscolherElenco, NovoNoElenco } from './escolher-elenco/escolher-elenco';
+import { EditorDeFalas, FalaDoForm, novaFala } from './editor-de-falas/editor-de-falas';
+import { FichaDoPersonagem } from './ficha-do-personagem/ficha-do-personagem';
 
-type Tela = 'visao-geral' | 'registrar' | 'detalhe' | 'montar';
+type Tela = 'visao-geral' | 'registrar' | 'detalhe' | 'montar' | 'personagem';
+
+/** Onde entra quem acabou de ser cadastrado pelo nome digitado no formulário. */
+type CampoDoElenco = 'autor' | 'presentes';
 type Visao = 'arquivo' | 'ligacoes';
 
 /** Quantas fichas a grade mostra antes de pedir "mostrar mais". */
@@ -67,7 +77,16 @@ const CAPITULOS_VISIVEIS = 9;
  */
 @Component({
   selector: 'app-meu-arquivo',
-  imports: [RouterLink, NgTemplateOutlet, ArquivoMural, MontarLore, GuiaDoArquivo],
+  imports: [
+    RouterLink,
+    NgTemplateOutlet,
+    ArquivoMural,
+    MontarLore,
+    GuiaDoArquivo,
+    EscolherElenco,
+    EditorDeFalas,
+    FichaDoPersonagem,
+  ],
   templateUrl: './meu-arquivo.html',
   styleUrl: './meu-arquivo.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -91,12 +110,15 @@ export class MeuArquivo {
   protected readonly semCapitulo = SEM_CAPITULO;
   protected readonly trechos = trechos;
   protected readonly tipoDe = tipoDe;
+  protected readonly uso = USO_DO_TIPO;
 
   // ─── Dados ─────────────────────────────────────────────────────────────────
   protected readonly carregando = signal(true);
   protected readonly falhou = signal(false);
   protected readonly achados = signal<StoryFindingDTO[]>([]);
   protected readonly ligacoes = signal<StoryLinkDTO[]>([]);
+  /** O elenco do arquivo, em ordem alfabética, como o servidor devolve. ADR 0033. */
+  protected readonly elenco = signal<StoryCharacterDTO[]>([]);
 
   // ─── Navegação dentro da aba ───────────────────────────────────────────────
   protected readonly tela = signal<Tela>('visao-geral');
@@ -141,7 +163,18 @@ export class MeuArquivo {
   protected readonly formTexto = signal('');
   protected readonly formCapitulo = signal('');
   protected readonly formQuemFala = signal('');
+  /** Quem escreveu (nota e documento). Lista de um só, na forma que o seletor de elenco usa. */
+  protected readonly formAutor = signal<number[]>([]);
+  protected readonly formData = signal('');
+  /** Quem está presente (diálogo e cutscene), ou a criatura descrita. */
+  protected readonly formPresentes = signal<number[]>([]);
+  protected readonly formFalas = signal<FalaDoForm[]>([]);
   protected readonly salvando = signal(false);
+
+  // ─── Elenco ────────────────────────────────────────────────────────────────
+  /** A ficha aberta; `null` na tela de personagem é "cadastrar". */
+  protected readonly personagemId = signal<number | null>(null);
+  protected readonly salvandoPersonagem = signal(false);
   protected readonly rascunhoGuardado = signal(false);
 
   // ─── Montar lore ───────────────────────────────────────────────────────────
@@ -171,7 +204,7 @@ export class MeuArquivo {
   // ─── Derivados ─────────────────────────────────────────────────────────────
 
   protected readonly itens = computed<AchadoDaTela[]>(() =>
-    decorar(this.achados(), this.ligacoes()),
+    decorar(this.achados(), this.ligacoes(), this.elenco()),
   );
 
   private readonly porId = computed(() => new Map(this.itens().map((a) => [a.id, a])));
@@ -261,7 +294,7 @@ export class MeuArquivo {
 
   private readonly queBatem = computed(() => {
     const q = this.busca();
-    return this.doRecorte().filter((a) => contem(`${a.title}\n${a.body}`, q));
+    return this.doRecorte().filter((a) => contem(`${a.title}\n${a.texto}`, q));
   });
 
   protected readonly buscando = computed(() => this.busca().trim().length > 0);
@@ -284,7 +317,7 @@ export class MeuArquivo {
         : this.queBatem();
     return lista.slice(0, this.limite()).map((a) => ({
       ...a,
-      trecho: janela(a.body, this.busca()),
+      trecho: janela(a.texto, this.busca()),
     }));
   });
 
@@ -324,7 +357,7 @@ export class MeuArquivo {
 
   protected readonly sugestoes = computed(() => {
     const d = this.detalhe();
-    return d ? sugestoesPara(d.id, this.achados(), this.ligacoes()) : null;
+    return d ? sugestoesPara(d.id, this.itens(), this.ligacoes()) : null;
   });
 
   /**
@@ -338,7 +371,7 @@ export class MeuArquivo {
     const escolhido = this.ligadorEscolhido();
     const lista = this.itens()
       .filter((a) => a.id !== d?.id)
-      .filter((a) => a.id === escolhido || contem(a.title, q) || (q.trim() && contem(a.body, q)));
+      .filter((a) => a.id === escolhido || contem(a.title, q) || (q.trim() && contem(a.texto, q)));
     const primeiro = lista.find((a) => a.id === escolhido);
     const resto = lista.filter((a) => a.id !== escolhido).slice(0, primeiro ? 5 : 6);
     return primeiro ? [primeiro, ...resto] : resto;
@@ -394,13 +427,74 @@ export class MeuArquivo {
     return recentes;
   });
 
+  /**
+   * O rótulo livre de quem fala é de antes do elenco. Só aparece para editar um achado antigo
+   * que o tem — achado novo diz quem fala pelas falas.
+   */
   protected readonly mostraQuemFala = computed(
-    () => this.formTipo() === 'DIALOGUE' || this.formTipo() === 'CUTSCENE',
+    () =>
+      this.formQuemFala().trim().length > 0 &&
+      (this.formTipo() === 'DIALOGUE' || this.formTipo() === 'CUTSCENE'),
   );
 
+  protected readonly usoDoForm = computed(() => USO_DO_TIPO[this.formTipo()]);
+
+  /** O que o texto é, em cada tipo. */
+  protected readonly rotuloDoTexto = computed(() => {
+    switch (this.formTipo()) {
+      case 'DIALOGUE':
+        return 'contexto';
+      case 'CUTSCENE':
+        return 'o que acontece';
+      case 'CREATURE':
+        return 'o que você descobriu';
+      default:
+        return 'texto';
+    }
+  });
+
+  private readonly falasComTexto = computed(() => this.formFalas().filter((f) => f.text.trim()));
+
+  /** Texto ou, onde há falas, pelo menos uma fala escrita — a mesma regra do servidor. */
   protected readonly podeSalvar = computed(
-    () => this.formTexto().trim().length > 0 && !this.salvando(),
+    () =>
+      (this.formTexto().trim().length > 0 ||
+        (this.usoDoForm().falas && this.falasComTexto().length > 0)) &&
+      !this.salvando(),
   );
+
+  // ─── Elenco ────────────────────────────────────────────────────────────────
+
+  private readonly nomeDoElenco = computed(() => new Map(this.elenco().map((c) => [c.id, c.name])));
+
+  /** O elenco com quantos achados cada um tem, para a espinha. */
+  protected readonly elencoDaEspinha = computed(() => {
+    const contagem = new Map<number, number>();
+    for (const a of this.achados()) {
+      const ids = new Set<number>([
+        ...(a.characterIds ?? []),
+        ...(a.authorId != null ? [a.authorId] : []),
+        ...(a.lines ?? []).map((l) => l.characterId).filter((id): id is number => id != null),
+      ]);
+      for (const id of ids) contagem.set(id, (contagem.get(id) ?? 0) + 1);
+    }
+    return this.elenco().map((c) => ({
+      ...c,
+      icon: ELENCO_POR_CHAVE.get(c.kind)?.icon ?? 'ti ti-user',
+      total: contagem.get(c.id) ?? 0,
+    }));
+  });
+
+  protected readonly personagem = computed(() => {
+    const id = this.personagemId();
+    return id === null ? null : (this.elenco().find((c) => c.id === id) ?? null);
+  });
+
+  /** Ids do elenco com o nome, para os chips do detalhe. Quem saiu do elenco não aparece. */
+  protected nomesDe(ids: readonly number[]): { id: number; nome: string }[] {
+    const nomes = this.nomeDoElenco();
+    return ids.map((id) => ({ id, nome: nomes.get(id) ?? '' })).filter((x) => x.nome);
+  }
 
   protected readonly contagemDoTexto = computed(() =>
     this.formTexto().length.toLocaleString('pt-BR'),
@@ -415,6 +509,7 @@ export class MeuArquivo {
       next: (arquivo) => {
         this.achados.set(arquivo.findings);
         this.ligacoes.set(arquivo.links);
+        this.elenco.set(arquivo.characters ?? []);
         this.carregando.set(false);
       },
       error: () => {
@@ -552,6 +647,10 @@ export class MeuArquivo {
     this.formTitulo.set(rascunho?.titulo ?? '');
     this.formTexto.set(textoColado || rascunho?.texto || '');
     this.formQuemFala.set(rascunho?.quemFala ?? '');
+    this.formAutor.set(rascunho?.autor ?? []);
+    this.formData.set(rascunho?.data ?? '');
+    this.formPresentes.set(rascunho?.presentes ?? []);
+    this.formFalas.set((rascunho?.falas ?? []).map((f) => novaFala(f)));
     // Vem preenchido com o último capítulo: numa sessão de jogo a pessoa registra vários
     // achados do mesmo lugar, um atrás do outro. Com um capítulo escolhido na espinha, é
     // ele — "cai no capítulo em que você está".
@@ -574,6 +673,14 @@ export class MeuArquivo {
     this.formTexto.set(d.body);
     this.formCapitulo.set(d.chapter ?? '');
     this.formQuemFala.set(d.speaker ?? '');
+    this.formAutor.set(d.authorId != null ? [d.authorId] : []);
+    this.formData.set(d.inGameDate ?? '');
+    this.formPresentes.set([...(d.characterIds ?? [])]);
+    this.formFalas.set(
+      (d.lines ?? []).map((l) =>
+        novaFala({ characterId: l.characterId ?? null, speaker: l.speaker ?? '', text: l.text }),
+      ),
+    );
     this.rascunhoGuardado.set(false);
     this.tela.set('registrar');
     this.rolarParaCima();
@@ -604,19 +711,182 @@ export class MeuArquivo {
 
   protected escolherTipo(tipo: StoryFindingKind): void {
     this.formTipo.set(tipo);
+    // Diálogo nasce com uma fala vazia: sem nenhuma linha, o formulário não diz o que fazer.
+    if (tipo === 'DIALOGUE' && this.formFalas().length === 0) this.formFalas.set([novaFala()]);
     this.guardarRascunho();
+  }
+
+  protected mudarAutor(ids: number[]): void {
+    this.formAutor.set(ids.slice(-1));
+    this.guardarRascunho();
+  }
+
+  protected mudarPresentes(ids: number[]): void {
+    this.formPresentes.set(this.formTipo() === 'CREATURE' ? ids.slice(-1) : ids);
+    this.guardarRascunho();
+  }
+
+  protected mudarData(valor: string): void {
+    this.formData.set(valor);
+    this.guardarRascunho();
+  }
+
+  /** Quem fala passa a estar presente: escolher nos dois lugares seria trabalho repetido. */
+  protected mudarFalas(falas: FalaDoForm[]): void {
+    this.formFalas.set(falas);
+    const presentes = new Set(this.formPresentes());
+    const faltam = falas
+      .map((f) => f.characterId)
+      .filter((id): id is number => id !== null && !presentes.has(id));
+    if (faltam.length) this.formPresentes.set([...presentes, ...new Set(faltam)]);
+    this.guardarRascunho();
+  }
+
+  /** Alguém digitado no formulário, cadastrado ali mesmo e já escolhido. */
+  protected cadastrarPeloFormulario(novo: NovoNoElenco, campo: CampoDoElenco): void {
+    this.cadastrarNoElenco({ kind: novo.tipo, name: novo.nome }, (c) => {
+      if (campo === 'autor') this.mudarAutor([c.id]);
+      else this.mudarPresentes([...this.formPresentes(), c.id]);
+    });
+  }
+
+  /** O rótulo de uma fala vira alguém do elenco, e as falas com esse rótulo passam a ser dele. */
+  protected cadastrarRotulo(nome: string): void {
+    this.cadastrarNoElenco({ kind: 'CHARACTER', name: nome }, (c) => {
+      const alvo = nome.trim().toLowerCase();
+      this.mudarFalas(
+        this.formFalas().map((f) =>
+          f.characterId === null && f.speaker.trim().toLowerCase() === alvo
+            ? { ...f, characterId: c.id, speaker: '' }
+            : f,
+        ),
+      );
+    });
+  }
+
+  private cadastrarNoElenco(
+    request: StoryCharacterRequest,
+    depois: (criado: StoryCharacterDTO) => void,
+  ): void {
+    this.service.addCharacter(this.gameId(), request).subscribe({
+      next: (criado) => {
+        this.acrescentarNoElenco(criado);
+        depois(criado);
+      },
+      error: (err: HttpErrorResponse) =>
+        this.toast.error(
+          'Não foi possível cadastrar',
+          err.status === 409
+            ? 'Já existe alguém com esse nome no seu elenco.'
+            : 'Tente de novo em instantes.',
+        ),
+    });
+  }
+
+  private acrescentarNoElenco(personagem: StoryCharacterDTO): void {
+    this.elenco.update((lista) =>
+      [...lista.filter((c) => c.id !== personagem.id), personagem].sort((a, b) =>
+        a.name.localeCompare(b.name, 'pt-BR'),
+      ),
+    );
+  }
+
+  // ─── Tela do personagem ────────────────────────────────────────────────────
+
+  protected abrirPersonagem(id: number | null): void {
+    this.gravarAnotacaoPendente();
+    this.personagemId.set(id);
+    this.tela.set('personagem');
+    this.rolarParaCima();
+  }
+
+  protected salvarPersonagem(request: StoryCharacterRequest, ficha: FichaDoPersonagem): void {
+    const id = this.personagemId();
+    this.salvandoPersonagem.set(true);
+    const envio$ =
+      id === null
+        ? this.service.addCharacter(this.gameId(), request)
+        : this.service.updateCharacter(id, request);
+    envio$.subscribe({
+      next: (salvo) => {
+        this.salvandoPersonagem.set(false);
+        this.acrescentarNoElenco(salvo);
+        this.personagemId.set(salvo.id);
+        ficha.terminarEdicao();
+        this.toast.success(id === null ? 'No elenco' : 'Ficha atualizada', salvo.name);
+      },
+      error: (err: HttpErrorResponse) => {
+        this.salvandoPersonagem.set(false);
+        this.toast.error(
+          'Não foi possível salvar',
+          err.status === 409
+            ? 'Já existe alguém com esse nome no seu elenco.'
+            : 'Tente de novo em instantes.',
+        );
+      },
+    });
+  }
+
+  protected tirarDoElenco(): void {
+    const p = this.personagem();
+    if (!p) return;
+    this.confirm
+      .ask({
+        title: 'Tirar do elenco',
+        message: `"${p.name}" sai do elenco. Os achados em que aparece continuam, e as falas dele ficam com o nome escrito.`,
+        confirmLabel: 'tirar',
+        tone: 'danger',
+      })
+      .pipe(
+        filter((ok) => ok),
+        switchMap(() => this.service.removeCharacter(p.id)),
+      )
+      .subscribe({
+        next: () => {
+          this.elenco.update((lista) => lista.filter((c) => c.id !== p.id));
+          // O servidor já desfez presença, autoria e falas; a lista em memória acompanha.
+          this.achados.update((lista) =>
+            lista.map((a) => ({
+              ...a,
+              authorId: a.authorId === p.id ? null : a.authorId,
+              characterIds: (a.characterIds ?? []).filter((id) => id !== p.id),
+              lines: (a.lines ?? []).map((l) =>
+                l.characterId === p.id
+                  ? { ...l, characterId: null, speaker: l.speaker ?? p.name }
+                  : l,
+              ),
+            })),
+          );
+          this.personagemId.set(null);
+          this.toast.success('Fora do elenco', 'Os achados continuam no arquivo.');
+          this.irParaVisaoGeral();
+        },
+        error: () => this.toast.error('Erro', 'Não foi possível tirar do elenco.'),
+      });
   }
 
   protected salvar(registrarOutro: boolean): void {
     if (!this.podeSalvar()) return;
     this.salvando.set(true);
 
+    const uso = this.usoDoForm();
+    const falas = uso.falas ? this.falasComTexto() : [];
     const request = {
       kind: this.formTipo(),
-      title: this.formTitulo().trim() || tituloDoTexto(this.formTexto()),
+      title:
+        this.formTitulo().trim() ||
+        tituloDoTexto(this.formTexto().trim() ? this.formTexto() : (falas[0]?.text ?? '')),
       body: this.formTexto(),
       chapter: this.formCapitulo().trim(),
       speaker: this.mostraQuemFala() ? this.formQuemFala().trim() : '',
+      authorId: uso.autor ? this.formAutor()[0] : undefined,
+      inGameDate: uso.data ? this.formData().trim() : undefined,
+      characterIds: uso.presentes ? this.formPresentes() : [],
+      lines: falas.map((f) => ({
+        characterId: f.characterId ?? undefined,
+        speaker: f.characterId === null ? f.speaker.trim() : undefined,
+        text: f.text,
+      })),
     };
 
     const editando = this.editandoId();
@@ -646,6 +916,9 @@ export class MeuArquivo {
           this.formTitulo.set('');
           this.formTexto.set('');
           this.formQuemFala.set('');
+          this.formData.set('');
+          // Quem está presente costuma continuar na cena seguinte; as falas, não.
+          this.formFalas.set(this.formTipo() === 'DIALOGUE' ? [novaFala()] : []);
           this.rascunhoGuardado.set(false);
           this.rolarParaCima();
         } else {
@@ -833,9 +1106,19 @@ export class MeuArquivo {
           texto: this.formTexto(),
           capitulo: this.formCapitulo(),
           quemFala: this.formQuemFala(),
+          autor: this.formAutor(),
+          data: this.formData(),
+          presentes: this.formPresentes(),
+          falas: this.formFalas().map(({ characterId, speaker, text }) => ({
+            characterId,
+            speaker,
+            text,
+          })),
         }),
       );
-      this.rascunhoGuardado.set(this.formTexto().trim().length > 0);
+      this.rascunhoGuardado.set(
+        this.formTexto().trim().length > 0 || this.falasComTexto().length > 0,
+      );
     } catch {
       // Armazenamento bloqueado: o formulário continua funcionando, só não sobrevive à aba.
     }
@@ -847,6 +1130,10 @@ export class MeuArquivo {
     texto: string;
     capitulo: string;
     quemFala: string;
+    autor?: number[];
+    data?: string;
+    presentes?: number[];
+    falas?: Omit<FalaDoForm, 'chave'>[];
   } | null {
     if (!this.noNavegador) return null;
     try {
@@ -855,7 +1142,8 @@ export class MeuArquivo {
       const r = JSON.parse(bruto);
       // Rascunho sem título nem texto não é rascunho: é o capítulo que ficou de uma sessão
       // anterior, e ele atropelaria o último capítulo do arquivo.
-      return r && (r.titulo || r.texto) ? r : null;
+      const temFala = Array.isArray(r?.falas) && r.falas.some((f: { text?: string }) => f.text);
+      return r && (r.titulo || r.texto || temFala) ? r : null;
     } catch {
       return null;
     }

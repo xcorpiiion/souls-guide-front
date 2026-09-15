@@ -1,0 +1,131 @@
+// Escolher gente do elenco. Mesma paleta do artboard "Meu arquivo - redesenho".
+:host {
+  display: block;
+}
+
+.rotulo {
+  display: block;
+  font-size: 11.5px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #6a655c;
+  margin: 0 0 8px;
+}
+
+.escolhidos {
+  list-style: none;
+  margin: 0 0 8px;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.escolhido {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  color: #e8e0d0;
+  background: #242424;
+  border: 0.5px solid #4a453f;
+  border-radius: 999px;
+  padding: 4px 4px 4px 10px;
+
+  > i {
+    font-size: 14px;
+    color: #c9a84c;
+  }
+
+  &__tirar {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    color: #8a8278;
+    background: none;
+    border: none;
+    cursor: pointer;
+
+    &:hover {
+      color: #e8e0d0;
+      background: #2e2b26;
+    }
+  }
+}
+
+.caixa {
+  position: relative;
+
+  &__campo {
+    width: 100%;
+    font-family: inherit;
+    font-size: 14px;
+    color: #e8e0d0;
+    background: #1a1a1a;
+    border: 0.5px solid #2e2b26;
+    border-radius: 10px;
+    padding: 11px 13px;
+    min-height: 44px;
+    outline: none;
+
+    &::placeholder {
+      color: #6a655c;
+    }
+
+    &:focus {
+      border-color: #6a655c;
+    }
+  }
+}
+
+.opcoes {
+  position: absolute;
+  z-index: 5;
+  left: 0;
+  right: 0;
+  top: calc(100% + 4px);
+  list-style: none;
+  margin: 0;
+  padding: 4px;
+  background: #1a1a1a;
+  border: 0.5px solid #3a3630;
+  border-radius: 10px;
+  box-shadow: 0 12px 30px rgb(0 0 0 / 50%);
+}
+
+.opcao {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: inherit;
+  font-size: 13.5px;
+  text-align: left;
+  color: #e8e0d0;
+  background: none;
+  border: none;
+  border-radius: 7px;
+  padding: 9px 10px;
+  min-height: 40px;
+  cursor: pointer;
+
+  i {
+    font-size: 15px;
+    color: #8a8278;
+  }
+
+  &:hover {
+    background: #242424;
+  }
+
+  &--nova {
+    color: #c9a84c;
+
+    i {
+      color: #c9a84c;
+    }
+  }
+}

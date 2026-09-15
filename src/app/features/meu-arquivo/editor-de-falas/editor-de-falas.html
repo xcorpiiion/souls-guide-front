@@ -1,0 +1,118 @@
+<div class="cabecalho">
+  <span class="rotulo"
+    >falas
+    @if (opcional()) {
+      <span class="rotulo__opcional">— opcional</span>
+    }
+  </span>
+  <button type="button" class="acao" (click)="colando.set(!colando())">
+    <i class="ti ti-clipboard-text" aria-hidden="true"></i>
+    {{ colando() ? 'cancelar' : 'colar conversa inteira' }}
+  </button>
+</div>
+
+@if (colando()) {
+  <div class="colar">
+    <p class="ajuda">
+      cole a conversa com o nome no começo de cada linha — <code>MULHER: Você já esteve aqui.</code>
+      — e o site separa as falas. nomes que já estão no elenco são reconhecidos.
+    </p>
+    <textarea
+      #conversaCampo
+      class="colar__campo"
+      rows="6"
+      aria-label="conversa colada"
+      placeholder="MULHER: Você já esteve aqui. Só não lembra.&#10;JAMES: Eu nunca vim a esta cidade."
+      [value]="conversa()"
+      (input)="conversa.set(conversaCampo.value)"
+    ></textarea>
+    <button type="button" class="botao-ouro" [disabled]="!conversa().trim()" (click)="separar()">
+      <i class="ti ti-arrows-split" aria-hidden="true"></i> separar em falas
+    </button>
+  </div>
+}
+
+<ol class="falas">
+  @for (f of falas(); track f.chave; let i = $index; let ultima = $last) {
+    <li class="fala">
+      <div class="fala__topo">
+        <select
+          #quem
+          class="fala__quem"
+          [attr.aria-label]="'quem diz a fala ' + (i + 1)"
+          [value]="f.characterId === null ? '' : '' + f.characterId"
+          (change)="escolherQuemFala(f.chave, quem.value)"
+        >
+          <option value="">rótulo livre…</option>
+          @for (c of opcoes(); track c.id) {
+            <option [value]="'' + c.id" [selected]="c.id === f.characterId">{{ c.name }}</option>
+          }
+        </select>
+        @if (f.characterId === null) {
+          <input
+            #rotulo
+            type="text"
+            class="fala__rotulo"
+            maxlength="120"
+            placeholder="voz no rádio"
+            [attr.aria-label]="'nome de quem diz a fala ' + (i + 1)"
+            [value]="f.speaker"
+            (input)="alterar(f.chave, { speaker: rotulo.value })"
+          />
+        }
+        <span class="fala__mover">
+          <button
+            type="button"
+            [disabled]="i === 0"
+            [attr.aria-label]="'subir a fala ' + (i + 1)"
+            (click)="mover(i, -1)"
+          >
+            <i class="ti ti-chevron-up" aria-hidden="true"></i>
+          </button>
+          <button
+            type="button"
+            [disabled]="ultima"
+            [attr.aria-label]="'descer a fala ' + (i + 1)"
+            (click)="mover(i, 1)"
+          >
+            <i class="ti ti-chevron-down" aria-hidden="true"></i>
+          </button>
+          <button
+            type="button"
+            [attr.aria-label]="'tirar a fala ' + (i + 1)"
+            (click)="tirar(f.chave)"
+          >
+            <i class="ti ti-x" aria-hidden="true"></i>
+          </button>
+        </span>
+      </div>
+      <textarea
+        #texto
+        class="fala__texto"
+        rows="2"
+        maxlength="4000"
+        placeholder="o que foi dito"
+        [attr.aria-label]="'texto da fala ' + (i + 1)"
+        [value]="f.text"
+        (input)="alterar(f.chave, { text: texto.value })"
+      ></textarea>
+    </li>
+  }
+</ol>
+
+<button type="button" class="acao acao--mais" (click)="acrescentar()">
+  <i class="ti ti-plus" aria-hidden="true"></i> fala
+</button>
+
+@if (rotulosSoltos().length > 0) {
+  <div class="soltos">
+    <p class="ajuda">estes nomes ainda não estão no elenco:</p>
+    <div class="soltos__lista">
+      @for (r of rotulosSoltos(); track r) {
+        <button type="button" class="soltos__nome" (click)="cadastrarRotulo.emit(r)">
+          <i class="ti ti-user-plus" aria-hidden="true"></i> cadastrar {{ r }}
+        </button>
+      }
+    </div>
+  </div>
+}

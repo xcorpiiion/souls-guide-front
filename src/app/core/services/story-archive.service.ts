@@ -3,6 +3,8 @@ import { HttpService } from '@xcorpiiion/ng-core';
 import { Observable } from 'rxjs';
 import type {
   StoryArchiveDTO,
+  StoryCharacterDTO,
+  StoryCharacterRequest,
   StoryFindingDTO,
   StoryFindingNoteRequest,
   StoryFindingRequest,
@@ -24,6 +26,7 @@ export class StoryArchiveService {
   private readonly jogos = inject(HttpService).resource('games');
   private readonly achados = inject(HttpService).resource('findings');
   private readonly ligacoes = inject(HttpService).resource('story-links');
+  private readonly elenco = inject(HttpService).resource('story-characters');
 
   archive(gameId: string | number): Observable<StoryArchiveDTO> {
     return this.jogos.get<StoryArchiveDTO>(`${gameId}/archive`);
@@ -51,5 +54,23 @@ export class StoryArchiveService {
 
   unlink(linkId: number): Observable<void> {
     return this.ligacoes.delete<void>(`${linkId}`);
+  }
+
+  // ─── Elenco (ADR 0033 do souls-guide-api) ─────────────────────────────────
+
+  addCharacter(
+    gameId: string | number,
+    request: StoryCharacterRequest,
+  ): Observable<StoryCharacterDTO> {
+    return this.jogos.post<StoryCharacterDTO>(`${gameId}/characters`, request);
+  }
+
+  updateCharacter(id: number, request: StoryCharacterRequest): Observable<StoryCharacterDTO> {
+    return this.elenco.put<StoryCharacterDTO>(`${id}`, request);
+  }
+
+  /** Os achados em que ele aparece continuam; a fala fica com o nome como rótulo. */
+  removeCharacter(id: number): Observable<void> {
+    return this.elenco.delete<void>(`${id}`);
   }
 }

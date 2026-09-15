@@ -1,0 +1,223 @@
+// As falas de um diálogo ou cutscene. Mesma paleta do artboard "Meu arquivo - redesenho".
+:host {
+  display: block;
+}
+
+.cabecalho {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+
+.rotulo {
+  font-size: 11.5px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #6a655c;
+
+  &__opcional {
+    text-transform: none;
+    letter-spacing: 0;
+    color: #4a453f;
+  }
+}
+
+.acao {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: inherit;
+  font-size: 12.5px;
+  color: #c9a84c;
+  background: none;
+  border: none;
+  padding: 6px 0;
+  cursor: pointer;
+
+  &:hover {
+    color: #e2c06e;
+  }
+
+  &--mais {
+    margin-top: 6px;
+  }
+}
+
+.ajuda {
+  font-size: 12px;
+  line-height: 1.55;
+  color: #8a8278;
+  margin: 0 0 8px;
+
+  code {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11.5px;
+    color: #b8b0a0;
+  }
+}
+
+.colar {
+  background: #141414;
+  border: 0.5px dashed #3a3630;
+  border-radius: 10px;
+  padding: 12px;
+  margin-bottom: 10px;
+
+  &__campo {
+    width: 100%;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    line-height: 1.6;
+    color: #d8cfbc;
+    background: #1a1a1a;
+    border: 0.5px solid #2e2b26;
+    border-radius: 8px;
+    padding: 10px;
+    margin-bottom: 8px;
+    resize: vertical;
+    outline: none;
+
+    &:focus {
+      border-color: #6a655c;
+    }
+  }
+}
+
+.botao-ouro {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: inherit;
+  font-size: 13px;
+  color: #c9a84c;
+  background: none;
+  border: 0.5px solid rgb(201 168 76 / 40%);
+  border-radius: 8px;
+  padding: 8px 12px;
+  min-height: 38px;
+  cursor: pointer;
+
+  &:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+  }
+}
+
+.falas {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.fala {
+  background: #1a1a1a;
+  border: 0.5px solid #2e2b26;
+  border-left: 2px solid #3a3630;
+  border-radius: 4px 10px 10px 4px;
+  padding: 8px 10px 10px;
+
+  &__topo {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-bottom: 6px;
+  }
+
+  &__quem,
+  &__rotulo {
+    font-family: inherit;
+    font-size: 13px;
+    color: #e8e0d0;
+    background: #242424;
+    border: 0.5px solid #3a3630;
+    border-radius: 7px;
+    padding: 6px 8px;
+    min-height: 34px;
+    outline: none;
+
+    &:focus {
+      border-color: #6a655c;
+    }
+  }
+
+  &__quem {
+    max-width: 55%;
+  }
+
+  &__rotulo {
+    flex: 1;
+    min-width: 100px;
+  }
+
+  &__mover {
+    margin-left: auto;
+    display: inline-flex;
+    gap: 2px;
+
+    button {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 30px;
+      height: 30px;
+      color: #8a8278;
+      background: none;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+
+      &:hover:not(:disabled) {
+        color: #e8e0d0;
+        background: #242424;
+      }
+
+      &:disabled {
+        opacity: 0.3;
+        cursor: default;
+      }
+    }
+  }
+
+  &__texto {
+    width: 100%;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13.5px;
+    line-height: 1.6;
+    color: #d8cfbc;
+    background: transparent;
+    border: none;
+    padding: 2px 0;
+    resize: vertical;
+    outline: none;
+  }
+}
+
+.soltos {
+  margin-top: 10px;
+
+  &__lista {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  &__nome {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-family: inherit;
+    font-size: 12.5px;
+    color: #c9a84c;
+    background: #1a1a1a;
+    border: 0.5px dashed rgb(201 168 76 / 40%);
+    border-radius: 999px;
+    padding: 6px 11px;
+    cursor: pointer;
+  }
+}

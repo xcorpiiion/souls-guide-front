@@ -13,6 +13,8 @@ const ACHADO: StoryFindingDTO = {
   speaker: null,
   note: null,
   createdAt: '2026-09-13T20:00:00Z',
+  characterIds: [],
+  lines: [],
 };
 
 function contador(): () => number {

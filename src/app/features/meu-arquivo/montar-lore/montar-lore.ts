@@ -129,7 +129,7 @@ export class MontarLore implements OnInit {
 
   protected readonly visiveis = computed(() => {
     const q = this.busca();
-    return this.itens().filter((a) => contem(`${a.title}\n${a.body}`, q));
+    return this.itens().filter((a) => contem(`${a.title}\n${a.texto}`, q));
   });
 
   protected readonly escolhidosComoSet = computed(() => new Set(this.escolhidos()));

@@ -1,6 +1,13 @@
 import { describe, it, expect } from 'vitest';
-import type { StoryFindingDTO, StoryLinkDTO } from '@xcorpiiion/canonico';
-import { janela, sugestoesPara, tituloDoTexto, trechos } from './arquivo.model';
+import type { StoryCharacterDTO, StoryFindingDTO, StoryLinkDTO } from '@xcorpiiion/canonico';
+import {
+  decorar,
+  janela,
+  lerConversa,
+  sugestoesPara,
+  tituloDoTexto,
+  trechos,
+} from './arquivo.model';
 
 function achado(id: number, title: string, body: string): StoryFindingDTO {
   return {
@@ -13,6 +20,8 @@ function achado(id: number, title: string, body: string): StoryFindingDTO {
     speaker: null,
     note: null,
     createdAt: '2026-09-13T20:00:00Z',
+    characterIds: [],
+    lines: [],
   };
 }
 
@@ -74,7 +83,7 @@ describe('arquivo.model', () => {
      * palavra mais longa — que costuma ser a mais específica.
      */
     it('sugere quem repete a palavra mais rara que os dois têm em comum', () => {
-      const s = sugestoesPara(1, achados, []);
+      const s = sugestoesPara(1, decorar(achados, []), []);
 
       expect(s?.palavra).toBe('badaladas');
       expect(s?.achados.map((a) => a.id)).toEqual([3]);
@@ -84,14 +93,68 @@ describe('arquivo.model', () => {
       const ligacoes: StoryLinkDTO[] = [
         { id: 1, fromId: 3, toId: 1, kind: 'SAME_SUBJECT', why: null },
       ];
-      const s = sugestoesPara(1, achados, ligacoes);
+      const s = sugestoesPara(1, decorar(achados, []), ligacoes);
 
       expect(s?.palavra).toBe('sino');
       expect(s?.achados.map((a) => a.id)).toEqual([2]);
     });
 
     it('não sugere nada quando não há palavra em comum', () => {
-      expect(sugestoesPara(4, achados, [])).toBeNull();
+      expect(sugestoesPara(4, decorar(achados, []), [])).toBeNull();
     });
+  });
+});
+
+describe('elenco e falas (ADR 0033)', () => {
+  const mulher: StoryCharacterDTO = {
+    id: 9,
+    gameId: 7,
+    kind: 'CHARACTER',
+    name: 'Mulher de branco',
+    description: null,
+    bossId: null,
+  };
+
+  const dialogo: StoryFindingDTO = {
+    id: 1,
+    gameId: 7,
+    kind: 'DIALOGUE',
+    title: 'Conversa na ponte',
+    body: '',
+    chapter: null,
+    speaker: null,
+    note: null,
+    createdAt: '2026-09-13T20:00:00Z',
+    authorId: null,
+    inGameDate: null,
+    characterIds: [9],
+    lines: [
+      { characterId: 9, speaker: null, text: 'Você já esteve aqui.' },
+      { characterId: null, speaker: 'voz no rádio', text: 'Treze.' },
+    ],
+  };
+
+  /** O body do diálogo vem vazio: sem juntar as falas, a busca não acharia nada nele. */
+  it('o texto do achado junta as falas com o nome de quem fala', () => {
+    const [a] = decorar([dialogo], [], [mulher]);
+    expect(a.texto).toBe('Mulher de branco: Você já esteve aqui.\nvoz no rádio: Treze.');
+    expect(a.presentes).toEqual(['Mulher de branco']);
+    expect(a.falas.map((f) => f.nome)).toEqual(['Mulher de branco', 'voz no rádio']);
+  });
+
+  it('a conversa colada vira falas pelo nome no começo da linha', () => {
+    expect(
+      lerConversa('MULHER: Você já esteve aqui.\nSó não lembra.\n\nJAMES: Nunca estive.'),
+    ).toEqual([
+      { nome: 'MULHER', texto: 'Você já esteve aqui.\nSó não lembra.' },
+      { nome: 'JAMES', texto: 'Nunca estive.' },
+    ]);
+  });
+
+  /** "Dia 14: a menina voltou" não é a fala de alguém chamado "Dia 14". */
+  it('data com dois pontos não vira nome', () => {
+    expect(lerConversa('Dia 14: a menina voltou a desenhar.')).toEqual([
+      { nome: '', texto: 'Dia 14: a menina voltou a desenhar.' },
+    ]);
   });
 });

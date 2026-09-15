@@ -21,6 +21,8 @@ function achado(id: number, title: string, chapter: string | null, body?: string
     speaker: null,
     note: null,
     createdAt: '2026-09-13T20:00:00Z',
+    characterIds: [],
+    lines: [],
   };
 }
 
@@ -43,7 +45,7 @@ const LIGACOES: StoryLinkDTO[] = [
   { id: 12, fromId: 3, toId: 1, kind: 'CONTRADICTS', why: null },
 ];
 
-const ARQUIVO: StoryArchiveDTO = { gameId: 7, findings: ACHADOS, links: LIGACOES };
+const ARQUIVO: StoryArchiveDTO = { gameId: 7, findings: ACHADOS, links: LIGACOES, characters: [] };
 
 let service: { archive: ReturnType<typeof vi.fn>; register: ReturnType<typeof vi.fn> };
 
@@ -96,7 +98,7 @@ describe('MeuArquivo', () => {
 
     /** Com um achado só, filtro, mural e capítulos seriam controle sem uso. */
     it('com um achado, a mesa mostra o guia e esconde o que ainda não serve', () => {
-      const f = criar(true, { gameId: 7, findings: [ACHADOS[0]], links: [] });
+      const f = criar(true, { gameId: 7, findings: [ACHADOS[0]], links: [], characters: [] });
       expect(tem(f, 'app-guia-do-arquivo .guia')).toBe(true);
       expect(tem(f, '.alternador')).toBe(false);
       expect(tem(f, '.busca')).toBe(false);
@@ -114,7 +116,7 @@ describe('MeuArquivo', () => {
     });
 
     it('o passo "registre" do guia abre o registro', () => {
-      const f = criar(true, { gameId: 7, findings: [], links: [] });
+      const f = criar(true, { gameId: 7, findings: [], links: [], characters: [] });
       (f.nativeElement as HTMLElement)
         .querySelector<HTMLButtonElement>('app-guia-do-arquivo .passo__acao')!
         .click();
@@ -219,6 +221,38 @@ describe('MeuArquivo', () => {
     expect(service.register).toHaveBeenCalledWith(
       '7',
       expect.objectContaining({ title: 'A névoa se abre e a praça está vazia.' }),
+    );
+  });
+
+  /** ADR 0033: o diálogo é fala a fala, e quem fala passa a estar presente sem escolher de novo. */
+  it('diálogo sem texto salva as falas, e quem fala entra nos presentes', () => {
+    const c = criar().componentInstance;
+    c['elenco'].set([
+      {
+        id: 9,
+        gameId: 7,
+        kind: 'CHARACTER',
+        name: 'Mulher de branco',
+        description: null,
+        bossId: null,
+      },
+    ]);
+    c['irParaRegistrar']();
+    c['escolherTipo']('DIALOGUE');
+    const [vazia] = c['formFalas']();
+    c['mudarFalas']([{ ...vazia, characterId: 9, text: 'Você já esteve aqui.' }]);
+
+    c['salvar'](false);
+
+    expect(service.register).toHaveBeenCalledWith(
+      '7',
+      expect.objectContaining({
+        kind: 'DIALOGUE',
+        title: 'Você já esteve aqui.',
+        characterIds: [9],
+        authorId: undefined,
+        lines: [{ characterId: 9, speaker: undefined, text: 'Você já esteve aqui.' }],
+      }),
     );
   });
 

@@ -1,6 +1,9 @@
 import type {
+  StoryCharacterDTO,
+  StoryCharacterKind,
   StoryFindingDTO,
   StoryFindingKind,
+  StoryLineDTO,
   StoryLinkDTO,
   StoryLinkKind,
 } from '@xcorpiiion/canonico';
@@ -26,6 +29,11 @@ export interface TipoDeLigacao {
   readonly temDirecao: boolean;
 }
 
+/** Uma fala já com o nome de quem fala, do elenco ou do rótulo. */
+export interface FalaDaTela extends StoryLineDTO {
+  readonly nome: string;
+}
+
 /** Um achado já com o que a tela mostra ao lado dele. */
 export interface AchadoDaTela extends StoryFindingDTO {
   readonly icon: string;
@@ -34,6 +42,22 @@ export interface AchadoDaTela extends StoryFindingDTO {
   readonly degree: number;
   /** Alguma ligação dele é "contradiz" — a ficha ganha o selo em brasa. */
   readonly contradiz: boolean;
+  /**
+   * O texto inteiro: o que a pessoa escreveu e as falas, "NOME: fala". É o que a busca procura,
+   * o que a ficha resume e o que a citação da lore copia. O `body` sozinho não tem as falas
+   * (ADR 0033 do souls-guide-api).
+   */
+  readonly texto: string;
+  readonly falas: readonly FalaDaTela[];
+  /** Os nomes de quem está presente, na ordem do elenco escolhido. */
+  readonly presentes: readonly string[];
+  readonly autor: string | null;
+}
+
+export interface TipoDeElenco {
+  readonly key: StoryCharacterKind;
+  readonly label: string;
+  readonly icon: string;
 }
 
 /** Uma ligação lida a partir de um dos achados. */
@@ -53,7 +77,27 @@ export const TIPOS: readonly TipoDeAchado[] = [
   { key: 'DOCUMENT', label: 'documento', curto: 'doc.', icon: 'ti ti-file-text' },
   { key: 'DIALOGUE', label: 'diálogo', curto: 'diálogo', icon: 'ti ti-message-dots' },
   { key: 'CUTSCENE', label: 'cutscene', curto: 'cutscene', icon: 'ti ti-movie' },
+  { key: 'CREATURE', label: 'criatura', curto: 'criatura', icon: 'ti ti-spider' },
 ];
+
+export const TIPOS_DE_ELENCO: readonly TipoDeElenco[] = [
+  { key: 'CHARACTER', label: 'personagem', icon: 'ti ti-user' },
+  { key: 'CREATURE', label: 'criatura', icon: 'ti ti-spider' },
+  { key: 'BOSS', label: 'chefe', icon: 'ti ti-skull' },
+];
+
+export const ELENCO_POR_CHAVE = new Map(TIPOS_DE_ELENCO.map((t) => [t.key, t]));
+
+/** O que cada tipo de achado usa, para o formulário e para o detalhe. */
+export const USO_DO_TIPO: Readonly<
+  Record<StoryFindingKind, { autor: boolean; data: boolean; presentes: boolean; falas: boolean }>
+> = {
+  NOTE: { autor: true, data: false, presentes: false, falas: false },
+  DOCUMENT: { autor: true, data: true, presentes: false, falas: false },
+  DIALOGUE: { autor: false, data: false, presentes: true, falas: true },
+  CUTSCENE: { autor: false, data: false, presentes: true, falas: true },
+  CREATURE: { autor: false, data: false, presentes: true, falas: false },
+};
 
 /**
  * Dourado e brasa são as únicas relações com cor própria, e é de propósito: "fala da mesma
@@ -95,8 +139,13 @@ export function tipoDe(kind: StoryFindingKind): TipoDeAchado {
   return TIPO_POR_CHAVE.get(kind) ?? TIPOS[0];
 }
 
-/** Os achados com grau e selo de contradição, na ordem em que chegaram. */
-export function decorar(achados: StoryFindingDTO[], ligacoes: StoryLinkDTO[]): AchadoDaTela[] {
+/** Os achados com grau, selo de contradição e os nomes do elenco, na ordem em que chegaram. */
+export function decorar(
+  achados: StoryFindingDTO[],
+  ligacoes: StoryLinkDTO[],
+  elenco: readonly StoryCharacterDTO[] = [],
+): AchadoDaTela[] {
+  const nomes = new Map(elenco.map((c) => [c.id, c.name]));
   const grau = new Map<number, number>();
   const contradiz = new Set<number>();
   for (const l of ligacoes) {
@@ -109,6 +158,10 @@ export function decorar(achados: StoryFindingDTO[], ligacoes: StoryLinkDTO[]): A
   }
   return achados.map((a) => {
     const tipo = tipoDe(a.kind);
+    const falas = (a.lines ?? []).map((l) => ({
+      ...l,
+      nome: (l.characterId != null ? nomes.get(l.characterId) : null) ?? l.speaker ?? '',
+    }));
     return {
       ...a,
       icon: tipo.icon,
@@ -116,8 +169,54 @@ export function decorar(achados: StoryFindingDTO[], ligacoes: StoryLinkDTO[]): A
       chapterLabel: a.chapter || SEM_CAPITULO,
       degree: grau.get(a.id) ?? 0,
       contradiz: contradiz.has(a.id),
+      texto: textoInteiro(a.body, falas),
+      falas,
+      presentes: (a.characterIds ?? []).map((id) => nomes.get(id)).filter((n): n is string => !!n),
+      autor: a.authorId != null ? (nomes.get(a.authorId) ?? null) : null,
     };
   });
+}
+
+/** O texto e as falas num texto só: "NOME: fala", uma por linha, depois do texto. */
+export function textoInteiro(
+  body: string,
+  falas: readonly { nome: string; text: string }[],
+): string {
+  const linhas = falas.map((f) => (f.nome ? `${f.nome}: ${f.text}` : f.text));
+  return [body.trim() ? body : '', linhas.join('\n')].filter(Boolean).join('\n\n');
+}
+
+/** Uma fala lida de uma conversa colada. */
+export interface FalaLida {
+  readonly nome: string;
+  readonly texto: string;
+}
+
+/**
+ * A conversa colada inteira, partida em falas pelo "NOME:" no começo da linha — o formato em
+ * que quem joga costuma transcrever. Linha sem nome continua a fala anterior; antes da primeira
+ * fala com nome, vira fala sem ninguém.
+ *
+ * <p>O nome tem de parecer nome — até 40 caracteres, sem ponto final — para "Dia 14: a menina
+ * voltou" não virar a fala de alguém chamado "Dia 14". Errar para o lado de não separar é o
+ * seguro: a pessoa acerta na tela, e nada se perde.
+ */
+export function lerConversa(texto: string): FalaLida[] {
+  const falas: { nome: string; texto: string }[] = [];
+  for (const bruta of texto.replace(/\r\n/g, '\n').split('\n')) {
+    const linha = bruta.trim();
+    if (!linha) continue;
+    const m = /^([^:.!?]{1,40}):\s*(.+)$/.exec(linha);
+    if (m && !/\d{1,2}$/.test(m[1].trim())) {
+      falas.push({ nome: m[1].trim(), texto: m[2].trim() });
+    } else if (falas.length) {
+      const ultima = falas[falas.length - 1];
+      ultima.texto = `${ultima.texto}\n${linha}`;
+    } else {
+      falas.push({ nome: '', texto: linha });
+    }
+  }
+  return falas;
 }
 
 /**
@@ -240,14 +339,14 @@ function normalizar(texto: string): string {
   return texto.normalize('NFD').replace(/\p{M}/gu, '').toLowerCase();
 }
 
-function palavrasDe(achado: StoryFindingDTO): Set<string> {
-  const texto = normalizar(`${achado.title} ${achado.body}`);
+function palavrasDe(achado: AchadoDaTela): Set<string> {
+  const texto = normalizar(`${achado.title} ${achado.texto}`);
   return new Set((texto.match(/[a-z]{4,}/g) ?? []).filter((p) => !PALAVRAS_VAZIAS.has(p)));
 }
 
 export interface Sugestao {
   readonly palavra: string;
-  readonly achados: StoryFindingDTO[];
+  readonly achados: AchadoDaTela[];
 }
 
 /**
@@ -260,7 +359,7 @@ export interface Sugestao {
  */
 export function sugestoesPara(
   id: number,
-  achados: StoryFindingDTO[],
+  achados: AchadoDaTela[],
   ligacoes: StoryLinkDTO[],
   maximo = 3,
 ): Sugestao | null {

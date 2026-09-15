@@ -32,9 +32,12 @@ const ARQUIVO: StoryArchiveDTO = {
       speaker: null,
       note: null,
       createdAt: '2026-09-13T20:00:00Z',
+      characterIds: [],
+      lines: [],
     },
   ],
   links: [],
+  characters: [],
 };
 
 let query: BehaviorSubject<ReturnType<typeof convertToParamMap>>;
@@ -115,7 +118,7 @@ describe('LoreNova', () => {
   });
 
   it('arquivo vazio manda registrar achado na mesa da lore, sem abrir página em branco', () => {
-    arquivo.archive.mockReturnValue(of({ gameId: 7, findings: [], links: [] }));
+    arquivo.archive.mockReturnValue(of({ gameId: 7, findings: [], links: [], characters: [] }));
     const f = criar({ jogo: '7' });
     expect(f.nativeElement.querySelector('app-montar-lore')).toBeNull();
     const link = (f.nativeElement as HTMLElement).querySelector<HTMLAnchorElement>(

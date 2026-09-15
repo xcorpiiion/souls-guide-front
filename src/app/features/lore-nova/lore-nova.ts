@@ -2,7 +2,7 @@ import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@a
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { of, switchMap } from 'rxjs';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import type { StoryFindingDTO, StoryLinkDTO } from '@xcorpiiion/canonico';
+import type { StoryCharacterDTO, StoryFindingDTO, StoryLinkDTO } from '@xcorpiiion/canonico';
 import { GameService } from '../../core/services/game.service';
 import { StoryArchiveService } from '../../core/services/story-archive.service';
 import { GameSummary, gameToSummary } from '../../shared/models/game.model';
@@ -36,8 +36,11 @@ export class LoreNova {
   protected readonly jogo = signal<GameSummary | null>(null);
   protected readonly achados = signal<StoryFindingDTO[]>([]);
   protected readonly ligacoes = signal<StoryLinkDTO[]>([]);
+  private readonly elenco = signal<StoryCharacterDTO[]>([]);
 
-  protected readonly itens = computed(() => decorar(this.achados(), this.ligacoes()));
+  protected readonly itens = computed(() =>
+    decorar(this.achados(), this.ligacoes(), this.elenco()),
+  );
 
   constructor() {
     this.route.queryParamMap.pipe(takeUntilDestroyed()).subscribe((q) => {
@@ -95,6 +98,7 @@ export class LoreNova {
           }
           this.achados.set(arquivo.findings);
           this.ligacoes.set(arquivo.links);
+          this.elenco.set(arquivo.characters ?? []);
           this.estado.set('pronto');
         },
         error: (e: unknown) => {

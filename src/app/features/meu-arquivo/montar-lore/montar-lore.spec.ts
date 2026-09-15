@@ -21,6 +21,8 @@ const ACHADOS: StoryFindingDTO[] = [
     speaker: null,
     note: 'minha anotação secreta',
     createdAt: '2026-09-13T20:00:00Z',
+    characterIds: [],
+    lines: [],
   },
   {
     id: 2,
@@ -32,6 +34,8 @@ const ACHADOS: StoryFindingDTO[] = [
     speaker: null,
     note: null,
     createdAt: '2026-09-13T20:01:00Z',
+    characterIds: [],
+    lines: [],
   },
 ];
 

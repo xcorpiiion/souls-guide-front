@@ -20,9 +20,9 @@ import { MontarLore } from '../meu-arquivo/montar-lore/montar-lore';
 
 type Estado = 'carregando' | 'pronto' | 'proibido' | 'falhou';
 
-type SoAchados = Pick<StoryArchiveDTO, 'findings' | 'links'>;
+type SoAchados = Pick<StoryArchiveDTO, 'findings' | 'links' | 'characters'>;
 
-const arquivoVazio = (): SoAchados => ({ findings: [], links: [] });
+const arquivoVazio = (): SoAchados => ({ findings: [], links: [], characters: [] });
 
 /**
  * Editar uma lore: `/lore/:id/edit` e `/profile/lore/:id/edit`. Ver ADR 0008.
@@ -55,7 +55,7 @@ export class LoreEdicao implements HasUnsavedChanges {
   private readonly doArquivo = signal<SoAchados>(arquivoVazio());
 
   protected readonly itens = computed(() =>
-    decorar(this.doArquivo().findings, this.doArquivo().links),
+    decorar(this.doArquivo().findings, this.doArquivo().links, this.doArquivo().characters),
   );
   protected readonly ligacoes = computed(() => this.doArquivo().links);
 

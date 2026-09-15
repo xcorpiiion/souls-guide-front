@@ -52,7 +52,7 @@ export function serializar(
         return b.origem ? `${corpo}\n${b.origem}` : corpo;
       }
       const a = porId.get(b.achadoId);
-      return a ? `> ${corpoDaCitacao(a.body)}\n${origemDe(a)}` : '';
+      return a ? `> ${corpoDaCitacao(a.texto)}\n${origemDe(a)}` : '';
     })
     .filter(Boolean)
     .join('\n\n');

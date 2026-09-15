@@ -41,6 +41,13 @@
           }
         }
       </span>
+      @if (a.presentes.length > 0 || a.autor) {
+        <span class="ficha__elenco">
+          <i class="ti ti-users" aria-hidden="true"></i>
+          {{ a.autor ? 'por ' + a.autor : '' }}{{ a.autor && a.presentes.length ? ' · ' : ''
+          }}{{ a.presentes.join(', ') }}
+        </span>
+      }
       <span class="ficha__texto">
         @for (t of trechos(a.trecho, busca()); track $index) {
           @if (t.achou) {
@@ -274,6 +281,17 @@
               toque numa ficha para ver as ligações dela; toque de novo para abrir e ler inteira.
             </p>
 
+            <div class="elenco-celular" role="group" aria-label="elenco">
+              @for (c of elencoDaEspinha(); track c.id) {
+                <button type="button" class="chip" (click)="abrirPersonagem(c.id)">
+                  <i [class]="c.icon" aria-hidden="true"></i> {{ c.name }}
+                </button>
+              }
+              <button type="button" class="chip chip--tracejado" (click)="abrirPersonagem(null)">
+                <i class="ti ti-user-plus" aria-hidden="true"></i> elenco
+              </button>
+            </div>
+
             @if (mostrarCapitulos()) {
               <div class="capitulos-celular" role="group" aria-label="capítulos">
                 <button
@@ -469,6 +487,31 @@
                   </button>
                 }
               </div>
+
+              <!-- O elenco: quem aparece na história. A ficha de cada um junta os achados dele. -->
+              <nav class="elenco" aria-label="elenco">
+                <span class="rotulo-mono capitulos__rotulo">elenco</span>
+                @for (c of elencoDaEspinha(); track c.id) {
+                  <button type="button" class="capitulo" (click)="abrirPersonagem(c.id)">
+                    <i [class]="c.icon + ' elenco__icone'" aria-hidden="true"></i>
+                    <span class="capitulo__nome">{{ c.name }}</span>
+                    <span class="capitulo__total">{{ c.total }}</span>
+                  </button>
+                } @empty {
+                  <p class="resumo__dica elenco__vazio">
+                    personagens, criaturas e chefes que você encontrar. cada um ganha uma ficha com
+                    os achados em que aparece.
+                  </p>
+                }
+                <button
+                  type="button"
+                  class="capitulo capitulo--apagado"
+                  (click)="abrirPersonagem(null)"
+                >
+                  <i class="ti ti-user-plus elenco__icone" aria-hidden="true"></i>
+                  <span class="capitulo__nome">cadastrar no elenco</span>
+                </button>
+              </nav>
 
               @if (mostrarCapitulos()) {
                 <nav class="capitulos" aria-label="capítulos">
@@ -776,8 +819,24 @@
 
           <form class="registro__corpo" (submit)="$event.preventDefault(); salvar(celular())">
             <div class="registro__texto">
+              <!-- No diálogo as falas são o conteúdo, e vêm antes; o texto vira contexto. -->
+              @if (formTipo() === 'DIALOGUE') {
+                <app-editor-de-falas
+                  class="registro__falas"
+                  [falas]="formFalas()"
+                  [elenco]="elenco()"
+                  [presentes]="formPresentes()"
+                  (mudou)="mudarFalas($event)"
+                  (cadastrarRotulo)="cadastrarRotulo($event)"
+                />
+              }
               <div class="rotulo-linha">
-                <label for="ach-texto" class="rotulo rotulo--sem-margem">texto</label>
+                <label for="ach-texto" class="rotulo rotulo--sem-margem"
+                  >{{ rotuloDoTexto() }}
+                  @if (formTipo() === 'DIALOGUE') {
+                    <span class="rotulo__opcional">— opcional</span>
+                  }
+                </label>
                 <span class="nota"
                   >quebras
                   {{
@@ -790,11 +849,31 @@
               <textarea
                 id="ach-texto"
                 class="campo campo--texto"
+                [class.campo--texto-curto]="formTipo() === 'DIALOGUE'"
                 maxlength="20000"
-                placeholder="cole aqui o texto da nota, do documento ou da fala…"
+                [placeholder]="
+                  formTipo() === 'DIALOGUE'
+                    ? 'onde a conversa acontece, o que estava em volta…'
+                    : formTipo() === 'CUTSCENE'
+                      ? 'descreva o que se vê: a névoa se abre, a praça está vazia…'
+                      : formTipo() === 'CREATURE'
+                        ? 'como ela é, onde aparece, o que funciona contra ela…'
+                        : 'cole aqui o texto da nota ou do documento…'
+                "
                 [value]="formTexto()"
                 (input)="escreverNoFormulario('texto', $any($event.target).value)"
               ></textarea>
+              @if (formTipo() === 'CUTSCENE') {
+                <app-editor-de-falas
+                  class="registro__falas registro__falas--depois"
+                  [falas]="formFalas()"
+                  [elenco]="elenco()"
+                  [presentes]="formPresentes()"
+                  [opcional]="true"
+                  (mudou)="mudarFalas($event)"
+                  (cadastrarRotulo)="cadastrarRotulo($event)"
+                />
+              }
               @if (celular() && rascunhoGuardado()) {
                 <span class="registro__rascunho registro__rascunho--abaixo">
                   <i class="ti ti-device-floppy" aria-hidden="true"></i> rascunho guardado
@@ -821,6 +900,61 @@
                   }
                 </div>
               </div>
+
+              <!-- O que muda de um tipo para outro: ADR 0033 do souls-guide-api. -->
+              @if (usoDoForm().autor) {
+                <app-escolher-elenco
+                  campoId="ach-autor"
+                  rotulo="quem escreveu — opcional"
+                  placeholder="assinatura, remetente…"
+                  [elenco]="elenco()"
+                  [escolhidos]="formAutor()"
+                  [varios]="false"
+                  [tipos]="['CHARACTER', 'CREATURE', 'BOSS']"
+                  (mudou)="mudarAutor($event)"
+                  (cadastrar)="cadastrarPeloFormulario($event, 'autor')"
+                />
+              }
+              @if (usoDoForm().data) {
+                <div>
+                  <label for="ach-data" class="rotulo">
+                    data no jogo <span class="rotulo__opcional">— opcional</span>
+                  </label>
+                  <input
+                    #dataCampo
+                    id="ach-data"
+                    type="text"
+                    class="campo"
+                    maxlength="80"
+                    placeholder="Dia 14 · 3 de março de 1962"
+                    autocomplete="off"
+                    [value]="formData()"
+                    (input)="mudarData(dataCampo.value)"
+                  />
+                </div>
+              }
+              @if (usoDoForm().presentes) {
+                <app-escolher-elenco
+                  campoId="ach-presentes"
+                  [rotulo]="
+                    formTipo() === 'CREATURE'
+                      ? 'qual criatura ou chefe'
+                      : formTipo() === 'DIALOGUE'
+                        ? 'quem está na conversa'
+                        : 'quem aparece'
+                  "
+                  [elenco]="elenco()"
+                  [escolhidos]="formPresentes()"
+                  [varios]="formTipo() !== 'CREATURE'"
+                  [tipos]="
+                    formTipo() === 'CREATURE'
+                      ? ['CREATURE', 'BOSS']
+                      : ['CHARACTER', 'CREATURE', 'BOSS']
+                  "
+                  (mudou)="mudarPresentes($event)"
+                  (cadastrar)="cadastrarPeloFormulario($event, 'presentes')"
+                />
+              }
 
               <div>
                 <label for="ach-titulo" class="rotulo">{{
@@ -963,9 +1097,53 @@
             @if (d.speaker) {
               <p class="detalhe__quem-fala">quem fala: {{ d.speaker }}</p>
             }
+            @if (d.inGameDate) {
+              <p class="detalhe__quem-fala">data no jogo: {{ d.inGameDate }}</p>
+            }
+
+            @let autor = d.authorId ? nomesDe([d.authorId]) : [];
+            @let presentes = nomesDe(d.characterIds);
+            @if (autor.length || presentes.length) {
+              <div class="detalhe__elenco">
+                @for (c of autor; track c.id) {
+                  <button type="button" class="chip" (click)="abrirPersonagem(c.id)">
+                    <i class="ti ti-pencil" aria-hidden="true"></i> escrito por {{ c.nome }}
+                  </button>
+                }
+                @for (c of presentes; track c.id) {
+                  <button type="button" class="chip" (click)="abrirPersonagem(c.id)">
+                    <i class="ti ti-user" aria-hidden="true"></i> {{ c.nome }}
+                  </button>
+                }
+              </div>
+            }
 
             <article class="documento">
-              <p class="documento__texto">{{ d.body }}</p>
+              @if (d.body.trim()) {
+                <p class="documento__texto">{{ d.body }}</p>
+              }
+              @if (d.falas.length > 0) {
+                <ol class="documento__falas" [class.documento__falas--depois]="d.body.trim()">
+                  @for (f of d.falas; track $index) {
+                    <li class="documento__fala">
+                      @if (f.nome) {
+                        @if (f.characterId) {
+                          <button
+                            type="button"
+                            class="documento__quem"
+                            (click)="abrirPersonagem(f.characterId)"
+                          >
+                            {{ f.nome }}
+                          </button>
+                        } @else {
+                          <span class="documento__quem documento__quem--rotulo">{{ f.nome }}</span>
+                        }
+                      }
+                      <span class="documento__dito">{{ f.text }}</span>
+                    </li>
+                  }
+                </ol>
+              }
             </article>
 
             @if (celular()) {
@@ -1254,6 +1432,23 @@
             </div>
           </div>
         }
+      }
+    }
+
+    <!-- ══ PERSONAGEM ══ -->
+    @case ('personagem') {
+      @for (chave of [personagemId() ?? 'novo']; track chave) {
+        <app-ficha-do-personagem
+          #ficha
+          [personagem]="personagem()"
+          [itens]="itens()"
+          [gameId]="gameId()"
+          [salvando]="salvandoPersonagem()"
+          (voltar)="irParaVisaoGeral()"
+          (abrir)="abrirAchado($event)"
+          (salvar)="salvarPersonagem($event, ficha)"
+          (excluir)="tirarDoElenco()"
+        />
       }
     }
 

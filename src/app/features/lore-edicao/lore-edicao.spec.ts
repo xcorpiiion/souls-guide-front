@@ -51,7 +51,7 @@ function texto(f: ComponentFixture<LoreEdicao>): string {
 describe('LoreEdicao', () => {
   beforeEach(() => {
     lore = { get: vi.fn(() => of(ARTIGO)) };
-    arquivo = { archive: vi.fn(() => of({ gameId: 53, findings: [], links: [] })) };
+    arquivo = { archive: vi.fn(() => of({ gameId: 53, findings: [], links: [], characters: [] })) };
   });
 
   it('abre a lore no montar lore, e não num editor à parte', () => {

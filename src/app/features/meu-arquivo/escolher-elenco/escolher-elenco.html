@@ -1,0 +1,59 @@
+<label class="rotulo" [for]="campoId()">{{ rotulo() }}</label>
+
+@if (selecionados().length > 0) {
+  <ul class="escolhidos">
+    @for (c of selecionados(); track c.id) {
+      <li class="escolhido">
+        <i [class]="icone(c.kind)" aria-hidden="true"></i>
+        <span>{{ c.name }}</span>
+        <button
+          type="button"
+          class="escolhido__tirar"
+          [attr.aria-label]="'tirar ' + c.name"
+          (click)="tirar(c.id)"
+        >
+          <i class="ti ti-x" aria-hidden="true"></i>
+        </button>
+      </li>
+    }
+  </ul>
+}
+
+@if (varios() || selecionados().length === 0) {
+  <div class="caixa">
+    <input
+      #campo
+      [id]="campoId()"
+      type="text"
+      class="caixa__campo"
+      autocomplete="off"
+      maxlength="120"
+      [placeholder]="placeholder()"
+      [value]="busca()"
+      (input)="busca.set(campo.value); aberto.set(true)"
+      (focus)="aberto.set(true)"
+      (blur)="fecharDepois()"
+      (keydown)="teclar($event)"
+    />
+
+    @if (aberto() && (opcoes().length > 0 || podeCadastrar())) {
+      <ul class="opcoes">
+        @for (c of opcoes(); track c.id) {
+          <li>
+            <button type="button" class="opcao" (mousedown)="escolher(c.id)">
+              <i [class]="icone(c.kind)" aria-hidden="true"></i> {{ c.name }}
+            </button>
+          </li>
+        }
+        @if (podeCadastrar()) {
+          <li>
+            <button type="button" class="opcao opcao--nova" (mousedown)="pedirCadastro()">
+              <i class="ti ti-plus" aria-hidden="true"></i> cadastrar “{{ busca().trim() }}” no
+              elenco
+            </button>
+          </li>
+        }
+      </ul>
+    }
+  </div>
+}
