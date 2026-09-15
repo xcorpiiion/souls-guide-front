@@ -96,6 +96,30 @@ describe('Lore', () => {
     expect((fixture.componentInstance as any).loading()).toBe(true);
   });
 
+  /** Dentro da mesa o jogo chega como id numérico; o slug da URL o servidor recusa com 400. */
+  it('embutida na mesa, filtra pelo id do jogo que a mesa passa', async () => {
+    await TestBed.configureTestingModule({
+      imports: [Lore],
+      providers: [
+        provideRouter([]),
+        { provide: LoreService, useValue: loreServiceMock },
+        {
+          provide: GameService,
+          useValue: { ...gameServiceMock, get: vi.fn(() => of({ id: 53, name: 'Silent Hill f' })) },
+        },
+      ],
+    }).compileComponents();
+    loreServiceMock.list.mockClear();
+    const fixture = TestBed.createComponent(Lore);
+    fixture.componentRef.setInput('embutida', true);
+    fixture.componentRef.setInput('jogoId', '53');
+    fixture.detectChanges();
+    vi.advanceTimersByTime(250);
+
+    expect(loreServiceMock.list).toHaveBeenCalledWith(0, 12, undefined, '53', undefined);
+    expect(fixture.nativeElement.querySelector('.lr__title')).toBeNull();
+  });
+
   it('exibe artigos após carregar', async () => {
     const { component } = await setup();
     expect(component.articles().length).toBe(MOCK_LORE.length);

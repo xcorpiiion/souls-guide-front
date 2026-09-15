@@ -81,9 +81,16 @@
     </div>
   } @else {
     <div role="tabpanel">
-      <!-- A lista lê `?jogo=` ao montar; trocar de jogo a monta de novo, já filtrada. -->
-      @for (ref of [jogoRef()]; track ref) {
-        <app-lore [embutida]="true" />
+      @if (jogoRef() && !jogo() && !jogoNaoAbriu()) {
+        <p class="mesa__dica mesa__corpo" aria-live="polite">
+          <i class="ti ti-loader-2 giro" aria-hidden="true"></i> abrindo o jogo…
+        </p>
+      } @else {
+        <!-- A lista filtra pelo id numérico, que só existe depois que o jogo carrega: o
+             servidor recusa o slug da URL. Trocar de jogo a monta de novo, já filtrada. -->
+        @for (id of [jogo()?.id ?? null]; track id) {
+          <app-lore [embutida]="true" [jogoId]="id" />
+        }
       }
     </div>
   }

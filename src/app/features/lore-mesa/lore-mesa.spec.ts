@@ -19,9 +19,10 @@ class ArquivoFalso {
   readonly gameName = input('');
 }
 
-@Component({ selector: 'app-lore', template: 'PUBLICADAS' })
+@Component({ selector: 'app-lore', template: 'PUBLICADAS {{ jogoId() }}' })
 class LoreFalsa {
   readonly embutida = input(false);
+  readonly jogoId = input<string | null>(null);
 }
 
 @Component({ selector: 'app-escolher-jogo', template: 'ESCOLHER' })
@@ -91,9 +92,14 @@ describe('LoreMesa', () => {
     expect(texto(f)).toContain('ARQUIVO Silent Hill f');
   });
 
-  it('a aba pedida na URL vale mais que o padrão', () => {
+  /**
+   * A URL traz o slug, e o filtro do servidor só aceita o id: mandar o slug respondia 400, e a
+   * lore recém-publicada não aparecia na lista.
+   */
+  it('a aba pedida na URL vale mais que o padrão, e a lista filtra pelo id do jogo', () => {
     const f = criar({ jogo: 'silent-hill-f', aba: 'publicadas' });
-    expect(texto(f)).toContain('PUBLICADAS');
+    expect(texto(f)).toContain('PUBLICADAS 53');
+    expect(texto(f)).not.toContain('silent-hill-f');
     expect(texto(f)).not.toContain('ARQUIVO');
   });
 

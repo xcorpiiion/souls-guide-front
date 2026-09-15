@@ -53,6 +53,13 @@ export class Lore implements OnInit {
    */
   readonly embutida = input(false);
 
+  /**
+   * O id **numérico** do jogo, vindo da mesa. O filtro do servidor não aceita slug: com
+   * `?jogo=silent-hill-f` na URL, mandar o texto respondia 400 e a lista saía vazia — a lore
+   * recém-publicada parecia não existir.
+   */
+  readonly jogoId = input<string | null>(null);
+
   protected readonly categoryFilters = CATEGORY_FILTERS;
   protected readonly skeletonItems = Array.from({ length: PAGE_SIZE });
 
@@ -88,7 +95,7 @@ export class Lore implements OnInit {
     // O "ver todos" da página de um jogo chega com `?jogo=`. A lista de jogos do filtro traz
     // só os 50 primeiros, e o catálogo tem mais de 200 — então o jogo da query é buscado à
     // parte, senão o filtro valeria e o rótulo dele ficaria em branco.
-    const jogo = this.route.snapshot.queryParamMap.get('jogo');
+    const jogo = this.embutida() ? this.jogoId() : this.route.snapshot.queryParamMap.get('jogo');
     if (jogo) {
       this.gameFilter.set(jogo);
       this.gameService.get(jogo).subscribe({
