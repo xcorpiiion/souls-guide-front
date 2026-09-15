@@ -37,6 +37,24 @@
     text-wrap: pretty;
   }
 
+  &__privada {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 13px;
+    color: #c9a84c;
+    margin: 0 0 8px;
+
+    i {
+      font-size: 14px;
+    }
+
+    &--curta {
+      margin: 0;
+      font-size: 12px;
+    }
+  }
+
   &__dica {
     display: flex;
     align-items: center;

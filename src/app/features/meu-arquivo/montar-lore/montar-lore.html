@@ -49,7 +49,8 @@
       [attr.aria-current]="passo() === 3 ? 'step' : null"
       (click)="irPara(3)"
     >
-      <span class="passo__numero">3</span> escrever e publicar
+      <span class="passo__numero">3</span>
+      {{ soMinha() ? 'escrever e guardar' : 'escrever e publicar' }}
     </button>
   </li>
   @if (passo() === 1) {
@@ -60,8 +61,14 @@
 <!-- ══ 1 · escolher ══ -->
 @if (passo() === 1) {
   <p class="explicacao">
-    Uma lore publicada é pública e vale para todo mundo. O que você escolher aqui sai do seu arquivo
-    privado e vira <b>citação</b> dentro do artigo — o texto do achado aparece; a sua anotação, não.
+    @if (soMinha()) {
+      Esta lore é <b>só sua</b>: fica no seu perfil e ninguém mais vê. O que você escolher aqui vira
+      <b>citação</b> dentro dela — o texto do achado aparece; a sua anotação, não.
+    } @else {
+      Uma lore publicada é pública e vale para todo mundo. O que você escolher aqui sai do seu
+      arquivo privado e vira <b>citação</b> dentro do artigo — o texto do achado aparece; a sua
+      anotação, não.
+    }
   </p>
 
   @if (itens().length > 9) {
@@ -281,7 +288,11 @@
         <span class="rotulo-mono">prévia</span>
         <h4 class="previa__titulo">{{ titulo() || 'sem título ainda' }}</h4>
         <div class="previa__meta">
-          <span class="selo-teoria">teoria</span>
+          @if (soMinha()) {
+            <span class="selo-teoria"><i class="ti ti-lock" aria-hidden="true"></i> só você</span>
+          } @else {
+            <span class="selo-teoria">teoria</span>
+          }
           <span
             >{{ gameName() }} · {{ totalDeCitacoes() }}
             {{ totalDeCitacoes() === 1 ? 'citação' : 'citações' }}</span
@@ -292,74 +303,120 @@
         </p>
       </div>
 
-      <div class="publico">
-        <span class="rotulo-mono rotulo-mono--ouro">o que fica público</span>
-        <ul class="publico__lista">
-          <li>
-            <i class="ti ti-check publico__sim" aria-hidden="true"></i> o texto
-            {{
-              totalDeCitacoes() === 1
-                ? 'do achado citado'
-                : 'dos ' + totalDeCitacoes() + ' achados citados'
-            }}
-          </li>
-          <li>
-            <i class="ti ti-check publico__sim" aria-hidden="true"></i> o título e o capítulo de
-            cada um
-          </li>
-          <li class="publico__nao">
-            <i class="ti ti-x publico__x" aria-hidden="true"></i> as suas anotações continuam
-            privadas
-          </li>
-          <li class="publico__nao">
-            <i class="ti ti-x publico__x" aria-hidden="true"></i>
-            {{
-              naoCitados() === 1
-                ? 'o outro achado continua privado'
-                : 'os outros ' + naoCitados() + ' achados continuam privados'
-            }}
-          </li>
-        </ul>
-      </div>
+      @if (soMinha()) {
+        <div class="publico">
+          <span class="rotulo-mono rotulo-mono--ouro">quem vê</span>
+          <ul class="publico__lista">
+            <li>
+              <i class="ti ti-lock publico__sim" aria-hidden="true"></i> só você. ela fica no seu
+              perfil, em "meu lore"
+            </li>
+            <li class="publico__nao">
+              <i class="ti ti-x publico__x" aria-hidden="true"></i> não aparece na lore do jogo nem
+              na busca
+            </li>
+          </ul>
+        </div>
+      } @else {
+        <div class="publico">
+          <span class="rotulo-mono rotulo-mono--ouro">o que fica público</span>
+          <ul class="publico__lista">
+            <li>
+              <i class="ti ti-check publico__sim" aria-hidden="true"></i> o texto
+              {{
+                totalDeCitacoes() === 1
+                  ? 'do achado citado'
+                  : 'dos ' + totalDeCitacoes() + ' achados citados'
+              }}
+            </li>
+            <li>
+              <i class="ti ti-check publico__sim" aria-hidden="true"></i> o título e o capítulo de
+              cada um
+            </li>
+            <li class="publico__nao">
+              <i class="ti ti-x publico__x" aria-hidden="true"></i> as suas anotações continuam
+              privadas
+            </li>
+            <li class="publico__nao">
+              <i class="ti ti-x publico__x" aria-hidden="true"></i>
+              {{
+                naoCitados() === 1
+                  ? 'o outro achado continua privado'
+                  : 'os outros ' + naoCitados() + ' achados continuam privados'
+              }}
+            </li>
+          </ul>
+        </div>
+      }
 
       <div class="acoes">
-        <button
-          type="button"
-          class="botao botao--primario botao--largo"
-          [disabled]="!podePublicar()"
-          (click)="publicar()"
-        >
-          @if (enviando() === 'publicar') {
-            <i class="ti ti-loader-2 giro" aria-hidden="true"></i>
-            {{ editando() && !editandoRascunho() ? 'salvando…' : 'publicando…' }}
-          } @else if (editando() && !editandoRascunho()) {
-            <i class="ti ti-device-floppy" aria-hidden="true"></i> salvar alterações
-          } @else {
-            <i class="ti ti-send" aria-hidden="true"></i> publicar como teoria
-          }
-        </button>
-        @if (!editando() || editandoRascunho()) {
+        @if (soMinha()) {
           <button
             type="button"
-            class="botao botao--secundario botao--largo"
+            class="botao botao--primario botao--largo"
             [disabled]="!podePublicar()"
             (click)="guardarRascunho()"
           >
             @if (enviando() === 'rascunho') {
               <i class="ti ti-loader-2 giro" aria-hidden="true"></i> guardando…
             } @else {
-              guardar rascunho
+              <i class="ti ti-lock" aria-hidden="true"></i> guardar no meu perfil
             }
           </button>
-        }
-        <p class="acoes__nota">
-          @if (editando() && !editandoRascunho()) {
-            a versão anterior continua no <b>histórico</b> da lore.
-          } @else {
-            nasce como <b>teoria</b>, como qualquer lore do site. o rascunho fica no seu perfil,
-            visível só para você.
+          <button
+            type="button"
+            class="botao botao--secundario botao--largo"
+            [disabled]="!podePublicar()"
+            (click)="publicar()"
+          >
+            @if (enviando() === 'publicar') {
+              <i class="ti ti-loader-2 giro" aria-hidden="true"></i> publicando…
+            } @else {
+              <i class="ti ti-world" aria-hidden="true"></i> publicar para todos
+            }
+          </button>
+          <p class="acoes__nota">
+            guardada, só você vê. publicar leva para a lore do jogo, como <b>teoria</b>.
+          </p>
+        } @else {
+          <button
+            type="button"
+            class="botao botao--primario botao--largo"
+            [disabled]="!podePublicar()"
+            (click)="publicar()"
+          >
+            @if (enviando() === 'publicar') {
+              <i class="ti ti-loader-2 giro" aria-hidden="true"></i>
+              {{ editando() && !editandoRascunho() ? 'salvando…' : 'publicando…' }}
+            } @else if (editando() && !editandoRascunho()) {
+              <i class="ti ti-device-floppy" aria-hidden="true"></i> salvar alterações
+            } @else {
+              <i class="ti ti-send" aria-hidden="true"></i> publicar como teoria
+            }
+          </button>
+          @if (!editando() || editandoRascunho()) {
+            <button
+              type="button"
+              class="botao botao--secundario botao--largo"
+              [disabled]="!podePublicar()"
+              (click)="guardarRascunho()"
+            >
+              @if (enviando() === 'rascunho') {
+                <i class="ti ti-loader-2 giro" aria-hidden="true"></i> guardando…
+              } @else {
+                guardar rascunho
+              }
+            </button>
           }
-        </p>
+          <p class="acoes__nota">
+            @if (editando() && !editandoRascunho()) {
+              a versão anterior continua no <b>histórico</b> da lore.
+            } @else {
+              nasce como <b>teoria</b>, como qualquer lore do site. o rascunho fica no seu perfil,
+              visível só para você.
+            }
+          </p>
+        }
       </div>
     </aside>
   </div>

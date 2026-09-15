@@ -428,6 +428,20 @@ export const routes: Routes = [
     canDeactivate: [unsavedChangesGuard],
   },
   {
+    // Antes de `profile/lore/:id`, senão "new" vira o id de um artigo. Ver lore-nova.ts.
+    path: 'profile/lore/new',
+    data: {
+      destino: 'perfil',
+      seo: {
+        titulo: 'Montar uma lore só sua',
+        descricao: 'Uma lore do seu perfil, visível só para você.',
+        indexavel: false,
+      } satisfies SeoPagina,
+    },
+    loadComponent: () => import('./features/lore-nova/lore-nova').then((m) => m.LoreNova),
+    canActivate: [authGuard],
+  },
+  {
     path: 'profile/lore/:id/history',
     data: {
       seo: {

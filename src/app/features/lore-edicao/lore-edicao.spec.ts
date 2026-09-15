@@ -61,10 +61,12 @@ describe('LoreEdicao', () => {
     expect(texto(f)).toContain('citação · teste · nota, sem capítulo');
   });
 
-  it('rascunho oferece publicar e guardar', () => {
+  /** Rascunho é lore só da pessoa: guardar no perfil vem primeiro, publicar para todos depois. */
+  it('rascunho oferece guardar no perfil e publicar para todos', () => {
     const f = criar();
-    expect(texto(f)).toContain('publicar como teoria');
-    expect(texto(f)).toContain('guardar rascunho');
+    expect(texto(f)).toContain('guardar no meu perfil');
+    expect(texto(f)).toContain('publicar para todos');
+    expect(texto(f)).toContain('só você');
   });
 
   /** O arquivo é acessório: sem ele a lore abre igual, só sem achados para citar. */

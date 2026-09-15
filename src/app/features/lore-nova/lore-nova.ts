@@ -42,6 +42,13 @@ export class LoreNova {
     decorar(this.achados(), this.ligacoes(), this.elenco()),
   );
 
+  /**
+   * `/profile/lore/new` é a lore só da pessoa; `/lore/new`, a da comunidade. A tela é a mesma,
+   * e o endereço diz para quem ela é — do perfil, a URL de todos parecia publicar para todos.
+   */
+  protected readonly destino: 'comunidade' | 'perfil' =
+    this.route.snapshot.data['destino'] === 'perfil' ? 'perfil' : 'comunidade';
+
   constructor() {
     this.route.queryParamMap.pipe(takeUntilDestroyed()).subscribe((q) => {
       const ref = q.get('jogo');

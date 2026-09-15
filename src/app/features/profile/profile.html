@@ -428,8 +428,9 @@
         @if (activeTab() === 'lore') {
           <div class="pf__content-header">
             <p class="pf__section-title">lore</p>
-            <a class="pf__content-create-btn" routerLink="/lore/new">
-              <i class="ti ti-plus" aria-hidden="true"></i> montar lore
+            <!-- Do perfil, a lore é só da pessoa: o endereço e a tela dizem isso. -->
+            <a class="pf__content-create-btn" routerLink="/profile/lore/new">
+              <i class="ti ti-lock" aria-hidden="true"></i> montar lore só minha
             </a>
           </div>
 

@@ -82,6 +82,11 @@ export class MontarLore implements OnInit {
   readonly artigo = input<LoreApi | null>(null);
   /** O rótulo do "voltar" do topo: a aba diz "meu arquivo"; a página, "voltar". */
   readonly rotuloVoltar = input('meu arquivo');
+  /**
+   * Para quem é a lore. `perfil` é a que se monta a partir do perfil (`/profile/lore/new`): só a
+   * pessoa vê, e o botão principal guarda nele. Editar um rascunho é o mesmo caso.
+   */
+  readonly destino = input<'comunidade' | 'perfil'>('comunidade');
 
   readonly voltar = output<void>();
 
@@ -105,6 +110,10 @@ export class MontarLore implements OnInit {
   protected readonly editando = computed(() => this.artigo() !== null);
   /** Rascunho é a lore pessoal: guardar de novo, ou publicar. */
   protected readonly editandoRascunho = computed(() => this.artigo()?.isPersonal === true);
+  /** A lore é só da pessoa: veio do perfil, ou é um rascunho sendo editado. */
+  protected readonly soMinha = computed(
+    () => this.destino() === 'perfil' || this.editandoRascunho(),
+  );
 
   ngOnInit(): void {
     const existentes = new Set(this.itens().map((a) => a.id));

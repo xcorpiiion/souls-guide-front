@@ -48,7 +48,10 @@ let games: {
 };
 let arquivo: { archive: ReturnType<typeof vi.fn> };
 
-function criar(params: Record<string, string> = {}): ComponentFixture<LoreNova> {
+function criar(
+  params: Record<string, string> = {},
+  data: Record<string, string> = {},
+): ComponentFixture<LoreNova> {
   query = new BehaviorSubject(convertToParamMap(params));
   TestBed.configureTestingModule({
     imports: [LoreNova],
@@ -59,7 +62,7 @@ function criar(params: Record<string, string> = {}): ComponentFixture<LoreNova> 
         useValue: {
           queryParamMap: query,
           get snapshot() {
-            return { queryParamMap: query.value };
+            return { queryParamMap: query.value, data };
           },
         },
       },
@@ -125,6 +128,29 @@ describe('LoreNova', () => {
       '.estado a.botao',
     )!;
     expect(link.getAttribute('href')).toBe('/lore?jogo=silent-hill-2');
+  });
+
+  /** Do perfil, a lore é só da pessoa; na URL de todos, parecia publicar para todos. */
+  describe('pelo perfil (/profile/lore/new)', () => {
+    it('diz que é só sua desde a escolha do jogo, e volta ao perfil', () => {
+      const f = criar({}, { destino: 'perfil' });
+      expect(texto(f)).toContain('montar uma lore só sua');
+      expect(texto(f)).toContain('visível só para você');
+      const voltar = (f.nativeElement as HTMLElement).querySelector('a.voltar')!;
+      expect(voltar.getAttribute('href')).toBe('/profile');
+    });
+
+    it('no montar lore, o botão principal guarda no perfil', () => {
+      const f = criar({ jogo: '7' }, { destino: 'perfil' });
+      expect(texto(f)).toContain('só você vê');
+      expect(texto(f)).toContain('escrever e guardar');
+    });
+
+    it('pela lore, continua sendo para todos', () => {
+      const f = criar({ jogo: '7' });
+      expect(texto(f)).not.toContain('só você vê');
+      expect(texto(f)).toContain('escrever e publicar');
+    });
   });
 
   it('jogo fora do escopo não pergunta pelo arquivo', () => {

@@ -1,17 +1,34 @@
 <section class="nova">
   @switch (estado()) {
     @case ('escolher') {
-      <a class="voltar" routerLink="/lore"
-        ><i class="ti ti-arrow-left" aria-hidden="true"></i> lore</a
-      >
+      @if (destino === 'perfil') {
+        <a class="voltar" routerLink="/profile"
+          ><i class="ti ti-arrow-left" aria-hidden="true"></i> perfil</a
+        >
 
-      <header class="nova__topo">
-        <h1 class="nova__titulo">montar uma lore</h1>
-        <p class="nova__texto">
-          uma lore nasce do seu arquivo: você escolhe os achados que registrou, ordena o fio e
-          escreve entre as citações. primeiro, de qual jogo?
-        </p>
-      </header>
+        <header class="nova__topo">
+          <h1 class="nova__titulo">montar uma lore só sua</h1>
+          <p class="nova__privada">
+            <i class="ti ti-lock" aria-hidden="true"></i> fica no seu perfil, visível só para você
+          </p>
+          <p class="nova__texto">
+            ela nasce do seu arquivo: você escolhe os achados que registrou, ordena o fio e escreve
+            entre as citações. primeiro, de qual jogo?
+          </p>
+        </header>
+      } @else {
+        <a class="voltar" routerLink="/lore"
+          ><i class="ti ti-arrow-left" aria-hidden="true"></i> lore</a
+        >
+
+        <header class="nova__topo">
+          <h1 class="nova__titulo">montar uma lore</h1>
+          <p class="nova__texto">
+            uma lore nasce do seu arquivo: você escolhe os achados que registrou, ordena o fio e
+            escreve entre as citações. primeiro, de qual jogo?
+          </p>
+        </header>
+      }
 
       <app-escolher-jogo (escolhido)="escolher($event)" />
     }
@@ -73,6 +90,11 @@
       } @else {
         <p class="nova__jogo-atual">
           <span class="etiqueta">{{ g.name }}</span>
+          @if (destino === 'perfil') {
+            <span class="nova__privada nova__privada--curta"
+              ><i class="ti ti-lock" aria-hidden="true"></i> só você vê</span
+            >
+          }
           <button type="button" class="nova__trocar" (click)="trocarDeJogo()">trocar</button>
         </p>
         <app-montar-lore
@@ -81,6 +103,7 @@
           [itens]="itens()"
           [ligacoes]="ligacoes()"
           rotuloVoltar="meu arquivo"
+          [destino]="destino"
           (voltar)="voltarParaAMesa()"
         />
       }
