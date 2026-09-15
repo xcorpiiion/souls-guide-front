@@ -41,6 +41,7 @@ import {
 } from './arquivo.model';
 import { ArquivoMural } from './arquivo-mural/arquivo-mural';
 import { MontarLore } from './montar-lore/montar-lore';
+import { GuiaDoArquivo, PassoDoGuia } from './guia-do-arquivo/guia-do-arquivo';
 
 type Tela = 'visao-geral' | 'registrar' | 'detalhe' | 'montar';
 type Visao = 'arquivo' | 'ligacoes';
@@ -66,7 +67,7 @@ const CAPITULOS_VISIVEIS = 9;
  */
 @Component({
   selector: 'app-meu-arquivo',
-  imports: [RouterLink, NgTemplateOutlet, ArquivoMural, MontarLore],
+  imports: [RouterLink, NgTemplateOutlet, ArquivoMural, MontarLore, GuiaDoArquivo],
   templateUrl: './meu-arquivo.html',
   styleUrl: './meu-arquivo.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -176,6 +177,20 @@ export class MeuArquivo {
   private readonly porId = computed(() => new Map(this.itens().map((a) => [a.id, a])));
 
   protected readonly vazio = computed(() => this.achados().length === 0);
+
+  // ─── O que já serve ────────────────────────────────────────────────────────
+  // A mesa inteira de uma vez, para quem tem um achado só, é ruído: filtro sem o que filtrar,
+  // mural sem o que ligar. Cada controle aparece quando passa a ter uso.
+
+  /** Ligar pede dois achados. */
+  protected readonly mostrarLigacoes = computed(() => this.achados().length >= 2);
+  protected readonly mostrarBusca = computed(() => this.achados().length >= 4);
+  protected readonly mostrarFiltros = computed(() => this.achados().length >= 6);
+  /** A espinha só ajuda a navegar quando há mais de um lugar para ir. */
+  protected readonly mostrarCapitulos = computed(() => {
+    const e = this.espinha();
+    return e.capitulos.length + (e.semCapitulo > 0 ? 1 : 0) >= 2;
+  });
 
   protected readonly soltas = computed(() => this.itens().filter((a) => a.degree === 0));
 
@@ -486,6 +501,16 @@ export class MeuArquivo {
   protected ligarAPartirDe(id: number, alvo: number | null = null): void {
     this.abrirAchado(id);
     this.abrirLigador(alvo);
+  }
+
+  /** O botão de cada passo do "como funciona". */
+  protected agirPeloGuia(passo: PassoDoGuia): void {
+    if (passo === 'registrar') this.irParaRegistrar();
+    else if (passo === 'montar') this.montarLore();
+    else {
+      const origem = this.soltas()[0] ?? this.itens()[0];
+      if (origem) this.ligarAPartirDe(origem.id);
+    }
   }
 
   protected ligarAProximaSolta(): void {

@@ -47,9 +47,9 @@ const ARQUIVO: StoryArchiveDTO = { gameId: 7, findings: ACHADOS, links: LIGACOES
 
 let service: { archive: ReturnType<typeof vi.fn>; register: ReturnType<typeof vi.fn> };
 
-function criar(logado = true): ComponentFixture<MeuArquivo> {
+function criar(logado = true, arquivo: StoryArchiveDTO = ARQUIVO): ComponentFixture<MeuArquivo> {
   service = {
-    archive: vi.fn(() => of(ARQUIVO)),
+    archive: vi.fn(() => of(arquivo)),
     register: vi.fn((_: string, r: { title: string; body: string }) =>
       of({ ...achado(99, r.title, null, r.body) }),
     ),
@@ -90,6 +90,39 @@ describe('MeuArquivo', () => {
    * capítulo" separado no fim — é o estado de uma página sem cabeçalho, não um lugar da
    * história.
    */
+  describe('o que já serve', () => {
+    const tem = (f: ComponentFixture<MeuArquivo>, seletor: string) =>
+      (f.nativeElement as HTMLElement).querySelector(seletor) !== null;
+
+    /** Com um achado só, filtro, mural e capítulos seriam controle sem uso. */
+    it('com um achado, a mesa mostra o guia e esconde o que ainda não serve', () => {
+      const f = criar(true, { gameId: 7, findings: [ACHADOS[0]], links: [] });
+      expect(tem(f, 'app-guia-do-arquivo .guia')).toBe(true);
+      expect(tem(f, '.alternador')).toBe(false);
+      expect(tem(f, '.busca')).toBe(false);
+      expect(tem(f, '.filtrar')).toBe(false);
+      expect(tem(f, '.capitulos')).toBe(false);
+      expect(tem(f, '.ferramentas__montar')).toBe(true);
+    });
+
+    it('com cinco achados em capítulos diferentes, aparecem ligações, busca e capítulos', () => {
+      const f = criar();
+      expect(tem(f, '.alternador')).toBe(true);
+      expect(tem(f, '.busca')).toBe(true);
+      expect(tem(f, '.capitulos')).toBe(true);
+      expect(tem(f, '.filtrar')).toBe(false);
+    });
+
+    it('o passo "registre" do guia abre o registro', () => {
+      const f = criar(true, { gameId: 7, findings: [], links: [] });
+      (f.nativeElement as HTMLElement)
+        .querySelector<HTMLButtonElement>('app-guia-do-arquivo .passo__acao')!
+        .click();
+      f.detectChanges();
+      expect(f.componentInstance['tela']()).toBe('registrar');
+    });
+  });
+
   it('a espinha conta por capítulo e marca onde há peça solta', () => {
     const espinha = criar().componentInstance['espinha']();
 

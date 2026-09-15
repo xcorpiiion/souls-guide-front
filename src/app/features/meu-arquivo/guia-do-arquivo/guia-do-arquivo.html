@@ -1,0 +1,49 @@
+@if (!fechado()) {
+  <section class="guia" aria-labelledby="guia-titulo">
+    <header class="guia__topo">
+      <h2 id="guia-titulo" class="guia__titulo">como funciona</h2>
+      <button type="button" class="guia__fechar" (click)="fechar()">
+        entendi, esconder <i class="ti ti-x" aria-hidden="true"></i>
+      </button>
+    </header>
+
+    <ol class="guia__passos">
+      @for (p of passos(); track p.chave) {
+        <li
+          class="passo"
+          [class.passo--feito]="p.estado === 'feito'"
+          [class.passo--agora]="p.estado === 'agora'"
+          [attr.aria-current]="p.estado === 'agora' ? 'step' : null"
+        >
+          <span class="passo__marca" aria-hidden="true">
+            @if (p.estado === 'feito') {
+              <i class="ti ti-check"></i>
+            } @else {
+              {{ p.numero }}
+            }
+          </span>
+          <div class="passo__corpo">
+            <h3 class="passo__titulo">
+              {{ p.titulo }}
+              @if (p.estado === 'agora') {
+                <span class="passo__selo">agora</span>
+              }
+            </h3>
+            <p class="passo__texto">{{ p.texto }}</p>
+            <button
+              type="button"
+              class="passo__acao"
+              [disabled]="!p.disponivel"
+              (click)="agir.emit(p.chave)"
+            >
+              {{ p.acao }}
+              @if (p.disponivel) {
+                <i class="ti ti-arrow-right" aria-hidden="true"></i>
+              }
+            </button>
+          </div>
+        </li>
+      }
+    </ol>
+  </section>
+}

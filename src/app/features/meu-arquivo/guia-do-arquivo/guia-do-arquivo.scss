@@ -1,0 +1,166 @@
+// "Como funciona": os três passos do arquivo. Mesma paleta do artboard "Meu arquivo - redesenho".
+:host {
+  display: block;
+}
+
+.guia {
+  background: #141414;
+  border: 0.5px solid #2e2b26;
+  border-radius: 12px;
+  padding: 14px 16px 16px;
+  margin-bottom: 18px;
+
+  &__topo {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 12px;
+  }
+
+  &__titulo {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10.5px;
+    font-weight: 400;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: #c9a84c;
+    margin: 0;
+  }
+
+  &__fechar {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-family: inherit;
+    font-size: 12px;
+    color: #8a8278;
+    background: none;
+    border: none;
+    padding: 6px 2px;
+    cursor: pointer;
+
+    &:hover {
+      color: #e8e0d0;
+    }
+  }
+
+  &__passos {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 10px;
+  }
+}
+
+.passo {
+  display: flex;
+  gap: 11px;
+  background: #1a1a1a;
+  border: 0.5px solid #2e2b26;
+  border-radius: 10px;
+  padding: 12px;
+
+  &--agora {
+    border-color: rgb(201 168 76 / 55%);
+    box-shadow: 0 0 0 3px rgb(201 168 76 / 6%);
+  }
+
+  &--feito {
+    opacity: 0.7;
+  }
+
+  &__marca {
+    width: 24px;
+    height: 24px;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    color: #8a8278;
+    border: 0.5px solid #3a3630;
+
+    .passo--agora & {
+      color: #0f0d0b;
+      background: #c9a84c;
+      border-color: #c9a84c;
+    }
+
+    .passo--feito & {
+      color: #7a9a5a;
+      border-color: rgb(122 154 90 / 50%);
+    }
+  }
+
+  &__corpo {
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+  }
+
+  &__titulo {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-family: inherit;
+    font-size: 14px;
+    font-weight: 500;
+    color: #e8e0d0;
+    margin: 0;
+  }
+
+  &__selo {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9.5px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: #c9a84c;
+    border: 0.5px solid rgb(201 168 76 / 40%);
+    border-radius: 999px;
+    padding: 1px 7px;
+  }
+
+  &__texto {
+    font-size: 12.5px;
+    line-height: 1.55;
+    color: #8a8278;
+    margin: 0;
+    text-wrap: pretty;
+  }
+
+  &__acao {
+    align-self: flex-start;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 3px;
+    font-family: inherit;
+    font-size: 12.5px;
+    color: #c9a84c;
+    background: none;
+    border: none;
+    padding: 6px 0;
+    min-height: 32px;
+    cursor: pointer;
+
+    &:hover:not(:disabled) {
+      color: #e2c06e;
+    }
+
+    &:disabled {
+      color: #4a453f;
+      cursor: default;
+    }
+
+    &:focus-visible {
+      outline: 2px solid #c9a84c;
+      outline-offset: 2px;
+    }
+  }
+}
