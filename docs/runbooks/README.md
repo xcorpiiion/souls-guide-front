@@ -18,6 +18,7 @@ runbooks são os [do back-end](../../../../Back-end/soulsguide/docs/runbooks/).
 | Sintoma | Runbook |
 |---|---|
 | A tela não troca ao navegar, sem erro visível | [a navegação não acontece depois de um deploy](navegacao-nao-acontece-depois-de-deploy.md) |
+| No domínio, uma tela apagada do código continua aparecendo | [a tela antiga volta no domínio](tela-antiga-volta-no-dominio.md) |
 | Link do site colado no Discord aparece sem título nem imagem | [o preview do link vem vazio](preview-do-link-vem-vazio.md) |
 | Página em branco, 500 no HTML, ou "Bad Request" com menção a `host` | [o SSR não renderiza](ssr-nao-renderiza.md) |
 
