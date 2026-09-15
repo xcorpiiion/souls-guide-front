@@ -12,7 +12,8 @@ const IMAGE_BLOCK = /^!\[([^\]]*)\]\(file:([^)\s]+)\)$/;
 
 export type LoreBlock =
   | { kind: 'heading'; text: string }
-  | { kind: 'quote'; text: string }
+  /** `origem` é a linha "— Título · tipo, capítulo" que o montar lore põe embaixo do trecho. */
+  | { kind: 'quote'; text: string; origem?: string }
   | { kind: 'image'; fileKey: string; alt: string }
   | { kind: 'paragraph'; text: string };
 
@@ -44,7 +45,7 @@ export function parseLoreContent(content: string): LoreBlock[] {
           : null;
       }
       if (block.startsWith('## ')) return { kind: 'heading', text: block.slice(3) };
-      if (block.startsWith('> ')) return { kind: 'quote', text: block.slice(2) };
+      if (block.startsWith('>')) return lerCitacao(block);
       return { kind: 'paragraph', text: block };
     })
     .filter((block): block is LoreBlock => block !== null);
@@ -77,6 +78,19 @@ export function renderMarkdown(md: string, resolved?: ReadonlyMap<string, string
     .replace(/\n\n/g, '</p><p>')
     .replace(/^(?!<[hbup])/gm, '')
     .trim();
+}
+
+/**
+ * A citação, com o trecho e a origem separados. Cada linha perde o `> `, e a última — quando
+ * começa com travessão — é de onde o trecho veio. Sem separar, a origem saía na leitura como
+ * mais uma linha do texto do jogo.
+ */
+function lerCitacao(bloco: string): LoreBlock {
+  const linhas = bloco.split('\n');
+  const temOrigem = linhas.length > 1 && linhas[linhas.length - 1].startsWith('— ');
+  const origem = temOrigem ? linhas.pop()!.slice(2).trim() : '';
+  const text = linhas.map((l) => l.replace(/^>\s?/, '')).join('\n');
+  return origem ? { kind: 'quote', text, origem } : { kind: 'quote', text };
 }
 
 function splitBlocks(content: string): string[] {

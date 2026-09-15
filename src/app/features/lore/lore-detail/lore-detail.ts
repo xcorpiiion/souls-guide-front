@@ -1,4 +1,3 @@
-import { LowerCasePipe } from '@angular/common';
 import {
   ChangeDetectionStrategy,
   Component,
@@ -32,14 +31,7 @@ import { PfPageLoader } from '@xcorpiiion/ui';
 
 @Component({
   selector: 'app-lore-detail',
-  imports: [
-    RouterLink,
-    LowerCasePipe,
-    CopyToProfileModal,
-    CommentSection,
-    ReportButton,
-    PfPageLoader,
-  ],
+  imports: [RouterLink, CopyToProfileModal, CommentSection, ReportButton, PfPageLoader],
   templateUrl: './lore-detail.html',
   styleUrl: './lore-detail.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -88,11 +80,32 @@ export class LoreDetail implements OnInit {
     return String(a.ownerId) === String(this.auth.userId());
   });
 
-  protected readonly canEdit = computed(() => {
+  /** Quem escreveu a lore da comunidade, ou o dono da lore de perfil. */
+  protected readonly ehMinha = computed(() => {
     const a = this.article();
     if (!a || !this.auth.isLoggedIn()) return false;
-    if (a.isPersonal) return this.isOwner();
-    return true; // lore da comunidade: qualquer logado pode editar
+    return a.isPersonal ? this.isOwner() : String(a.userId) === String(this.auth.userId());
+  });
+
+  /**
+   * Só quem escreveu. O botão aparecia para qualquer pessoa logada, e o servidor recusa a
+   * edição de quem não é autor (`LoreArticleViewServiceImpl.update`): era um botão que levava a
+   * um 403 depois de a pessoa já ter reescrito o texto.
+   */
+  protected readonly canEdit = computed(() => this.ehMinha());
+
+  protected readonly blocos = computed(() => {
+    const a = this.article();
+    return a ? parseLoreContent(a.content) : [];
+  });
+
+  protected readonly citacoes = computed(
+    () => this.blocos().filter((b) => b.kind === 'quote').length,
+  );
+
+  protected readonly minutos = computed(() => {
+    const a = this.article();
+    return a ? Math.max(1, Math.ceil(a.content.split(/\s+/).length / 200)) : 1;
   });
 
   protected readonly canCopy = computed(() => {

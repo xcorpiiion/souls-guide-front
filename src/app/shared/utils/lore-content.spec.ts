@@ -42,6 +42,13 @@ describe('parseLoreContent', () => {
     ]);
   });
 
+  /** A origem saía na leitura como mais uma linha do texto do jogo, no mesmo estilo. */
+  it('a citação do montar lore separa o trecho da linha de origem', () => {
+    expect(parseLoreContent('> Se você ler isto,\n> não volte.\n— Bilhete · nota, Cap. 1')).toEqual(
+      [{ kind: 'quote', text: 'Se você ler isto,\nnão volte.', origem: 'Bilhete · nota, Cap. 1' }],
+    );
+  });
+
   it('o texto do artigo sobrevive à imagem removida', () => {
     const blocos = parseLoreContent('![alt](file:k1)\n\ntexto que fica');
 

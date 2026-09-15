@@ -3,246 +3,196 @@
 } @else if (error()) {
   <div class="ld__not-found">
     <p>{{ error() }}</p>
-    <a routerLink="/lore">← voltar ao lore</a>
+    <a routerLink="/lore">← voltar à lore</a>
   </div>
 } @else if (article(); as a) {
+  <!-- Leitura: uma coluna só, o texto é o protagonista. Ver ADR 0010 do front. -->
   <div class="ld">
-    <!-- ══ top bar ════════════════════════════════════════════════════════════ -->
-    <div class="ld__topbar">
-      <div class="ld__topbar-inner">
-        <nav class="ld__crumb" aria-label="Navegação">
-          @if (context === 'profile') {
-            <a class="ld__crumb-link" routerLink="/profile">perfil</a>
-            <i class="ti ti-chevron-right ld__crumb-sep" aria-hidden="true"></i>
-            <a class="ld__crumb-link" routerLink="/profile">lore</a>
-          } @else if (context === 'usuario') {
-            <a class="ld__crumb-link" [routerLink]="['/usuarios', handle]">&#64;{{ handle }}</a>
-            <i class="ti ti-chevron-right ld__crumb-sep" aria-hidden="true"></i>
-            <a class="ld__crumb-link" [routerLink]="['/usuarios', handle]">lore</a>
-          } @else {
-            <a class="ld__crumb-link" routerLink="/lore">lore</a>
-            <i class="ti ti-chevron-right ld__crumb-sep" aria-hidden="true"></i>
-            <a
-              class="ld__crumb-link"
-              routerLink="/lore"
-              [queryParams]="{ jogo: a.gameId, aba: 'publicadas' }"
-              >{{ a.gameName }}</a
-            >
-            <i class="ti ti-chevron-right ld__crumb-sep" aria-hidden="true"></i>
-            <span class="ld__crumb-current">{{
-              a.type === 'CHARACTER' ? 'personagem' : 'mundo'
-            }}</span>
+    <nav class="ld__voltar" aria-label="navegação">
+      @if (context === 'profile') {
+        <a routerLink="/profile"><i class="ti ti-arrow-left" aria-hidden="true"></i> perfil</a>
+      } @else if (context === 'usuario') {
+        <a [routerLink]="['/usuarios', handle]"
+          ><i class="ti ti-arrow-left" aria-hidden="true"></i> &#64;{{ handle }}</a
+        >
+      } @else {
+        <a routerLink="/lore" [queryParams]="{ jogo: a.gameId, aba: 'publicadas' }"
+          ><i class="ti ti-arrow-left" aria-hidden="true"></i> lore de {{ a.gameName }}</a
+        >
+      }
+    </nav>
+
+    <article class="ld__article">
+      <header class="ld__cabecalho">
+        <p class="ld__meta">
+          <span
+            class="ld__selo"
+            [class.ld__selo--consolidada]="a.status === 'CONSOLIDADO'"
+            [class.ld__selo--canonica]="a.status === 'CANONICO'"
+            >{{ statusLabel(a.status) }}</span
+          >
+          <span>{{ a.type === 'CHARACTER' ? 'lore de personagem' : 'lore do mundo' }}</span>
+          <span class="ld__ponto" aria-hidden="true">·</span>
+          <span>{{ a.gameName }}</span>
+          @if (citacoes() > 0) {
+            <span class="ld__ponto" aria-hidden="true">·</span>
+            <span>{{ citacoes() }} {{ citacoes() === 1 ? 'citação' : 'citações' }}</span>
           }
-          @if (context !== 'community') {
-            <i class="ti ti-chevron-right ld__crumb-sep" aria-hidden="true"></i>
-            <span class="ld__crumb-current">{{ a.title }}</span>
+          <span class="ld__ponto" aria-hidden="true">·</span>
+          <span>{{ minutos() }} min de leitura</span>
+        </p>
+
+        <h1 class="ld__title">{{ a.title }}</h1>
+
+        @if (a.characterName) {
+          <p class="ld__personagem">
+            <i class="ti ti-user-circle" aria-hidden="true"></i> {{ a.characterName }}
+          </p>
+        }
+
+        <div class="ld__autoria">
+          @if (ehMinha()) {
+            <span class="ld__sua">sua lore</span>
           }
-        </nav>
-      </div>
-    </div>
-
-    <!-- ══ layout ════════════════════════════════════════════════════════════ -->
-    <div class="ld__layout">
-      <!-- ── article body ── -->
-      <article class="ld__article">
-        <header class="ld__article-head">
-          <div class="ld__head-row">
-            <div class="ld__medallion">
-              <i
-                [class]="a.type === 'CHARACTER' ? 'ti ti-moon-stars' : 'ti ti-map'"
-                aria-hidden="true"
-              ></i>
-            </div>
-            <div class="ld__head-info">
-              <div class="ld__badges">
-                <span class="lr__badge lr__badge--{{ a.gameId }}">{{ a.gameName }}</span>
-                <span class="lr__badge lr__badge--cat">{{
-                  a.type === 'CHARACTER' ? 'personagem' : 'mundo'
-                }}</span>
-                <span class="lr__badge lr__badge--{{ a.status | lowercase }}">
-                  {{ statusLabel(a.status) }}
-                </span>
-              </div>
-
-              <h1 class="ld__title">{{ a.title }}</h1>
-
-              @if (a.characterName) {
-                <p class="ld__character-name">
-                  <i class="ti ti-user-circle" aria-hidden="true"></i> {{ a.characterName }}
-                </p>
-              }
-            </div>
-          </div>
-
-          <div class="ld__meta">
-            <span class="ld__author-chip">
-              <i class="ti ti-user" aria-hidden="true"></i>
-              @{{ a.userId }}
-            </span>
-
-            <button
-              class="ld__btn"
-              [class.ld__btn--liked]="userHasLiked()"
-              type="button"
-              [disabled]="!auth.isLoggedIn() || liking()"
-              (click)="toggleLike()"
-              [title]="userHasLiked() ? 'remover curtida' : 'curtir'"
+          @if (a.isPersonal && !a.isPublic) {
+            <span class="ld__rascunho"
+              ><i class="ti ti-lock" aria-hidden="true"></i> rascunho, só você vê</span
             >
-              <i
-                [class]="userHasLiked() ? 'ti ti-heart-filled' : 'ti ti-heart'"
-                aria-hidden="true"
-              ></i>
-              {{ userHasLiked() ? 'curtido' : 'curtir' }}
-              @if (likeCount() > 0) {
-                · {{ likeCount() }}
-              }
-            </button>
-
-            <button
-              class="ld__btn"
-              [class.ld__btn--following]="userIsFollowing()"
-              type="button"
-              [disabled]="!auth.isLoggedIn() || following()"
-              (click)="toggleFollow()"
-              [title]="userIsFollowing() ? 'parar de seguir' : 'seguir'"
-            >
-              <i
-                [class]="userIsFollowing() ? 'ti ti-bell-ringing' : 'ti ti-bell'"
-                aria-hidden="true"
-              ></i>
-              {{ userIsFollowing() ? 'seguindo' : 'seguir' }}
-              @if (followerCount() > 0) {
-                · {{ followerCount() }}
-              }
-            </button>
-
+          }
+          @if (canEdit()) {
             <a
-              class="ld__btn"
+              class="ld__editar"
               [routerLink]="
-                context === 'profile'
-                  ? ['/profile', 'lore', a.id, 'history']
-                  : context === 'usuario'
-                    ? ['/usuarios', handle, 'lore', a.id, 'history']
-                    : ['/lore', a.id, 'history']
+                context === 'profile' ? ['/profile', 'lore', a.id, 'edit'] : ['/lore', a.id, 'edit']
               "
             >
-              <i class="ti ti-history" aria-hidden="true"></i> histórico
+              @if (a.isPersonal && !a.isPublic) {
+                <i class="ti ti-send" aria-hidden="true"></i> continuar rascunho
+              } @else {
+                <i class="ti ti-pencil" aria-hidden="true"></i> editar
+              }
             </a>
-
-            @if (canCopy()) {
-              <button class="ld__btn" type="button" (click)="openCopyModal()">
-                <i class="ti ti-copy" aria-hidden="true"></i> copiar
-              </button>
-            }
-
-            @if (canEdit()) {
-              <a
-                class="ld__btn ld__btn--accent"
-                [routerLink]="
-                  context === 'profile'
-                    ? ['/profile', 'lore', a.id, 'edit']
-                    : ['/lore', a.id, 'edit']
-                "
-              >
-                @if (a.isPersonal && !a.isPublic) {
-                  <!-- Rascunho: é por aqui que ele vira lore publicada. -->
-                  <i class="ti ti-send" aria-hidden="true"></i> continuar rascunho
-                } @else {
-                  <i class="ti ti-pencil" aria-hidden="true"></i> editar
-                }
-              </a>
-            }
-          </div>
-        </header>
-
-        @if (coverUrl(); as cover) {
-          <figure class="ld__cover">
-            <img [src]="cover" [alt]="a.characterName ?? a.title" loading="lazy" />
-          </figure>
-        }
-
-        <div class="ld__content">
-          @for (block of contentBlocks(a.content); track $index) {
-            @switch (block.kind) {
-              @case ('heading') {
-                <h2 class="ld__section-heading">{{ block.text }}</h2>
-              }
-              @case ('quote') {
-                <blockquote class="ld__quote">
-                  <i class="ti ti-quote ld__quote-icon" aria-hidden="true"></i>
-                  <span class="ld__quote-text">{{ block.text }}</span>
-                </blockquote>
-              }
-              @case ('image') {
-                @if (imageUrl(block.fileKey); as src) {
-                  <figure class="ld__figure">
-                    <img [src]="src" [alt]="block.alt" loading="lazy" />
-                    @if (block.alt) {
-                      <figcaption class="ld__figcaption">{{ block.alt }}</figcaption>
-                    }
-                  </figure>
-                }
-              }
-              @case ('paragraph') {
-                <p class="ld__paragraph">{{ block.text }}</p>
-              }
-            }
           }
         </div>
+      </header>
 
-        <footer class="ld__article-foot">
-          <div class="ld__tags">
-            @for (tag of a.tags; track tag) {
-              <span class="ld__tag">{{ tag }}</span>
-            }
-          </div>
-        </footer>
-      </article>
+      @if (coverUrl(); as cover) {
+        <figure class="ld__cover">
+          <img [src]="cover" [alt]="a.characterName ?? a.title" loading="lazy" />
+        </figure>
+      }
 
-      <!-- ── sidebar ── -->
-      <aside class="ld__sidebar">
-        @if (a.items.length) {
-          <div class="ld__sidebar-card">
-            <p class="ld__sidebar-title">itens relacionados</p>
-            @for (item of a.items; track item.id) {
-              <div class="ld__toc-item">{{ item.name }}</div>
+      <div class="ld__content">
+        @for (block of blocos(); track $index) {
+          @switch (block.kind) {
+            @case ('heading') {
+              <h2 class="ld__section-heading">{{ block.text }}</h2>
             }
-          </div>
+            @case ('quote') {
+              <figure class="ld__citacao">
+                <blockquote class="ld__trecho">{{ block.text }}</blockquote>
+                @if (block.origem) {
+                  <figcaption class="ld__origem">{{ block.origem }}</figcaption>
+                }
+              </figure>
+            }
+            @case ('image') {
+              @if (imageUrl(block.fileKey); as src) {
+                <figure class="ld__figure">
+                  <img [src]="src" [alt]="block.alt" loading="lazy" />
+                  @if (block.alt) {
+                    <figcaption class="ld__figcaption">{{ block.alt }}</figcaption>
+                  }
+                </figure>
+              }
+            }
+            @case ('paragraph') {
+              <p class="ld__paragraph">{{ block.text }}</p>
+            }
+          }
         }
+      </div>
 
-        <!-- Volta à lore do jogo desta lore, e não à lista geral: é de lá que a pessoa veio. -->
-        <a
-          class="ld__suggest-btn"
-          routerLink="/lore"
-          [queryParams]="{ jogo: a.gameId, aba: 'publicadas' }"
+      @if (a.tags?.length || a.items.length) {
+        <footer class="ld__rodape">
+          @for (tag of a.tags ?? []; track tag) {
+            <span class="ld__tag">#{{ tag }}</span>
+          }
+          @for (item of a.items; track item.id) {
+            <span class="ld__tag"
+              ><i class="ti ti-sword" aria-hidden="true"></i> {{ item.name }}</span
+            >
+          }
+        </footer>
+      }
+
+      <!-- As ações vêm depois do texto: quem abriu veio ler, e curtir é o que se faz ao terminar. -->
+      <div class="ld__acoes">
+        <button
+          class="ld__btn"
+          [class.ld__btn--ativo]="userHasLiked()"
+          type="button"
+          [disabled]="!auth.isLoggedIn() || liking()"
+          (click)="toggleLike()"
+          [title]="userHasLiked() ? 'remover curtida' : 'curtir'"
         >
-          <i class="ti ti-arrow-left" aria-hidden="true"></i>
-          voltar à lore de {{ a.gameName }}
-        </a>
-      </aside>
-    </div>
+          <i [class]="userHasLiked() ? 'ti ti-heart-filled' : 'ti ti-heart'" aria-hidden="true"></i>
+          {{ userHasLiked() ? 'curtida' : 'curtir' }}
+          @if (likeCount() > 0) {
+            <span class="ld__contagem">{{ likeCount() }}</span>
+          }
+        </button>
+
+        <button
+          class="ld__btn"
+          [class.ld__btn--ativo]="userIsFollowing()"
+          type="button"
+          [disabled]="!auth.isLoggedIn() || following()"
+          (click)="toggleFollow()"
+          [title]="userIsFollowing() ? 'parar de seguir' : 'seguir'"
+        >
+          <i
+            [class]="userIsFollowing() ? 'ti ti-bell-ringing' : 'ti ti-bell'"
+            aria-hidden="true"
+          ></i>
+          {{ userIsFollowing() ? 'seguindo' : 'seguir' }}
+          @if (followerCount() > 0) {
+            <span class="ld__contagem">{{ followerCount() }}</span>
+          }
+        </button>
+
+        <span class="ld__acoes-resto">
+          <a
+            class="ld__link"
+            [routerLink]="
+              context === 'profile'
+                ? ['/profile', 'lore', a.id, 'history']
+                : context === 'usuario'
+                  ? ['/usuarios', handle, 'lore', a.id, 'history']
+                  : ['/lore', a.id, 'history']
+            "
+          >
+            <i class="ti ti-history" aria-hidden="true"></i> histórico
+          </a>
+          @if (canCopy()) {
+            <button class="ld__link" type="button" (click)="openCopyModal()">
+              <i class="ti ti-copy" aria-hidden="true"></i> copiar para o perfil
+            </button>
+          }
+          <app-report-button contentKind="LORE" [contentId]="a.id" />
+        </span>
+      </div>
+    </article>
 
     <div class="ld__comments">
-      <app-report-button contentKind="LORE" [contentId]="a.id" />
-
       <!--
-        A seÃ§Ã£o de comentÃ¡rios Ã© o fim da pÃ¡gina e nunca estÃ¡ na primeira dobra.
-        SÃ£o ~800 linhas de componente, mais uma chamada HTTP na iniciaÃ§Ã£o, pagas
-        hoje por todo mundo que abre o guia â inclusive quem sÃ³ quer o passo a passo.
-      
-        Ã `on viewport` e nÃ£o `hydrate on viewport`: o segundo faria o servidor
-        renderizar os comentÃ¡rios, o que custa uma chamada Ã  API por pÃ¡gina
-        renderizada. O SSR daqui existe para o crawler ler o guia e o preview do link
-        sair certo, e comentÃ¡rio nÃ£o Ã© nenhum dos dois.
-      
-        O `prefetch on idle` busca o chunk enquanto a aba estÃ¡ parada, entÃ£o quem
-        rola atÃ© o fim nÃ£o espera download nenhum.
+        Comentário nunca está na primeira dobra, e custa um componente grande mais uma chamada.
+        "on viewport" (e não "hydrate on viewport"): o SSR existe para o crawler ler a lore, e
+        comentário não é isso. O placeholder reserva a altura para a página não pular.
       -->
       @defer (on viewport; prefetch on idle) {
         <app-comment-section targetKind="lore" [targetId]="loreIdStr(a.id)" />
       } @placeholder (minimum 200ms) {
-        <!-- Reserva a altura: sem isto, a seÃ§Ã£o nascendo empurra a pÃ¡gina para
-             baixo debaixo do dedo de quem estava lendo. -->
         <div class="comentarios-reserva" aria-hidden="true"></div>
       }
     </div>
