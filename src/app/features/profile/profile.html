@@ -491,65 +491,86 @@
             @if (loadingContent()) {
               <p class="pf__empty">Carregando…</p>
             } @else if (filteredPersonalLore().length) {
-              @for (article of filteredPersonalLore(); track article.id) {
-                <div class="pf__personal-card">
-                  <div class="pf__personal-card-main">
-                    <div class="pf__personal-card-info">
-                      <span class="pf__quest-title">{{ article.title }}</span>
-                      <span class="pf__quest-meta">
-                        {{ article.gameName }}
-                        @if (article.likeCount) {
-                          · <i class="ti ti-heart-filled pf__like-icon"></i> {{ article.likeCount }}
-                        }
-                      </span>
-                    </div>
-                    <div class="pf__personal-card-badges">
-                      @if (!article.isPublic) {
-                        <span class="pf__visibility-badge pf__visibility-badge--private">
-                          <i class="ti ti-lock" aria-hidden="true"></i> privado
-                        </span>
-                      }
-                      @if (article.allowCopy) {
-                        <span class="pf__visibility-badge pf__visibility-badge--copy">
-                          <i class="ti ti-copy" aria-hidden="true"></i> copiável
-                        </span>
-                      }
-                      <span class="pf__badge pf__badge--{{ article.status | lowercase }}">
-                        {{ statusLabel(article.status) }}
-                      </span>
-                    </div>
-                  </div>
-                  <div class="pf__personal-card-actions">
-                    <a
-                      class="pf__personal-action"
-                      [routerLink]="['/profile', 'lore', article.ref]"
-                      title="ver artigo"
-                    >
-                      <i class="ti ti-eye" aria-hidden="true"></i>
-                    </a>
-                    <a
-                      class="pf__personal-action"
-                      [routerLink]="['/profile', 'lore', article.ref, 'edit']"
-                      [queryParams]="{ personal: 'true' }"
-                      title="editar artigo"
-                    >
-                      <i class="ti ti-edit" aria-hidden="true"></i>
-                    </a>
-                    <button
-                      class="pf__personal-action pf__personal-action--danger"
-                      type="button"
-                      [disabled]="deletingLoreId() === article.id"
-                      (click)="deletePersonalLore(article.id)"
-                      title="excluir artigo"
-                    >
-                      @if (deletingLoreId() === article.id) {
-                        <i class="ti ti-loader-2 pf__spin"></i>
-                      } @else {
-                        <i class="ti ti-trash" aria-hidden="true"></i>
-                      }
-                    </button>
-                  </div>
+              @for (grupo of personalLoreByGame(); track grupo.gameId) {
+                <div class="pf__lore-jogo">
+                  <span class="pf__lore-jogo-nome">{{ grupo.gameName }}</span>
+                  <span class="pf__lore-jogo-total">
+                    {{ grupo.lores.length }} {{ grupo.lores.length === 1 ? 'lore' : 'lores' }}
+                  </span>
+                  <a
+                    class="pf__lore-jogo-mesa"
+                    routerLink="/profile/lore/arquivo"
+                    [queryParams]="{ jogo: grupo.gameId, aba: 'lores' }"
+                  >
+                    abrir a mesa <i class="ti ti-arrow-right" aria-hidden="true"></i>
+                  </a>
                 </div>
+                @for (article of grupo.lores; track article.id) {
+                  <div class="pf__personal-card">
+                    <div class="pf__personal-card-main">
+                      <div class="pf__personal-card-info">
+                        <span class="pf__quest-title">{{ article.title }}</span>
+                        @if (article.resumo?.citacoes || article.likeCount) {
+                          <span class="pf__quest-meta">
+                            @if (article.resumo?.citacoes) {
+                              {{ article.resumo!.citacoes }}
+                              {{ article.resumo!.citacoes === 1 ? 'citação' : 'citações' }}
+                            }
+                            @if (article.likeCount) {
+                              · <i class="ti ti-heart-filled pf__like-icon"></i>
+                              {{ article.likeCount }}
+                            }
+                          </span>
+                        }
+                      </div>
+                      <div class="pf__personal-card-badges">
+                        @if (!article.isPublic) {
+                          <span class="pf__visibility-badge pf__visibility-badge--private">
+                            <i class="ti ti-lock" aria-hidden="true"></i> privado
+                          </span>
+                        }
+                        @if (article.allowCopy) {
+                          <span class="pf__visibility-badge pf__visibility-badge--copy">
+                            <i class="ti ti-copy" aria-hidden="true"></i> copiável
+                          </span>
+                        }
+                        <span class="pf__badge pf__badge--{{ article.status | lowercase }}">
+                          {{ statusLabel(article.status) }}
+                        </span>
+                      </div>
+                    </div>
+                    <div class="pf__personal-card-actions">
+                      <a
+                        class="pf__personal-action"
+                        [routerLink]="['/profile', 'lore', article.ref]"
+                        title="ver artigo"
+                      >
+                        <i class="ti ti-eye" aria-hidden="true"></i>
+                      </a>
+                      <a
+                        class="pf__personal-action"
+                        [routerLink]="['/profile', 'lore', article.ref, 'edit']"
+                        [queryParams]="{ personal: 'true' }"
+                        title="editar artigo"
+                      >
+                        <i class="ti ti-edit" aria-hidden="true"></i>
+                      </a>
+                      <button
+                        class="pf__personal-action pf__personal-action--danger"
+                        type="button"
+                        [disabled]="deletingLoreId() === article.id"
+                        (click)="deletePersonalLore(article.id)"
+                        title="excluir artigo"
+                      >
+                        @if (deletingLoreId() === article.id) {
+                          <i class="ti ti-loader-2 pf__spin"></i>
+                        } @else {
+                          <i class="ti ti-trash" aria-hidden="true"></i>
+                        }
+                      </button>
+                    </div>
+                  </div>
+                }
               }
             } @else {
               <p class="pf__empty">

@@ -753,6 +753,46 @@
   }
 }
 
+// O jogo aparece uma vez sobre as lores dele, em vez de repetido em cada cartão.
+.pf__lore-jogo {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: v.$space-2 v.$space-3;
+  margin: v.$space-5 0 v.$space-3;
+  padding-bottom: v.$space-2;
+  border-bottom: 0.5px solid v.$color-border;
+
+  &:first-of-type {
+    margin-top: v.$space-2;
+  }
+}
+
+.pf__lore-jogo-nome {
+  font-family: v.$font-display;
+  font-size: v.$font-size-base;
+  color: v.$color-gold;
+}
+
+.pf__lore-jogo-total {
+  font-size: v.$font-size-xs;
+  color: v.$color-text-muted;
+}
+
+.pf__lore-jogo-mesa {
+  margin-left: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: v.$space-1;
+  font-size: v.$font-size-xs;
+  color: v.$color-text-muted;
+  text-decoration: none;
+
+  &:hover {
+    color: v.$color-gold;
+  }
+}
+
 .pf__personal-card {
   display: flex;
   align-items: center;

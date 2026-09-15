@@ -134,6 +134,21 @@ export class Profile implements OnInit {
   );
   protected readonly personalLoreGames = computed(() => this.uniqueGames(this.personalLore()));
 
+  /**
+   * "Meu lore" agrupado por jogo. Solta, a lista repetia "Silent Hill f" em cada cartão, e com
+   * quatro lores do mesmo jogo parecia haver quatro coisas diferentes. A lore é por jogo (a mesa
+   * do perfil também é), então o jogo aparece uma vez, com o atalho para a mesa dele.
+   */
+  protected readonly personalLoreByGame = computed(() => {
+    const grupos = new Map<string, { gameId: string; gameName: string; lores: LoreSummary[] }>();
+    for (const l of this.filteredPersonalLore()) {
+      const grupo = grupos.get(l.gameId) ?? { gameId: l.gameId, gameName: l.gameName, lores: [] };
+      grupo.lores.push(l);
+      grupos.set(l.gameId, grupo);
+    }
+    return [...grupos.values()].sort((a, b) => a.gameName.localeCompare(b.gameName, 'pt-BR'));
+  });
+
   protected readonly filteredFollowedQuests = computed(() =>
     this.filterList(this.followedQuests(), this.questSearch(), this.questGameFilter()),
   );
