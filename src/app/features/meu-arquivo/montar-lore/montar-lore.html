@@ -2,68 +2,71 @@
   <i class="ti ti-arrow-left" aria-hidden="true"></i> {{ rotuloVoltar() }}
 </button>
 
-<ol class="passos" aria-label="etapas">
-  <li>
-    <button
-      type="button"
-      class="passo"
-      [class.passo--atual]="passo() === 1"
-      [class.passo--feito]="passo() > 1"
-      [attr.aria-current]="passo() === 1 ? 'step' : null"
-      (click)="irPara(1)"
-    >
-      @if (passo() > 1) {
-        <i class="ti ti-check passo__feito" aria-hidden="true"></i>
-      } @else {
-        <span class="passo__numero">1</span>
-      }
-      escolher os achados
-    </button>
-  </li>
-  <li class="passos__traco" aria-hidden="true"></li>
-  <li>
-    <button
-      type="button"
-      class="passo"
-      [class.passo--atual]="passo() === 2"
-      [class.passo--feito]="passo() > 2"
-      [disabled]="escolhidos().length === 0"
-      [attr.aria-current]="passo() === 2 ? 'step' : null"
-      (click)="irPara(2)"
-    >
-      @if (passo() > 2) {
-        <i class="ti ti-check passo__feito" aria-hidden="true"></i>
-      } @else {
-        <span class="passo__numero">2</span>
-      }
-      ordenar o fio
-    </button>
-  </li>
-  <li class="passos__traco" aria-hidden="true"></li>
-  <li>
-    <button
-      type="button"
-      class="passo"
-      [class.passo--atual]="passo() === 3"
-      [disabled]="escolhidos().length === 0 && !editando()"
-      [attr.aria-current]="passo() === 3 ? 'step' : null"
-      (click)="irPara(3)"
-    >
-      <span class="passo__numero">3</span>
-      {{ soMinha() ? 'escrever e guardar' : 'escrever e publicar' }}
-    </button>
-  </li>
-  @if (passo() === 1) {
-    <li class="passos__contagem">{{ escolhidos().length }} de {{ itens().length }} escolhidos</li>
-  }
-</ol>
+<!-- A lore só da pessoa começa escrevendo; as etapas só aparecem quando ela vai citar o arquivo. -->
+@if (!soMinha() || passo() !== 3) {
+  <ol class="passos" aria-label="etapas">
+    <li>
+      <button
+        type="button"
+        class="passo"
+        [class.passo--atual]="passo() === 1"
+        [class.passo--feito]="passo() > 1"
+        [attr.aria-current]="passo() === 1 ? 'step' : null"
+        (click)="irPara(1)"
+      >
+        @if (passo() > 1) {
+          <i class="ti ti-check passo__feito" aria-hidden="true"></i>
+        } @else {
+          <span class="passo__numero">1</span>
+        }
+        escolher os achados
+      </button>
+    </li>
+    <li class="passos__traco" aria-hidden="true"></li>
+    <li>
+      <button
+        type="button"
+        class="passo"
+        [class.passo--atual]="passo() === 2"
+        [class.passo--feito]="passo() > 2"
+        [disabled]="escolhidos().length === 0"
+        [attr.aria-current]="passo() === 2 ? 'step' : null"
+        (click)="irPara(2)"
+      >
+        @if (passo() > 2) {
+          <i class="ti ti-check passo__feito" aria-hidden="true"></i>
+        } @else {
+          <span class="passo__numero">2</span>
+        }
+        ordenar o fio
+      </button>
+    </li>
+    <li class="passos__traco" aria-hidden="true"></li>
+    <li>
+      <button
+        type="button"
+        class="passo"
+        [class.passo--atual]="passo() === 3"
+        [disabled]="escolhidos().length === 0 && !editando() && !soMinha()"
+        [attr.aria-current]="passo() === 3 ? 'step' : null"
+        (click)="irPara(3)"
+      >
+        <span class="passo__numero">3</span>
+        {{ soMinha() ? 'escrever e guardar' : 'escrever e publicar' }}
+      </button>
+    </li>
+    @if (passo() === 1) {
+      <li class="passos__contagem">{{ escolhidos().length }} de {{ itens().length }} escolhidos</li>
+    }
+  </ol>
+}
 
 <!-- ══ 1 · escolher ══ -->
 @if (passo() === 1) {
   <p class="explicacao">
     @if (soMinha()) {
-      Esta lore é <b>só sua</b>: fica no seu perfil e ninguém mais vê. O que você escolher aqui vira
-      <b>citação</b> dentro dela — o texto do achado aparece; a sua anotação, não.
+      Escolha no seu arquivo o que quer citar. Cada achado vira <b>citação</b> dentro da sua lore —
+      o texto dele aparece; a sua anotação, não. Nada disto sai do seu perfil.
     } @else {
       Uma lore publicada é pública e vale para todo mundo. O que você escolher aqui sai do seu
       arquivo privado e vira <b>citação</b> dentro do artigo — o texto do achado aparece; a sua
@@ -110,7 +113,15 @@
   </div>
 
   <div class="rodape">
-    <button type="button" class="botao botao--secundario" (click)="voltar.emit()">cancelar</button>
+    @if (soMinha()) {
+      <button type="button" class="botao botao--secundario" (click)="irPara(3)">
+        <i class="ti ti-arrow-left" aria-hidden="true"></i> voltar à escrita
+      </button>
+    } @else {
+      <button type="button" class="botao botao--secundario" (click)="voltar.emit()">
+        cancelar
+      </button>
+    }
     <button
       type="button"
       class="botao botao--primario"
@@ -232,7 +243,7 @@
               class="bloco-texto"
               rows="3"
               aria-label="parágrafo"
-              placeholder="escreva aqui…"
+              [placeholder]="soMinha() && $first ? 'escreva a sua lore…' : 'escreva aqui…'"
               [value]="b.valor"
               (input)="escrever(b.id, $any($event.target).value)"
             ></textarea>
@@ -426,10 +437,11 @@
       <button type="button" class="botao botao--secundario" (click)="irPara(2)">
         <i class="ti ti-arrow-left" aria-hidden="true"></i> ordenar o fio
       </button>
-    } @else {
-      <!-- Editando: a escrita abriu sem escolha nenhuma, e o caminho é acrescentar achados. -->
+    } @else if (itens().length > 0) {
+      <!-- A escrita abriu sem escolha nenhuma (editando, ou lore só sua): o caminho é citar. -->
       <button type="button" class="botao botao--secundario" (click)="irPara(1)">
-        <i class="ti ti-plus" aria-hidden="true"></i> citar mais achados
+        <i class="ti ti-quote" aria-hidden="true"></i>
+        {{ soMinha() && totalDeCitacoes() === 0 ? 'citar do meu arquivo' : 'citar mais achados' }}
       </button>
     }
   </div>

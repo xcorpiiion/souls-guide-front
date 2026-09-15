@@ -68,7 +68,8 @@
 
     @case ('pronto') {
       @let g = jogo()!;
-      @if (itens().length === 0) {
+      <!-- A lore só sua começa do zero: arquivo vazio não impede escrever. -->
+      @if (itens().length === 0 && destino !== 'perfil') {
         <div class="estado">
           <i class="ti ti-clipboard-text estado__icone" aria-hidden="true"></i>
           <h2 class="estado__titulo">seu arquivo de {{ g.name }} está vazio</h2>
@@ -102,9 +103,9 @@
           [gameName]="g.name"
           [itens]="itens()"
           [ligacoes]="ligacoes()"
-          rotuloVoltar="meu arquivo"
+          [rotuloVoltar]="destino === 'perfil' ? 'perfil' : 'meu arquivo'"
           [destino]="destino"
-          (voltar)="voltarParaAMesa()"
+          (voltar)="voltar()"
         />
       }
     }

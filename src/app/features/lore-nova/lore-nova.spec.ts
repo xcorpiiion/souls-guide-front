@@ -140,16 +140,31 @@ describe('LoreNova', () => {
       expect(voltar.getAttribute('href')).toBe('/profile');
     });
 
-    it('no montar lore, o botão principal guarda no perfil', () => {
+    /** O bug: escolhido o jogo, a lore só sua abria na escolha de achados, e não do zero. */
+    it('escolhido o jogo, abre direto a página em branco, com citar o arquivo como opção', () => {
       const f = criar({ jogo: '7' }, { destino: 'perfil' });
+      const el = f.nativeElement as HTMLElement;
       expect(texto(f)).toContain('só você vê');
-      expect(texto(f)).toContain('escrever e guardar');
+      expect(texto(f)).toContain('guardar no meu perfil');
+      expect(el.querySelector('#montar-titulo')).not.toBeNull();
+      expect(el.querySelector('.passos')).toBeNull();
+      expect(texto(f)).not.toContain('Bilhete dobrado no armário');
+      expect(texto(f)).toContain('citar do meu arquivo');
     });
 
-    it('pela lore, continua sendo para todos', () => {
+    it('arquivo vazio não impede escrever', () => {
+      arquivo.archive.mockReturnValue(of({ gameId: 7, findings: [], links: [], characters: [] }));
+      const f = criar({ jogo: '7' }, { destino: 'perfil' });
+      const el = f.nativeElement as HTMLElement;
+      expect(el.querySelector('#montar-titulo')).not.toBeNull();
+      expect(texto(f)).not.toContain('citar do meu arquivo');
+    });
+
+    it('pela lore, continua começando pela escolha dos achados', () => {
       const f = criar({ jogo: '7' });
       expect(texto(f)).not.toContain('só você vê');
       expect(texto(f)).toContain('escrever e publicar');
+      expect(texto(f)).toContain('Bilhete dobrado no armário');
     });
   });
 
