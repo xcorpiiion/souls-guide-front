@@ -287,8 +287,12 @@
                   <i [class]="c.icon" aria-hidden="true"></i> {{ c.name }}
                 </button>
               }
-              <button type="button" class="chip chip--tracejado" (click)="abrirPersonagem(null)">
-                <i class="ti ti-user-plus" aria-hidden="true"></i> elenco
+              <button
+                type="button"
+                class="chip elenco-celular__novo"
+                (click)="abrirPersonagem(null)"
+              >
+                <i class="ti ti-user-plus" aria-hidden="true"></i> cadastrar personagem
               </button>
             </div>
 
@@ -443,6 +447,15 @@
             >
               <i class="ti ti-plus" aria-hidden="true"></i> registrar achado
             </button>
+            <!-- O elenco ficava só no rodapé da espinha, e passava despercebido. -->
+            <button
+              type="button"
+              class="botao botao--secundario faixa__botao faixa__elenco"
+              title="personagem, criatura ou chefe"
+              (click)="abrirPersonagem(null)"
+            >
+              <i class="ti ti-user-plus" aria-hidden="true"></i> cadastrar personagem
+            </button>
           </div>
 
           <div class="mesa">
@@ -490,7 +503,19 @@
 
               <!-- O elenco: quem aparece na história. A ficha de cada um junta os achados dele. -->
               <nav class="elenco" aria-label="elenco">
-                <span class="rotulo-mono capitulos__rotulo">elenco</span>
+                <div class="elenco__topo">
+                  <span class="rotulo-mono rotulo-mono--sem-margem">elenco</span>
+                  @if (elencoDaEspinha().length) {
+                    <button
+                      type="button"
+                      class="elenco__novo"
+                      title="cadastrar personagem, criatura ou chefe"
+                      (click)="abrirPersonagem(null)"
+                    >
+                      <i class="ti ti-plus" aria-hidden="true"></i> novo
+                    </button>
+                  }
+                </div>
                 @for (c of elencoDaEspinha(); track c.id) {
                   <button type="button" class="capitulo" (click)="abrirPersonagem(c.id)">
                     <i [class]="c.icon + ' elenco__icone'" aria-hidden="true"></i>
@@ -502,15 +527,10 @@
                     personagens, criaturas e chefes que você encontrar. cada um ganha uma ficha com
                     os achados em que aparece.
                   </p>
+                  <button type="button" class="elenco__cadastrar" (click)="abrirPersonagem(null)">
+                    <i class="ti ti-user-plus" aria-hidden="true"></i> cadastrar o primeiro
+                  </button>
                 }
-                <button
-                  type="button"
-                  class="capitulo capitulo--apagado"
-                  (click)="abrirPersonagem(null)"
-                >
-                  <i class="ti ti-user-plus elenco__icone" aria-hidden="true"></i>
-                  <span class="capitulo__nome">cadastrar no elenco</span>
-                </button>
               </nav>
 
               @if (mostrarCapitulos()) {

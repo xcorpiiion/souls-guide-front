@@ -1997,6 +1997,65 @@ mark {
   &__vazio {
     padding: 0 4px 6px;
   }
+
+  &__topo {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 4px 8px;
+  }
+
+  // Cadastrar precisa parecer botão: a linha apagada no fim da lista passava despercebida.
+  &__novo {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-family: inherit;
+    font-size: 12px;
+    color: #c9a84c;
+    background: rgb(201 168 76 / 8%);
+    border: 0.5px solid rgb(201 168 76 / 40%);
+    border-radius: 999px;
+    padding: 4px 10px;
+    cursor: pointer;
+
+    i {
+      font-size: 13px;
+    }
+
+    &:hover {
+      background: rgb(201 168 76 / 15%);
+    }
+  }
+
+  &__cadastrar {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+    width: 100%;
+    min-height: 40px;
+    margin-top: 4px;
+    font-family: inherit;
+    font-size: 13px;
+    color: #c9a84c;
+    background: rgb(201 168 76 / 6%);
+    border: 0.5px dashed rgb(201 168 76 / 50%);
+    border-radius: 9px;
+    cursor: pointer;
+
+    i {
+      font-size: 15px;
+    }
+
+    &:hover {
+      background: rgb(201 168 76 / 12%);
+    }
+  }
+}
+
+.faixa__elenco {
+  white-space: nowrap;
 }
 
 .elenco-celular {
@@ -2005,6 +2064,13 @@ mark {
   overflow-x: auto;
   padding-bottom: 4px;
   margin-bottom: 10px;
+
+  &__novo {
+    flex-shrink: 0;
+    color: #c9a84c;
+    border-color: rgb(201 168 76 / 45%);
+    background: rgb(201 168 76 / 8%);
+  }
 }
 
 .ficha__elenco {
