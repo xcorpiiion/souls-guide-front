@@ -22,7 +22,12 @@
           } @else {
             <a class="ld__crumb-link" routerLink="/lore">lore</a>
             <i class="ti ti-chevron-right ld__crumb-sep" aria-hidden="true"></i>
-            <span class="ld__crumb-link">{{ a.gameName }}</span>
+            <a
+              class="ld__crumb-link"
+              routerLink="/lore"
+              [queryParams]="{ jogo: a.gameId, aba: 'publicadas' }"
+              >{{ a.gameName }}</a
+            >
             <i class="ti ti-chevron-right ld__crumb-sep" aria-hidden="true"></i>
             <span class="ld__crumb-current">{{
               a.type === 'CHARACTER' ? 'personagem' : 'mundo'
@@ -205,9 +210,14 @@
           </div>
         }
 
-        <a class="ld__suggest-btn" routerLink="/lore">
+        <!-- Volta à lore do jogo desta lore, e não à lista geral: é de lá que a pessoa veio. -->
+        <a
+          class="ld__suggest-btn"
+          routerLink="/lore"
+          [queryParams]="{ jogo: a.gameId, aba: 'publicadas' }"
+        >
           <i class="ti ti-arrow-left" aria-hidden="true"></i>
-          voltar ao lore
+          voltar à lore de {{ a.gameName }}
         </a>
       </aside>
     </div>
