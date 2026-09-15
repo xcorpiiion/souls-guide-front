@@ -4,6 +4,7 @@ import type {
   LoreType,
 } from '@xcorpiiion/canonico';
 import { refDe } from '../utils/ref';
+import { ResumoDaLore, resumoDaLore } from '../utils/resumo-da-lore';
 
 // Enums do contrato — fonte da verdade: lib canonico
 export type LoreStatus = CanonicoLoreStatus;
@@ -24,6 +25,10 @@ export interface LoreSummary {
   category: LoreCategory;
   status: LoreStatus;
   excerpt: string;
+  /** Parágrafo, primeira citação e quantas citações, lidos do markdown. Ausente em mock antigo. */
+  resumo?: ResumoDaLore;
+  /** Id de quem escreveu, para dizer "sua" sem mostrar o id cru na tela. */
+  userId?: string;
   votes: number;
   author: string;
   readMinutes: number;
@@ -41,7 +46,10 @@ export interface LoreSummary {
 }
 
 export function loreApiToSummary(l: LoreApi): LoreSummary {
+  const resumo = resumoDaLore(l.content);
   return {
+    resumo,
+    userId: l.userId ?? undefined,
     id: String(l.id),
     ref: refDe(l.id, l.slug),
     title: l.title,
@@ -49,7 +57,8 @@ export function loreApiToSummary(l: LoreApi): LoreSummary {
     gameName: l.gameName,
     category: l.type === 'CHARACTER' ? 'CHARACTER' : 'WORLD',
     status: l.status,
-    excerpt: l.content.slice(0, 120) + (l.content.length > 120 ? '…' : ''),
+    // O markdown cru saía na listagem com "> " e a linha de origem da citação no meio.
+    excerpt: resumo.paragrafo || resumo.citacao?.trecho || '',
     votes: l.likeCount ?? 0,
     author: l.userId ?? '—',
     readMinutes: Math.max(1, Math.ceil(l.content.split(' ').length / 200)),

@@ -1,0 +1,160 @@
+<div class="barra">
+  <label class="busca">
+    <i class="ti ti-search" aria-hidden="true"></i>
+    <input
+      #campo
+      type="search"
+      class="busca__campo"
+      [placeholder]="jogoNome() ? 'buscar nas lores de ' + jogoNome() : 'buscar nas lores'"
+      aria-label="buscar nas lores publicadas"
+      [value]="busca()"
+      (input)="buscar(campo.value)"
+    />
+  </label>
+
+  <div class="categorias" role="group" aria-label="do que a lore fala">
+    @for (c of categorias; track c.id) {
+      <button
+        type="button"
+        class="categoria"
+        [class.categoria--ativa]="categoria() === c.id"
+        [attr.aria-pressed]="categoria() === c.id"
+        (click)="escolherCategoria(c.id)"
+      >
+        {{ c.rotulo }}
+      </button>
+    }
+  </div>
+
+  <a class="montar" routerLink="/lore/new" [queryParams]="jogoId() ? { jogo: jogoId() } : {}">
+    <i class="ti ti-book-upload" aria-hidden="true"></i> montar lore
+  </a>
+</div>
+
+@if (!carregando() || lores().length > 0) {
+  <p class="contagem" aria-live="polite">
+    @if (total() === 0) {
+      nenhuma lore
+    } @else {
+      {{ total() }} {{ total() === 1 ? 'lore publicada' : 'lores publicadas' }}
+    }
+    @if (jogoNome()) {
+      de {{ jogoNome() }}
+    }
+  </p>
+}
+
+@if (falhou()) {
+  <div class="estado estado--erro">
+    <i class="ti ti-alert-circle estado__icone" aria-hidden="true"></i>
+    <h2 class="estado__titulo">as lores não abriram</h2>
+    <p class="estado__texto">o servidor não respondeu agora.</p>
+    <button type="button" class="botao botao--secundario" (click)="tentarDeNovo()">
+      <i class="ti ti-refresh" aria-hidden="true"></i> tentar de novo
+    </button>
+  </div>
+} @else if (carregando() && lores().length === 0) {
+  <ol class="lista" aria-hidden="true">
+    @for (n of [1, 2, 3]; track n) {
+      <li class="esqueleto">
+        <span class="esqueleto__linha esqueleto__linha--meta"></span>
+        <span class="esqueleto__linha esqueleto__linha--titulo"></span>
+        <span class="esqueleto__linha"></span>
+        <span class="esqueleto__linha esqueleto__linha--curta"></span>
+      </li>
+    }
+  </ol>
+} @else if (lores().length === 0) {
+  <div class="estado">
+    <i class="ti ti-book estado__icone" aria-hidden="true"></i>
+    @if (buscando()) {
+      <h2 class="estado__titulo">nenhuma lore com esse filtro</h2>
+      <p class="estado__texto">tente outra palavra, ou tire o filtro de categoria.</p>
+    } @else {
+      <h2 class="estado__titulo">
+        ninguém publicou lore {{ jogoNome() ? 'de ' + jogoNome() : '' }} ainda
+      </h2>
+      <p class="estado__texto">
+        uma lore nasce do arquivo: registre o que encontrou, ligue as peças e junte tudo num texto.
+        a primeira pode ser a sua.
+      </p>
+      <div class="estado__acoes">
+        <a
+          class="botao botao--primario"
+          routerLink="/lore/new"
+          [queryParams]="jogoId() ? { jogo: jogoId() } : {}"
+        >
+          <i class="ti ti-book-upload" aria-hidden="true"></i> montar a primeira
+        </a>
+        <button type="button" class="botao botao--secundario" (click)="irAoArquivo.emit()">
+          ir ao meu arquivo
+        </button>
+      </div>
+    }
+  </div>
+} @else {
+  <ol class="lista">
+    @for (l of lores(); track l.id) {
+      <li>
+        <a class="lore" [routerLink]="['/lore', l.ref]">
+          <span class="lore__meta">
+            <span
+              class="selo"
+              [class.selo--consolidada]="l.status === 'CONSOLIDADO'"
+              [class.selo--canonica]="l.status === 'CANONICO'"
+              >{{ rotuloDoStatus(l.status) }}</span
+            >
+            <span>{{ l.category === 'CHARACTER' ? 'de personagem' : 'do mundo' }}</span>
+            @if (!jogoNome()) {
+              <span class="lore__ponto" aria-hidden="true">·</span>
+              <span>{{ l.gameName }}</span>
+            }
+            @if (l.resumo?.citacoes) {
+              <span class="lore__ponto" aria-hidden="true">·</span>
+              <span
+                >{{ l.resumo!.citacoes }}
+                {{ l.resumo!.citacoes === 1 ? 'citação' : 'citações' }}</span
+              >
+            }
+            <span class="lore__ponto" aria-hidden="true">·</span>
+            <span>{{ l.readMinutes }} min</span>
+            @if (ehMinha(l)) {
+              <span class="lore__minha">sua</span>
+            }
+            @if (l.likeCount) {
+              <span class="lore__curtidas">
+                <i class="ti ti-heart" aria-hidden="true"></i> {{ l.likeCount }}
+              </span>
+            }
+          </span>
+
+          <span class="lore__titulo">{{ l.title }}</span>
+
+          @if (l.resumo?.paragrafo) {
+            <span class="lore__paragrafo">{{ l.resumo!.paragrafo }}</span>
+          }
+
+          @if (l.resumo?.citacao; as c) {
+            <span class="lore__citacao">
+              <span class="lore__trecho">{{ c.trecho }}</span>
+              @if (c.origem) {
+                <span class="lore__origem">— {{ c.origem }}</span>
+              }
+            </span>
+          }
+        </a>
+      </li>
+    }
+  </ol>
+
+  @if (lores().length < total()) {
+    <button type="button" class="mais" [disabled]="carregando()" (click)="mostrarMais()">
+      @if (carregando()) {
+        <i class="ti ti-loader-2 giro" aria-hidden="true"></i> carregando…
+      } @else {
+        <i class="ti ti-chevron-down" aria-hidden="true"></i> mostrar mais
+        {{ total() - lores().length }}
+      }
+    </button>
+  }
+}

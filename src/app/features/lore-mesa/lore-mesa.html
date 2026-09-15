@@ -89,7 +89,11 @@
         <!-- A lista filtra pelo id numérico, que só existe depois que o jogo carrega: o
              servidor recusa o slug da URL. Trocar de jogo a monta de novo, já filtrada. -->
         @for (id of [jogo()?.id ?? null]; track id) {
-          <app-lore [embutida]="true" [jogoId]="id" />
+          <app-lore-publicadas
+            [jogoId]="id"
+            [jogoNome]="jogo()?.name ?? null"
+            (irAoArquivo)="irPara('arquivo')"
+          />
         }
       }
     </div>

@@ -10,7 +10,7 @@ import { GameService } from '../../core/services/game.service';
 import { GameSummary } from '../../shared/models/game.model';
 import { EscolherJogo } from '../../shared/components/escolher-jogo/escolher-jogo';
 import { MeuArquivo } from '../meu-arquivo/meu-arquivo';
-import { Lore } from '../lore/lore';
+import { LorePublicadas } from './lore-publicadas/lore-publicadas';
 
 // Os três filhos têm teste próprio; aqui só importa qual deles a mesa desenha, e com o quê.
 @Component({ selector: 'app-meu-arquivo', template: 'ARQUIVO {{ gameName() }}' })
@@ -19,10 +19,11 @@ class ArquivoFalso {
   readonly gameName = input('');
 }
 
-@Component({ selector: 'app-lore', template: 'PUBLICADAS {{ jogoId() }}' })
+@Component({ selector: 'app-lore-publicadas', template: 'PUBLICADAS {{ jogoId() }}' })
 class LoreFalsa {
-  readonly embutida = input(false);
   readonly jogoId = input<string | null>(null);
+  readonly jogoNome = input<string | null>(null);
+  readonly irAoArquivo = output<void>();
 }
 
 @Component({ selector: 'app-escolher-jogo', template: 'ESCOLHER' })
@@ -54,7 +55,7 @@ function criar(params: Record<string, string> = {}): ComponentFixture<LoreMesa> 
     ],
   });
   TestBed.overrideComponent(LoreMesa, {
-    remove: { imports: [MeuArquivo, Lore, EscolherJogo] },
+    remove: { imports: [MeuArquivo, LorePublicadas, EscolherJogo] },
     add: { imports: [ArquivoFalso, LoreFalsa, EscolherFalso] },
   });
   vi.spyOn(TestBed.inject(Router), 'navigate').mockResolvedValue(true);

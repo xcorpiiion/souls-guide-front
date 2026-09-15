@@ -6,7 +6,7 @@ import { GameService } from '../../core/services/game.service';
 import { GameSummary, gameToSummary } from '../../shared/models/game.model';
 import { EscolherJogo } from '../../shared/components/escolher-jogo/escolher-jogo';
 import { MeuArquivo } from '../meu-arquivo/meu-arquivo';
-import { Lore } from '../lore/lore';
+import { LorePublicadas } from './lore-publicadas/lore-publicadas';
 
 type Aba = 'arquivo' | 'publicadas';
 
@@ -25,7 +25,7 @@ type Aba = 'arquivo' | 'publicadas';
  */
 @Component({
   selector: 'app-lore-mesa',
-  imports: [EscolherJogo, MeuArquivo, Lore],
+  imports: [EscolherJogo, MeuArquivo, LorePublicadas],
   templateUrl: './lore-mesa.html',
   styleUrl: './lore-mesa.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
