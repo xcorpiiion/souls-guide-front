@@ -428,10 +428,18 @@
         @if (activeTab() === 'lore') {
           <div class="pf__content-header">
             <p class="pf__section-title">lore</p>
-            <!-- Do perfil, a lore é só da pessoa: o endereço e a tela dizem isso. -->
-            <a class="pf__content-create-btn" routerLink="/profile/lore/new">
-              <i class="ti ti-lock" aria-hidden="true"></i> montar lore só minha
-            </a>
+            <!--
+              Do perfil, a lore é só da pessoa, e tem mesa própria: o arquivo do perfil não tem
+              nada em comum com o da lore (ADR 0035 da API).
+            -->
+            <span class="pf__content-actions">
+              <a class="pf__content-create-btn" routerLink="/profile/lore/arquivo">
+                <i class="ti ti-cards" aria-hidden="true"></i> meu arquivo
+              </a>
+              <a class="pf__content-create-btn" routerLink="/profile/lore/new">
+                <i class="ti ti-lock" aria-hidden="true"></i> montar lore só minha
+              </a>
+            </span>
           </div>
 
           <div class="pf__subtabs">

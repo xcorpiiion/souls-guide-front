@@ -71,14 +71,16 @@
       @if (itens().length === 0) {
         <div class="estado">
           <i class="ti ti-clipboard-text estado__icone" aria-hidden="true"></i>
-          <h2 class="estado__titulo">seu arquivo de {{ g.name }} está vazio</h2>
+          <h2 class="estado__titulo">
+            seu arquivo {{ destino === 'perfil' ? 'do perfil' : '' }} de {{ g.name }} está vazio
+          </h2>
           <p class="estado__texto">
             a lore é montada com o que você encontrou. registre as notas, documentos e falas no seu
             arquivo, e volte aqui para ligar tudo num texto.
           </p>
           <a
             class="botao botao--primario botao--largo estado__botao"
-            routerLink="/lore"
+            [routerLink]="mesa"
             [queryParams]="{ jogo: g.ref }"
           >
             <i class="ti ti-plus" aria-hidden="true"></i> registrar achado

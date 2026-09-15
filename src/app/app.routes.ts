@@ -442,6 +442,21 @@ export const routes: Routes = [
     canActivate: [authGuard],
   },
   {
+    // O arquivo do perfil: a mesa de /lore sobre o outro arquivo da pessoa (ADR 0035 da API).
+    // Também antes de `profile/lore/:id`.
+    path: 'profile/lore/arquivo',
+    data: {
+      seo: {
+        titulo: 'Meu lore',
+        descricao: 'O arquivo de achados do seu perfil.',
+        indexavel: false,
+      } satisfies SeoPagina,
+    },
+    loadComponent: () =>
+      import('./features/arquivo-do-perfil/arquivo-do-perfil').then((m) => m.ArquivoDoPerfil),
+    canActivate: [authGuard],
+  },
+  {
     path: 'profile/lore/:id/history',
     data: {
       seo: {

@@ -61,10 +61,16 @@ export class LoreNova {
     void this.router.navigate([], { queryParams: { jogo: jogo.id } });
   }
 
+  /**
+   * A mesa de onde os achados vêm: a de `/lore` para a lore da comunidade, a do perfil para a
+   * lore só da pessoa. São dois arquivos separados (ADR 0035 do souls-guide-api).
+   */
+  protected readonly mesa = this.destino === 'perfil' ? '/profile/lore/arquivo' : '/lore';
+
   /** Voltar do montar lore leva à mesa do jogo, que é de onde os achados vêm. */
   protected voltarParaAMesa(): void {
     const g = this.jogo();
-    void this.router.navigate(['/lore'], g ? { queryParams: { jogo: g.ref } } : {});
+    void this.router.navigate([this.mesa], g ? { queryParams: { jogo: g.ref } } : {});
   }
 
   protected trocarDeJogo(): void {
@@ -94,7 +100,7 @@ export class LoreNova {
           // Fora do escopo o jogo é ficha mínima e não tem arquivo (ADR 0027 e 0032 do
           // souls-guide-api). Perguntar ao servidor só para ouvir 409 seria uma volta à toa.
           if (jogo.dentroDoEscopo === false) return of(null);
-          return this.arquivo.archive(jogo.id);
+          return this.arquivo.archive(jogo.id, this.destino === 'perfil' ? 'PROFILE' : 'COMMUNITY');
         }),
       )
       .subscribe({

@@ -3,6 +3,7 @@ import { HttpService } from '@xcorpiiion/ng-core';
 import { Observable } from 'rxjs';
 import type {
   StoryArchiveDTO,
+  StoryArchiveSpace,
   StoryCharacterDTO,
   StoryCharacterRequest,
   StoryFindingDTO,
@@ -18,6 +19,10 @@ import type {
  * <p>Toda rota exige login, inclusive a leitura: o arquivo só existe para quem o escreveu, e
  * o servidor responde 404 para achado de outra pessoa.
  *
+ * <p><b>Dois arquivos por pessoa</b> (ADR 0035): o da mesa de `/lore` (`COMMUNITY`) e o do
+ * perfil (`PROFILE`), sem nada em comum. Ler e criar dizem qual; editar, ligar e excluir seguem o
+ * arquivo em que o registro já está.
+ *
  * <p>O arquivo vem inteiro em `archive`, sem paginação — a tela conta, filtra e desenha o
  * mural em cima do conjunto todo.
  */
@@ -28,12 +33,19 @@ export class StoryArchiveService {
   private readonly ligacoes = inject(HttpService).resource('story-links');
   private readonly elenco = inject(HttpService).resource('story-characters');
 
-  archive(gameId: string | number): Observable<StoryArchiveDTO> {
-    return this.jogos.get<StoryArchiveDTO>(`${gameId}/archive`);
+  archive(
+    gameId: string | number,
+    space: StoryArchiveSpace = 'COMMUNITY',
+  ): Observable<StoryArchiveDTO> {
+    return this.jogos.get<StoryArchiveDTO>(`${gameId}/archive`, { space });
   }
 
-  register(gameId: string | number, request: StoryFindingRequest): Observable<StoryFindingDTO> {
-    return this.jogos.post<StoryFindingDTO>(`${gameId}/findings`, request);
+  register(
+    gameId: string | number,
+    request: StoryFindingRequest,
+    space: StoryArchiveSpace = 'COMMUNITY',
+  ): Observable<StoryFindingDTO> {
+    return this.jogos.post<StoryFindingDTO>(`${gameId}/findings`, request, { space });
   }
 
   update(id: number, request: StoryFindingRequest): Observable<StoryFindingDTO> {
@@ -61,8 +73,9 @@ export class StoryArchiveService {
   addCharacter(
     gameId: string | number,
     request: StoryCharacterRequest,
+    space: StoryArchiveSpace = 'COMMUNITY',
   ): Observable<StoryCharacterDTO> {
-    return this.jogos.post<StoryCharacterDTO>(`${gameId}/characters`, request);
+    return this.jogos.post<StoryCharacterDTO>(`${gameId}/characters`, request, { space });
   }
 
   updateCharacter(id: number, request: StoryCharacterRequest): Observable<StoryCharacterDTO> {

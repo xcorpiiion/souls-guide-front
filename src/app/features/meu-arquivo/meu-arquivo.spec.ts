@@ -45,11 +45,21 @@ const LIGACOES: StoryLinkDTO[] = [
   { id: 12, fromId: 3, toId: 1, kind: 'CONTRADICTS', why: null },
 ];
 
-const ARQUIVO: StoryArchiveDTO = { gameId: 7, findings: ACHADOS, links: LIGACOES, characters: [] };
+const ARQUIVO: StoryArchiveDTO = {
+  gameId: 7,
+  space: 'COMMUNITY',
+  findings: ACHADOS,
+  links: LIGACOES,
+  characters: [],
+};
 
 let service: { archive: ReturnType<typeof vi.fn>; register: ReturnType<typeof vi.fn> };
 
-function criar(logado = true, arquivo: StoryArchiveDTO = ARQUIVO): ComponentFixture<MeuArquivo> {
+function criar(
+  logado = true,
+  arquivo: StoryArchiveDTO = ARQUIVO,
+  espaco: 'COMMUNITY' | 'PROFILE' = 'COMMUNITY',
+): ComponentFixture<MeuArquivo> {
   service = {
     archive: vi.fn(() => of(arquivo)),
     register: vi.fn((_: string, r: { title: string; body: string }) =>
@@ -68,6 +78,7 @@ function criar(logado = true, arquivo: StoryArchiveDTO = ARQUIVO): ComponentFixt
   });
   const fixture = TestBed.createComponent(MeuArquivo);
   fixture.componentRef.setInput('gameId', '7');
+  fixture.componentRef.setInput('espaco', espaco);
   // A primeira passada roda o effect que pede o arquivo; a segunda desenha o que chegou.
   fixture.detectChanges();
   fixture.detectChanges();
@@ -98,7 +109,13 @@ describe('MeuArquivo', () => {
 
     /** Com um achado só, filtro, mural e capítulos seriam controle sem uso. */
     it('com um achado, a mesa mostra o guia e esconde o que ainda não serve', () => {
-      const f = criar(true, { gameId: 7, findings: [ACHADOS[0]], links: [], characters: [] });
+      const f = criar(true, {
+        gameId: 7,
+        space: 'COMMUNITY',
+        findings: [ACHADOS[0]],
+        links: [],
+        characters: [],
+      });
       expect(tem(f, 'app-guia-do-arquivo .guia')).toBe(true);
       expect(tem(f, '.alternador')).toBe(false);
       expect(tem(f, '.busca')).toBe(false);
@@ -116,7 +133,13 @@ describe('MeuArquivo', () => {
     });
 
     it('o passo "registre" do guia abre o registro', () => {
-      const f = criar(true, { gameId: 7, findings: [], links: [], characters: [] });
+      const f = criar(true, {
+        gameId: 7,
+        space: 'COMMUNITY',
+        findings: [],
+        links: [],
+        characters: [],
+      });
       (f.nativeElement as HTMLElement)
         .querySelector<HTMLButtonElement>('app-guia-do-arquivo .passo__acao')!
         .click();
@@ -211,6 +234,30 @@ describe('MeuArquivo', () => {
     expect(c['formTexto']()).toBe(texto);
   });
 
+  /** ADR 0035 da API: o perfil tem o próprio arquivo, e nada dele aparece na mesa da lore. */
+  describe('no perfil', () => {
+    it('lê e registra no arquivo do perfil', () => {
+      const c = criar(true, ARQUIVO, 'PROFILE').componentInstance;
+      expect(service.archive).toHaveBeenCalledWith('7', 'PROFILE');
+
+      c['irParaRegistrar']('Bilhete só meu.');
+      c['salvar'](false);
+
+      expect(service.register).toHaveBeenCalledWith('7', expect.anything(), 'PROFILE');
+    });
+
+    it('o rascunho do perfil não abre na mesa da lore', () => {
+      const perfil = criar(true, ARQUIVO, 'PROFILE').componentInstance;
+      // Colar já guarda o rascunho.
+      perfil['irParaRegistrar']('colado no perfil');
+
+      TestBed.resetTestingModule();
+      const lore = criar().componentInstance;
+      lore['irParaRegistrar']();
+      expect(lore['formTexto']()).not.toContain('colado no perfil');
+    });
+  });
+
   /** "Vazio, o título vira a primeira linha do texto" — e o servidor exige título. */
   it('salvar sem título manda a primeira linha do texto como título', () => {
     const c = criar().componentInstance;
@@ -221,6 +268,7 @@ describe('MeuArquivo', () => {
     expect(service.register).toHaveBeenCalledWith(
       '7',
       expect.objectContaining({ title: 'A névoa se abre e a praça está vazia.' }),
+      'COMMUNITY',
     );
   });
 
@@ -253,6 +301,7 @@ describe('MeuArquivo', () => {
         authorId: undefined,
         lines: [{ characterId: 9, speaker: undefined, text: 'Você já esteve aqui.' }],
       }),
+      'COMMUNITY',
     );
   });
 

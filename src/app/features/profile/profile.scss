@@ -723,7 +723,15 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
+  flex-wrap: wrap;
+  gap: v.$space-2;
   margin-bottom: v.$space-4;
+}
+
+.pf__content-actions {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: v.$space-2;
 }
 
 .pf__content-create-btn {

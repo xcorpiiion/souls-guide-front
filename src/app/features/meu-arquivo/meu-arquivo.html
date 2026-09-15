@@ -1482,6 +1482,7 @@
           [itens]="itens()"
           [ligacoes]="ligacoes()"
           [escolhidosIniciais]="montarCom()"
+          [destino]="espaco() === 'PROFILE' ? 'perfil' : 'comunidade'"
           (voltar)="irParaVisaoGeral()"
         />
       } @loading (minimum 200ms) {

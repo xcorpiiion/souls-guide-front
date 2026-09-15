@@ -21,6 +21,7 @@ const JOGO = {
 
 const ARQUIVO: StoryArchiveDTO = {
   gameId: 7,
+  space: 'COMMUNITY',
   findings: [
     {
       id: 1,
@@ -115,7 +116,7 @@ describe('LoreNova', () => {
 
   it('com o jogo na URL, abre o montar lore com o arquivo dele', () => {
     const f = criar({ jogo: '7' });
-    expect(arquivo.archive).toHaveBeenCalledWith('7');
+    expect(arquivo.archive).toHaveBeenCalledWith('7', 'COMMUNITY');
     expect(f.nativeElement.querySelector('app-montar-lore')).not.toBeNull();
     expect(texto(f)).toContain('Bilhete dobrado no armário');
   });
@@ -132,6 +133,17 @@ describe('LoreNova', () => {
 
   /** Do perfil, a lore é só da pessoa; na URL de todos, parecia publicar para todos. */
   describe('pelo perfil (/profile/lore/new)', () => {
+    it('arquivo do perfil vazio manda registrar na mesa do perfil', () => {
+      arquivo.archive.mockReturnValue(
+        of({ gameId: 7, space: 'PROFILE', findings: [], links: [], characters: [] }),
+      );
+      const f = criar({ jogo: '7' }, { destino: 'perfil' });
+      const link = (f.nativeElement as HTMLElement).querySelector<HTMLAnchorElement>(
+        '.estado a.botao',
+      )!;
+      expect(link.getAttribute('href')).toBe('/profile/lore/arquivo?jogo=silent-hill-2');
+    });
+
     it('diz que é só sua desde a escolha do jogo, e volta ao perfil', () => {
       const f = criar({}, { destino: 'perfil' });
       expect(texto(f)).toContain('montar uma lore só sua');
@@ -142,6 +154,8 @@ describe('LoreNova', () => {
 
     it('no montar lore, o botão principal guarda no perfil', () => {
       const f = criar({ jogo: '7' }, { destino: 'perfil' });
+      // Dois arquivos (ADR 0035 da API): a lore do perfil se monta com o arquivo do perfil.
+      expect(arquivo.archive).toHaveBeenCalledWith('7', 'PROFILE');
       expect(texto(f)).toContain('só você vê');
       expect(texto(f)).toContain('escrever e guardar');
     });

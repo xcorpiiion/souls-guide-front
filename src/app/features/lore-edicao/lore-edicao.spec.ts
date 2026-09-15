@@ -56,7 +56,8 @@ describe('LoreEdicao', () => {
 
   it('abre a lore no montar lore, e não num editor à parte', () => {
     const f = criar();
-    expect(arquivo.archive).toHaveBeenCalledWith(53);
+    // Rascunho é lore do perfil: monta com o arquivo do perfil (ADR 0035 da API).
+    expect(arquivo.archive).toHaveBeenCalledWith(53, 'PROFILE');
     expect(f.nativeElement.querySelector('app-montar-lore')).not.toBeNull();
     expect(texto(f)).toContain('citação · teste · nota, sem capítulo');
   });

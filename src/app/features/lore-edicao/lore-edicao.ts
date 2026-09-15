@@ -75,7 +75,10 @@ export class LoreEdicao implements HasUnsavedChanges {
         switchMap((artigo) =>
           forkJoin([
             of(artigo),
-            this.arquivo.archive(artigo.gameId).pipe(catchError(() => of(arquivoVazio()))),
+            // A lore do perfil se monta com o arquivo do perfil; a publicada, com o da lore.
+            this.arquivo
+              .archive(artigo.gameId, artigo.isPersonal ? 'PROFILE' : 'COMMUNITY')
+              .pipe(catchError(() => of(arquivoVazio()))),
           ]),
         ),
       )

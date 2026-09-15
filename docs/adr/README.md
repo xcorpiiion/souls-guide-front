@@ -36,6 +36,7 @@ verdade que o projeto combate. Quando um ADR daqui depender de um de lá, ele **
 | [0009](0009-a-lore-se-edita-como-se-monta.md) | A lore se edita no mesmo formato em que se monta, e o editor antigo sai inteiro | Aceita |
 | [0010](0010-o-arquivo-mora-na-lore.md) | O arquivo de achados mora na lore, e não na página do jogo | Aceita |
 | [0011](0011-a-lore-se-le-pelo-que-cita.md) | A lore se lê pelo que cita: tipo na citação, e "sobre quem" no lugar de mundo/personagem | Aceita |
+| [0012](0012-a-mesa-do-perfil.md) | O perfil tem a própria mesa, sobre o próprio arquivo | Aceita |
 
 ## Como escrever um novo
 

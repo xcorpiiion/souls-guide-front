@@ -19,6 +19,7 @@ import { AuthService } from '@xcorpiiion/ng-core';
 import { ConfirmService, ToastService } from '@xcorpiiion/ui';
 import { filter, switchMap } from 'rxjs/operators';
 import type {
+  StoryArchiveSpace,
   StoryCharacterDTO,
   StoryCharacterRequest,
   StoryFindingDTO,
@@ -104,6 +105,11 @@ export class MeuArquivo {
   readonly gameId = input.required<string>();
   /** O nome, para a prévia da lore montada. */
   readonly gameName = input<string>('');
+  /**
+   * Qual dos dois arquivos da pessoa (ADR 0035 do souls-guide-api): o da mesa de `/lore` ou o
+   * do perfil. A tela é a mesma; o que se registra num não aparece no outro.
+   */
+  readonly espaco = input<StoryArchiveSpace>('COMMUNITY');
 
   protected readonly tipos = TIPOS;
   protected readonly relacoes = LIGACOES;
@@ -505,7 +511,7 @@ export class MeuArquivo {
   protected carregar(id = this.gameId()): void {
     this.carregando.set(true);
     this.falhou.set(false);
-    this.service.archive(id).subscribe({
+    this.service.archive(id, this.espaco()).subscribe({
       next: (arquivo) => {
         this.achados.set(arquivo.findings);
         this.ligacoes.set(arquivo.links);
@@ -768,7 +774,7 @@ export class MeuArquivo {
     request: StoryCharacterRequest,
     depois: (criado: StoryCharacterDTO) => void,
   ): void {
-    this.service.addCharacter(this.gameId(), request).subscribe({
+    this.service.addCharacter(this.gameId(), request, this.espaco()).subscribe({
       next: (criado) => {
         this.acrescentarNoElenco(criado);
         depois(criado);
@@ -805,7 +811,7 @@ export class MeuArquivo {
     this.salvandoPersonagem.set(true);
     const envio$ =
       id === null
-        ? this.service.addCharacter(this.gameId(), request)
+        ? this.service.addCharacter(this.gameId(), request, this.espaco())
         : this.service.updateCharacter(id, request);
     envio$.subscribe({
       next: (salvo) => {
@@ -903,7 +909,7 @@ export class MeuArquivo {
       return;
     }
 
-    this.service.register(this.gameId(), request).subscribe({
+    this.service.register(this.gameId(), request, this.espaco()).subscribe({
       next: (salvo) => {
         this.achados.update((lista) => [...lista, salvo]);
         this.salvando.set(false);
@@ -1092,7 +1098,9 @@ export class MeuArquivo {
   // que foi colado") para quem fecha a aba no meio de uma cutscene longa.
 
   private chaveDoRascunho(): string {
-    return `sg_arquivo_rascunho_${this.gameId()}`;
+    // O rascunho é de um arquivo: o do perfil não pode abrir com o texto colado para a lore.
+    const doPerfil = this.espaco() === 'PROFILE' ? '_perfil' : '';
+    return `sg_arquivo_rascunho_${this.gameId()}${doPerfil}`;
   }
 
   private guardarRascunho(): void {
