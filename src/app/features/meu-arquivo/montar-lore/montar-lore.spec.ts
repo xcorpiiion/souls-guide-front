@@ -215,11 +215,15 @@ describe('MontarLore', () => {
     });
 
     it('guardar o rascunho de novo atualiza, sem criar outro', () => {
-      const c = criar(artigo({ isPersonal: true, isPublic: false })).componentInstance;
+      const c = criar(
+        artigo({ isPersonal: true, isPublic: false, allowCopy: true }),
+      ).componentInstance;
       c['guardarRascunho']();
+      // O servidor recusa o PUT sem isPublic e allowCopy (booleanos primitivos): foi o
+      // "Não foi possível salvar" ao editar uma lore pessoal. E editar não muda nenhum dos dois.
       expect(personalLoreService.updatePersonal).toHaveBeenCalledWith(
         '3',
-        expect.objectContaining({ title: 'Teste' }),
+        expect.objectContaining({ title: 'Teste', isPublic: false, allowCopy: true }),
       );
       expect(personalLoreService.createPersonal).not.toHaveBeenCalled();
     });

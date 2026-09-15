@@ -361,7 +361,7 @@ export class MontarLore implements OnInit {
     const artigo = this.artigo();
     if (artigo && !artigo.isPersonal) return;
 
-    const { title, type, characterName, content, tags } = this.pedido();
+    const { title, type, characterName, content, tags, coverImageFileKey } = this.pedido();
     const envio$ = artigo
       ? this.personalLoreService.updatePersonal(String(artigo.id), {
           title,
@@ -369,6 +369,11 @@ export class MontarLore implements OnInit {
           characterName,
           content,
           tags,
+          // O PUT troca a lore inteira, e o servidor recusa sem estes dois: editar o texto não
+          // pode tornar pública, nem permitir cópia, nem tirar a capa de quem já tinha.
+          coverImageFileKey,
+          isPublic: artigo.isPublic ?? false,
+          allowCopy: artigo.allowCopy ?? false,
         })
       : this.personalLoreService.createPersonal({
           title,

@@ -20,15 +20,21 @@ export interface CreatePersonalLoreRequest {
   allowCopy: boolean;
 }
 
+/**
+ * O PUT troca a lore de perfil inteira. `isPublic` e `allowCopy` são booleanos primitivos no
+ * `UpdatePersonalLoreRequest` do canonico: sem eles o servidor responde 400 ("Cannot map null
+ * into type boolean"), então aqui também são obrigatórios.
+ */
 export interface UpdatePersonalLoreRequest {
-  title?: string;
-  content?: string;
+  title: string;
+  content: string;
   type?: LoreTypeApi;
   characterName?: string;
+  coverImageFileKey?: string;
   tags?: string[];
   itemIds?: number[];
-  isPublic?: boolean;
-  allowCopy?: boolean;
+  isPublic: boolean;
+  allowCopy: boolean;
 }
 
 export interface CopyLoreToProfileRequest {
