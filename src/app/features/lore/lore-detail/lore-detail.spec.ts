@@ -108,6 +108,61 @@ describe('LoreDetail', () => {
     expect(fixture.nativeElement.querySelector('.ld__not-found')?.textContent).toContain('privado');
   });
 
+  describe('citações', () => {
+    const COM_CITACOES: LoreApi = {
+      ...MOCK_LORE_API,
+      characterName: null,
+      content: [
+        'A enfermeira sabia.',
+        '> Dia 14: a menina voltou.\n— Diário · documento, Cap. 2 · por Enfermeira',
+        '> JAMES: Mary?\n> LAURA: Ela não está aqui.\n— Ponte · diálogo, Cap. 3 · com James, Laura',
+      ].join('\n\n'),
+    };
+
+    function comCitacoes() {
+      return createFixture('1', { get: vi.fn(() => of(COM_CITACOES)) } as Partial<LoreService>);
+    }
+
+    it('cada citação diz o tipo, e o diálogo sai fala a fala', () => {
+      const el = comCitacoes().nativeElement as HTMLElement;
+      const tipos = Array.from(el.querySelectorAll('.ld__citacao-tipo')).map((t) =>
+        t.textContent?.replace(/\s+/g, '').trim(),
+      );
+      expect(tipos).toEqual(['documento·Cap.2', 'diálogo·Cap.3']);
+      // Numa nota, "Dia 14:" continua texto.
+      expect(el.querySelector('.ld__trecho-texto')?.textContent).toBe('Dia 14: a menina voltou.');
+      const nomes = Array.from(el.querySelectorAll('.ld__fala-nome')).map((n) => n.textContent);
+      expect(nomes).toEqual(['JAMES', 'LAURA']);
+    });
+
+    it('"quem aparece" lista as pessoas, e tocar numa apaga as citações das outras', () => {
+      const fixture = comCitacoes();
+      const el = fixture.nativeElement as HTMLElement;
+      const pessoas = Array.from(el.querySelectorAll<HTMLButtonElement>('.ld__pessoa'));
+      expect(pessoas.map((p) => p.querySelector('.ld__pessoa-nome')?.textContent)).toEqual([
+        'Enfermeira',
+        'James',
+        'Laura',
+      ]);
+
+      pessoas[0].click();
+      fixture.detectChanges();
+      const citacoes = el.querySelectorAll('.ld__citacao');
+      expect(citacoes[0].classList).not.toContain('ld__citacao--apagada');
+      expect(citacoes[1].classList).toContain('ld__citacao--apagada');
+
+      pessoas[0].click();
+      fixture.detectChanges();
+      expect(el.querySelectorAll('.ld__citacao--apagada')).toHaveLength(0);
+    });
+
+    it('não diz mais "lore do mundo" nem "de personagem"', () => {
+      const t = (comCitacoes().nativeElement as HTMLElement).textContent ?? '';
+      expect(t).not.toContain('lore do mundo');
+      expect(t).not.toContain('lore de personagem');
+    });
+  });
+
   describe('likes', () => {
     it('inicializa likeCount e userHasLiked da API', () => {
       const fixture = createFixture('1');

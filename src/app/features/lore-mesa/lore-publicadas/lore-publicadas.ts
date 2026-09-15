@@ -3,6 +3,7 @@ import {
   Component,
   DestroyRef,
   OnInit,
+  computed,
   inject,
   input,
   output,
@@ -13,15 +14,13 @@ import { RouterLink } from '@angular/router';
 import { Subject, debounceTime, switchMap } from 'rxjs';
 import { AuthService } from '@xcorpiiion/ng-core';
 import { LoreService } from '../../../core/services/lore.service';
-import { LoreCategory, LoreSummary } from '../../../shared/models/lore-article.model';
+import { LoreSummary } from '../../../shared/models/lore-article.model';
+import { ICONE_DO_TIPO } from '../../../shared/utils/citacao-da-lore';
 
 const POR_VEZ = 10;
 
-type Categoria = LoreCategory | '';
-
 interface Pedido {
   readonly q: string;
-  readonly categoria: Categoria;
   readonly pagina: number;
 }
 
@@ -58,15 +57,35 @@ export class LorePublicadas implements OnInit {
   /** Pedido de ir ao arquivo, para o estado vazio. */
   readonly irAoArquivo = output<void>();
 
-  protected readonly categorias: readonly { id: Categoria; rotulo: string }[] = [
-    { id: '', rotulo: 'todas' },
-    { id: 'WORLD', rotulo: 'do mundo' },
-    { id: 'CHARACTER', rotulo: 'de personagem' },
-  ];
-
   protected readonly busca = signal('');
-  protected readonly categoria = signal<Categoria>('');
   protected readonly lores = signal<LoreSummary[]>([]);
+
+  /**
+   * "Sobre quem", no lugar de mundo/personagem: os nomes que as lores carregadas citam, dos mais
+   * citados para os menos. Sai das citações, então não depende de alguém ter marcado à mão.
+   */
+  protected readonly pessoas = computed(() => {
+    const vezes = new Map<string, { nome: string; vezes: number }>();
+    for (const l of this.lores()) {
+      for (const nome of l.resumo?.pessoas ?? []) {
+        const chave = nome.toLocaleLowerCase('pt-BR');
+        const atual = vezes.get(chave);
+        vezes.set(chave, { nome: atual?.nome ?? nome, vezes: (atual?.vezes ?? 0) + 1 });
+      }
+    }
+    return [...vezes.values()].sort((a, b) => b.vezes - a.vezes).slice(0, 12);
+  });
+
+  /** Filtra o que já veio: o servidor não sabe quem uma citação cita. */
+  protected readonly pessoa = signal<string | null>(null);
+
+  protected readonly visiveis = computed(() => {
+    const alvo = this.pessoa()?.toLocaleLowerCase('pt-BR');
+    if (!alvo) return this.lores();
+    return this.lores().filter((l) =>
+      (l.resumo?.pessoas ?? []).some((p) => p.toLocaleLowerCase('pt-BR') === alvo),
+    );
+  });
   protected readonly total = signal(0);
   protected readonly carregando = signal(true);
   protected readonly falhou = signal(false);
@@ -86,7 +105,6 @@ export class LorePublicadas implements OnInit {
             POR_VEZ,
             p.q.trim() || undefined,
             this.jogoId() ?? undefined,
-            p.categoria || undefined,
           );
         }),
         takeUntilDestroyed(this.destroyRef),
@@ -112,9 +130,8 @@ export class LorePublicadas implements OnInit {
     this.pedir(0);
   }
 
-  protected escolherCategoria(c: Categoria): void {
-    this.categoria.set(c);
-    this.pedir(0);
+  protected escolherPessoa(nome: string | null): void {
+    this.pessoa.update((atual) => (atual === nome ? null : nome));
   }
 
   protected mostrarMais(): void {
@@ -135,11 +152,13 @@ export class LorePublicadas implements OnInit {
   }
 
   protected buscando(): boolean {
-    return this.busca().trim().length > 0 || this.categoria() !== '';
+    return this.busca().trim().length > 0 || this.pessoa() !== null;
   }
+
+  protected readonly iconeDoTipo = ICONE_DO_TIPO;
 
   private pedir(pagina: number): void {
     this.pagina = pagina;
-    this.pedidos$.next({ q: this.busca(), categoria: this.categoria(), pagina });
+    this.pedidos$.next({ q: this.busca(), pagina });
   }
 }

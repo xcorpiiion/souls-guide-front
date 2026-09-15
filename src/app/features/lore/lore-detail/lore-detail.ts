@@ -8,7 +8,7 @@ import {
 } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { HttpErrorResponse } from '@angular/common/http';
-import { LoreApi, LoreCategory } from '../../../shared/models/lore-article.model';
+import { LoreApi } from '../../../shared/models/lore-article.model';
 import { LoreService } from '../../../core/services/lore.service';
 import { PersonalLoreService } from '../../../core/services/personal-lore.service';
 import { StorageService } from '../../../core/services/storage.service';
@@ -21,6 +21,12 @@ import {
   parseLoreContent,
 } from '../../../shared/utils/lore-content';
 import {
+  CitacaoLida,
+  ICONE_DO_TIPO,
+  citaPessoa,
+  lerCitacao,
+} from '../../../shared/utils/citacao-da-lore';
+import {
   CopyToProfileModal,
   CopyConfirmEvent,
 } from '../../../shared/components/copy-to-profile-modal/copy-to-profile-modal';
@@ -28,6 +34,9 @@ import { CommentSection } from '../../../shared/components/comment-section/comme
 import { ReportButton } from '../../../shared/components/report-button/report-button';
 import { ToastService } from '@xcorpiiion/ui';
 import { PfPageLoader } from '@xcorpiiion/ui';
+
+type BlocoDeLeitura =
+  Exclude<LoreBlock, { kind: 'quote' }> | { kind: 'citacao'; citacao: CitacaoLida };
 
 @Component({
   selector: 'app-lore-detail',
@@ -94,14 +103,63 @@ export class LoreDetail implements OnInit {
    */
   protected readonly canEdit = computed(() => this.ehMinha());
 
-  protected readonly blocos = computed(() => {
+  /** O texto em blocos, com cada citação já lida: tipo, falas e quem aparece. */
+  protected readonly blocos = computed((): BlocoDeLeitura[] => {
     const a = this.article();
-    return a ? parseLoreContent(a.content) : [];
+    if (!a) return [];
+    return parseLoreContent(a.content).map((b) =>
+      b.kind === 'quote' ? { kind: 'citacao', citacao: lerCitacao(b.text, b.origem ?? '') } : b,
+    );
   });
 
   protected readonly citacoes = computed(
-    () => this.blocos().filter((b) => b.kind === 'quote').length,
+    () => this.blocos().filter((b) => b.kind === 'citacao').length,
   );
+
+  /** "Quem aparece": cada pessoa citada, com em quantas citações. */
+  protected readonly pessoas = computed(() => {
+    const vezes = new Map<string, { nome: string; vezes: number }>();
+    for (const b of this.blocos()) {
+      if (b.kind !== 'citacao') continue;
+      for (const nome of b.citacao.pessoas) {
+        const chave = nome.toLocaleLowerCase('pt-BR');
+        const atual = vezes.get(chave);
+        vezes.set(chave, { nome: atual?.nome ?? nome, vezes: (atual?.vezes ?? 0) + 1 });
+      }
+    }
+    return [...vezes.values()];
+  });
+
+  /**
+   * O personagem que a lore antiga declarou à mão, quando nenhuma citação o cita — senão a
+   * informação sumiria da página junto com o "lore de personagem".
+   */
+  protected readonly sobreQuem = computed(() => {
+    const nome = this.article()?.characterName?.trim();
+    if (!nome) return null;
+    const alvo = nome.toLocaleLowerCase('pt-BR');
+    return this.pessoas().some((p) => p.nome.toLocaleLowerCase('pt-BR') === alvo) ? null : nome;
+  });
+
+  /** Tocar num nome acende só as citações dele; o resto do texto fica atrás. */
+  protected readonly destaque = signal<string | null>(null);
+
+  protected destacar(nome: string): void {
+    this.destaque.update((atual) =>
+      atual?.toLocaleLowerCase('pt-BR') === nome.toLocaleLowerCase('pt-BR') ? null : nome,
+    );
+  }
+
+  protected apagada(c: CitacaoLida): boolean {
+    const nome = this.destaque();
+    return nome !== null && !citaPessoa(c, nome);
+  }
+
+  protected ehDestaque(nome: string): boolean {
+    return this.destaque()?.toLocaleLowerCase('pt-BR') === nome.toLocaleLowerCase('pt-BR');
+  }
+
+  protected readonly iconeDoTipo = ICONE_DO_TIPO;
 
   protected readonly minutos = computed(() => {
     const a = this.article();
@@ -175,14 +233,6 @@ export class LoreDetail implements OnInit {
     });
   }
 
-  protected categoryLabel(cat: LoreCategory): string {
-    const map: Record<LoreCategory, string> = {
-      WORLD: 'mundo',
-      CHARACTER: 'personagem',
-    };
-    return map[cat] ?? cat;
-  }
-
   protected statusLabel(s: string): string {
     const map: Record<string, string> = {
       TEORIA: 'teoria',
@@ -194,10 +244,6 @@ export class LoreDetail implements OnInit {
 
   protected loreIdStr(id: number): string {
     return String(id);
-  }
-
-  protected contentBlocks(content: string): LoreBlock[] {
-    return parseLoreContent(content);
   }
 
   protected imageUrl(fileKey: string): string | null {

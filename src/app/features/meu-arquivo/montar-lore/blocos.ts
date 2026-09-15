@@ -22,9 +22,22 @@ export type Bloco =
       readonly origem: string;
     };
 
-/** A linha de baixo da citação: de onde o trecho veio. */
+/**
+ * A linha de baixo da citação: de onde o trecho veio, e quem está nele. É dela que a página de
+ * leitura tira o tipo e a lista "quem aparece" (`shared/utils/citacao-da-lore.ts`).
+ *
+ * <p>O ` · ` separa as partes, então não pode aparecer dentro do título.
+ */
 export function origemDe(a: AchadoDaTela): string {
-  return `— ${a.title} · ${tipoDe(a.kind).label}, ${a.chapter || SEM_CAPITULO}`;
+  const base = origemSemPessoas(a);
+  if (a.autor) return `${base} · por ${a.autor}`;
+  return a.presentes.length ? `${base} · com ${a.presentes.join(', ')}` : base;
+}
+
+/** O formato de antes das pessoas. Lore salva antes dele continua reconhecendo seus achados. */
+export function origemSemPessoas(a: AchadoDaTela): string {
+  const titulo = a.title.replaceAll(' · ', ' - ');
+  return `— ${titulo} · ${tipoDe(a.kind).label}, ${a.chapter || SEM_CAPITULO}`;
 }
 
 /**

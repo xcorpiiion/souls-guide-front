@@ -23,7 +23,15 @@ import { CreateLoreRequest, LoreService } from '../../../core/services/lore.serv
 import { PersonalLoreService } from '../../../core/services/personal-lore.service';
 import { LoreApi } from '../../../shared/models/lore-article.model';
 import { AchadoDaTela, LIGACAO_POR_CHAVE, contem, tipoDe } from '../arquivo.model';
-import { Bloco, juntarTextosVizinhos, lerBlocos, origemDe, serializar } from './blocos';
+import {
+  Bloco,
+  juntarTextosVizinhos,
+  lerBlocos,
+  origemDe,
+  origemSemPessoas,
+  serializar,
+} from './blocos';
+import { pessoasDaLore } from '../../../shared/utils/citacao-da-lore';
 
 type Passo = 1 | 2 | 3;
 type Envio = 'publicar' | 'rascunho' | null;
@@ -83,8 +91,6 @@ export class MontarLore implements OnInit {
   protected readonly escolhidos = signal<number[]>([]);
 
   protected readonly titulo = signal('');
-  protected readonly tipo = signal<'WORLD' | 'CHARACTER'>('WORLD');
-  protected readonly personagem = signal('');
   protected readonly blocos = signal<Bloco[]>([{ id: 1, kind: 'texto', valor: '' }]);
   private proximoId = 2;
   private esqueletoMontado = false;
@@ -107,8 +113,6 @@ export class MontarLore implements OnInit {
     const artigo = this.artigo();
     if (artigo) {
       this.titulo.set(artigo.title);
-      this.tipo.set(artigo.type === 'CHARACTER' ? 'CHARACTER' : 'WORLD');
-      this.personagem.set(artigo.characterName ?? '');
       this.blocos.set(lerBlocos(artigo.content, () => this.proximoId++));
       this.esqueletoMontado = true;
       this.passo.set(3);
@@ -122,7 +126,7 @@ export class MontarLore implements OnInit {
   }
 
   private retrato(): string {
-    return JSON.stringify([this.titulo(), this.tipo(), this.personagem(), this.conteudo()]);
+    return JSON.stringify([this.titulo(), this.conteudo()]);
   }
 
   private readonly porId = computed(() => new Map(this.itens().map((a) => [a.id, a])));
@@ -175,7 +179,9 @@ export class MontarLore implements OnInit {
     );
     const ids = new Set<number>();
     for (const b of this.blocos()) if (b.kind === 'citacao') ids.add(b.achadoId);
-    for (const a of this.itens()) if (origens.has(origemDe(a))) ids.add(a.id);
+    for (const a of this.itens()) {
+      if (origens.has(origemDe(a)) || origens.has(origemSemPessoas(a))) ids.add(a.id);
+    }
     return ids;
   });
 
@@ -189,6 +195,9 @@ export class MontarLore implements OnInit {
 
   protected readonly conteudo = computed(() => serializar(this.blocos(), this.porId()));
 
+  /** A prévia do "sobre quem": o mesmo que a página de leitura vai tirar do texto. */
+  protected readonly pessoas = computed(() => pessoasDaLore(this.conteudo()));
+
   protected readonly primeiroParagrafo = computed(() => {
     const texto = this.blocos().find(
       (b): b is Extract<Bloco, { kind: 'texto' }> => b.kind === 'texto' && !!b.valor.trim(),
@@ -201,7 +210,6 @@ export class MontarLore implements OnInit {
     () =>
       this.titulo().trim().length > 0 &&
       this.conteudo().trim().length >= 10 &&
-      (this.tipo() === 'WORLD' || this.personagem().trim().length > 0) &&
       this.enviando() === null,
   );
 
@@ -293,9 +301,11 @@ export class MontarLore implements OnInit {
     const artigo = this.artigo();
     return {
       title: this.titulo().trim(),
-      type: this.tipo(),
+      // "Do mundo ou de personagem" saiu da tela: quem a lore cita sai das citações (ADR 0011).
+      // O servidor ainda exige o campo, e editar mantém o que a lore antiga já tinha.
+      type: artigo?.type === 'CHARACTER' ? 'CHARACTER' : 'WORLD',
       gameId: this.gameId(),
-      characterName: this.tipo() === 'CHARACTER' ? this.personagem().trim() : undefined,
+      characterName: artigo?.type === 'CHARACTER' ? (artigo.characterName ?? undefined) : undefined,
       content: this.conteudo(),
       // A escrita não mexe nestes dois; editar não pode apagá-los de quem já os tinha.
       coverImageFileKey: artigo?.coverImageFileKey ?? undefined,

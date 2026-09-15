@@ -2,6 +2,7 @@ import { describe, it, expect } from 'vitest';
 import type { StoryFindingDTO } from '@xcorpiiion/canonico';
 import { decorar } from '../arquivo.model';
 import { Bloco, juntarTextosVizinhos, lerBlocos, serializar } from './blocos';
+import { lerCitacao, separarOrigem } from '../../../shared/utils/citacao-da-lore';
 
 const ACHADO: StoryFindingDTO = {
   id: 1,
@@ -72,6 +73,38 @@ describe('blocos da lore', () => {
       expect.objectContaining({ kind: 'fixa', trecho: 'só o trecho', origem: '' }),
       expect.objectContaining({ kind: 'texto', valor: '' }),
     ]);
+  });
+
+  /** A página de leitura precisa saber o tipo, quem fala e quem aparece — tudo sai daqui. */
+  it('diálogo: a origem leva quem aparece, e a leitura separa as falas', () => {
+    const dialogo: StoryFindingDTO = {
+      ...ACHADO,
+      id: 2,
+      kind: 'DIALOGUE',
+      title: 'Na ponte · de noite',
+      body: '',
+      characterIds: [10, 11],
+      lines: [
+        { characterId: 10, speaker: null, text: 'Mary?' },
+        { characterId: null, speaker: 'Voz', text: 'Ela não está aqui.' },
+      ],
+    };
+    const elenco = [
+      { id: 10, gameId: 7, kind: 'CHARACTER', name: 'James', description: null, bossId: null },
+      { id: 11, gameId: 7, kind: 'CHARACTER', name: 'Laura', description: null, bossId: null },
+    ] as never[];
+    const mapa = new Map(decorar([dialogo], [], elenco).map((a) => [a.id, a]));
+
+    const markdown = serializar([{ id: 1, kind: 'citacao', achadoId: 2 }], mapa);
+    expect(markdown).toBe(
+      '> James: Mary?\nVoz: Ela não está aqui.\n— Na ponte - de noite · diálogo, Cap. 1 — Escola · com James, Laura',
+    );
+
+    const { trecho, origem } = separarOrigem(markdown);
+    const lida = lerCitacao(trecho, origem);
+    expect(lida.tipo).toBe('diálogo');
+    expect(lida.falas.map((f) => f.nome)).toEqual(['James', 'Voz']);
+    expect(lida.pessoas).toEqual(['James', 'Laura', 'Voz']);
   });
 
   it('tirar a citação do meio junta os dois parágrafos', () => {

@@ -35,6 +35,7 @@ verdade que o projeto combate. Quando um ADR daqui depender de um de lá, ele **
 | [0008](0008-a-lore-nova-nasce-do-arquivo.md) | A lore nova nasce do arquivo, e o editor em branco sai | Substituída por 0009 |
 | [0009](0009-a-lore-se-edita-como-se-monta.md) | A lore se edita no mesmo formato em que se monta, e o editor antigo sai inteiro | Aceita |
 | [0010](0010-o-arquivo-mora-na-lore.md) | O arquivo de achados mora na lore, e não na página do jogo | Aceita |
+| [0011](0011-a-lore-se-le-pelo-que-cita.md) | A lore se lê pelo que cita: tipo na citação, e "sobre quem" no lugar de mundo/personagem | Aceita |
 
 ## Como escrever um novo
 

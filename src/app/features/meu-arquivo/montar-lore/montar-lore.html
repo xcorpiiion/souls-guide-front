@@ -205,41 +205,12 @@
         (input)="titulo.set($any($event.target).value)"
       />
 
-      <div class="tipo" role="radiogroup" aria-label="do que ela fala">
-        <button
-          type="button"
-          role="radio"
-          class="chip"
-          [class.chip--ativo]="tipo() === 'WORLD'"
-          [attr.aria-checked]="tipo() === 'WORLD'"
-          (click)="tipo.set('WORLD')"
-        >
-          <i class="ti ti-map" aria-hidden="true"></i> do mundo
-        </button>
-        <button
-          type="button"
-          role="radio"
-          class="chip"
-          [class.chip--ativo]="tipo() === 'CHARACTER'"
-          [attr.aria-checked]="tipo() === 'CHARACTER'"
-          (click)="tipo.set('CHARACTER')"
-        >
-          <i class="ti ti-user-circle" aria-hidden="true"></i> de personagem
-        </button>
-        @if (tipo() === 'CHARACTER') {
-          <input
-            id="montar-personagem"
-            type="text"
-            class="campo campo--personagem"
-            maxlength="120"
-            placeholder="qual personagem"
-            aria-label="nome do personagem"
-            autocomplete="off"
-            [value]="personagem()"
-            (input)="personagem.set($any($event.target).value)"
-          />
-        }
-      </div>
+      @if (pessoas().length) {
+        <p class="quem" title="sai das citações: quem aparece, fala ou escreveu">
+          <i class="ti ti-users" aria-hidden="true"></i>
+          <span>cita {{ pessoas().join(', ') }}</span>
+        </p>
+      }
 
       <div class="rotulo-linha">
         <span class="rotulo rotulo--sem-margem">o texto</span>

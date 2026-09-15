@@ -31,8 +31,6 @@
             [class.ld__selo--canonica]="a.status === 'CANONICO'"
             >{{ statusLabel(a.status) }}</span
           >
-          <span>{{ a.type === 'CHARACTER' ? 'lore de personagem' : 'lore do mundo' }}</span>
-          <span class="ld__ponto" aria-hidden="true">·</span>
           <span>{{ a.gameName }}</span>
           @if (citacoes() > 0) {
             <span class="ld__ponto" aria-hidden="true">·</span>
@@ -44,9 +42,9 @@
 
         <h1 class="ld__title">{{ a.title }}</h1>
 
-        @if (a.characterName) {
+        @if (sobreQuem(); as nome) {
           <p class="ld__personagem">
-            <i class="ti ti-user-circle" aria-hidden="true"></i> {{ a.characterName }}
+            <i class="ti ti-user-circle" aria-hidden="true"></i> sobre {{ nome }}
           </p>
         }
 
@@ -82,17 +80,90 @@
         </figure>
       }
 
-      <div class="ld__content">
+      <!--
+        Quem aparece: o índice das pessoas que a lore cita. No celular é uma fileira acima do
+        texto; na tela larga, uma coluna ao lado, que acompanha a rolagem.
+      -->
+      @if (pessoas().length) {
+        <aside class="ld__quem" aria-label="quem aparece">
+          <p class="ld__quem-titulo">quem aparece</p>
+          <ul class="ld__quem-lista">
+            @for (p of pessoas(); track p.nome) {
+              <li>
+                <button
+                  type="button"
+                  class="ld__pessoa"
+                  [class.ld__pessoa--ativa]="ehDestaque(p.nome)"
+                  [attr.aria-pressed]="ehDestaque(p.nome)"
+                  (click)="destacar(p.nome)"
+                >
+                  <span class="ld__pessoa-nome">{{ p.nome }}</span>
+                  <span class="ld__pessoa-vezes">{{ p.vezes }}</span>
+                </button>
+              </li>
+            }
+          </ul>
+          <p class="ld__quem-dica" aria-live="polite">
+            @if (destaque(); as nome) {
+              só as citações de {{ nome }} ·
+              <button type="button" class="ld__limpar" (click)="destaque.set(null)">
+                ver tudo
+              </button>
+            } @else {
+              toque num nome para ver só as citações dele
+            }
+          </p>
+        </aside>
+      }
+
+      <div class="ld__content" [class.ld__content--destaque]="destaque() !== null">
         @for (block of blocos(); track $index) {
           @switch (block.kind) {
             @case ('heading') {
               <h2 class="ld__section-heading">{{ block.text }}</h2>
             }
-            @case ('quote') {
-              <figure class="ld__citacao">
-                <blockquote class="ld__trecho">{{ block.text }}</blockquote>
-                @if (block.origem) {
-                  <figcaption class="ld__origem">{{ block.origem }}</figcaption>
+            @case ('citacao') {
+              @let c = block.citacao;
+              <figure class="ld__citacao" [class.ld__citacao--apagada]="apagada(c)">
+                @if (c.tipo) {
+                  <p class="ld__citacao-tipo">
+                    <i [class]="iconeDoTipo[c.tipo]" aria-hidden="true"></i>
+                    <span>{{ c.tipo }}</span>
+                    @if (c.capitulo) {
+                      <span class="ld__ponto" aria-hidden="true">·</span>
+                      <span>{{ c.capitulo }}</span>
+                    }
+                  </p>
+                }
+                <blockquote class="ld__trecho">
+                  @if (c.texto) {
+                    <p class="ld__trecho-texto">{{ c.texto }}</p>
+                  }
+                  @for (f of c.falas; track $index) {
+                    <p class="ld__fala" [class.ld__fala--destaque]="ehDestaque(f.nome)">
+                      <span class="ld__fala-nome">{{ f.nome }}</span>
+                      <span class="ld__fala-texto">{{ f.texto }}</span>
+                    </p>
+                  }
+                </blockquote>
+                @if (c.titulo) {
+                  <figcaption class="ld__origem">
+                    <span class="ld__origem-titulo">{{ c.titulo }}</span>
+                    @if (c.pessoas.length) {
+                      <span class="ld__origem-pessoas">
+                        @for (nome of c.pessoas; track nome) {
+                          <button
+                            type="button"
+                            class="ld__nome"
+                            [class.ld__nome--ativo]="ehDestaque(nome)"
+                            (click)="destacar(nome)"
+                          >
+                            {{ nome }}
+                          </button>
+                        }
+                      </span>
+                    }
+                  </figcaption>
                 }
               </figure>
             }

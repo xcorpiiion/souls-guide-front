@@ -16,6 +16,44 @@
     padding: 36px 24px 0;
   }
 
+  // Tela larga: "quem aparece" vira coluna ao lado do texto, e acompanha a rolagem.
+  @media (min-width: 1080px) {
+    max-width: 1000px;
+
+    &__article {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 230px;
+      column-gap: 40px;
+
+      > * {
+        grid-column: 1;
+      }
+    }
+
+    &__quem {
+      grid-column: 2;
+      grid-row: 1 / span 10;
+      align-self: start;
+      position: sticky;
+      top: 88px;
+      margin: 22px 0 0;
+    }
+
+    &__quem-lista {
+      flex-direction: column;
+      align-items: stretch;
+    }
+
+    &__pessoa {
+      justify-content: space-between;
+      width: 100%;
+    }
+
+    &__comments {
+      max-width: calc(100% - 270px);
+    }
+  }
+
   &__not-found {
     max-width: 560px;
     margin: 64px auto;
@@ -189,17 +227,131 @@
     margin: 12px 0 0;
   }
 
-  // A citação é o trecho do jogo: mono, margem de folha, e a origem embaixo — nunca misturada.
+  &__content--destaque &__paragraph,
+  &__content--destaque &__section-heading {
+    opacity: 0.4;
+    transition: opacity 0.2s;
+  }
+
+  // ─── Quem aparece ───────────────────────────────────────────────────────────
+
+  &__quem {
+    margin: 0 0 24px;
+    padding: 12px 14px;
+    background: #141414;
+    border: 0.5px solid #242424;
+    border-radius: 12px;
+  }
+
+  &__quem-titulo {
+    margin: 0 0 8px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10.5px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: #6a655c;
+  }
+
+  &__quem-lista {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  &__pessoa {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    min-height: 34px;
+    padding: 6px 10px 6px 12px;
+    font-family: inherit;
+    font-size: 13px;
+    color: #d8cfbc;
+    background: #1a1a1a;
+    border: 0.5px solid #2e2b26;
+    border-radius: 999px;
+    cursor: pointer;
+
+    &:hover {
+      border-color: #4a453f;
+    }
+
+    &--ativa {
+      color: #c9a84c;
+      border-color: rgb(201 168 76 / 55%);
+      background: rgb(201 168 76 / 10%);
+    }
+  }
+
+  &__pessoa-vezes {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: #6a655c;
+  }
+
+  &__quem-dica {
+    margin: 10px 0 0;
+    font-size: 12px;
+    color: #6a655c;
+  }
+
+  &__limpar {
+    font: inherit;
+    color: #c9a84c;
+    background: none;
+    border: none;
+    padding: 0;
+    cursor: pointer;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+
+  // ─── Citação ────────────────────────────────────────────────────────────────
+  // O trecho do jogo: o tipo em cima, o texto em mono, e de onde veio embaixo — nunca misturado.
+
   &__citacao {
     margin: 4px 0;
     background: #141414;
     border: 0.5px solid #2e2b26;
     border-left: 2px solid #3a3630;
     border-radius: 4px 12px 12px 4px;
-    padding: 18px 20px;
+    padding: 14px 20px 16px;
+    transition: opacity 0.2s;
+
+    &--apagada {
+      opacity: 0.35;
+    }
+  }
+
+  &__citacao-tipo {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin: 0 0 10px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: #8a8278;
+
+    i {
+      font-size: 14px;
+      color: #c9a84c;
+    }
   }
 
   &__trecho {
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  &__trecho-texto {
     margin: 0;
     font-family: 'JetBrains Mono', monospace;
     font-size: 14.5px;
@@ -209,16 +361,83 @@
     overflow-wrap: anywhere;
   }
 
+  // Uma fala por linha: quem fala numa coluna, o que diz na outra. No celular, empilha.
+  &__fala {
+    margin: 0;
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 2px;
+
+    @media (min-width: 560px) {
+      grid-template-columns: 150px minmax(0, 1fr);
+      gap: 14px;
+    }
+  }
+
+  &__fala-nome {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11.5px;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: #8a8278;
+    padding-top: 3px;
+    overflow-wrap: anywhere;
+  }
+
+  &__fala--destaque &__fala-nome {
+    color: #c9a84c;
+  }
+
+  &__fala-texto {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 14.5px;
+    line-height: 1.7;
+    color: #d8cfbc;
+    white-space: pre-line;
+    overflow-wrap: anywhere;
+  }
+
   &__origem {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 6px 10px;
     margin-top: 12px;
     padding-top: 10px;
     border-top: 0.5px dashed #2e2b26;
     font-size: 12px;
     color: #8a8278;
+  }
 
-    &::before {
-      content: '— ';
-      color: #4a453f;
+  &__origem-titulo::before {
+    content: '— ';
+    color: #4a453f;
+  }
+
+  &__origem-pessoas {
+    display: inline-flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    margin-left: auto;
+  }
+
+  &__nome {
+    font-family: inherit;
+    font-size: 11.5px;
+    color: #b8b0a0;
+    background: #1a1a1a;
+    border: 0.5px solid #2e2b26;
+    border-radius: 999px;
+    padding: 3px 9px;
+    cursor: pointer;
+
+    &:hover {
+      border-color: #4a453f;
+    }
+
+    &--ativo {
+      color: #c9a84c;
+      border-color: rgb(201 168 76 / 55%);
     }
   }
 

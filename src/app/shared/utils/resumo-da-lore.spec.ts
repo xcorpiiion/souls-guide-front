@@ -13,7 +13,17 @@ describe('resumoDaLore', () => {
     expect(r.citacao).toEqual({
       trecho: 'Se você ler isto, não volte pela ponte.',
       origem: 'Bilhete dobrado no armário · nota, Cap. 1',
+      tipo: 'nota',
+      titulo: 'Bilhete dobrado no armário',
     });
+  });
+
+  it('junta quem as citações citam, sem repetir', () => {
+    const r = resumoDaLore(
+      '> Dia 3.\n— Diário · documento, Cap. 1 · por Laura\n\n' +
+        '> JAMES: Mary?\nLAURA: Não.\n— Ponte · diálogo, Cap. 2 · com James, Laura',
+    );
+    expect(r.pessoas).toEqual(['Laura', 'James']);
   });
 
   it('artigo escrito à mão: pula título e imagem, e tira a ênfase', () => {

@@ -12,24 +12,36 @@
     />
   </label>
 
-  <div class="categorias" role="group" aria-label="do que a lore fala">
-    @for (c of categorias; track c.id) {
-      <button
-        type="button"
-        class="categoria"
-        [class.categoria--ativa]="categoria() === c.id"
-        [attr.aria-pressed]="categoria() === c.id"
-        (click)="escolherCategoria(c.id)"
-      >
-        {{ c.rotulo }}
-      </button>
-    }
-  </div>
-
   <a class="montar" routerLink="/lore/new" [queryParams]="jogoId() ? { jogo: jogoId() } : {}">
     <i class="ti ti-book-upload" aria-hidden="true"></i> montar lore
   </a>
 </div>
+
+@if (pessoas().length) {
+  <div class="categorias" role="group" aria-label="sobre quem">
+    <span class="categorias__rotulo">sobre quem</span>
+    <button
+      type="button"
+      class="categoria"
+      [class.categoria--ativa]="pessoa() === null"
+      [attr.aria-pressed]="pessoa() === null"
+      (click)="pessoa.set(null)"
+    >
+      todas
+    </button>
+    @for (p of pessoas(); track p.nome) {
+      <button
+        type="button"
+        class="categoria"
+        [class.categoria--ativa]="pessoa() === p.nome"
+        [attr.aria-pressed]="pessoa() === p.nome"
+        (click)="escolherPessoa(p.nome)"
+      >
+        {{ p.nome }}
+      </button>
+    }
+  </div>
+}
 
 @if (!carregando() || lores().length > 0) {
   <p class="contagem" aria-live="polite">
@@ -64,12 +76,12 @@
       </li>
     }
   </ol>
-} @else if (lores().length === 0) {
+} @else if (visiveis().length === 0) {
   <div class="estado">
     <i class="ti ti-book estado__icone" aria-hidden="true"></i>
     @if (buscando()) {
       <h2 class="estado__titulo">nenhuma lore com esse filtro</h2>
-      <p class="estado__texto">tente outra palavra, ou tire o filtro de categoria.</p>
+      <p class="estado__texto">tente outra palavra, ou tire o filtro de quem a lore cita.</p>
     } @else {
       <h2 class="estado__titulo">
         ninguém publicou lore {{ jogoNome() ? 'de ' + jogoNome() : '' }} ainda
@@ -94,7 +106,7 @@
   </div>
 } @else {
   <ol class="lista">
-    @for (l of lores(); track l.id) {
+    @for (l of visiveis(); track l.id) {
       <li>
         <a class="lore" [routerLink]="['/lore', l.ref]">
           <span class="lore__meta">
@@ -104,9 +116,7 @@
               [class.selo--canonica]="l.status === 'CANONICO'"
               >{{ rotuloDoStatus(l.status) }}</span
             >
-            <span>{{ l.category === 'CHARACTER' ? 'de personagem' : 'do mundo' }}</span>
             @if (!jogoNome()) {
-              <span class="lore__ponto" aria-hidden="true">·</span>
               <span>{{ l.gameName }}</span>
             }
             @if (l.resumo?.citacoes) {
@@ -136,10 +146,21 @@
 
           @if (l.resumo?.citacao; as c) {
             <span class="lore__citacao">
-              <span class="lore__trecho">{{ c.trecho }}</span>
-              @if (c.origem) {
-                <span class="lore__origem">— {{ c.origem }}</span>
+              @if (c.tipo) {
+                <span class="lore__tipo">
+                  <i [class]="iconeDoTipo[c.tipo]" aria-hidden="true"></i> {{ c.tipo }}
+                </span>
               }
+              <span class="lore__trecho">{{ c.trecho }}</span>
+              @if (c.titulo || c.origem) {
+                <span class="lore__origem">— {{ c.titulo || c.origem }}</span>
+              }
+            </span>
+          }
+
+          @if (l.resumo?.pessoas?.length) {
+            <span class="lore__quem">
+              <i class="ti ti-users" aria-hidden="true"></i> cita {{ l.resumo!.pessoas.join(', ') }}
             </span>
           }
         </a>

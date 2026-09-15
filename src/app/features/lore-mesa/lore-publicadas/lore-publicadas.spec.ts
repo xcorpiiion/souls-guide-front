@@ -80,7 +80,28 @@ describe('LorePublicadas', () => {
 
   it('filtra pelo id do jogo da mesa', () => {
     criar();
-    expect(service.list).toHaveBeenCalledWith(0, 10, undefined, '53', undefined);
+    expect(service.list).toHaveBeenCalledWith(0, 10, undefined, '53');
+  });
+
+  /** "Do mundo / de personagem" era marcado à mão; quem a lore cita sai das citações. */
+  it('"sobre quem" lista quem as lores citam, e filtra por essa pessoa', () => {
+    service.list.mockReturnValue(
+      pagina([
+        lore(1, '2', '> JAMES: Mary?\n— Ponte · diálogo, Cap. 2 · com James, Laura\n\num.'),
+        lore(2, '2', '> Dia 3.\n— Diário · documento, Cap. 1 · por Laura\n\ndois.'),
+      ]),
+    );
+    const f = criar();
+    const el = f.nativeElement as HTMLElement;
+    const chips = Array.from(el.querySelectorAll<HTMLButtonElement>('.categoria'));
+    expect(chips.map((c) => c.textContent?.trim())).toEqual(['todas', 'Laura', 'James']);
+    expect(texto(f)).toContain('cita James, Laura');
+    expect(texto(f)).toContain('diálogo');
+
+    chips.find((c) => c.textContent?.trim() === 'James')!.click();
+    f.detectChanges();
+    expect(el.querySelectorAll('.lore')).toHaveLength(1);
+    expect(texto(f)).toContain('Lore 1');
   });
 
   /** A lista mostrava "> Se você ler isto… — Bilhete…": o markdown cru da citação. */
@@ -88,7 +109,8 @@ describe('LorePublicadas', () => {
     const t = texto(criar());
     expect(t).toContain('O bilhete avisa.');
     expect(t).toContain('Se você ler isto, não volte pela ponte.');
-    expect(t).toContain('— Bilhete · nota, Cap. 1');
+    expect(t).toContain('— Bilhete');
+    expect(t).toContain('nota');
     expect(t).not.toContain('>');
     expect(t).toContain('1 citação');
   });
@@ -116,7 +138,7 @@ describe('LorePublicadas', () => {
     vi.advanceTimersByTime(250);
     f.detectChanges();
 
-    expect(service.list).toHaveBeenLastCalledWith(1, 10, undefined, '53', undefined);
+    expect(service.list).toHaveBeenLastCalledWith(1, 10, undefined, '53');
     expect((f.nativeElement as HTMLElement).querySelectorAll('.lore')).toHaveLength(2);
   });
 });
