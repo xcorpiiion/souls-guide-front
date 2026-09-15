@@ -105,15 +105,4 @@ export class Search implements OnInit, OnDestroy {
     };
     return map[s] ?? s;
   }
-
-  protected categoryLabel(c: string): string {
-    const map: Record<string, string> = {
-      NPC: 'NPC',
-      LOCACAO: 'locação',
-      ITEM: 'item',
-      EVENTO: 'evento',
-      TEORIA: 'teoria',
-    };
-    return map[c] ?? c;
-  }
 }

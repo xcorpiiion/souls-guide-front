@@ -26,16 +26,10 @@ export interface CreateLoreRequest {
 export class LoreService {
   private readonly api = inject(HttpService).resource('lore');
 
-  list(
-    page = 0,
-    size = 20,
-    q?: string,
-    gameId?: string,
-    category?: string,
-  ): Observable<Page<LoreSummary>> {
+  list(page = 0, size = 20, q?: string, gameId?: string): Observable<Page<LoreSummary>> {
     // Os `undefined` saem da query sozinhos; `page = 0` fica.
     return this.api
-      .page<LoreApi>('', { page, size, q, gameId, category })
+      .page<LoreApi>('', { page, size, q, gameId })
       .pipe(map((p) => mapPage(p, loreApiToSummary)));
   }
 

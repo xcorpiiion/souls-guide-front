@@ -43,10 +43,25 @@ describe('AtualizacaoDoApp', () => {
 
     // `location.reload` não existe em jsdom de forma substituível; o serviço lê o
     // DOCUMENT justamente para isto ser trocável no teste.
+    abriu = [];
+    visivel = 'visible';
     Object.defineProperty(servico as unknown as { doc: Document }, 'doc', {
-      value: { location: { reload: () => recarregou++ } },
+      value: {
+        location: { reload: () => recarregou++, assign: (url: string) => abriu.push(url) },
+        get visibilityState() {
+          return visivel;
+        },
+        addEventListener: (_: string, fn: () => void) => (aoVoltar = fn),
+        removeEventListener: () => undefined,
+      },
     });
+    // Por padrão, o app subiu há tempo: o caso "primeiros segundos" tem teste próprio.
+    Object.defineProperty(servico, 'subiuEm', { value: Date.now() - 60_000 });
   });
+
+  let abriu: string[];
+  let visivel: string;
+  let aoVoltar: () => void;
 
   it('não faz nada quando o service worker está desligado', async () => {
     sw.isEnabled = false;
@@ -71,14 +86,46 @@ describe('AtualizacaoDoApp', () => {
 
   // Recarregar no meio do uso interromperia quem está escrevendo um guia; nunca
   // recarregar é o que produz "arrumei ontem e o site continua igual".
-  it('recarrega na navegação seguinte ao aviso', async () => {
+  it('na navegação seguinte ao aviso, abre o destino já na versão nova', async () => {
     TestBed.runInInjectionContext(() => servico.iniciar());
 
     sw.versionUpdates.next({ type: 'VERSION_READY' });
     await router.navigateByUrl('/a');
     await Promise.resolve();
+    await Promise.resolve();
 
     expect(sw.activateUpdate).toHaveBeenCalledTimes(1);
+    // A tela velha não é o destino: quem clicou num link vai direto à versão nova dele.
+    expect(abriu).toEqual(['/a']);
+  });
+
+  /** O caso do editor antigo: clicou antes de a versão nova terminar de baixar. */
+  it('versão pronta nos primeiros segundos troca na hora, sem esperar navegação', async () => {
+    Object.defineProperty(servico, 'subiuEm', { value: Date.now() });
+    TestBed.runInInjectionContext(() => servico.iniciar());
+
+    sw.versionUpdates.next({ type: 'VERSION_READY' });
+    await Promise.resolve();
+
+    expect(recarregou).toBe(1);
+  });
+
+  it('aba escondida troca na hora; ninguém está olhando', async () => {
+    visivel = 'hidden';
+    TestBed.runInInjectionContext(() => servico.iniciar());
+
+    sw.versionUpdates.next({ type: 'VERSION_READY' });
+    await Promise.resolve();
+
+    expect(recarregou).toBe(1);
+  });
+
+  it('aba aberta pergunta de novo ao voltar a ela', () => {
+    TestBed.runInInjectionContext(() => servico.iniciar());
+
+    aoVoltar();
+
+    expect(sw.checkForUpdate).toHaveBeenCalledTimes(1);
   });
 
   it('não recarrega em navegação quando não houve versão nova', async () => {

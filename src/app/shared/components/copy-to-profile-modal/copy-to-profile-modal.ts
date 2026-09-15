@@ -1,11 +1,9 @@
-import { ChangeDetectionStrategy, Component, input, output, signal } from '@angular/core';
-import { CopyLoreFilterType } from '../../../core/services/personal-lore.service';
+import { ChangeDetectionStrategy, Component, input, output } from '@angular/core';
 
 export type CopyContentType = 'quest' | 'lore';
 
 export interface CopyConfirmEvent {
   replaceExistingId?: number;
-  filterType?: CopyLoreFilterType;
 }
 
 @Component({
@@ -24,12 +22,9 @@ export class CopyToProfileModal {
   readonly confirm = output<CopyConfirmEvent>();
   readonly dismissed = output<void>();
 
-  protected readonly loreFilter = signal<CopyLoreFilterType>('all');
-
   protected onConfirm(): void {
     this.confirm.emit({
       replaceExistingId: this.hasConflict() ? this.conflictId() : undefined,
-      filterType: this.contentType() === 'lore' ? this.loreFilter() : undefined,
     });
   }
 }

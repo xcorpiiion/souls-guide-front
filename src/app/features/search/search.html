@@ -88,9 +88,11 @@
               <div class="sr__card-body">
                 <span class="sr__card-title">{{ article.title }}</span>
                 <span class="sr__card-meta"
-                  >{{ article.gameName }} · {{ article.readMinutes }} min ·
-                  {{ categoryLabel(article.category) }}</span
-                >
+                  >{{ article.gameName }} · {{ article.readMinutes }} min
+                  @if (article.resumo?.pessoas?.length) {
+                    · cita {{ article.resumo!.pessoas.join(', ') }}
+                  }
+                </span>
               </div>
               <div class="sr__card-badges">
                 <span class="sr__badge sr__badge--game sr__badge--{{ article.gameId }}">{{

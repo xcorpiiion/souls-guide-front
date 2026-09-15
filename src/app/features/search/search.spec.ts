@@ -28,7 +28,6 @@ const LORE_GEHRMAN: LoreSummary = {
   title: 'Gehrman, o Primeiro Caçador',
   gameId: '2',
   gameName: 'Bloodborne',
-  category: 'CHARACTER',
   status: 'CANONICO',
   excerpt: '...',
   votes: 0,

@@ -51,29 +51,22 @@ describe('LoreService', () => {
       req.flush(PAGE_STUB);
     });
 
-    it('inclui category quando fornecido', () => {
-      service.list(0, 12, undefined, undefined, 'CHARACTER').subscribe();
-      const req = http.expectOne((r) => r.url === BASE);
-      expect(req.request.params.get('category')).toBe('CHARACTER');
-      req.flush(PAGE_STUB);
-    });
-
     it('envia todos os filtros juntos', () => {
-      service.list(1, 12, 'ranni', '1', 'WORLD').subscribe();
+      service.list(1, 12, 'ranni', '1').subscribe();
       const req = http.expectOne((r) => r.url === BASE);
       expect(req.request.params.get('page')).toBe('1');
       expect(req.request.params.get('q')).toBe('ranni');
       expect(req.request.params.get('gameId')).toBe('1');
-      expect(req.request.params.get('category')).toBe('WORLD');
+      // Mundo/personagem saiu com o modelo antigo (ADR 0011).
+      expect(req.request.params.has('category')).toBe(false);
       req.flush(PAGE_STUB);
     });
 
-    it('não inclui q, gameId ou category quando undefined', () => {
+    it('não inclui q nem gameId quando undefined', () => {
       service.list(0, 12).subscribe();
       const req = http.expectOne((r) => r.url === BASE);
       expect(req.request.params.has('q')).toBe(false);
       expect(req.request.params.has('gameId')).toBe(false);
-      expect(req.request.params.has('category')).toBe(false);
       req.flush(PAGE_STUB);
     });
 
@@ -108,7 +101,7 @@ describe('LoreService', () => {
         });
       expect(result.content[0].id).toBe('7');
       expect(result.content[0].title).toBe('Ranni');
-      expect(result.content[0].category).toBe('CHARACTER');
+      expect(result.content[0].gameName).toBe('Elden Ring');
     });
   });
 

@@ -8,8 +8,10 @@ import { ResumoDaLore, resumoDaLore } from '../utils/resumo-da-lore';
 
 // Enums do contrato — fonte da verdade: lib canonico
 export type LoreStatus = CanonicoLoreStatus;
-export type LoreCategory = LoreType;
-/** O tipo como vai para a API. */
+/**
+ * O tipo como vai para a API. A tela não pergunta mais "do mundo ou de personagem" (ADR 0011):
+ * quem a lore cita sai das citações, e o servidor recebe `WORLD`.
+ */
 export type LoreTypeApi = LoreType;
 
 // Shape retornado pela API — LoreArticleDTO do canonico
@@ -22,7 +24,6 @@ export interface LoreSummary {
   title: string;
   gameId: string;
   gameName: string;
-  category: LoreCategory;
   status: LoreStatus;
   excerpt: string;
   /** Parágrafo, primeira citação e quantas citações, lidos do markdown. Ausente em mock antigo. */
@@ -55,7 +56,6 @@ export function loreApiToSummary(l: LoreApi): LoreSummary {
     title: l.title,
     gameId: String(l.gameId),
     gameName: l.gameName,
-    category: l.type === 'CHARACTER' ? 'CHARACTER' : 'WORLD',
     status: l.status,
     // O markdown cru saía na listagem com "> " e a linha de origem da citação no meio.
     excerpt: resumo.paragrafo || resumo.citacao?.trecho || '',
@@ -72,21 +72,4 @@ export function loreApiToSummary(l: LoreApi): LoreSummary {
     followerCount: l.followerCount ?? 0,
     userIsFollowing: l.userIsFollowing ?? false,
   };
-}
-
-export interface LoreSection {
-  heading: string;
-  body: string;
-  quote?: string;
-}
-
-export interface LoreRelatedQuest {
-  questId: string;
-  gameId: string;
-  title: string;
-}
-
-export interface LoreArticle extends LoreSummary {
-  sections: LoreSection[];
-  relatedQuests: LoreRelatedQuest[];
 }

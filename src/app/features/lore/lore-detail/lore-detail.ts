@@ -315,29 +315,27 @@ export class LoreDetail implements OnInit {
 
   protected onCopyConfirm(event: CopyConfirmEvent): void {
     this.copying.set(true);
-    this.personalLoreService
-      .copyToProfile(this.loreId, event.filterType ?? 'all', event.replaceExistingId)
-      .subscribe({
-        next: (created) => {
-          this.copying.set(false);
+    this.personalLoreService.copyToProfile(this.loreId, event.replaceExistingId).subscribe({
+      next: (created) => {
+        this.copying.set(false);
+        this.showCopyModal.set(false);
+        this.toast.success('Lore copiado!', 'O artigo foi adicionado ao seu perfil.');
+        this.router.navigate(['/profile', 'lore', created.id], {
+          queryParams: { personal: 'true' },
+        });
+      },
+      error: (err: HttpErrorResponse) => {
+        this.copying.set(false);
+        if (err.status === 409) {
+          this.copyConflictId.set(err.error?.conflictingId);
+        } else if (err.status === 403) {
           this.showCopyModal.set(false);
-          this.toast.success('Lore copiado!', 'O artigo foi adicionado ao seu perfil.');
-          this.router.navigate(['/profile', 'lore', created.id], {
-            queryParams: { personal: 'true' },
-          });
-        },
-        error: (err: HttpErrorResponse) => {
-          this.copying.set(false);
-          if (err.status === 409) {
-            this.copyConflictId.set(err.error?.conflictingId);
-          } else if (err.status === 403) {
-            this.showCopyModal.set(false);
-            this.toast.error('Sem permissão', 'Este conteúdo não permite cópias.');
-          } else {
-            this.showCopyModal.set(false);
-            this.toast.error('Erro', 'Erro ao copiar lore. Tente novamente.');
-          }
-        },
-      });
+          this.toast.error('Sem permissão', 'Este conteúdo não permite cópias.');
+        } else {
+          this.showCopyModal.set(false);
+          this.toast.error('Erro', 'Erro ao copiar lore. Tente novamente.');
+        }
+      },
+    });
   }
 }

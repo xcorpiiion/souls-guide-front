@@ -9,8 +9,6 @@ import {
 } from '../../shared/models/lore-article.model';
 import { LikeResponse } from './personal-quest.service';
 
-export type CopyLoreFilterType = 'all' | 'world' | 'character';
-
 export interface CreatePersonalLoreRequest {
   title: string;
   type: LoreTypeApi;
@@ -34,7 +32,7 @@ export interface UpdatePersonalLoreRequest {
 }
 
 export interface CopyLoreToProfileRequest {
-  filterType: CopyLoreFilterType;
+  filterType: 'all';
   replaceExistingId?: number;
 }
 
@@ -64,13 +62,13 @@ export class PersonalLoreService {
     return this.api.delete<void>(`personal/${id}`);
   }
 
-  copyToProfile(
-    loreId: string,
-    filterType: CopyLoreFilterType,
-    replaceExistingId?: number,
-  ): Observable<LoreApi> {
+  /**
+   * A cópia é sempre do artigo inteiro. "Só a lore do mundo / só a de personagem" era do modelo
+   * antigo, e saiu com ele (ADR 0011): o servidor ainda pede o campo, e recebe "all".
+   */
+  copyToProfile(loreId: string, replaceExistingId?: number): Observable<LoreApi> {
     const body: CopyLoreToProfileRequest = {
-      filterType,
+      filterType: 'all',
       ...(replaceExistingId ? { replaceExistingId } : {}),
     };
     return this.api.post<LoreApi>(`${loreId}/copy-to-profile`, body);

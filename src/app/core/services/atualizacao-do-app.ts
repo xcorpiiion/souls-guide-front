@@ -1,6 +1,6 @@
-import { DOCUMENT, inject, Injectable } from '@angular/core';
+import { DestroyRef, DOCUMENT, inject, Injectable } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { NavigationEnd, Router } from '@angular/router';
+import { GuardsCheckEnd, Router } from '@angular/router';
 import { SwUpdate, VersionReadyEvent } from '@angular/service-worker';
 import { filter } from 'rxjs/operators';
 import { ToastService } from '@xcorpiiion/ui';
@@ -22,6 +22,20 @@ import { ToastService } from '@xcorpiiion/ui';
  * O meio-termo é recarregar na **próxima navegação**, que é um momento em que a pessoa já
  * está trocando de tela e não perde nada — com um aviso antes, para a recarga não parecer
  * um defeito.
+ *
+ * <h2>Três buracos que deixavam a versão velha no ar (15/09/2026)</h2>
+ * "Descartei o editor antigo e ele continua aparecendo": o servidor não tinha uma linha dele,
+ * e o navegador seguia mostrando.
+ *
+ * - **A navegação vinha antes do aviso.** O service worker só descobre a versão nova depois de
+ *   o app subir, e baixá-la leva segundos. Quem clicava nesse meio-tempo abria a tela velha, e
+ *   a recarga ficava para a navegação seguinte. Agora, versão que fica pronta nos primeiros
+ *   segundos troca na hora: ninguém escreveu nada ainda.
+ * - **A recarga vinha depois da tela.** Recarregar no fim da navegação mostrava a tela velha
+ *   primeiro. Agora a navegação, já passada pelos guards (inclusive o de texto não salvo), vira
+ *   carregamento da URL de destino na versão nova.
+ * - **Aba aberta não perguntava de novo.** O service worker só confere o `ngsw.json` quando o
+ *   app sobe. Agora confere ao voltar para a aba e a cada dez minutos.
  */
 @Injectable({ providedIn: 'root' })
 export class AtualizacaoDoApp {
@@ -35,8 +49,15 @@ export class AtualizacaoDoApp {
   private readonly router = inject(Router);
   private readonly toast = inject(ToastService);
   private readonly doc = inject(DOCUMENT);
+  private readonly destroyRef = inject(DestroyRef);
 
   private pendente = false;
+
+  /** Até quando, depois de o app subir, a versão nova troca sem esperar navegação. */
+  private static readonly JANELA_DA_SUBIDA_MS = 15_000;
+  private static readonly CONFERIR_A_CADA_MS = 10 * 60_000;
+
+  private readonly subiuEm = Date.now();
 
   /**
    * Uma tentativa de recuperação por aba.
@@ -63,6 +84,12 @@ export class AtualizacaoDoApp {
         takeUntilDestroyed(),
       )
       .subscribe(() => {
+        const acabouDeSubir = Date.now() - this.subiuEm < AtualizacaoDoApp.JANELA_DA_SUBIDA_MS;
+        if (acabouDeSubir || this.doc.visibilityState === 'hidden') {
+          // Ninguém está no meio de nada: nos primeiros segundos, ou com a aba escondida.
+          void updates.activateUpdate().then(() => this.doc.location.reload());
+          return;
+        }
         this.pendente = true;
         this.toast.info(
           'Nova versão disponível',
@@ -71,19 +98,31 @@ export class AtualizacaoDoApp {
         );
       });
 
+    // Depois dos guards: o de texto não salvo já teve a chance de segurar a pessoa na tela.
     this.router.events
       .pipe(
-        filter((e) => e instanceof NavigationEnd),
+        filter((e): e is GuardsCheckEnd => e instanceof GuardsCheckEnd && e.shouldActivate),
         takeUntilDestroyed(),
       )
-      .subscribe(() => {
+      .subscribe((e) => {
         if (!this.pendente) return;
 
-        // `activateUpdate` troca a versão que o service worker serve; sem o reload em
-        // seguida, a aba atual continuaria com o bundle antigo em memória.
+        // `activateUpdate` troca a versão que o service worker serve; o carregamento em
+        // seguida abre o destino já nela, em vez de mostrar a tela velha e recarregar depois.
         this.pendente = false;
-        void updates.activateUpdate().then(() => this.doc.location.reload());
+        void updates.activateUpdate().then(() => this.doc.location.assign(e.urlAfterRedirects));
       });
+
+    const conferir = () => void updates.checkForUpdate().catch(() => undefined);
+    const aoVoltar = () => {
+      if (this.doc.visibilityState === 'visible') conferir();
+    };
+    this.doc.addEventListener('visibilitychange', aoVoltar);
+    const intervalo = setInterval(conferir, AtualizacaoDoApp.CONFERIR_A_CADA_MS);
+    this.destroyRef.onDestroy(() => {
+      this.doc.removeEventListener('visibilitychange', aoVoltar);
+      clearInterval(intervalo);
+    });
   }
 
   /**

@@ -31,44 +31,6 @@
     </p>
   }
 
-  @if (contentType() === 'lore' && !hasConflict()) {
-    <div class="cpm__filter">
-      <p class="cpm__filter-label">o que deseja copiar?</p>
-      <div class="cpm__filter-opts">
-        <label class="cpm__filter-opt">
-          <input
-            type="radio"
-            name="loreFilter"
-            value="all"
-            [checked]="loreFilter() === 'all'"
-            (change)="loreFilter.set('all')"
-          />
-          <span>artigo completo</span>
-        </label>
-        <label class="cpm__filter-opt">
-          <input
-            type="radio"
-            name="loreFilter"
-            value="character"
-            [checked]="loreFilter() === 'character'"
-            (change)="loreFilter.set('character')"
-          />
-          <span>apenas lore de personagem</span>
-        </label>
-        <label class="cpm__filter-opt">
-          <input
-            type="radio"
-            name="loreFilter"
-            value="world"
-            [checked]="loreFilter() === 'world'"
-            (change)="loreFilter.set('world')"
-          />
-          <span>apenas lore do mundo</span>
-        </label>
-      </div>
-    </div>
-  }
-
   <div class="cpm__actions">
     <button
       type="button"

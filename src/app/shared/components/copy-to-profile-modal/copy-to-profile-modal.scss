@@ -47,54 +47,6 @@
   margin-bottom: v.$space-5;
 }
 
-// ─── Filtro de lore ───────────────────────────────────────────────────────────
-.cpm__filter {
-  margin-bottom: v.$space-5;
-}
-
-.cpm__filter-label {
-  font-size: v.$font-size-xs;
-  font-weight: 500;
-  color: v.$color-text-muted;
-  text-transform: uppercase;
-  letter-spacing: 0.07em;
-  margin-bottom: v.$space-3;
-}
-
-.cpm__filter-opts {
-  display: flex;
-  flex-direction: column;
-  gap: v.$space-2;
-}
-
-.cpm__filter-opt {
-  display: flex;
-  align-items: center;
-  gap: v.$space-3;
-  padding: v.$space-3;
-  border: 0.5px solid v.$color-border;
-  border-radius: v.$radius-md;
-  cursor: pointer;
-  font-size: v.$font-size-sm;
-  color: v.$color-text-muted;
-  transition:
-    border-color v.$transition-fast,
-    color v.$transition-fast;
-
-  input[type='radio'] {
-    accent-color: v.$color-gold;
-    width: 14px;
-    height: 14px;
-    flex-shrink: 0;
-  }
-
-  &:has(input:checked) {
-    border-color: v.$color-gold;
-    color: v.$color-text;
-    background: rgba(v.$color-gold, 0.04);
-  }
-}
-
 // ─── Actions ──────────────────────────────────────────────────────────────────
 .cpm__actions {
   display: flex;
