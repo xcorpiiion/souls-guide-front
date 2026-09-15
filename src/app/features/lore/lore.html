@@ -3,7 +3,9 @@
   <header class="lr__head">
     <div class="lr__head-inner">
       <div class="lr__head-top">
-        <h1 class="lr__title">lore</h1>
+        @if (!embutida()) {
+          <h1 class="lr__title">lore</h1>
+        }
         <a routerLink="/lore/new" class="lr__btn-new"> <i class="ti ti-plus"></i> montar lore </a>
       </div>
 

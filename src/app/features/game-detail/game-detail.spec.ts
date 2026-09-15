@@ -59,11 +59,7 @@ const questServiceMock = { list: vi.fn(() => of(emptyPage)) };
 const loreServiceMock = { list: vi.fn(() => of(emptyPage)) };
 const endingServiceMock = { listByGame: vi.fn(() => of([])) };
 
-function createFixture(
-  gameId: string,
-  jogo: Game = MOCK_GAME,
-  query: Record<string, string> = {},
-): ComponentFixture<GameDetail> {
+function createFixture(gameId: string, jogo: Game = MOCK_GAME): ComponentFixture<GameDetail> {
   TestBed.configureTestingModule({
     imports: [GameDetail],
     providers: [
@@ -74,7 +70,7 @@ function createFixture(
         useValue: {
           snapshot: {
             paramMap: convertToParamMap({ id: gameId }),
-            queryParamMap: convertToParamMap(query),
+            queryParamMap: convertToParamMap({}),
           },
         },
       },
@@ -241,39 +237,34 @@ describe('GameDetail', () => {
   describe('as seções saem do que o jogo declara ter', () => {
     it('mostra só as abas das capacidades declaradas', () => {
       const fixture = createFixture('1', jogoCom('LORE', 'ENDINGS'));
-      expect(abas(fixture)).toEqual(['lore', 'finais', 'meu', 'contribuidores']);
+      expect(abas(fixture)).toEqual(['lore', 'finais', 'contribuidores']);
     });
 
     /**
-     * O arquivo não é capacidade: é o caderno de quem joga, e Silent Hill sem lore declarada
-     * continua tendo nota para guardar. Ver ADR 0032 do souls-guide-api.
+     * O arquivo mora em /lore (ADR 0010 do front): aqui não é aba, é o atalho que já leva
+     * no jogo. Continua valendo para quem não declara lore — Silent Hill tem nota para guardar.
      */
-    it('mostra "meu arquivo" mesmo em jogo que não declara lore', () => {
+    it('"meu arquivo" é atalho para a lore do jogo, e não aba', () => {
       const fixture = createFixture('1', jogoCom('ENDINGS'));
-      expect(abas(fixture)).toContain('meu');
+      expect(abas(fixture)).not.toContain('meu');
+      const atalho = Array.from<HTMLAnchorElement>(
+        fixture.nativeElement.querySelectorAll('.game-detail__actions a'),
+      ).find((a) => a.textContent?.includes('meu arquivo'));
+      expect(atalho?.getAttribute('href')).toBe('/lore?jogo=1');
     });
 
     /** Fora do escopo o jogo é ficha mínima, e o servidor recusa achado ali (ADR 0027). */
-    it('esconde "meu arquivo" de jogo fora do escopo', () => {
+    it('esconde o atalho do arquivo de jogo fora do escopo', () => {
       const fixture = createFixture('1', { ...jogoCom('LORE'), dentroDoEscopo: false });
-      expect(abas(fixture)).not.toContain('meu');
+      const acoes: string =
+        fixture.nativeElement.querySelector('.game-detail__actions').textContent;
+      expect(acoes).not.toContain('meu arquivo');
     });
 
     /**
      * `quests` era o valor inicial fixo do sinal. Silent Hill não tem grafo de quest, e
      * abriria numa aba que não está nem no tablist — página em branco por padrão.
      */
-    /** `?aba=arquivo` é por onde a nova lore manda quem ainda não tem achado. */
-    it('abre na aba pedida pela URL', () => {
-      const fixture = createFixture('1', jogoCom('LORE', 'ENDINGS'), { aba: 'arquivo' });
-      expect(fixture.componentInstance['activeTab']()).toBe('arquivo');
-    });
-
-    it('ignora aba da URL que o jogo não tem', () => {
-      const fixture = createFixture('1', jogoCom('LORE'), { aba: 'quests' });
-      expect(fixture.componentInstance['activeTab']()).toBe('lore');
-    });
-
     it('abre na primeira aba que existe, e não em quests', () => {
       const fixture = createFixture('1', jogoCom('LORE', 'ENDINGS'));
       expect(fixture.componentInstance['activeTab']()).toBe('lore');
@@ -318,7 +309,7 @@ describe('GameDetail', () => {
      */
     it('mostra tudo quando o jogo chega sem capacidade nenhuma', () => {
       const fixture = createFixture('1', jogoCom());
-      expect(abas(fixture)).toEqual(['quests', 'lore', 'finais', 'meu', 'contribuidores']);
+      expect(abas(fixture)).toEqual(['quests', 'lore', 'finais', 'contribuidores']);
     });
   });
 

@@ -7,6 +7,7 @@ import {
   OnInit,
   computed,
   inject,
+  input,
   signal,
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
@@ -45,6 +46,12 @@ export class Lore implements OnInit {
   private readonly gameService = inject(GameService);
   private readonly destroyRef = inject(DestroyRef);
   private readonly route = inject(ActivatedRoute);
+
+  /**
+   * Dentro da mesa de `/lore` (aba "publicadas"): o título e o nome do jogo já estão no
+   * topo da mesa, e repeti-los aqui empilharia dois cabeçalhos "lore".
+   */
+  readonly embutida = input(false);
 
   protected readonly categoryFilters = CATEGORY_FILTERS;
   protected readonly skeletonItems = Array.from({ length: PAGE_SIZE });

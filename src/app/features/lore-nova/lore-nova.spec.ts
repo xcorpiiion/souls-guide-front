@@ -1,7 +1,7 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { HttpErrorResponse } from '@angular/common/http';
 import { ActivatedRoute, Router, convertToParamMap, provideRouter } from '@angular/router';
-import { describe, beforeEach, afterEach, it, expect, vi } from 'vitest';
+import { describe, beforeEach, it, expect, vi } from 'vitest';
 import { BehaviorSubject, of, throwError } from 'rxjs';
 import { ToastService } from '@xcorpiiion/ui';
 import type { GameDTO, StoryArchiveDTO } from '@xcorpiiion/canonico';
@@ -38,7 +38,11 @@ const ARQUIVO: StoryArchiveDTO = {
 };
 
 let query: BehaviorSubject<ReturnType<typeof convertToParamMap>>;
-let games: { get: ReturnType<typeof vi.fn>; search: ReturnType<typeof vi.fn> };
+let games: {
+  get: ReturnType<typeof vi.fn>;
+  search: ReturnType<typeof vi.fn>;
+  list: ReturnType<typeof vi.fn>;
+};
 let arquivo: { archive: ReturnType<typeof vi.fn> };
 
 function criar(params: Record<string, string> = {}): ComponentFixture<LoreNova> {
@@ -77,14 +81,17 @@ describe('LoreNova', () => {
   beforeEach(() => {
     games = {
       get: vi.fn(() => of(JOGO)),
+      list: vi.fn(() =>
+        of({
+          content: [{ id: '7', ref: 'silent-hill-2', name: 'Silent Hill 2', shortName: 'SH2' }],
+        }),
+      ),
       search: vi.fn(() =>
         of([{ id: '7', ref: 'silent-hill-2', name: 'Silent Hill 2', shortName: 'SH2' }]),
       ),
     };
     arquivo = { archive: vi.fn(() => of(ARQUIVO)) };
   });
-
-  afterEach(() => vi.useRealTimers());
 
   it('sem jogo na URL, pergunta o jogo antes de tudo', () => {
     const f = criar();
@@ -93,15 +100,8 @@ describe('LoreNova', () => {
   });
 
   it('escolher um jogo grava na URL, para recarregar não voltar à busca', () => {
-    vi.useFakeTimers();
     const f = criar();
-    const campo = (f.nativeElement as HTMLElement).querySelector('input')!;
-    campo.value = 'silent';
-    campo.dispatchEvent(new Event('input'));
-    vi.advanceTimersByTime(300);
-    f.detectChanges();
-
-    (f.nativeElement as HTMLElement).querySelector<HTMLButtonElement>('.nova__jogo')!.click();
+    (f.nativeElement as HTMLElement).querySelector<HTMLButtonElement>('.jogo')!.click();
     expect(TestBed.inject(Router).navigate).toHaveBeenCalledWith([], {
       queryParams: { jogo: '7' },
     });
@@ -114,14 +114,14 @@ describe('LoreNova', () => {
     expect(texto(f)).toContain('Bilhete dobrado no armário');
   });
 
-  it('arquivo vazio manda registrar achado na aba do jogo, sem abrir página em branco', () => {
+  it('arquivo vazio manda registrar achado na mesa da lore, sem abrir página em branco', () => {
     arquivo.archive.mockReturnValue(of({ gameId: 7, findings: [], links: [] }));
     const f = criar({ jogo: '7' });
     expect(f.nativeElement.querySelector('app-montar-lore')).toBeNull();
     const link = (f.nativeElement as HTMLElement).querySelector<HTMLAnchorElement>(
       '.estado a.botao',
     )!;
-    expect(link.getAttribute('href')).toBe('/games/silent-hill-2?aba=arquivo');
+    expect(link.getAttribute('href')).toBe('/lore?jogo=silent-hill-2');
   });
 
   it('jogo fora do escopo não pergunta pelo arquivo', () => {

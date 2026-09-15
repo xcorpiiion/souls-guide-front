@@ -1,0 +1,34 @@
+<label class="rotulo" for="escolher-jogo">jogo</label>
+<div class="busca">
+  <i class="ti ti-search" aria-hidden="true"></i>
+  <input
+    #campo
+    id="escolher-jogo"
+    class="busca__campo"
+    type="search"
+    autocomplete="off"
+    placeholder="buscar jogo"
+    [value]="consulta()"
+    (input)="digitar(campo.value)"
+  />
+  @if (buscando()) {
+    <i class="ti ti-loader-2 giro" aria-hidden="true"></i>
+  }
+</div>
+
+@let lista = buscandoAlgo() ? resultados() : sugestoes();
+@if (lista.length > 0) {
+  <ul class="jogos">
+    @for (g of lista; track g.id) {
+      <li>
+        <button type="button" class="jogo" (click)="escolhido.emit(g)">
+          <span class="jogo__sigla">{{ g.shortName }}</span>
+          <span class="jogo__nome">{{ g.name }}</span>
+          <i class="ti ti-chevron-right" aria-hidden="true"></i>
+        </button>
+      </li>
+    }
+  </ul>
+} @else if (buscandoAlgo() && !buscando()) {
+  <p class="dica">nenhum jogo com esse nome.</p>
+}

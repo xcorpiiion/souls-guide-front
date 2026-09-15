@@ -296,7 +296,7 @@ export const routes: Routes = [
           'Artigos de lore dos souls-like: mundo, personagens, teorias e o que é canônico.',
       } satisfies SeoPagina,
     },
-    loadComponent: () => import('./features/lore/lore').then((m) => m.Lore),
+    loadComponent: () => import('./features/lore-mesa/lore-mesa').then((m) => m.LoreMesa),
   },
   {
     path: 'lore/new',

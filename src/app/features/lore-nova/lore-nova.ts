@@ -1,31 +1,27 @@
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
-import { Subject, debounceTime, distinctUntilChanged, of, switchMap } from 'rxjs';
+import { of, switchMap } from 'rxjs';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import type { StoryFindingDTO, StoryLinkDTO } from '@xcorpiiion/canonico';
 import { GameService } from '../../core/services/game.service';
 import { StoryArchiveService } from '../../core/services/story-archive.service';
 import { GameSummary, gameToSummary } from '../../shared/models/game.model';
 import { naoEncontrado, statusHttp } from '../../shared/utils/http-error';
+import { EscolherJogo } from '../../shared/components/escolher-jogo/escolher-jogo';
 import { decorar } from '../meu-arquivo/arquivo.model';
 import { MontarLore } from '../meu-arquivo/montar-lore/montar-lore';
 
 type Estado = 'escolher' | 'carregando' | 'pronto' | 'fora-do-escopo' | 'falhou';
 
 /**
- * `/lore/new`: a lore nasce do arquivo de achados. Ver o artboard `Meu arquivo -
- * redesenho.dc.html` (P7) e o ADR 0007 deste repositório.
+ * `/lore/new`: a lore nasce do arquivo de achados. Ver ADR 0008 e 0010.
  *
- * <p>O editor livre, que abria uma página em branco, saiu. Uma lore publicada é montada com o
- * que a pessoa registrou no arquivo daquele jogo — escolher, ordenar o fio, escrever entre as
- * citações —, e o fluxo é o mesmo componente da aba "meu arquivo", sem cópia.
- *
- * <p>O jogo vem em `?jogo=` quando a pessoa chega pela página dele. Sem ele, a tela pergunta
- * primeiro, e grava a escolha na URL: recarregar não pode devolver ao passo da busca.
+ * <p>O jogo vem em `?jogo=` quando a pessoa chega pela mesa ou pela página dele. Sem ele, a
+ * tela pergunta primeiro, e grava a escolha na URL: recarregar não pode devolver à busca.
  */
 @Component({
   selector: 'app-lore-nova',
-  imports: [RouterLink, MontarLore],
+  imports: [RouterLink, MontarLore, EscolherJogo],
   templateUrl: './lore-nova.html',
   styleUrl: './lore-nova.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -35,39 +31,15 @@ export class LoreNova {
   private readonly router = inject(Router);
   private readonly games = inject(GameService);
   private readonly arquivo = inject(StoryArchiveService);
-  private readonly busca$ = new Subject<string>();
 
   protected readonly estado = signal<Estado>('escolher');
   protected readonly jogo = signal<GameSummary | null>(null);
   protected readonly achados = signal<StoryFindingDTO[]>([]);
   protected readonly ligacoes = signal<StoryLinkDTO[]>([]);
 
-  protected readonly consulta = signal('');
-  protected readonly buscando = signal(false);
-  protected readonly resultados = signal<GameSummary[]>([]);
-
   protected readonly itens = computed(() => decorar(this.achados(), this.ligacoes()));
 
   constructor() {
-    this.busca$
-      .pipe(
-        debounceTime(300),
-        distinctUntilChanged(),
-        switchMap((q) => {
-          if (q.trim().length < 2) return of<GameSummary[]>([]);
-          this.buscando.set(true);
-          return this.games.search(q.trim());
-        }),
-        takeUntilDestroyed(),
-      )
-      .subscribe({
-        next: (lista) => {
-          this.resultados.set(lista);
-          this.buscando.set(false);
-        },
-        error: () => this.buscando.set(false),
-      });
-
     this.route.queryParamMap.pipe(takeUntilDestroyed()).subscribe((q) => {
       const ref = q.get('jogo');
       if (ref) this.abrir(ref);
@@ -75,13 +47,14 @@ export class LoreNova {
     });
   }
 
-  protected digitar(valor: string): void {
-    this.consulta.set(valor);
-    this.busca$.next(valor);
-  }
-
   protected escolher(jogo: GameSummary): void {
     void this.router.navigate([], { queryParams: { jogo: jogo.id } });
+  }
+
+  /** Voltar do montar lore leva à mesa do jogo, que é de onde os achados vêm. */
+  protected voltarParaAMesa(): void {
+    const g = this.jogo();
+    void this.router.navigate(['/lore'], g ? { queryParams: { jogo: g.ref } } : {});
   }
 
   protected trocarDeJogo(): void {

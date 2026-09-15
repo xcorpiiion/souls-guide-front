@@ -46,6 +46,16 @@
               <i class="ti ti-skull" aria-hidden="true"></i> chefes
             </a>
           }
+          <!-- O arquivo mora na lore (ADR 0010); daqui é só o atalho, já no jogo. -->
+          @if (g.dentroDoEscopo !== false) {
+            <a
+              class="game-detail__btn game-detail__btn--secondary"
+              routerLink="/lore"
+              [queryParams]="{ jogo: g.ref }"
+            >
+              <i class="ti ti-cards" aria-hidden="true"></i> meu arquivo
+            </a>
+          }
           @if (auth.isLoggedIn()) {
             <a
               class="game-detail__btn game-detail__btn--secondary"
@@ -189,19 +199,6 @@
           <span class="game-detail__tab-count">{{ endings().length }}</span>
         </button>
       }
-      <!-- Sem contagem: o arquivo é pedido só quando a aba abre, e um "0" antes disso
-           mentiria para quem já tem cinquenta achados guardados. -->
-      @if (g.dentroDoEscopo !== false) {
-        <button
-          class="game-detail__tab"
-          [class.game-detail__tab--active]="activeTab() === 'arquivo'"
-          role="tab"
-          type="button"
-          (click)="setTab('arquivo')"
-        >
-          meu arquivo
-        </button>
-      }
       <button
         class="game-detail__tab"
         [class.game-detail__tab--active]="activeTab() === 'contributors'"
@@ -326,7 +323,10 @@
         <div class="game-detail__section-header">
           <span class="game-detail__section-title">lore em destaque</span>
           <!-- Relativo, este link ia para /games/{ref}/lore, que não existe. -->
-          <a class="game-detail__section-link" routerLink="/lore" [queryParams]="{ jogo: g.id }"
+          <a
+            class="game-detail__section-link"
+            routerLink="/lore"
+            [queryParams]="{ jogo: g.ref, aba: 'publicadas' }"
             >ver todos →</a
           >
         </div>
@@ -419,12 +419,6 @@
             <p class="game-detail__empty">Nenhum final mapeado ainda.</p>
           }
         </div>
-      </div>
-    }
-
-    @if (activeTab() === 'arquivo') {
-      <div class="game-detail__content" role="tabpanel">
-        <app-meu-arquivo [gameId]="gameId()" [gameName]="g.name" />
       </div>
     }
 

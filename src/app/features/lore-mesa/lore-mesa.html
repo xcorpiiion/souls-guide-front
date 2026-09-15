@@ -1,0 +1,90 @@
+<section class="mesa">
+  <header class="mesa__topo">
+    <div class="mesa__linha">
+      <h1 class="mesa__titulo">lore</h1>
+      @if (jogo(); as g) {
+        <span class="mesa__jogo">
+          <span class="mesa__jogo-nome">{{ g.name }}</span>
+          <button type="button" class="mesa__trocar" (click)="trocarDeJogo()">trocar jogo</button>
+        </span>
+      }
+    </div>
+
+    <div class="mesa__abas" role="tablist" aria-label="lore">
+      <button
+        type="button"
+        role="tab"
+        class="mesa__aba"
+        [class.mesa__aba--ativa]="aba() === 'arquivo'"
+        [attr.aria-selected]="aba() === 'arquivo'"
+        (click)="irPara('arquivo')"
+      >
+        <i class="ti ti-cards" aria-hidden="true"></i> meu arquivo
+      </button>
+      <button
+        type="button"
+        role="tab"
+        class="mesa__aba"
+        [class.mesa__aba--ativa]="aba() === 'publicadas'"
+        [attr.aria-selected]="aba() === 'publicadas'"
+        (click)="irPara('publicadas')"
+      >
+        <i class="ti ti-book" aria-hidden="true"></i> publicadas
+      </button>
+    </div>
+  </header>
+
+  @if (aba() === 'arquivo') {
+    <div class="mesa__corpo" role="tabpanel">
+      @if (!jogoRef()) {
+        <div class="mesa__escolha">
+          <p class="mesa__texto">
+            o arquivo é por jogo: cada um tem os seus capítulos, os seus achados e as ligações entre
+            eles. de qual jogo é o que você encontrou?
+          </p>
+          <app-escolher-jogo (escolhido)="escolher($event)" />
+        </div>
+      } @else if (jogoNaoAbriu()) {
+        <div class="estado">
+          <i class="ti ti-device-gamepad-2 estado__icone" aria-hidden="true"></i>
+          <h2 class="estado__titulo">esse jogo não abriu</h2>
+          <p class="estado__texto">
+            ele não existe no catálogo, ou o servidor não respondeu agora.
+          </p>
+          <button type="button" class="botao botao--secundario" (click)="trocarDeJogo()">
+            escolher outro jogo
+          </button>
+        </div>
+      } @else if (jogo(); as g) {
+        @if (g.dentroDoEscopo === false) {
+          <div class="estado">
+            <i class="ti ti-books-off estado__icone" aria-hidden="true"></i>
+            <h2 class="estado__titulo">{{ g.name }} não tem guias aqui</h2>
+            <p class="estado__texto">
+              este jogo está no catálogo, mas fora das seções de guia, e por isso não tem arquivo.
+            </p>
+            <button type="button" class="botao botao--secundario" (click)="trocarDeJogo()">
+              escolher outro jogo
+            </button>
+          </div>
+        } @else {
+          <!-- Um por jogo: trocar de jogo monta o arquivo do zero, sem filtro nem ficha acesa do anterior. -->
+          @for (id of [g.id]; track id) {
+            <app-meu-arquivo [gameId]="g.id" [gameName]="g.name" />
+          }
+        }
+      } @else {
+        <p class="mesa__dica" aria-live="polite">
+          <i class="ti ti-loader-2 giro" aria-hidden="true"></i> abrindo o jogo…
+        </p>
+      }
+    </div>
+  } @else {
+    <div role="tabpanel">
+      <!-- A lista lê `?jogo=` ao montar; trocar de jogo a monta de novo, já filtrada. -->
+      @for (ref of [jogoRef()]; track ref) {
+        <app-lore [embutida]="true" />
+      }
+    </div>
+  }
+</section>

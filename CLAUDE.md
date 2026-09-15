@@ -74,11 +74,12 @@ src/
       quests/         # listagem, com filtro por jogo e status
       quest-detail/  quest-editor/  quest-conditions/  quest-map-organizer/
       rotas/  game-create/  not-found/
-      lore/           # artigos de lore com sistema de status
+      lore-mesa/      # /lore: a mesa — abas "meu arquivo" e "publicadas" (ADR 0010)
+      lore/           # a lista de artigos publicados, dentro da mesa
       lore-nova/      # /lore/new: escolhe o jogo e abre o "montar lore" do arquivo (ADR 0008)
       lore-edicao/    # /lore/:id/edit: a mesma escrita do montar lore, sem editor à parte (ADR 0009)
       lore-history/
-      meu-arquivo/    # a aba "meu arquivo" do jogo, o mural e o montar lore
+      meu-arquivo/    # o arquivo de achados (desenhado na mesa de /lore), o mural e o montar lore
       ending-detail/  # guia de final: passos por capítulo, inclusive AVOID
       profile/        # perfil do usuário, meus guias, doações
       usuario/  comunidade/  search/  login/  forgot-password/  reset-password/

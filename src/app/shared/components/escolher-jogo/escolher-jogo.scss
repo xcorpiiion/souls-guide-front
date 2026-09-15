@@ -1,0 +1,129 @@
+// A busca de jogo da lore. Valores do artboard "Meu arquivo - redesenho".
+:host {
+  display: block;
+  max-width: 560px;
+  color: #e8e0d0;
+}
+
+.rotulo {
+  display: block;
+  font-size: 11.5px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #6a655c;
+  margin: 0 0 8px;
+}
+
+.busca {
+  position: relative;
+
+  > i {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 16px;
+    color: #6a655c;
+  }
+
+  > i:first-child {
+    left: 13px;
+  }
+
+  > .giro {
+    right: 13px;
+  }
+
+  &__campo {
+    width: 100%;
+    font-family: inherit;
+    font-size: 14.5px;
+    color: #e8e0d0;
+    background: #1a1a1a;
+    border: 0.5px solid #2e2b26;
+    border-radius: 10px;
+    padding: 12px 14px 12px 38px;
+    min-height: 46px;
+    outline: none;
+
+    &::placeholder {
+      color: #6a655c;
+    }
+
+    &:focus {
+      border-color: #6a655c;
+    }
+  }
+}
+
+.jogos {
+  list-style: none;
+  margin: 8px 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.jogo {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 48px;
+  padding: 10px 12px;
+  font-family: inherit;
+  text-align: left;
+  color: #e8e0d0;
+  background: #1a1a1a;
+  border: 0.5px solid #2e2b26;
+  border-radius: 10px;
+  cursor: pointer;
+
+  &:hover,
+  &:focus-visible {
+    background: #242424;
+    border-color: #4a453f;
+  }
+
+  > i {
+    color: #4a453f;
+    font-size: 16px;
+  }
+
+  &__sigla {
+    width: 32px;
+    height: 32px;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 8px;
+    font-family: 'Cinzel', serif;
+    font-size: 11px;
+    color: #c9a84c;
+    background: rgb(201 168 76 / 12%);
+  }
+
+  &__nome {
+    flex: 1;
+    min-width: 0;
+    font-size: 14px;
+  }
+}
+
+.dica {
+  font-size: 13px;
+  color: #8a8278;
+  margin: 12px 0 0;
+}
+
+.giro {
+  display: inline-block;
+  animation: escolher-giro 0.9s linear infinite;
+}
+
+@keyframes escolher-giro {
+  to {
+    transform: translateY(-50%) rotate(360deg);
+  }
+}
