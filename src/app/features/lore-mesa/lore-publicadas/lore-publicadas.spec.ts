@@ -6,6 +6,7 @@ import { of } from 'rxjs';
 import { AuthService } from '@xcorpiiion/ng-core';
 import { LorePublicadas } from './lore-publicadas';
 import { LoreService } from '../../../core/services/lore.service';
+import { PersonalLoreService } from '../../../core/services/personal-lore.service';
 import { LoreApi, loreApiToSummary } from '../../../shared/models/lore-article.model';
 
 function lore(id: number, userId: string, content: string): LoreApi {
@@ -31,23 +32,26 @@ function lore(id: number, userId: string, content: string): LoreApi {
 }
 
 let service: { list: ReturnType<typeof vi.fn> };
+let pessoal: { listByUser: ReturnType<typeof vi.fn> };
 
 function pagina(lores: LoreApi[], total = lores.length) {
   return of({ content: lores.map(loreApiToSummary), totalElements: total, totalPages: 1 });
 }
 
-function criar(): ComponentFixture<LorePublicadas> {
+function criar(origem: 'comunidade' | 'perfil' = 'comunidade'): ComponentFixture<LorePublicadas> {
   TestBed.configureTestingModule({
     imports: [LorePublicadas],
     providers: [
       provideRouter([]),
       { provide: LoreService, useValue: service },
+      { provide: PersonalLoreService, useValue: pessoal },
       { provide: AuthService, useValue: { isLoggedIn: signal(true), userId: signal('3') } },
     ],
   });
   const f = TestBed.createComponent(LorePublicadas);
   f.componentRef.setInput('jogoId', '53');
   f.componentRef.setInput('jogoNome', 'Silent Hill f');
+  f.componentRef.setInput('origem', origem);
   f.detectChanges();
   vi.advanceTimersByTime(250);
   f.detectChanges();
@@ -77,6 +81,35 @@ describe('LorePublicadas', () => {
   });
 
   afterEach(() => vi.useRealTimers());
+
+  /** ADR 0012: a mesa do perfil lê as lores só da pessoa, com o mesmo desenho. */
+  describe('no perfil', () => {
+    beforeEach(() => {
+      const minha = (id: number, jogo: number, publica: boolean) => ({
+        ...loreApiToSummary(
+          lore(id, '3', '> JAMES: Mary?\n— Ponte · diálogo, Cap. 2 · com James\n\ntexto.'),
+        ),
+        gameId: String(jogo),
+        isPersonal: true,
+        isPublic: publica,
+      });
+      pessoal = {
+        listByUser: vi.fn(() => of([minha(7, 53, false), minha(8, 53, true), minha(9, 12, false)])),
+      };
+    });
+
+    it('mostra só as lores do perfil daquele jogo, e abre pelo perfil', () => {
+      const f = criar('perfil');
+      const el = f.nativeElement as HTMLElement;
+      expect(service.list).not.toHaveBeenCalled();
+      expect(pessoal.listByUser).toHaveBeenCalledWith('3');
+      const links = Array.from(el.querySelectorAll('a.lore')).map((a) => a.getAttribute('href'));
+      expect(links).toEqual(['/profile/lore/7', '/profile/lore/8']);
+      expect(texto(f)).toContain('só você');
+      expect(texto(f)).toContain('2 lores suas');
+      expect(el.querySelector('a.montar')?.getAttribute('href')).toBe('/profile/lore/new?jogo=53');
+    });
+  });
 
   it('filtra pelo id do jogo da mesa', () => {
     criar();

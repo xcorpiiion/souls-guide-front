@@ -11,9 +11,10 @@ import {
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { RouterLink } from '@angular/router';
-import { Subject, debounceTime, switchMap } from 'rxjs';
+import { Observable, Subject, debounceTime, map, switchMap } from 'rxjs';
 import { AuthService } from '@xcorpiiion/ng-core';
 import { LoreService } from '../../../core/services/lore.service';
+import { PersonalLoreService } from '../../../core/services/personal-lore.service';
 import { LoreSummary } from '../../../shared/models/lore-article.model';
 import { ICONE_DO_TIPO } from '../../../shared/utils/citacao-da-lore';
 
@@ -35,6 +36,10 @@ interface Pedido {
  * <p><b>O jogo é da mesa.</b> O filtro de jogo que a lista antiga tinha repetia o que já está
  * no topo, e os dois podiam discordar.
  *
+ * <p><b>A mesma lista serve à mesa do perfil</b> (`origem = perfil`, ADR 0012): lá ela mostra as
+ * lores só da pessoa naquele jogo, com o mesmo desenho — a lore do perfil é igual à publicada, e
+ * a diferença é a quem pertence.
+ *
  * <p>"Mostrar mais" no lugar de página numerada: numa lista de leitura, quem desce quer
  * continuar lendo, não pular para a página 4.
  */
@@ -47,12 +52,15 @@ interface Pedido {
 })
 export class LorePublicadas implements OnInit {
   private readonly lore = inject(LoreService);
+  private readonly personalLore = inject(PersonalLoreService);
   private readonly destroyRef = inject(DestroyRef);
   private readonly auth = inject(AuthService);
 
   /** O id numérico do jogo; o filtro do servidor recusa o slug. `null` é "todos os jogos". */
   readonly jogoId = input<string | null>(null);
   readonly jogoNome = input<string | null>(null);
+  /** De onde vêm as lores: as publicadas da comunidade, ou as do perfil de quem está logado. */
+  readonly origem = input<'comunidade' | 'perfil'>('comunidade');
 
   /** Pedido de ir ao arquivo, para o estado vazio. */
   readonly irAoArquivo = output<void>();
@@ -100,12 +108,14 @@ export class LorePublicadas implements OnInit {
         switchMap((p) => {
           this.carregando.set(true);
           this.falhou.set(false);
-          return this.lore.list(
-            p.pagina,
-            POR_VEZ,
-            p.q.trim() || undefined,
-            this.jogoId() ?? undefined,
-          );
+          return this.origem() === 'perfil'
+            ? this.doPerfil(p.q)
+            : this.lore.list(
+                p.pagina,
+                POR_VEZ,
+                p.q.trim() || undefined,
+                this.jogoId() ?? undefined,
+              );
         }),
         takeUntilDestroyed(this.destroyRef),
       )
@@ -156,6 +166,45 @@ export class LorePublicadas implements OnInit {
   }
 
   protected readonly iconeDoTipo = ICONE_DO_TIPO;
+
+  /** Rota de leitura: a lore do perfil abre pelo perfil, que é quem sabe mostrar a privada. */
+  protected rotaDe(l: LoreSummary): string[] {
+    return this.origem() === 'perfil' ? ['/profile', 'lore', l.ref] : ['/lore', l.ref];
+  }
+
+  protected readonly rotuloDaContagem = computed(() => {
+    const um = this.total() === 1;
+    if (this.origem() === 'perfil') return um ? 'lore sua' : 'lores suas';
+    return um ? 'lore publicada' : 'lores publicadas';
+  });
+
+  protected readonly montar = computed(() =>
+    this.origem() === 'perfil' ? '/profile/lore/new' : '/lore/new',
+  );
+
+  /**
+   * As lores do perfil vêm numa lista só, sem página nem filtro no servidor: são as de uma
+   * pessoa. O jogo e a busca se aplicam aqui.
+   */
+  private doPerfil(q: string): Observable<{ content: LoreSummary[]; totalElements: number }> {
+    const eu = String(this.auth.userId() ?? '');
+    const termo = q.trim().toLocaleLowerCase('pt-BR');
+    return this.personalLore.listByUser(eu).pipe(
+      map((todas) => {
+        const content = todas.filter(
+          (l) =>
+            l.isPersonal &&
+            (!this.jogoId() || l.gameId === this.jogoId()) &&
+            (!termo ||
+              `${l.title}
+${l.resumo?.paragrafo ?? ''}`
+                .toLocaleLowerCase('pt-BR')
+                .includes(termo)),
+        );
+        return { content, totalElements: content.length };
+      }),
+    );
+  }
 
   private pedir(pagina: number): void {
     this.pagina = pagina;

@@ -9,6 +9,8 @@ import type { GameDTO } from '@xcorpiiion/canonico';
 import { ArquivoDoPerfil } from './arquivo-do-perfil';
 import { GameService } from '../../core/services/game.service';
 import { StoryArchiveService } from '../../core/services/story-archive.service';
+import { PersonalLoreService } from '../../core/services/personal-lore.service';
+import { LoreService } from '../../core/services/lore.service';
 
 const JOGO = {
   id: 53,
@@ -39,6 +41,8 @@ function criar(params: Record<string, string>): ComponentFixture<ArquivoDoPerfil
         useValue: { get: vi.fn(() => of(JOGO)), list: vi.fn(() => of({ content: [] })) },
       },
       { provide: StoryArchiveService, useValue: arquivo },
+      { provide: PersonalLoreService, useValue: { listByUser: vi.fn(() => of([])) } },
+      { provide: LoreService, useValue: { list: vi.fn() } },
       { provide: AuthService, useValue: { isLoggedIn: signal(true), userId: signal('3') } },
       { provide: ConfirmService, useValue: { ask: vi.fn(() => of(false)) } },
       { provide: ToastService, useValue: { success: vi.fn(), error: vi.fn() } },
@@ -61,6 +65,19 @@ describe('ArquivoDoPerfil', () => {
     expect(el.querySelector('app-meu-arquivo')).not.toBeNull();
     expect(el.textContent).toContain('arquivo do perfil, só seu');
     expect(el.querySelector('a[href="/profile"]')).not.toBeNull();
+  });
+
+  /** A parte de ler: a mesa do perfil tem as mesmas duas abas da mesa da lore. */
+  it('a aba "minhas lores" mostra a lista de leitura do perfil', () => {
+    vi.useFakeTimers();
+    const f = criar({ jogo: 'silent-hill-f', aba: 'lores' });
+    vi.advanceTimersByTime(250);
+    f.detectChanges();
+    const el = f.nativeElement as HTMLElement;
+    expect(el.querySelector('app-lore-publicadas')).not.toBeNull();
+    expect(el.querySelector('app-meu-arquivo')).toBeNull();
+    expect(el.textContent).toContain('você ainda não montou lore de Silent Hill f no perfil');
+    vi.useRealTimers();
   });
 
   it('sem jogo na URL, pergunta o jogo', () => {

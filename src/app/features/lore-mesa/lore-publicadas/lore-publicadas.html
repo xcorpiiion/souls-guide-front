@@ -6,14 +6,17 @@
       type="search"
       class="busca__campo"
       [placeholder]="jogoNome() ? 'buscar nas lores de ' + jogoNome() : 'buscar nas lores'"
-      aria-label="buscar nas lores publicadas"
+      [attr.aria-label]="
+        origem() === 'perfil' ? 'buscar nas minhas lores' : 'buscar nas lores publicadas'
+      "
       [value]="busca()"
       (input)="buscar(campo.value)"
     />
   </label>
 
-  <a class="montar" routerLink="/lore/new" [queryParams]="jogoId() ? { jogo: jogoId() } : {}">
-    <i class="ti ti-book-upload" aria-hidden="true"></i> montar lore
+  <a class="montar" [routerLink]="montar()" [queryParams]="jogoId() ? { jogo: jogoId() } : {}">
+    <i class="ti ti-book-upload" aria-hidden="true"></i>
+    {{ origem() === 'perfil' ? 'montar lore só minha' : 'montar lore' }}
   </a>
 </div>
 
@@ -48,7 +51,7 @@
     @if (total() === 0) {
       nenhuma lore
     } @else {
-      {{ total() }} {{ total() === 1 ? 'lore publicada' : 'lores publicadas' }}
+      {{ total() }} {{ rotuloDaContagem() }}
     }
     @if (jogoNome()) {
       de {{ jogoNome() }}
@@ -84,7 +87,11 @@
       <p class="estado__texto">tente outra palavra, ou tire o filtro de quem a lore cita.</p>
     } @else {
       <h2 class="estado__titulo">
-        ninguém publicou lore {{ jogoNome() ? 'de ' + jogoNome() : '' }} ainda
+        @if (origem() === 'perfil') {
+          você ainda não montou lore {{ jogoNome() ? 'de ' + jogoNome() : '' }} no perfil
+        } @else {
+          ninguém publicou lore {{ jogoNome() ? 'de ' + jogoNome() : '' }} ainda
+        }
       </h2>
       <p class="estado__texto">
         uma lore nasce do arquivo: registre o que encontrou, ligue as peças e junte tudo num texto.
@@ -93,7 +100,7 @@
       <div class="estado__acoes">
         <a
           class="botao botao--primario"
-          routerLink="/lore/new"
+          [routerLink]="montar()"
           [queryParams]="jogoId() ? { jogo: jogoId() } : {}"
         >
           <i class="ti ti-book-upload" aria-hidden="true"></i> montar a primeira
@@ -108,14 +115,26 @@
   <ol class="lista">
     @for (l of visiveis(); track l.id) {
       <li>
-        <a class="lore" [routerLink]="['/lore', l.ref]">
+        <a class="lore" [routerLink]="rotaDe(l)">
           <span class="lore__meta">
-            <span
-              class="selo"
-              [class.selo--consolidada]="l.status === 'CONSOLIDADO'"
-              [class.selo--canonica]="l.status === 'CANONICO'"
-              >{{ rotuloDoStatus(l.status) }}</span
-            >
+            @if (origem() === 'perfil') {
+              <span class="selo">
+                <i
+                  class="ti"
+                  [class.ti-lock]="!l.isPublic"
+                  [class.ti-world]="l.isPublic"
+                  aria-hidden="true"
+                ></i>
+                {{ l.isPublic ? 'visível no perfil' : 'só você' }}
+              </span>
+            } @else {
+              <span
+                class="selo"
+                [class.selo--consolidada]="l.status === 'CONSOLIDADO'"
+                [class.selo--canonica]="l.status === 'CANONICO'"
+                >{{ rotuloDoStatus(l.status) }}</span
+              >
+            }
             @if (!jogoNome()) {
               <span>{{ l.gameName }}</span>
             }
@@ -128,7 +147,7 @@
             }
             <span class="lore__ponto" aria-hidden="true">·</span>
             <span>{{ l.readMinutes }} min</span>
-            @if (ehMinha(l)) {
+            @if (origem() === 'comunidade' && ehMinha(l)) {
               <span class="lore__minha">sua</span>
             }
             @if (l.likeCount) {
