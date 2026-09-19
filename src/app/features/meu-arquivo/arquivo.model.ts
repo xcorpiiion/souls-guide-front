@@ -395,3 +395,120 @@ export function sugestoesPara(
   }
   return null;
 }
+
+// ─── Candidatos da ligação ──────────────────────────────────────────────────
+
+/** Um achado que pode ser ligado, e por que ele aparece entre os sugeridos. */
+export interface Candidato {
+  readonly achado: AchadoDaTela;
+  /** "cita Hinako", "mesmo capítulo", "repete 'raposa'". Vazio fora dos sugeridos. */
+  readonly motivos: readonly string[];
+  /** Já existe alguma ligação entre os dois (dá para ligar de novo com outra relação). */
+  readonly jaLigado: boolean;
+}
+
+export interface CandidatosDaLigacao {
+  readonly sugeridos: readonly Candidato[];
+  /** Todos os outros, por capítulo, na ordem em que os capítulos apareceram. */
+  readonly porCapitulo: readonly {
+    readonly capitulo: string;
+    readonly itens: readonly Candidato[];
+  }[];
+  readonly total: number;
+}
+
+/**
+ * Quem pode ser ligado ao achado `id`: <b>todos</b> os outros, com os mais prováveis primeiro.
+ *
+ * <p>A folha de ligar mostrava seis achados, na ordem de registro, só com o título — com trinta
+ * achados, o certo quase nunca estava lá, e para saber o que cada um dizia era preciso sair e
+ * abrir. Agora:
+ *
+ * <ul>
+ *   <li><b>sugeridos</b>: os que citam a mesma pessoa, são do mesmo capítulo ou repetem uma
+ *       palavra rara do achado — cada um diz o motivo;
+ *   <li>o resto, <b>por capítulo</b>, sem cortar ninguém.
+ * </ul>
+ *
+ * <p>Busca e tipo filtram os dois. Buscando, não há sugestão: quem digita já sabe o que quer.
+ */
+export function candidatosDaLigacao(
+  id: number,
+  achados: readonly AchadoDaTela[],
+  ligacoes: readonly StoryLinkDTO[],
+  busca = '',
+  tipo: StoryFindingKind | 'todos' = 'todos',
+  maximoSugeridos = 6,
+): CandidatosDaLigacao {
+  const alvo = achados.find((a) => a.id === id);
+  const ligados = new Set<number>();
+  for (const l of ligacoes) {
+    if (l.fromId === id) ligados.add(l.toId);
+    if (l.toId === id) ligados.add(l.fromId);
+  }
+
+  const outros = achados
+    .filter((a) => a.id !== id)
+    .filter((a) => tipo === 'todos' || a.kind === tipo)
+    .filter((a) => !busca.trim() || contem(`${a.title}\n${a.texto}`, busca));
+
+  const pessoasDe = (a: AchadoDaTela) =>
+    new Set(
+      [...a.presentes, a.autor ?? '', ...a.falas.map((f) => f.nome)]
+        .map((n) => n.trim().toLocaleLowerCase('pt-BR'))
+        .filter(Boolean),
+    );
+  const minhasPessoas = alvo ? pessoasDe(alvo) : new Set<string>();
+  const palavra = alvo && !busca.trim() ? sugestoesPara(id, [...achados], [...ligacoes], 50) : null;
+  const comAPalavra = new Set(palavra?.achados.map((a) => a.id) ?? []);
+
+  const pontuados = outros.map((a) => {
+    const motivos: string[] = [];
+    let pontos = 0;
+    const comuns = [...pessoasDe(a)].filter((p) => minhasPessoas.has(p));
+    if (comuns.length) {
+      const nomes = [...a.presentes, a.autor ?? '', ...a.falas.map((f) => f.nome)].filter((n) =>
+        comuns.includes(n.trim().toLocaleLowerCase('pt-BR')),
+      );
+      motivos.push(`cita ${[...new Set(nomes)].join(', ')}`);
+      pontos += 3 * comuns.length;
+    }
+    if (alvo?.chapter && a.chapter === alvo.chapter) {
+      motivos.push('mesmo capítulo');
+      pontos += 2;
+    }
+    if (comAPalavra.has(a.id)) {
+      motivos.push(`repete "${palavra!.palavra}"`);
+      pontos += 1;
+    }
+    // Já ligado não some — pode ganhar outra relação —, mas não disputa lugar de sugerido.
+    if (ligados.has(a.id)) pontos = 0;
+    return { achado: a, motivos, pontos, jaLigado: ligados.has(a.id) };
+  });
+
+  const sugeridos = busca.trim()
+    ? []
+    : pontuados
+        .filter((c) => c.pontos > 0)
+        .sort((x, y) => y.pontos - x.pontos)
+        .slice(0, maximoSugeridos);
+  const jaSugerido = new Set(sugeridos.map((c) => c.achado.id));
+
+  const grupos = new Map<string, Candidato[]>();
+  for (const c of pontuados) {
+    if (jaSugerido.has(c.achado.id)) continue;
+    const capitulo = c.achado.chapterLabel;
+    const item = { achado: c.achado, motivos: [], jaLigado: c.jaLigado };
+    grupos.set(capitulo, [...(grupos.get(capitulo) ?? []), item]);
+  }
+  // "sem capítulo" vai por último, como na espinha: é o estado de uma página sem cabeçalho.
+  const porCapitulo = [...grupos.entries()]
+    .sort(([a], [b]) => Number(a === SEM_CAPITULO) - Number(b === SEM_CAPITULO))
+    .map(([capitulo, itens]) => ({ capitulo, itens }));
+
+  return {
+    sugeridos: sugeridos.map(({ achado, motivos, jaLigado }) => ({ achado, motivos, jaLigado })),
+    porCapitulo,
+    total: outros.length,
+  };
+}

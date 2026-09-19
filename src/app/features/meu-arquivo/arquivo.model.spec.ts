@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import type { StoryCharacterDTO, StoryFindingDTO, StoryLinkDTO } from '@xcorpiiion/canonico';
 import {
+  candidatosDaLigacao,
   decorar,
   janela,
   lerConversa,
@@ -156,5 +157,50 @@ describe('elenco e falas (ADR 0033)', () => {
     expect(lerConversa('Dia 14: a menina voltou a desenhar.')).toEqual([
       { nome: '', texto: 'Dia 14: a menina voltou a desenhar.' },
     ]);
+  });
+
+  /**
+   * A folha de ligar mostrava seis achados, só o título, na ordem de registro: com trinta, o
+   * certo quase nunca estava lá.
+   */
+  describe('candidatosDaLigacao', () => {
+    const elenco: StoryCharacterDTO[] = [
+      { id: 1, gameId: 7, kind: 'CHARACTER', name: 'Hinako', description: null, bossId: null },
+    ];
+    const base = [
+      { ...achado(1, 'Diario', 'o altar tinha tres raposas'), chapter: 'Cap. 2', authorId: 1 },
+      { ...achado(2, 'Carta', 'nada a ver'), authorId: 1 },
+      { ...achado(3, 'Placa', 'a estacao fechou'), chapter: 'Cap. 2' },
+      achado(4, 'Bilhete', 'outra coisa'),
+      { ...achado(5, 'Recorte', 'as raposas sumiram'), kind: 'DOCUMENT' as const },
+      achado(6, 'Ja ligado', 'Hinako de novo'),
+    ];
+    const itens = decorar(base, [], elenco);
+    const ligacoes: StoryLinkDTO[] = [{ id: 9, fromId: 1, toId: 6, kind: 'MENTIONS', why: null }];
+
+    it('mostra todos, com os prováveis primeiro e o motivo de cada um', () => {
+      const r = candidatosDaLigacao(1, itens, ligacoes);
+      expect(r.total).toBe(5);
+      expect(r.sugeridos.map((c) => [c.achado.id, c.motivos])).toEqual([
+        [2, ['cita Hinako']],
+        [3, ['mesmo capítulo']],
+        [5, ['repete "raposas"']],
+      ]);
+      // O resto vem por capítulo, e ninguém fica de fora — o já ligado inclusive.
+      const resto = r.porCapitulo.flatMap((g) => g.itens.map((c) => c.achado.id));
+      expect(resto.sort()).toEqual([4, 6]);
+      expect(r.porCapitulo.flatMap((g) => g.itens).find((c) => c.achado.id === 6)?.jaLigado).toBe(
+        true,
+      );
+    });
+
+    it('busca e tipo filtram; buscando, não há sugestão', () => {
+      const r = candidatosDaLigacao(1, itens, ligacoes, 'raposas');
+      expect(r.sugeridos).toEqual([]);
+      expect(r.porCapitulo.flatMap((g) => g.itens.map((c) => c.achado.id))).toEqual([5]);
+
+      const docs = candidatosDaLigacao(1, itens, ligacoes, '', 'DOCUMENT');
+      expect(docs.total).toBe(1);
+    });
   });
 });

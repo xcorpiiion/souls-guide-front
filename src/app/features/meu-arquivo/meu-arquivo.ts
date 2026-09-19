@@ -39,6 +39,7 @@ import {
   decorar,
   janela,
   ligacoesVistasDe,
+  candidatosDaLigacao,
   sugestoesPara,
   tipoDe,
   tituloDoTexto,
@@ -156,6 +157,7 @@ export class MeuArquivo {
   protected readonly ligadorTipo = signal<StoryLinkKind>('SAME_SUBJECT');
   protected readonly ligadorPorque = signal('');
   protected readonly ligadorTodasRelacoes = signal(false);
+  protected readonly ligadorFiltroTipo = signal<StoryFindingKind | 'todos'>('todos');
   protected readonly ligando = signal(false);
 
   // ─── Fio (celular) ─────────────────────────────────────────────────────────
@@ -371,16 +373,30 @@ export class MeuArquivo {
    * escolhido fica sempre na lista, mesmo que a busca mude — senão a escolha some da tela
    * e continua valendo.
    */
+  /** Todos os outros achados, os prováveis primeiro e o resto por capítulo. Ver arquivo.model. */
   protected readonly candidatos = computed(() => {
     const d = this.detalhe();
-    const q = this.ligadorBusca();
-    const escolhido = this.ligadorEscolhido();
-    const lista = this.itens()
-      .filter((a) => a.id !== d?.id)
-      .filter((a) => a.id === escolhido || contem(a.title, q) || (q.trim() && contem(a.texto, q)));
-    const primeiro = lista.find((a) => a.id === escolhido);
-    const resto = lista.filter((a) => a.id !== escolhido).slice(0, primeiro ? 5 : 6);
-    return primeiro ? [primeiro, ...resto] : resto;
+    return d
+      ? candidatosDaLigacao(
+          d.id,
+          this.itens(),
+          this.ligacoes(),
+          this.ligadorBusca(),
+          this.ligadorFiltroTipo(),
+        )
+      : null;
+  });
+
+  /** O achado escolhido, para ler inteiro ao lado antes de ligar — sem sair da folha. */
+  protected readonly escolhidoParaLigar = computed(() => {
+    const id = this.ligadorEscolhido();
+    return id === null ? null : (this.itens().find((a) => a.id === id) ?? null);
+  });
+
+  /** Só os tipos que existem no arquivo viram filtro na folha. */
+  protected readonly tiposNaFolha = computed(() => {
+    const presentes = new Set(this.itens().map((a) => a.kind));
+    return TIPOS.filter((t) => presentes.has(t.key));
   });
 
   /** No celular a folha mostra três relações e recolhe as outras duas. */
@@ -1017,6 +1033,7 @@ export class MeuArquivo {
 
   protected abrirLigador(alvo: number | null = null): void {
     this.ligadorBusca.set('');
+    this.ligadorFiltroTipo.set('todos');
     this.ligadorEscolhido.set(alvo);
     this.ligadorTipo.set('SAME_SUBJECT');
     this.ligadorPorque.set('');

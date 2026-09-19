@@ -594,41 +594,6 @@
                   }
                 </nav>
               }
-
-              @if (mostrarFiltros()) {
-                <div class="filtrar">
-                  <span class="rotulo-mono">filtrar</span>
-                  <div class="filtrar__chips" role="group" aria-label="filtrar por tipo">
-                    <button
-                      type="button"
-                      class="chip"
-                      [class.chip--ativo]="filtroTipo() === 'todos'"
-                      (click)="escolherTipoDoFiltro('todos')"
-                    >
-                      <i class="ti ti-stack-2" aria-hidden="true"></i> todos
-                    </button>
-                    @for (t of tipos; track t.key) {
-                      <button
-                        type="button"
-                        class="chip"
-                        [class.chip--ativo]="filtroTipo() === t.key"
-                        (click)="escolherTipoDoFiltro(t.key)"
-                      >
-                        <i [class]="t.icon" aria-hidden="true"></i> {{ t.label }}
-                      </button>
-                    }
-                    <button
-                      type="button"
-                      class="chip chip--tracejado"
-                      [class.chip--ativo]="soSoltas()"
-                      [attr.aria-pressed]="soSoltas()"
-                      (click)="alternarSoltas()"
-                    >
-                      <i class="ti ti-unlink" aria-hidden="true"></i> só peças soltas
-                    </button>
-                  </div>
-                </div>
-              }
             </aside>
 
             <!-- coluna -->
@@ -695,6 +660,45 @@
                   <i class="ti ti-book-upload" aria-hidden="true"></i> montar lore
                 </button>
               </div>
+
+              <!--
+                Os filtros moravam no fim da espinha, e com um elenco grande ficavam abaixo da dobra,
+                onde ninguém rolava. Aqui ficam sempre à vista, junto do que eles filtram.
+              -->
+              @if (mostrarFiltros() && visao() === 'arquivo') {
+                <div class="filtrar filtrar--topo">
+                  <span class="rotulo-mono">filtrar</span>
+                  <div class="filtrar__chips" role="group" aria-label="filtrar por tipo">
+                    <button
+                      type="button"
+                      class="chip"
+                      [class.chip--ativo]="filtroTipo() === 'todos'"
+                      (click)="escolherTipoDoFiltro('todos')"
+                    >
+                      <i class="ti ti-stack-2" aria-hidden="true"></i> todos
+                    </button>
+                    @for (t of tipos; track t.key) {
+                      <button
+                        type="button"
+                        class="chip"
+                        [class.chip--ativo]="filtroTipo() === t.key"
+                        (click)="escolherTipoDoFiltro(t.key)"
+                      >
+                        <i [class]="t.icon" aria-hidden="true"></i> {{ t.label }}
+                      </button>
+                    }
+                    <button
+                      type="button"
+                      class="chip chip--tracejado"
+                      [class.chip--ativo]="soSoltas()"
+                      [attr.aria-pressed]="soSoltas()"
+                      (click)="alternarSoltas()"
+                    >
+                      <i class="ti ti-unlink" aria-hidden="true"></i> só peças soltas
+                    </button>
+                  </div>
+                </div>
+              }
 
               @if (visao() === 'arquivo') {
                 <p class="dica">
@@ -1324,7 +1328,7 @@
               (click)="fecharLigador()"
             ></button>
             <div
-              class="folha__painel"
+              class="folha__painel folha__painel--largo"
               role="dialog"
               aria-modal="true"
               aria-labelledby="ligador-titulo"
@@ -1341,114 +1345,223 @@
                 </button>
               </div>
 
-              <div class="deste-lado">
-                <i [class]="d.icon" aria-hidden="true"></i>
-                <span class="deste-lado__titulo">{{ d.title }}</span>
-                <span class="etiqueta deste-lado__rotulo">deste lado</span>
-              </div>
+              <!--
+                Duas colunas: à esquerda, todos os achados para escolher (os prováveis primeiro, o
+                resto por capítulo); à direita, o escolhido inteiro para ler, e como ligar. Antes a
+                folha mostrava seis títulos, e para saber o que cada um dizia era preciso sair dela.
+              -->
+              <div class="ligador">
+                <section class="ligador__lista" aria-label="qual achado">
+                  <div class="deste-lado">
+                    <i [class]="d.icon" aria-hidden="true"></i>
+                    <span class="deste-lado__titulo">{{ d.title }}</span>
+                    <span class="etiqueta deste-lado__rotulo">deste lado</span>
+                  </div>
 
-              <p class="rotulo">1 · qual achado</p>
-              <label class="busca busca--folha" [class.busca--ativa]="ligadorBusca().trim()">
-                <i class="ti ti-search" aria-hidden="true"></i>
-                <input
-                  id="ligador-busca"
-                  type="text"
-                  placeholder="buscar entre meus achados"
-                  aria-label="buscar entre meus achados"
-                  [value]="ligadorBusca()"
-                  (input)="ligadorBusca.set($any($event.target).value)"
-                />
-              </label>
-              <ul class="candidatos">
-                @for (lc of candidatos(); track lc.id) {
-                  <li>
-                    <button
-                      type="button"
-                      class="candidato"
-                      [class.candidato--escolhido]="ligadorEscolhido() === lc.id"
-                      [attr.aria-pressed]="ligadorEscolhido() === lc.id"
-                      (click)="ligadorEscolhido.set(lc.id)"
-                    >
-                      <i [class]="lc.icon" aria-hidden="true"></i>
-                      <span class="candidato__corpo">
-                        <span class="candidato__titulo">{{ lc.title }}</span>
-                        <span class="candidato__meta"
-                          >{{ lc.chapterLabel }}{{ lc.degree === 0 ? ' · peça solta' : '' }}</span
+                  <p class="rotulo ligador__rotulo">
+                    <span>1 · qual achado</span>
+                    @if (candidatos(); as c) {
+                      <span class="nota"
+                        >{{ c.total }} {{ c.total === 1 ? 'achado' : 'achados' }}</span
+                      >
+                    }
+                  </p>
+                  <label class="busca busca--folha" [class.busca--ativa]="ligadorBusca().trim()">
+                    <i class="ti ti-search" aria-hidden="true"></i>
+                    <input
+                      id="ligador-busca"
+                      type="text"
+                      placeholder="buscar no título e no texto"
+                      aria-label="buscar entre meus achados"
+                      [value]="ligadorBusca()"
+                      (input)="ligadorBusca.set($any($event.target).value)"
+                    />
+                  </label>
+                  @if (tiposNaFolha().length > 1) {
+                    <div class="ligador__tipos" role="group" aria-label="filtrar por tipo">
+                      <button
+                        type="button"
+                        class="chip"
+                        [class.chip--ativo]="ligadorFiltroTipo() === 'todos'"
+                        (click)="ligadorFiltroTipo.set('todos')"
+                      >
+                        todos
+                      </button>
+                      @for (t of tiposNaFolha(); track t.key) {
+                        <button
+                          type="button"
+                          class="chip"
+                          [class.chip--ativo]="ligadorFiltroTipo() === t.key"
+                          (click)="ligadorFiltroTipo.set(t.key)"
                         >
-                      </span>
-                      @if (ligadorEscolhido() === lc.id) {
-                        <i class="ti ti-check candidato__marca" aria-hidden="true"></i>
+                          <i [class]="t.icon" aria-hidden="true"></i> {{ t.label }}
+                        </button>
                       }
-                    </button>
-                  </li>
-                } @empty {
-                  <li class="aviso">nenhum achado com esse nome.</li>
-                }
-              </ul>
+                    </div>
+                  }
 
-              <p class="rotulo">2 · que relação</p>
-              <div class="relacoes" role="radiogroup" aria-label="que relação">
-                @for (r of relacoesDaFolha(); track r.key) {
+                  @if (candidatos(); as c) {
+                    <div class="ligador__rolagem">
+                      @if (c.sugeridos.length) {
+                        <p class="ligador__grupo ligador__grupo--ouro">
+                          <i class="ti ti-sparkles" aria-hidden="true"></i> sugeridos
+                        </p>
+                        <ul class="candidatos">
+                          @for (cand of c.sugeridos; track cand.achado.id) {
+                            <li>
+                              <ng-container
+                                [ngTemplateOutlet]="candidatoTpl"
+                                [ngTemplateOutletContext]="{ $implicit: cand }"
+                              />
+                            </li>
+                          }
+                        </ul>
+                      }
+                      @for (g of c.porCapitulo; track g.capitulo) {
+                        <p class="ligador__grupo">
+                          {{ g.capitulo }} <span class="nota">{{ g.itens.length }}</span>
+                        </p>
+                        <ul class="candidatos">
+                          @for (cand of g.itens; track cand.achado.id) {
+                            <li>
+                              <ng-container
+                                [ngTemplateOutlet]="candidatoTpl"
+                                [ngTemplateOutletContext]="{ $implicit: cand }"
+                              />
+                            </li>
+                          }
+                        </ul>
+                      }
+                      @if (c.total === 0) {
+                        <p class="aviso">nenhum achado com esse filtro.</p>
+                      }
+                    </div>
+                  }
+                </section>
+
+                <section class="ligador__lado" aria-label="como ligar">
+                  @if (escolhidoParaLigar(); as e) {
+                    <article class="leitura">
+                      <p class="leitura__meta">
+                        <i [class]="e.icon" aria-hidden="true"></i> {{ e.typeLabel }} ·
+                        {{ e.chapterLabel }}
+                      </p>
+                      <h4 class="leitura__titulo">{{ e.title }}</h4>
+                      @if (e.autor || e.presentes.length) {
+                        <p class="leitura__quem">
+                          <i class="ti ti-users" aria-hidden="true"></i>
+                          {{ e.autor ? 'por ' + e.autor : e.presentes.join(', ') }}
+                        </p>
+                      }
+                      <div class="leitura__texto">{{ e.texto }}</div>
+                    </article>
+                  } @else {
+                    <p class="leitura leitura--vazia">
+                      <i class="ti ti-hand-finger" aria-hidden="true"></i>
+                      escolha um achado à esquerda para ler ele inteiro aqui antes de ligar.
+                    </p>
+                  }
+
+                  <p class="rotulo">2 · que relação</p>
+                  <div class="relacoes" role="radiogroup" aria-label="que relação">
+                    @for (r of relacoesDaFolha(); track r.key) {
+                      <button
+                        type="button"
+                        role="radio"
+                        class="relacao"
+                        [class.relacao--ativa]="ligadorTipo() === r.key"
+                        [class.relacao--brasa]="ligadorTipo() === r.key && r.key === 'CONTRADICTS'"
+                        [attr.aria-checked]="ligadorTipo() === r.key"
+                        (click)="ligadorTipo.set(r.key)"
+                      >
+                        <span
+                          class="relacao__ponto"
+                          [class.relacao__ponto--ouro]="r.key === 'SAME_SUBJECT'"
+                          [class.relacao__ponto--brasa]="r.key === 'CONTRADICTS'"
+                          aria-hidden="true"
+                        ></span>
+                        <span class="relacao__nome">{{ r.label }}</span>
+                        @if (r.temDirecao && !celular()) {
+                          <span class="nota">tem direção</span>
+                        }
+                        @if (ligadorTipo() === r.key) {
+                          <i class="ti ti-check relacao__marca" aria-hidden="true"></i>
+                        }
+                      </button>
+                    }
+                    @if (relacoesDaFolha().length < relacoes.length) {
+                      <button
+                        type="button"
+                        class="relacoes__mais"
+                        (click)="ligadorTodasRelacoes.set(true)"
+                      >
+                        + explica, menciona <i class="ti ti-chevron-down" aria-hidden="true"></i>
+                      </button>
+                    }
+                  </div>
+
+                  <label for="ligador-porque" class="rotulo">
+                    3 · por quê <span class="rotulo__opcional">— opcional</span>
+                  </label>
+                  <textarea
+                    id="ligador-porque"
+                    class="campo campo--porque"
+                    rows="2"
+                    maxlength="300"
+                    placeholder="a ordem de serviço diz que o sino já não estava lá"
+                    [value]="ligadorPorque()"
+                    (input)="ligadorPorque.set($any($event.target).value)"
+                  ></textarea>
+
                   <button
                     type="button"
-                    role="radio"
-                    class="relacao"
-                    [class.relacao--ativa]="ligadorTipo() === r.key"
-                    [class.relacao--brasa]="ligadorTipo() === r.key && r.key === 'CONTRADICTS'"
-                    [attr.aria-checked]="ligadorTipo() === r.key"
-                    (click)="ligadorTipo.set(r.key)"
+                    class="botao botao--primario botao--largo"
+                    [disabled]="ligadorEscolhido() === null || ligando()"
+                    (click)="criarLigacao()"
                   >
-                    <span
-                      class="relacao__ponto"
-                      [class.relacao__ponto--ouro]="r.key === 'SAME_SUBJECT'"
-                      [class.relacao__ponto--brasa]="r.key === 'CONTRADICTS'"
-                      aria-hidden="true"
-                    ></span>
-                    <span class="relacao__nome">{{ r.label }}</span>
-                    @if (r.temDirecao && !celular()) {
-                      <span class="nota">tem direção</span>
-                    }
-                    @if (ligadorTipo() === r.key) {
-                      <i class="ti ti-check relacao__marca" aria-hidden="true"></i>
+                    @if (ligando()) {
+                      <i class="ti ti-loader-2 giro" aria-hidden="true"></i> ligando…
+                    } @else {
+                      criar ligação
                     }
                   </button>
-                }
-                @if (relacoesDaFolha().length < relacoes.length) {
-                  <button
-                    type="button"
-                    class="relacoes__mais"
-                    (click)="ligadorTodasRelacoes.set(true)"
-                  >
-                    + explica, menciona <i class="ti ti-chevron-down" aria-hidden="true"></i>
-                  </button>
-                }
+                </section>
               </div>
 
-              <label for="ligador-porque" class="rotulo">
-                3 · por quê <span class="rotulo__opcional">— opcional</span>
-              </label>
-              <textarea
-                id="ligador-porque"
-                class="campo campo--porque"
-                rows="2"
-                maxlength="300"
-                placeholder="a ordem de serviço diz que o sino já não estava lá"
-                [value]="ligadorPorque()"
-                (input)="ligadorPorque.set($any($event.target).value)"
-              ></textarea>
-
-              <button
-                type="button"
-                class="botao botao--primario botao--largo"
-                [disabled]="ligadorEscolhido() === null || ligando()"
-                (click)="criarLigacao()"
-              >
-                @if (ligando()) {
-                  <i class="ti ti-loader-2 giro" aria-hidden="true"></i> ligando…
-                } @else {
-                  criar ligação
-                }
-              </button>
+              <ng-template #candidatoTpl let-cand>
+                <button
+                  type="button"
+                  class="candidato"
+                  [class.candidato--escolhido]="ligadorEscolhido() === cand.achado.id"
+                  [attr.aria-pressed]="ligadorEscolhido() === cand.achado.id"
+                  (click)="ligadorEscolhido.set(cand.achado.id)"
+                >
+                  <i [class]="cand.achado.icon" aria-hidden="true"></i>
+                  <span class="candidato__corpo">
+                    <span class="candidato__titulo">{{ cand.achado.title }}</span>
+                    <span class="candidato__meta">
+                      {{ cand.achado.typeLabel }}
+                      @if (cand.achado.degree === 0) {
+                        · peça solta
+                      }
+                      @if (cand.jaLigado) {
+                        · <span class="candidato__ja">já ligado</span>
+                      }
+                    </span>
+                    @if (cand.motivos.length) {
+                      <span class="candidato__motivos">
+                        @for (m of cand.motivos; track m) {
+                          <span class="candidato__motivo">{{ m }}</span>
+                        }
+                      </span>
+                    }
+                    <span class="candidato__trecho">{{ cand.achado.texto }}</span>
+                  </span>
+                  @if (ligadorEscolhido() === cand.achado.id) {
+                    <i class="ti ti-check candidato__marca" aria-hidden="true"></i>
+                  }
+                </button>
+              </ng-template>
             </div>
           </div>
         }
