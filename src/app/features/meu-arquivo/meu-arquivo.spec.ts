@@ -107,7 +107,7 @@ describe('MeuArquivo', () => {
     const tem = (f: ComponentFixture<MeuArquivo>, seletor: string) =>
       (f.nativeElement as HTMLElement).querySelector(seletor) !== null;
 
-    /** Com um achado só, filtro, mural e capítulos seriam controle sem uso. */
+    /** Com um achado só, filtro, busca e capítulos seriam controle sem uso. */
     it('com um achado, a mesa mostra o guia e esconde o que ainda não serve', () => {
       const f = criar(true, {
         gameId: 7,
@@ -117,16 +117,14 @@ describe('MeuArquivo', () => {
         characters: [],
       });
       expect(tem(f, 'app-guia-do-arquivo .guia')).toBe(true);
-      expect(tem(f, '.alternador')).toBe(false);
       expect(tem(f, '.busca')).toBe(false);
       expect(tem(f, '.filtrar')).toBe(false);
       expect(tem(f, '.capitulos')).toBe(false);
       expect(tem(f, '.ferramentas__montar')).toBe(true);
     });
 
-    it('com cinco achados em capítulos diferentes, aparecem ligações, busca e capítulos', () => {
+    it('com cinco achados em capítulos diferentes, aparecem busca e capítulos', () => {
       const f = criar();
-      expect(tem(f, '.alternador')).toBe(true);
       expect(tem(f, '.busca')).toBe(true);
       expect(tem(f, '.capitulos')).toBe(true);
       expect(tem(f, '.filtrar')).toBe(false);

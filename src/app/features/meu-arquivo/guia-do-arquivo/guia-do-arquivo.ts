@@ -28,7 +28,7 @@ const CHAVE_FECHADO = 'sg_guia_arquivo_fechado';
 /**
  * "Como funciona" — o caminho do arquivo em três passos, no topo da mesa.
  *
- * <p>A mesa mostra muita coisa de uma vez (faixa, capítulos, filtros, mural, montar lore), e
+ * <p>A mesa mostra muita coisa de uma vez (faixa, capítulos, filtros, montar lore), e
  * quem chega nela ainda não sabe o que é um achado, uma ligação ou uma peça solta. O guia diz
  * a ordem, acende o passo em que a pessoa está — pelo que ela já fez, não por um tutorial com
  * etapas a clicar — e leva direto à ação.

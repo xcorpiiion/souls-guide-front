@@ -219,210 +219,96 @@
                 </div>
               }
             </div>
-            @if (mostrarLigacoes()) {
-              <span
-                class="alternador alternador--icones"
-                role="tablist"
-                aria-label="visão do arquivo"
-              >
-                <button
-                  type="button"
-                  role="tab"
-                  class="alternador__opcao"
-                  [class.alternador__opcao--ativa]="visao() === 'arquivo'"
-                  [attr.aria-selected]="visao() === 'arquivo'"
-                  aria-label="arquivo"
-                  (click)="mostrarVisao('arquivo')"
-                >
-                  <i class="ti ti-cards" aria-hidden="true"></i>
-                </button>
-                <button
-                  type="button"
-                  role="tab"
-                  class="alternador__opcao"
-                  [class.alternador__opcao--ativa]="visao() === 'ligacoes'"
-                  [attr.aria-selected]="visao() === 'ligacoes'"
-                  aria-label="ligações"
-                  (click)="mostrarVisao('ligacoes')"
-                >
-                  <i class="ti ti-affiliate" aria-hidden="true"></i>
-                </button>
-              </span>
-            }
           </div>
 
-          @if (visao() === 'arquivo') {
-            @if (mostrarBusca()) {
-              <label class="busca">
-                <i class="ti ti-search" aria-hidden="true"></i>
-                <input
-                  id="arquivo-busca-celular"
-                  type="text"
-                  placeholder="buscar no texto"
-                  aria-label="buscar no texto dos achados"
-                  [value]="busca()"
-                  (input)="buscar($any($event.target).value)"
-                />
-                @if (buscando()) {
-                  <span class="busca__contagem">{{ contagemDaBusca() }}</span>
-                  <button
-                    type="button"
-                    class="busca__limpar"
-                    aria-label="limpar busca"
-                    (click)="buscar('')"
-                  >
-                    <i class="ti ti-x" aria-hidden="true"></i>
-                  </button>
-                }
-              </label>
-            }
-
-            <p class="dica">
-              toque numa ficha para ver as ligações dela; toque de novo para abrir e ler inteira.
-            </p>
-
-            <div class="elenco-celular" role="group" aria-label="elenco">
-              @for (c of elencoDaEspinha(); track c.id) {
-                <button type="button" class="chip" (click)="abrirPersonagem(c.id)">
-                  <i [class]="c.icon" aria-hidden="true"></i> {{ c.name }}
+          @if (mostrarBusca()) {
+            <label class="busca">
+              <i class="ti ti-search" aria-hidden="true"></i>
+              <input
+                id="arquivo-busca-celular"
+                type="text"
+                placeholder="buscar no texto"
+                aria-label="buscar no texto dos achados"
+                [value]="busca()"
+                (input)="buscar($any($event.target).value)"
+              />
+              @if (buscando()) {
+                <span class="busca__contagem">{{ contagemDaBusca() }}</span>
+                <button
+                  type="button"
+                  class="busca__limpar"
+                  aria-label="limpar busca"
+                  (click)="buscar('')"
+                >
+                  <i class="ti ti-x" aria-hidden="true"></i>
                 </button>
               }
+            </label>
+          }
+
+          <p class="dica">
+            toque numa ficha para ver as ligações dela; toque de novo para abrir e ler inteira.
+          </p>
+
+          <div class="elenco-celular" role="group" aria-label="elenco">
+            @for (c of elencoDaEspinha(); track c.id) {
+              <button type="button" class="chip" (click)="abrirPersonagem(c.id)">
+                <i [class]="c.icon" aria-hidden="true"></i> {{ c.name }}
+              </button>
+            }
+            <button type="button" class="chip elenco-celular__novo" (click)="abrirPersonagem(null)">
+              <i class="ti ti-user-plus" aria-hidden="true"></i> cadastrar personagem
+            </button>
+          </div>
+
+          @if (mostrarCapitulos()) {
+            <div class="capitulos-celular" role="group" aria-label="capítulos">
               <button
                 type="button"
-                class="chip elenco-celular__novo"
-                (click)="abrirPersonagem(null)"
+                class="chip"
+                [class.chip--ativo]="capitulo() === null"
+                (click)="escolherCapitulo(null)"
               >
-                <i class="ti ti-user-plus" aria-hidden="true"></i> cadastrar personagem
+                todos
               </button>
-            </div>
-
-            @if (mostrarCapitulos()) {
-              <div class="capitulos-celular" role="group" aria-label="capítulos">
+              @for (c of espinha().capitulos; track c.nome) {
                 <button
                   type="button"
                   class="chip"
-                  [class.chip--ativo]="capitulo() === null"
-                  (click)="escolherCapitulo(null)"
+                  [class.chip--ativo]="capitulo() === c.nome"
+                  (click)="escolherCapitulo(c.nome)"
                 >
-                  todos
+                  {{ c.nome }}
+                  @if (c.solta) {
+                    <span class="ponto-brasa" aria-label="tem peça solta"></span>
+                  }
                 </button>
-                @for (c of espinha().capitulos; track c.nome) {
-                  <button
-                    type="button"
-                    class="chip"
-                    [class.chip--ativo]="capitulo() === c.nome"
-                    (click)="escolherCapitulo(c.nome)"
-                  >
-                    {{ c.nome }}
-                    @if (c.solta) {
-                      <span class="ponto-brasa" aria-label="tem peça solta"></span>
-                    }
-                  </button>
-                }
-                @if (espinha().semCapitulo > 0) {
-                  <button
-                    type="button"
-                    class="chip chip--tracejado"
-                    [class.chip--ativo]="capitulo() === ''"
-                    (click)="escolherCapitulo('')"
-                  >
-                    sem capítulo
-                  </button>
-                }
-              </div>
-            }
-
-            <div class="lista-celular">
-              @for (a of fichas(); track a.id) {
-                <ng-container *ngTemplateOutlet="fichaTpl; context: { $implicit: a }" />
-              } @empty {
-                <p class="aviso">nenhum achado com esses filtros.</p>
               }
-              @if (restantes() > 0) {
-                <button type="button" class="mais" (click)="mostrarMais()">
-                  <i class="ti ti-chevron-down" aria-hidden="true"></i> mostrar mais
-                  {{ restantes() }}
+              @if (espinha().semCapitulo > 0) {
+                <button
+                  type="button"
+                  class="chip chip--tracejado"
+                  [class.chip--ativo]="capitulo() === ''"
+                  (click)="escolherCapitulo('')"
+                >
+                  sem capítulo
                 </button>
               }
             </div>
-          } @else if (fio(); as f) {
-            <p class="dica">
-              o mural não cabe aqui. siga o fio: abra um achado e toque nos que estão ligados a ele.
-            </p>
-            <div class="fio">
-              <div class="fio__tipo">
-                <i [class]="f.icon" aria-hidden="true"></i>
-                <span class="etiqueta etiqueta--clara">{{ f.typeLabel }} · você está aqui</span>
-              </div>
-              <p class="fio__titulo">{{ f.title }}</p>
-              <p class="fio__capitulo">{{ f.chapterLabel }}</p>
-              <button
-                type="button"
-                class="botao botao--secundario botao--pequeno"
-                (click)="abrirAchado(f.id)"
-              >
-                abrir achado
-              </button>
-            </div>
-
-            <div class="separador">
-              <span class="rotulo-mono rotulo-mono--linha">{{ f.rotulo }}</span>
-              <span class="separador__linha"></span>
-            </div>
-
-            <ul class="vizinhos">
-              @for (v of f.vizinhos; track v.id) {
-                <li>
-                  <button
-                    type="button"
-                    class="vizinho"
-                    [class.vizinho--brasa]="v.kind === 'CONTRADICTS'"
-                    (click)="seguirFio(v.otherId)"
-                  >
-                    <span class="vizinho__corpo">
-                      <span
-                        class="vizinho__relacao"
-                        [class.vizinho__relacao--ouro]="corDaRelacao(v.kind) === 'ouro'"
-                        [class.vizinho__relacao--brasa]="corDaRelacao(v.kind) === 'brasa'"
-                      >
-                        <i class="ti ti-arrow-right" aria-hidden="true"></i> {{ v.short }}
-                      </span>
-                      <span class="vizinho__titulo">{{ v.title }}</span>
-                      @if (v.why) {
-                        <span class="vizinho__porque">“{{ v.why }}”</span>
-                      }
-                    </span>
-                    <i class="ti ti-chevron-right vizinho__seta" aria-hidden="true"></i>
-                  </button>
-                </li>
-              }
-            </ul>
-
-            @if (soltas().length > 0) {
-              <div class="tracejado">
-                <p class="tracejado__texto">
-                  {{ soltas().length }}
-                  {{
-                    soltas().length === 1
-                      ? 'peça sua ainda está solta'
-                      : 'peças suas ainda estão soltas'
-                  }}. o fio só continua quando você liga uma delas.
-                </p>
-                <button type="button" class="botao-ouro" (click)="verAsSoltas()">
-                  <i class="ti ti-wand" aria-hidden="true"></i> ver as peças soltas
-                </button>
-              </div>
-            }
           }
 
-          <div class="colar-fixo">
-            <button
-              type="button"
-              class="botao botao--primario botao--largo colar-fixo__botao"
-              (click)="irParaRegistrar()"
-            >
-              <i class="ti ti-clipboard-plus" aria-hidden="true"></i> colar achado
-            </button>
+          <div class="lista-celular">
+            @for (a of fichas(); track a.id) {
+              <ng-container *ngTemplateOutlet="fichaTpl; context: { $implicit: a }" />
+            } @empty {
+              <p class="aviso">nenhum achado com esses filtros.</p>
+            }
+            @if (restantes() > 0) {
+              <button type="button" class="mais" (click)="mostrarMais()">
+                <i class="ti ti-chevron-down" aria-hidden="true"></i> mostrar mais
+                {{ restantes() }}
+              </button>
+            }
           </div>
         } @else {
           <!-- ── computador ── -->
@@ -599,9 +485,9 @@
             <!-- coluna -->
             <div class="coluna-principal">
               <div class="ferramentas">
-                @if (visao() === 'arquivo' && !mostrarBusca()) {
+                @if (!mostrarBusca()) {
                   <span class="ferramentas__espaco"></span>
-                } @else if (visao() === 'arquivo') {
+                } @else {
                   <label class="busca busca--ferramentas" [class.busca--ativa]="buscando()">
                     <i class="ti ti-search" aria-hidden="true"></i>
                     <input
@@ -624,32 +510,6 @@
                       </button>
                     }
                   </label>
-                } @else {
-                  <span class="ferramentas__titulo">ligações</span>
-                }
-                @if (mostrarLigacoes()) {
-                  <span class="alternador" role="tablist" aria-label="visão do arquivo">
-                    <button
-                      type="button"
-                      role="tab"
-                      class="alternador__opcao"
-                      [class.alternador__opcao--ativa]="visao() === 'arquivo'"
-                      [attr.aria-selected]="visao() === 'arquivo'"
-                      (click)="mostrarVisao('arquivo')"
-                    >
-                      <i class="ti ti-cards" aria-hidden="true"></i> arquivo
-                    </button>
-                    <button
-                      type="button"
-                      role="tab"
-                      class="alternador__opcao"
-                      [class.alternador__opcao--ativa]="visao() === 'ligacoes'"
-                      [attr.aria-selected]="visao() === 'ligacoes'"
-                      (click)="mostrarVisao('ligacoes')"
-                    >
-                      <i class="ti ti-affiliate" aria-hidden="true"></i> ligações
-                    </button>
-                  </span>
                 }
                 <button
                   type="button"
@@ -665,7 +525,7 @@
                 Os filtros moravam no fim da espinha, e com um elenco grande ficavam abaixo da dobra,
                 onde ninguém rolava. Aqui ficam sempre à vista, junto do que eles filtram.
               -->
-              @if (mostrarFiltros() && visao() === 'arquivo') {
+              @if (mostrarFiltros()) {
                 <div class="filtrar filtrar--topo">
                   <span class="rotulo-mono">filtrar</span>
                   <div class="filtrar__chips" role="group" aria-label="filtrar por tipo">
@@ -700,78 +560,58 @@
                 </div>
               }
 
-              @if (visao() === 'arquivo') {
-                <p class="dica">
-                  clique numa ficha para ver as ligações dela; clique de novo para abrir, ler
-                  inteira e ligar a outro achado.
-                </p>
-                @if (rotuloDoCapitulo(); as nome) {
-                  <div class="separador">
-                    <span class="rotulo-mono rotulo-mono--linha rotulo-mono--claro">{{
-                      nome
-                    }}</span>
-                    <span class="separador__linha"></span>
-                    <span class="nota">
-                      @if (buscando()) {
-                        {{
-                          fichas().length === 1
-                            ? '1 achado cita'
-                            : fichas().length + ' achados citam'
-                        }}
-                        "{{ busca().trim() }}"
-                      } @else {
-                        {{ fichas().length + restantes() }}
-                        {{ fichas().length + restantes() === 1 ? 'achado' : 'achados' }}
-                      }
-                    </span>
-                  </div>
-                }
-
-                <div class="grade">
-                  @for (a of fichas(); track a.id) {
-                    <ng-container *ngTemplateOutlet="fichaTpl; context: { $implicit: a }" />
-                  } @empty {
-                    <p class="aviso grade__vazia">nenhum achado com esses filtros.</p>
-                  }
-                  @if (!buscando() && restantes() === 0 && fichas().length > 0) {
-                    <button type="button" class="proximo" (click)="irParaRegistrar()">
-                      <i class="ti ti-clipboard-plus" aria-hidden="true"></i>
-                      <span>
-                        cole o próximo achado na faixa lá em cima
-                        {{
-                          capitulo() ? '— ele cai em ' + capitulo() : '— ele cai no último capítulo'
-                        }}
-                      </span>
-                    </button>
-                  }
+              <p class="dica">
+                clique numa ficha para ver as ligações dela; clique de novo para abrir, ler inteira
+                e ligar a outro achado.
+              </p>
+              @if (rotuloDoCapitulo(); as nome) {
+                <div class="separador">
+                  <span class="rotulo-mono rotulo-mono--linha rotulo-mono--claro">{{ nome }}</span>
+                  <span class="separador__linha"></span>
+                  <span class="nota">
+                    @if (buscando()) {
+                      {{
+                        fichas().length === 1 ? '1 achado cita' : fichas().length + ' achados citam'
+                      }}
+                      "{{ busca().trim() }}"
+                    } @else {
+                      {{ fichas().length + restantes() }}
+                      {{ fichas().length + restantes() === 1 ? 'achado' : 'achados' }}
+                    }
+                  </span>
                 </div>
+              }
 
-                @if (buscando() && naoBateram().length > 0 && !mostrarOsOutros()) {
-                  <button type="button" class="mais" (click)="mostrarOsOutros.set(true)">
-                    <i class="ti ti-chevron-down" aria-hidden="true"></i>
-                    mostrar os outros {{ naoBateram().length
-                    }}{{ rotuloDoCapitulo() ? ' de ' + rotuloDoCapitulo() : '' }}
-                  </button>
-                } @else if (restantes() > 0) {
-                  <button type="button" class="mais" (click)="mostrarMais()">
-                    <i class="ti ti-chevron-down" aria-hidden="true"></i> mostrar mais
-                    {{ restantes() }}
+              <div class="grade">
+                @for (a of fichas(); track a.id) {
+                  <ng-container *ngTemplateOutlet="fichaTpl; context: { $implicit: a }" />
+                } @empty {
+                  <p class="aviso grade__vazia">nenhum achado com esses filtros.</p>
+                }
+                @if (!buscando() && restantes() === 0 && fichas().length > 0) {
+                  <button type="button" class="proximo" (click)="irParaRegistrar()">
+                    <i class="ti ti-clipboard-plus" aria-hidden="true"></i>
+                    <span>
+                      cole o próximo achado na faixa lá em cima
+                      {{
+                        capitulo() ? '— ele cai em ' + capitulo() : '— ele cai no último capítulo'
+                      }}
+                    </span>
                   </button>
                 }
-              } @else {
-                <!-- Sob demanda: o mural só existe para quem abre "ligações". -->
-                @defer {
-                  <app-arquivo-mural
-                    [itens]="itens()"
-                    [ligacoes]="ligacoes()"
-                    (abrir)="abrirAchado($event)"
-                    (ligar)="ligarAPartirDe($event)"
-                  />
-                } @loading (minimum 200ms) {
-                  <p class="dica">
-                    <i class="ti ti-loader-2 giro" aria-hidden="true"></i> abrindo o mural…
-                  </p>
-                }
+              </div>
+
+              @if (buscando() && naoBateram().length > 0 && !mostrarOsOutros()) {
+                <button type="button" class="mais" (click)="mostrarOsOutros.set(true)">
+                  <i class="ti ti-chevron-down" aria-hidden="true"></i>
+                  mostrar os outros {{ naoBateram().length
+                  }}{{ rotuloDoCapitulo() ? ' de ' + rotuloDoCapitulo() : '' }}
+                </button>
+              } @else if (restantes() > 0) {
+                <button type="button" class="mais" (click)="mostrarMais()">
+                  <i class="ti ti-chevron-down" aria-hidden="true"></i> mostrar mais
+                  {{ restantes() }}
+                </button>
               }
             </div>
           </div>
@@ -1248,8 +1088,7 @@
             @if (ligacoesDoDetalhe().length === 0) {
               <p class="fios__vazio">
                 @if (achados().length > 1) {
-                  peça solta. quando ligar este achado a outro, a história começa a aparecer no
-                  mural.
+                  peça solta. quando ligar este achado a outro, a ligação aparece aqui.
                 } @else {
                   peça solta. registre outro achado para poder ligar os dois.
                 }

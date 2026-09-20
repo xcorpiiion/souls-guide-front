@@ -45,7 +45,6 @@ import {
   tituloDoTexto,
   trechos,
 } from './arquivo.model';
-import { ArquivoMural } from './arquivo-mural/arquivo-mural';
 import { MontarLore } from './montar-lore/montar-lore';
 import { GuiaDoArquivo, PassoDoGuia } from './guia-do-arquivo/guia-do-arquivo';
 import { EscolherElenco, NovoNoElenco } from './escolher-elenco/escolher-elenco';
@@ -56,7 +55,6 @@ type Tela = 'visao-geral' | 'registrar' | 'detalhe' | 'montar' | 'personagem';
 
 /** Onde entra quem acabou de ser cadastrado pelo nome digitado no formulário. */
 type CampoDoElenco = 'autor' | 'presentes';
-type Visao = 'arquivo' | 'ligacoes';
 
 /** Quantas fichas a grade mostra antes de pedir "mostrar mais". */
 const FICHAS_POR_VEZ = 24;
@@ -68,7 +66,8 @@ const CAPITULOS_VISIVEIS = 9;
  * souls-guide-api, e o artboard `Meu arquivo - redesenho.dc.html` ("A mesa").
  *
  * <p><b>O capítulo é a espinha</b>, fixa à esquerda; o achado é uma <b>ficha</b> com o texto do
- * jogo à vista; e a ligação acende dentro da própria ficha, sem precisar ir ao mural. No
+ * jogo à vista; e a ligação vive dentro da própria ficha, que é o único lugar onde ela
+ * aparece (não há tela de ligações). No
  * computador registrar não é mais uma tela: é a faixa de colar no topo da aba.
  *
  * <p>As telas moram aqui dentro, como estados da aba, e não em rotas — é o que mantém a
@@ -82,7 +81,6 @@ const CAPITULOS_VISIVEIS = 9;
   imports: [
     RouterLink,
     NgTemplateOutlet,
-    ArquivoMural,
     MontarLore,
     GuiaDoArquivo,
     EscolherElenco,
@@ -129,7 +127,6 @@ export class MeuArquivo {
 
   // ─── Navegação dentro da aba ───────────────────────────────────────────────
   protected readonly tela = signal<Tela>('visao-geral');
-  protected readonly visao = signal<Visao>('arquivo');
   protected readonly celular = signal(false);
 
   // ─── Filtros ───────────────────────────────────────────────────────────────
@@ -159,9 +156,6 @@ export class MeuArquivo {
   protected readonly ligadorTodasRelacoes = signal(false);
   protected readonly ligadorFiltroTipo = signal<StoryFindingKind | 'todos'>('todos');
   protected readonly ligando = signal(false);
-
-  // ─── Fio (celular) ─────────────────────────────────────────────────────────
-  private readonly fioEscolhido = signal<number | null>(null);
 
   // ─── Registrar / editar ────────────────────────────────────────────────────
   protected readonly faixa = signal('');
@@ -221,10 +215,8 @@ export class MeuArquivo {
 
   // ─── O que já serve ────────────────────────────────────────────────────────
   // A mesa inteira de uma vez, para quem tem um achado só, é ruído: filtro sem o que filtrar,
-  // mural sem o que ligar. Cada controle aparece quando passa a ter uso.
+  // busca sem o que buscar. Cada controle aparece quando passa a ter uso.
 
-  /** Ligar pede dois achados. */
-  protected readonly mostrarLigacoes = computed(() => this.achados().length >= 2);
   protected readonly mostrarBusca = computed(() => this.achados().length >= 4);
   protected readonly mostrarFiltros = computed(() => this.achados().length >= 6);
   /** A espinha só ajuda a navegar quando há mais de um lugar para ir. */
@@ -411,31 +403,6 @@ export class MeuArquivo {
 
   // ─── Fio (celular) ─────────────────────────────────────────────────────────
 
-  /**
-   * O achado de onde o fio parte. Sem escolha, é o primeiro que tem ligação — abrir o fio
-   * numa peça solta mostraria "esta peça está solta" para quem tem dez ligações.
-   */
-  protected readonly fio = computed(() => {
-    const escolhido = this.fioEscolhido();
-    const itens = this.itens();
-    const achado =
-      (escolhido !== null ? this.porId().get(escolhido) : undefined) ??
-      itens.find((a) => a.degree > 0) ??
-      itens[0];
-    if (!achado) return null;
-    const vizinhos = ligacoesVistasDe(achado.id, this.ligacoes(), this.porId());
-    return {
-      ...achado,
-      vizinhos,
-      rotulo:
-        vizinhos.length === 0
-          ? 'ligado a nenhum achado'
-          : vizinhos.length === 1
-            ? 'ligado a 1 achado'
-            : `ligado a ${vizinhos.length} achados`,
-    };
-  });
-
   // ─── Registrar ─────────────────────────────────────────────────────────────
 
   /** Os três capítulos usados por último, o mais recente primeiro. */
@@ -576,7 +543,6 @@ export class MeuArquivo {
   protected verAsSoltas(): void {
     this.soSoltas.set(true);
     this.capitulo.set(null);
-    this.visao.set('arquivo');
     this.recomecarGrade();
   }
 
@@ -587,11 +553,6 @@ export class MeuArquivo {
     this.ligadorAberto.set(false);
     this.tela.set('visao-geral');
     this.rolarParaCima();
-  }
-
-  protected mostrarVisao(visao: Visao): void {
-    this.visao.set(visao);
-    this.selecionadoId.set(null);
   }
 
   /** Um toque acende a ficha e mostra os fios dela; o segundo, na mesma, a abre. */
@@ -606,7 +567,6 @@ export class MeuArquivo {
   protected abrirAchado(id: number): void {
     this.gravarAnotacaoPendente();
     this.detalheId.set(id);
-    this.fioEscolhido.set(id);
     this.anotacao.set(this.porId().get(id)?.note ?? '');
     this.anotacaoEstado.set('');
     this.ligadorAberto.set(false);
@@ -633,10 +593,6 @@ export class MeuArquivo {
   protected ligarAProximaSolta(): void {
     const primeira = this.soltas()[0];
     if (primeira) this.ligarAPartirDe(primeira.id);
-  }
-
-  protected seguirFio(id: number): void {
-    this.fioEscolhido.set(id);
   }
 
   // ─── Registrar / editar ────────────────────────────────────────────────────
@@ -982,7 +938,6 @@ export class MeuArquivo {
           this.ligacoes.update((lista) =>
             lista.filter((l) => l.fromId !== d.id && l.toId !== d.id),
           );
-          if (this.fioEscolhido() === d.id) this.fioEscolhido.set(null);
           if (this.selecionadoId() === d.id) this.selecionadoId.set(null);
           this.detalheId.set(null);
           this.toast.success('Achado excluído', 'As ligações dele saíram junto.');

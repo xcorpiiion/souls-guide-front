@@ -23,8 +23,8 @@ import type {
  * perfil (`PROFILE`), sem nada em comum. Ler e criar dizem qual; editar, ligar e excluir seguem o
  * arquivo em que o registro já está.
  *
- * <p>O arquivo vem inteiro em `archive`, sem paginação — a tela conta, filtra e desenha o
- * mural em cima do conjunto todo.
+ * <p>O arquivo vem inteiro em `archive`, sem paginação — a tela conta, filtra e liga em cima do
+ * conjunto todo.
  */
 @Injectable({ providedIn: 'root' })
 export class StoryArchiveService {

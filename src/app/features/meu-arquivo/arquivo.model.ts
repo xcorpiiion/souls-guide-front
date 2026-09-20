@@ -9,7 +9,7 @@ import type {
 } from '@xcorpiiion/canonico';
 
 /**
- * O que as três partes do arquivo — a aba, o mural e o "montar lore" — compartilham: os
+ * O que as duas partes do arquivo — a aba e o "montar lore" — compartilham: os
  * rótulos, e as contas que são função pura do arquivo. Nenhuma delas vai ao servidor.
  */
 
