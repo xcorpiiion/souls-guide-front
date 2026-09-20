@@ -178,7 +178,26 @@
               }
             }
             @case ('paragraph') {
-              <p class="ld__paragraph">{{ block.text }}</p>
+              <p class="ld__paragraph">
+                @for (seg of block.segmentos; track $index) {
+                  @switch (seg.kind) {
+                    @case ('forte') {
+                      <strong>{{ seg.text }}</strong>
+                    }
+                    @case ('enfase') {
+                      <em>{{ seg.text }}</em>
+                    }
+                    @case ('link') {
+                      <a [href]="seg.href" target="_blank" rel="nofollow noopener noreferrer">{{
+                        seg.text
+                      }}</a>
+                    }
+                    @default {
+                      {{ seg.text }}
+                    }
+                  }
+                }
+              </p>
             }
           }
         }

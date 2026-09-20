@@ -1,9 +1,9 @@
 import { describe, expect, it } from 'vitest';
 import {
+  parseInline,
   extractImageFileKeys,
   loreImageMarkdown,
   parseLoreContent,
-  renderMarkdown,
 } from './lore-content';
 import { IMAGENS_DE_USUARIO_HABILITADAS } from '../../core/services/storage.service';
 
@@ -61,38 +61,43 @@ describe('parseLoreContent', () => {
   });
 });
 
-describe('renderMarkdown', () => {
-  it('troca a chave pela URL resolvida', () => {
-    const html = renderMarkdown('![Ranni](file:k1)', new Map([['k1', 'https://cdn/x.png']]));
-    expect(html).toContain('<img src="https://cdn/x.png" alt="Ranni" />');
+describe('parseInline', () => {
+  it('quebra negrito e italico em segmentos, preservando o texto em volta', () => {
+    expect(parseInline('o **sino** tocou *duas* vezes')).toEqual([
+      { kind: 'texto', text: 'o ' },
+      { kind: 'forte', text: 'sino' },
+      { kind: 'texto', text: ' tocou ' },
+      { kind: 'enfase', text: 'duas' },
+      { kind: 'texto', text: ' vezes' },
+    ]);
+  });
+
+  it('negrito ganha do italico, senao sobra um asterisco solto', () => {
+    expect(parseInline('**forte**')).toEqual([{ kind: 'forte', text: 'forte' }]);
+  });
+
+  it('link http e https vira link', () => {
+    expect(parseInline('ver [a fonte](https://exemplo.com/x)')).toEqual([
+      { kind: 'texto', text: 'ver ' },
+      { kind: 'link', text: 'a fonte', href: 'https://exemplo.com/x' },
+    ]);
   });
 
   /**
-   * Desligado, nenhuma chave resolve nunca — então o marcador de "enviando" ficaria
-   * mentindo para sempre em todo artigo que já tem imagem no texto. O bloco some.
+   * O texto da lore e escrito por usuario e a pagina e publica. A allowlist de esquema e a
+   * unica coisa entre um artigo e um `javascript:` no href de um link que todo visitante ve.
    */
-  it('não deixa marcador de envio quando imagem de usuário está desligada', () => {
-    const html = renderMarkdown('![Ranni](file:k1)');
-
-    expect(html).not.toContain('<img');
-    expect(html).not.toContain('imagem enviando');
+  it.each([
+    'javascript:alert(1)',
+    'data:text/html,<script>alert(1)</script>',
+    'vbscript:msgbox(1)',
+    '/lore/10',
+  ])('%s nao vira link, e volta como o texto que a pessoa escreveu', (url) => {
+    const texto = `[clique](${url})`;
+    expect(parseInline(texto)).toEqual([{ kind: 'texto', text: texto }]);
   });
 
-  it.skipIf(!IMAGENS_DE_USUARIO_HABILITADAS)(
-    'mostra marcador em vez de imagem quebrada quando a chave não resolveu',
-    () => {
-      const html = renderMarkdown('![Ranni](file:k1)');
-      expect(html).not.toContain('<img');
-      expect(html).toContain('imagem enviando');
-    },
-  );
-
-  it('escapa aspas do alt para não quebrar o atributo', () => {
-    const html = renderMarkdown('![a"b](file:k1)', new Map([['k1', 'https://cdn/x.png']]));
-    expect(html).toContain('alt="a&quot;b"');
-  });
-
-  it('continua formatando o markdown de sempre', () => {
-    expect(renderMarkdown('**forte**')).toContain('<strong>forte</strong>');
+  it('texto sem marcacao sai como um segmento so', () => {
+    expect(parseInline('sem nada')).toEqual([{ kind: 'texto', text: 'sem nada' }]);
   });
 });

@@ -16,8 +16,10 @@ import { resumo, SeoService } from '../../../core/services/seo.service';
 import { refDe } from '../../../shared/utils/ref';
 import { AuthService } from '@xcorpiiion/ng-core';
 import {
+  InlineSegment,
   LoreBlock,
   extractImageFileKeys,
+  parseInline,
   parseLoreContent,
 } from '../../../shared/utils/lore-content';
 import {
@@ -36,7 +38,11 @@ import { ToastService } from '@xcorpiiion/ui';
 import { PfPageLoader } from '@xcorpiiion/ui';
 
 type BlocoDeLeitura =
-  Exclude<LoreBlock, { kind: 'quote' }> | { kind: 'citacao'; citacao: CitacaoLida };
+  | Exclude<LoreBlock, { kind: 'quote' } | { kind: 'paragraph' }>
+  | { kind: 'citacao'; citacao: CitacaoLida }
+  // O paragrafo ja chega quebrado em segmentos: chamar o parser do template o faria rodar
+  // a cada ciclo de deteccao de mudanca.
+  | { kind: 'paragraph'; text: string; segmentos: InlineSegment[] };
 
 @Component({
   selector: 'app-lore-detail',
@@ -107,9 +113,12 @@ export class LoreDetail implements OnInit {
   protected readonly blocos = computed((): BlocoDeLeitura[] => {
     const a = this.article();
     if (!a) return [];
-    return parseLoreContent(a.content).map((b) =>
-      b.kind === 'quote' ? { kind: 'citacao', citacao: lerCitacao(b.text, b.origem ?? '') } : b,
-    );
+    return parseLoreContent(a.content).map((b): BlocoDeLeitura => {
+      if (b.kind === 'quote')
+        return { kind: 'citacao', citacao: lerCitacao(b.text, b.origem ?? '') };
+      if (b.kind === 'paragraph') return { ...b, segmentos: parseInline(b.text) };
+      return b;
+    });
   });
 
   protected readonly citacoes = computed(

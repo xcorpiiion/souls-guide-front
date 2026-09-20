@@ -52,35 +52,6 @@ export function parseLoreContent(content: string): LoreBlock[] {
 }
 
 /**
- * HTML do preview do editor. `resolved` mapeia chave → URL; uma chave que ainda não
- * resolveu vira um marcador, e não uma imagem quebrada.
- */
-export function renderMarkdown(md: string, resolved?: ReadonlyMap<string, string>): string {
-  return md
-    .replace(/^!\[([^\]]*)\]\(file:([^)\s]+)\)$/gm, (_, alt: string, key: string) => {
-      const url = resolved?.get(key);
-      if (url) return `<img src="${escapeAttribute(url)}" alt="${escapeAttribute(alt)}" />`;
-
-      // Com imagem desligada, nenhuma chave resolve — e o marcador de "enviando" ficaria
-      // mentindo para sempre em todo artigo que já tem imagem no texto. Some o bloco.
-      return IMAGENS_DE_USUARIO_HABILITADAS
-        ? `<p class="lore-image-pending">imagem enviando…</p>`
-        : '';
-    })
-    .replace(/^### (.+)$/gm, '<h3>$1</h3>')
-    .replace(/^## (.+)$/gm, '<h2>$1</h2>')
-    .replace(/^# (.+)$/gm, '<h1>$1</h1>')
-    .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
-    .replace(/\*(.+?)\*/g, '<em>$1</em>')
-    .replace(/^> (.+)$/gm, '<blockquote>$1</blockquote>')
-    .replace(/^- (.+)$/gm, '<li>$1</li>')
-    .replace(/(<li>.*<\/li>)/gs, '<ul>$1</ul>')
-    .replace(/\n\n/g, '</p><p>')
-    .replace(/^(?!<[hbup])/gm, '')
-    .trim();
-}
-
-/**
  * A citação, com o trecho e a origem separados. Cada linha perde o `> `, e a última — quando
  * começa com travessão — é de onde o trecho veio. Sem separar, a origem saía na leitura como
  * mais uma linha do texto do jogo.
@@ -100,6 +71,86 @@ function splitBlocks(content: string): string[] {
     .filter((block) => block.length > 0);
 }
 
-function escapeAttribute(value: string): string {
-  return value.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;');
+/**
+ * Um pedaço de parágrafo: texto puro, negrito, itálico ou link.
+ *
+ * <p>A página de leitura renderiza cada pedaço com `{{ }}`, que o Angular escapa. É por isso
+ * que isto devolve <b>segmentos</b> e não HTML: o texto da lore é escrito por usuário e a
+ * página é pública, então `innerHTML` — mesmo com sanitizer — seria uma superfície de XSS
+ * aberta por conveniência. Aqui não há como injetar marcação: o que não casa com uma das
+ * três marcas sai como texto.
+ */
+export type InlineSegment =
+  | { kind: 'texto'; text: string }
+  | { kind: 'forte'; text: string }
+  | { kind: 'enfase'; text: string }
+  | { kind: 'link'; text: string; href: string };
+
+// `**forte**` vem antes de `*enfase*` na alternância, senão o itálico come o primeiro
+// asterisco do negrito e sobra um par solto.
+const INLINE = /\[([^\]\n]+)\]\(([^)\s]+)\)|\*\*([^*\n]+)\*\*|\*([^*\n]+)\*/g;
+
+/** Quebra um parágrafo em segmentos, preservando a ordem e o texto que não é marcação. */
+export function parseInline(text: string): InlineSegment[] {
+  const segmentos: InlineSegment[] = [];
+  let fim = 0;
+
+  for (const m of text.matchAll(INLINE)) {
+    if (m.index > fim) segmentos.push({ kind: 'texto', text: text.slice(fim, m.index) });
+
+    if (m[1] !== undefined) {
+      const href = enderecoSeguro(m[2]);
+      // Endereço recusado não vira link nem some: volta como o texto que a pessoa escreveu,
+      // para ela ver o que digitou em vez de perder o trecho.
+      segmentos.push(href ? { kind: 'link', text: m[1], href } : { kind: 'texto', text: m[0] });
+    } else if (m[3] !== undefined) {
+      segmentos.push({ kind: 'forte', text: m[3] });
+    } else {
+      segmentos.push({ kind: 'enfase', text: m[4] });
+    }
+
+    fim = m.index + m[0].length;
+  }
+
+  if (fim < text.length) segmentos.push({ kind: 'texto', text: text.slice(fim) });
+  return juntarTexto(segmentos);
+}
+
+/**
+ * Só `http` e `https` viram link.
+ *
+ * <p>Recusar por allowlist, e não por lista de proibidos: `javascript:` é o caso conhecido,
+ * mas `data:` e qualquer esquema que um navegador venha a registrar caem na mesma armadilha,
+ * e a lista de proibidos envelhece sozinha. Endereço relativo também fica de fora — a lore é
+ * texto, não navegação interna.
+ */
+function enderecoSeguro(url: string): string | null {
+  const limpo = url.trim();
+  if (!/^https?:\/\//i.test(limpo)) return null;
+  try {
+    new URL(limpo);
+    return limpo;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Junta segmentos de texto vizinhos num só.
+ *
+ * <p>Eles aparecem quando um link é recusado: o endereço volta como texto e encosta no
+ * texto que já vinha ao lado. Sem juntar, `[x](javascript:alert(1))` sairia partido em
+ * dois pedaços — a leitura é a mesma, mas o segmento deixa de corresponder ao que a
+ * pessoa escreveu, e é isso que o teste da allowlist verifica.
+ */
+function juntarTexto(segmentos: InlineSegment[]): InlineSegment[] {
+  return segmentos.reduce<InlineSegment[]>((acc, seg) => {
+    const anterior = acc[acc.length - 1];
+    if (seg.kind === 'texto' && anterior?.kind === 'texto') {
+      acc[acc.length - 1] = { kind: 'texto', text: anterior.text + seg.text };
+      return acc;
+    }
+    acc.push(seg);
+    return acc;
+  }, []);
 }
