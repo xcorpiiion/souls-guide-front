@@ -9,10 +9,10 @@ import {
 } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
-import { Subject, debounceTime, switchMap } from 'rxjs';
+import { Subject, debounceTime, filter, switchMap } from 'rxjs';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { AuthService } from '@xcorpiiion/ng-core';
-import { ToastService } from '@xcorpiiion/ui';
+import { ConfirmService, ToastService } from '@xcorpiiion/ui';
 import type { ItemRequest, ItemType } from '@xcorpiiion/canonico';
 import { ItemService } from '../../core/services/item.service';
 import { GameService } from '../../core/services/game.service';
@@ -72,6 +72,7 @@ export class ItemEditor implements OnInit {
   private readonly questService = inject(QuestService);
   private readonly auth = inject(AuthService);
   private readonly toast = inject(ToastService);
+  private readonly confirm = inject(ConfirmService);
   private readonly seo = inject(SeoService);
   private readonly destroyRef = inject(DestroyRef);
 
@@ -112,7 +113,6 @@ export class ItemEditor implements OnInit {
   protected readonly salvando = signal(false);
   protected readonly erroDeRede = signal(false);
   protected readonly salvoAviso = signal<string | null>(null);
-  protected readonly confirmandoExclusao = signal(false);
 
   /**
    * Nome que já existe neste jogo.
@@ -383,16 +383,24 @@ export class ItemEditor implements OnInit {
     const id = this.itemId();
     if (!id) return;
 
-    this.itemService.delete(id).subscribe({
-      next: () => {
-        this.toast.success('Pronto', 'Item excluído.');
-        this.router.navigate(['/games', this.jogoId(), 'itens']);
-      },
-      error: () => {
-        this.confirmandoExclusao.set(false);
-        this.toast.error('Erro', 'Não foi possível excluir este item.');
-      },
-    });
+    this.confirm
+      .ask({
+        title: 'Excluir item',
+        message: 'Esta ação não pode ser desfeita. O item sai da lista do jogo.',
+        confirmLabel: 'excluir',
+        tone: 'danger',
+      })
+      .pipe(
+        filter(Boolean),
+        switchMap(() => this.itemService.delete(id)),
+      )
+      .subscribe({
+        next: () => {
+          this.toast.success('Pronto', 'Item excluído.');
+          this.router.navigate(['/games', this.jogoId(), 'itens']);
+        },
+        error: () => this.toast.error('Erro', 'Não foi possível excluir este item.'),
+      });
   }
 
   protected cancelar(): void {

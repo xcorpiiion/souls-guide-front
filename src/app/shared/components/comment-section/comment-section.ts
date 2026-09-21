@@ -13,6 +13,8 @@ import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { Comment } from '../../models/comment.model';
 import { CommentService, CommentTargetKind } from '../../../core/services/comment.service';
 import { AuthService } from '@xcorpiiion/ng-core';
+import { ConfirmService, ToastService } from '@xcorpiiion/ui';
+import { filter, switchMap } from 'rxjs';
 
 @Component({
   selector: 'app-comment-section',
@@ -27,6 +29,8 @@ export class CommentSection implements OnInit {
 
   private readonly commentService = inject(CommentService);
   private readonly sanitizer = inject(DomSanitizer);
+  private readonly confirm = inject(ConfirmService);
+  private readonly toast = inject(ToastService);
   protected readonly auth = inject(AuthService);
 
   protected readonly comments = signal<Comment[]>([]);
@@ -121,24 +125,35 @@ export class CommentSection implements OnInit {
   }
 
   protected deleteComment(commentId: string, parentId?: string): void {
-    this.commentService.delete(commentId).subscribe({
-      next: () => {
-        if (parentId) {
-          this.comments.update((list) =>
-            list.map((c) =>
-              c.id === parentId
-                ? { ...c, replies: c.replies.filter((r) => r.id !== commentId) }
-                : c,
-            ),
-          );
-        } else {
-          this.comments.update((list) => list.filter((c) => c.id !== commentId));
-        }
-      },
-      error: () => {
-        /* swallowed intentionally */
-      },
-    });
+    this.confirm
+      .ask({
+        title: parentId ? 'Excluir resposta' : 'Excluir comentário',
+        message: parentId
+          ? 'Esta ação não pode ser desfeita.'
+          : 'Esta ação não pode ser desfeita. As respostas a ele saem junto.',
+        confirmLabel: 'excluir',
+        tone: 'danger',
+      })
+      .pipe(
+        filter(Boolean),
+        switchMap(() => this.commentService.delete(commentId)),
+      )
+      .subscribe({
+        next: () => {
+          if (parentId) {
+            this.comments.update((list) =>
+              list.map((c) =>
+                c.id === parentId
+                  ? { ...c, replies: c.replies.filter((r) => r.id !== commentId) }
+                  : c,
+              ),
+            );
+          } else {
+            this.comments.update((list) => list.filter((c) => c.id !== commentId));
+          }
+        },
+        error: () => this.toast.error('Erro', 'Não foi possível excluir o comentário.'),
+      });
   }
 
   protected openReply(id: string, authorHandle: string): void {

@@ -4,7 +4,7 @@ import { describe, it, expect, vi } from 'vitest';
 import { of, throwError } from 'rxjs';
 import type { ItemDTO } from '@xcorpiiion/canonico';
 import { AuthService } from '@xcorpiiion/ng-core';
-import { ToastService } from '@xcorpiiion/ui';
+import { ConfirmService, ToastService } from '@xcorpiiion/ui';
 import { ItemEditor } from './item-editor';
 import { ItemService } from '../../core/services/item.service';
 import { GameService } from '../../core/services/game.service';
@@ -51,14 +51,22 @@ interface Tela {
   escolherPasso: (p: { id: string; label: string }) => void;
   salvar: () => void;
   salvarEProximo: () => void;
+  excluir: () => void;
 }
 
 function montar(
-  opcoes: { itemId?: string; create?: ReturnType<typeof vi.fn>; admin?: boolean } = {},
+  opcoes: {
+    itemId?: string;
+    create?: ReturnType<typeof vi.fn>;
+    admin?: boolean;
+    confirma?: boolean;
+  } = {},
 ) {
   const create = opcoes.create ?? vi.fn(() => of({ ...ITEM, id: 7 }));
   const update = vi.fn(() => of(ITEM));
   const get = vi.fn(() => of(ITEM));
+  const remover = vi.fn(() => of(undefined));
+  const ask = vi.fn(() => of(opcoes.confirma ?? false));
   const roles = opcoes.admin ? ['ROLE_USER', 'ROLE_ADMIN'] : ['ROLE_USER'];
 
   const params = opcoes.itemId ? { id: opcoes.itemId } : { gameId: '1-elden-ring' };
@@ -75,7 +83,7 @@ function montar(
       },
       {
         provide: ItemService,
-        useValue: { list: () => of(pagina<ItemDTO>([])), get, create, update, delete: vi.fn() },
+        useValue: { list: () => of(pagina<ItemDTO>([])), get, create, update, delete: remover },
       },
       { provide: GameService, useValue: { list: () => of(pagina([JOGO])) } },
       {
@@ -87,6 +95,7 @@ function montar(
       },
       { provide: AuthService, useValue: { isLoggedIn: () => true, getClaim: () => roles } },
       { provide: ToastService, useValue: { success: vi.fn(), error: vi.fn() } },
+      { provide: ConfirmService, useValue: { ask } },
     ],
   });
 
@@ -98,6 +107,8 @@ function montar(
     create,
     update,
     get,
+    remover,
+    ask,
     tela: fixture.componentInstance as unknown as Tela,
   };
 }
@@ -205,12 +216,30 @@ describe('ItemEditor', () => {
     expect(texto(fixture)).not.toContain('excluir item');
   });
 
-  it('admin vê o excluir, e ele não dispara sem confirmação', async () => {
+  it('admin vê o excluir', async () => {
     const { fixture } = montar({ itemId: '7', admin: true });
     await fixture.whenStable();
     fixture.detectChanges();
 
     expect(texto(fixture)).toContain('excluir item');
-    expect(texto(fixture)).not.toContain('confirmar exclusão');
+  });
+
+  it('cancelar a confirmação não exclui', async () => {
+    const { fixture, tela, ask, remover } = montar({ itemId: '7', admin: true });
+    await fixture.whenStable();
+
+    tela.excluir();
+
+    expect(ask).toHaveBeenCalledWith(expect.objectContaining({ tone: 'danger' }));
+    expect(remover).not.toHaveBeenCalled();
+  });
+
+  it('confirmar exclui o item', async () => {
+    const { fixture, tela, remover } = montar({ itemId: '7', admin: true, confirma: true });
+    await fixture.whenStable();
+
+    tela.excluir();
+
+    expect(remover).toHaveBeenCalledWith('7');
   });
 });

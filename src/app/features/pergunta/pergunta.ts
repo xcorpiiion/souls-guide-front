@@ -6,10 +6,11 @@ import {
   inject,
   signal,
 } from '@angular/core';
-import { RouterLink, ActivatedRoute } from '@angular/router';
+import { RouterLink, ActivatedRoute, Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { AuthService } from '@xcorpiiion/ng-core';
-import { PfPageLoader, ToastService } from '@xcorpiiion/ui';
+import { ConfirmService, PfPageLoader, ToastService } from '@xcorpiiion/ui';
+import { filter, switchMap } from 'rxjs';
 import type { GameAnswerDTO, GameQuestionDTO, GameQuestionSummaryDTO } from '@xcorpiiion/canonico';
 import { QuestionService } from '../../core/services/question.service';
 import { resumo, SeoService } from '../../core/services/seo.service';
@@ -37,6 +38,8 @@ export class Pergunta implements OnInit {
   private readonly service = inject(QuestionService);
   private readonly seo = inject(SeoService);
   private readonly toast = inject(ToastService);
+  private readonly confirm = inject(ConfirmService);
+  private readonly router = inject(Router);
   readonly auth = inject(AuthService);
 
   protected readonly referencia = this.route.snapshot.paramMap.get('referencia') ?? '';
@@ -212,5 +215,57 @@ export class Pergunta implements OnInit {
       },
       error: () => this.toast.error('Erro', 'Não foi possível marcar a resposta.'),
     });
+  }
+
+  protected excluirPergunta(): void {
+    const q = this.question();
+    if (!q) return;
+
+    this.confirm
+      .ask({
+        title: 'Excluir pergunta',
+        message: 'Esta ação não pode ser desfeita. As respostas saem junto com ela.',
+        confirmLabel: 'excluir',
+        tone: 'danger',
+      })
+      .pipe(
+        filter(Boolean),
+        switchMap(() => this.service.deleteQuestion(q.id)),
+      )
+      .subscribe({
+        next: () => {
+          this.toast.success('Pronto', 'Pergunta excluída.');
+          this.router.navigate(['/games', q.gameSlug ?? q.gameId]);
+        },
+        error: () => this.toast.error('Erro', 'Não foi possível excluir a pergunta.'),
+      });
+  }
+
+  protected excluirResposta(resposta: GameAnswerDTO): void {
+    this.confirm
+      .ask({
+        title: 'Excluir resposta',
+        message: 'Esta ação não pode ser desfeita.',
+        confirmLabel: 'excluir',
+        tone: 'danger',
+      })
+      .pipe(
+        filter(Boolean),
+        switchMap(() => this.service.deleteAnswer(resposta.id)),
+      )
+      .subscribe({
+        next: () => {
+          const q = this.question();
+          if (!q) return;
+          // Sair a aceita reabre a pergunta: não há mais resposta marcada como a que resolveu.
+          this.question.set({
+            ...q,
+            resolved: resposta.accepted ? false : q.resolved,
+            answers: q.answers.filter((a) => a.id !== resposta.id),
+            answerCount: Math.max(0, q.answerCount - 1),
+          });
+        },
+        error: () => this.toast.error('Erro', 'Não foi possível excluir a resposta.'),
+      });
   }
 }

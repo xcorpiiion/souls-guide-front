@@ -50,7 +50,9 @@
                 </div>
               </div>
               @if (a.viewerCanDelete) {
-                <button type="button" class="botao-fantasma">excluir</button>
+                <button type="button" class="botao-fantasma" (click)="excluirResposta(a)">
+                  excluir
+                </button>
               }
             </div>
           }
@@ -69,7 +71,9 @@
           }
           @if (q.viewerCanDelete) {
             <div class="corpo__acoes">
-              <button type="button" class="botao-fantasma">excluir pergunta</button>
+              <button type="button" class="botao-fantasma" (click)="excluirPergunta()">
+                excluir pergunta
+              </button>
             </div>
           }
         </section>
@@ -106,7 +110,9 @@
                       </button>
                     }
                     @if (a.viewerCanDelete) {
-                      <button type="button" class="botao-fantasma">excluir</button>
+                      <button type="button" class="botao-fantasma" (click)="excluirResposta(a)">
+                        excluir
+                      </button>
                     }
                   </div>
                 </div>

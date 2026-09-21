@@ -8,6 +8,13 @@
   padding: 0;
 }
 
+// O `*` acima zera também a `margin: auto` que o navegador dá ao `<dialog>` aberto com
+// `showModal()` — e é só ela que o centraliza. Sem esta linha a confirmação de exclusão
+// abria colada no canto superior esquerdo.
+dialog:modal {
+  margin: auto;
+}
+
 html {
   font-size: 16px;
   scroll-behavior: smooth;

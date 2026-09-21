@@ -1032,10 +1032,21 @@ export class MeuArquivo {
   }
 
   protected desfazerLigacao(id: number): void {
-    this.service.unlink(id).subscribe({
-      next: () => this.ligacoes.update((lista) => lista.filter((l) => l.id !== id)),
-      error: () => this.toast.error('Erro', 'Não foi possível desfazer a ligação.'),
-    });
+    this.confirm
+      .ask({
+        title: 'Desfazer ligação',
+        message: 'Os dois achados continuam no arquivo; só a ligação entre eles sai.',
+        confirmLabel: 'desfazer',
+        tone: 'danger',
+      })
+      .pipe(
+        filter(Boolean),
+        switchMap(() => this.service.unlink(id)),
+      )
+      .subscribe({
+        next: () => this.ligacoes.update((lista) => lista.filter((l) => l.id !== id)),
+        error: () => this.toast.error('Erro', 'Não foi possível desfazer a ligação.'),
+      });
   }
 
   // ─── Montar lore ───────────────────────────────────────────────────────────

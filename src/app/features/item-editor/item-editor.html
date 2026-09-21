@@ -220,25 +220,9 @@
 
   @if (editando() && admin) {
     <div class="editor__zona-perigo">
-      @if (confirmandoExclusao()) {
-        <div class="editor__confirmar">
-          <span>excluir este item permanentemente?</span>
-          <button type="button" class="editor__btn-mini" (click)="confirmandoExclusao.set(false)">
-            cancelar
-          </button>
-          <button
-            type="button"
-            class="editor__btn-mini editor__btn-mini--perigo"
-            (click)="excluir()"
-          >
-            confirmar exclusão
-          </button>
-        </div>
-      } @else {
-        <button type="button" class="editor__excluir" (click)="confirmandoExclusao.set(true)">
-          <i class="ti ti-trash" aria-hidden="true"></i> excluir item
-        </button>
-      }
+      <button type="button" class="editor__excluir" (click)="excluir()">
+        <i class="ti ti-trash" aria-hidden="true"></i> excluir item
+      </button>
     </div>
   }
 

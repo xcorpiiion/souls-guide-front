@@ -24,6 +24,8 @@ import * as Sentry from '@sentry/angular';
 import { routes } from './app.routes';
 import { environment } from '../environments/environment';
 import { initSentry } from './core/services/monitoring.service';
+import { ConfirmacaoService } from './core/services/confirmacao.service';
+import { ConfirmService } from '@xcorpiiion/ui';
 import { recarregarSeBundleVelho } from './core/stale-bundle';
 import { baseAbsolutaNoServidor } from './core/ssr/api-base';
 import { provideClientHydration, withEventReplay } from '@angular/platform-browser';
@@ -94,6 +96,9 @@ export const appConfig: ApplicationConfig = {
         cancelLabel: 'Continuar editando',
       },
     },
+
+    // A confirmação da lib nasce com 'Cancel'. Trocada aqui, uma vez, vale para todas.
+    { provide: ConfirmService, useClass: ConfirmacaoService },
 
     // O `provideErrorReporting` da lib existe para quem não tem nada montado.
     // Aqui o handler nativo do Sentry já faz mais — contexto de Angular e

@@ -105,10 +105,11 @@ flowchart LR
         storage["storage.service"]
         loading["loading.service"]
         monitoring["monitoring.service"]
+        confirmacao["confirmacao.service"]
     end
 
     classDef s fill:#1168bd,stroke:#0b4884,color:#fff
-    class game,gameSeries,push,quest,lore,ending,item,boss,questVersion,loreVersion,questCondition,questMap,comment,personalQuest,personalLore,profile,progress,questProgress,run,storyArchive,user,notification,moderacao,discordLogin,seo,atualizacao,storage,loading,monitoring s
+    class game,gameSeries,push,quest,lore,ending,item,boss,questVersion,loreVersion,questCondition,questMap,comment,personalQuest,personalLore,profile,progress,questProgress,run,storyArchive,user,notification,moderacao,discordLogin,seo,atualizacao,storage,loading,monitoring,confirmacao s
 ```
 
 Cinco deles não falam **só** com o `souls-guide-api`:

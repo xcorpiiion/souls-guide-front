@@ -382,18 +382,29 @@ export class Profile implements OnInit {
   }
 
   protected deletePersonalLore(id: string): void {
-    this.deletingLoreId.set(id);
-    this.personalLoreService.deletePersonal(id).subscribe({
-      next: () => {
-        this.personalLore.update((list) => list.filter((l) => l.id !== id));
-        this.deletingLoreId.set(null);
-        this.toast.success('Lore excluído', 'O artigo foi removido do seu perfil.');
-      },
-      error: () => {
-        this.deletingLoreId.set(null);
-        this.toast.error('Erro', 'Não foi possível excluir o lore.');
-      },
-    });
+    this.confirm
+      .ask({
+        title: 'Excluir artigo',
+        message:
+          'Esta ação não pode ser desfeita. O artigo será removido permanentemente do seu perfil.',
+        confirmLabel: 'excluir',
+        tone: 'danger',
+      })
+      .subscribe((ok) => {
+        if (!ok) return;
+        this.deletingLoreId.set(id);
+        this.personalLoreService.deletePersonal(id).subscribe({
+          next: () => {
+            this.personalLore.update((list) => list.filter((l) => l.id !== id));
+            this.deletingLoreId.set(null);
+            this.toast.success('Lore excluído', 'O artigo foi removido do seu perfil.');
+          },
+          error: () => {
+            this.deletingLoreId.set(null);
+            this.toast.error('Erro', 'Não foi possível excluir o lore.');
+          },
+        });
+      });
   }
 
   private ensureFollowedLoaded(): void {
