@@ -10,7 +10,14 @@
   <div class="ld">
     <nav class="ld__voltar" aria-label="navegação">
       @if (context === 'profile') {
-        <a routerLink="/profile"><i class="ti ti-arrow-left" aria-hidden="true"></i> perfil</a>
+        <!--
+          Volta para a mesa do perfil com o jogo e a aba, e nao para /profile puro: aquele cai
+          na aba de quests, que nao e de onde a pessoa veio. Mesma forma do ramo da comunidade
+          logo abaixo, e o mesmo destino que o "montar lore" ja usa.
+        -->
+        <a routerLink="/profile/lore/arquivo" [queryParams]="{ jogo: a.gameId, aba: 'lores' }"
+          ><i class="ti ti-arrow-left" aria-hidden="true"></i> minhas lores de {{ a.gameName }}</a
+        >
       } @else if (context === 'usuario') {
         <a [routerLink]="['/usuarios', handle]"
           ><i class="ti ti-arrow-left" aria-hidden="true"></i> &#64;{{ handle }}</a
@@ -176,6 +183,31 @@
                   }
                 </figure>
               }
+            }
+            @case ('table') {
+              <!-- overflow-x proprio: a tabela pode passar da coluna, a pagina nunca. -->
+              <div class="ld__tabela-rolagem">
+                <table class="ld__tabela">
+                  @if (block.cabecalho.length) {
+                    <thead>
+                      <tr>
+                        @for (celula of block.cabecalho; track $index) {
+                          <th>{{ celula }}</th>
+                        }
+                      </tr>
+                    </thead>
+                  }
+                  <tbody>
+                    @for (linha of block.linhas; track $index) {
+                      <tr>
+                        @for (celula of linha; track $index) {
+                          <td>{{ celula }}</td>
+                        }
+                      </tr>
+                    }
+                  </tbody>
+                </table>
+              </div>
             }
             @case ('paragraph') {
               <p class="ld__paragraph">
