@@ -15,6 +15,12 @@ export type LoreBlock =
   /** `origem` é a linha "— Título · tipo, capítulo" que o montar lore põe embaixo do trecho. */
   | { kind: 'quote'; text: string; origem?: string }
   | { kind: 'image'; fileKey: string; alt: string }
+  /**
+   * Tabela em markdown. O cabecalho e vazio quando a primeira linha so tem celulas em
+   * branco — o caso de uma tabela de duas colunas usada como lista de pares, que e como
+   * quase toda tabela da lore e escrita.
+   */
+  | { kind: 'table'; cabecalho: string[]; linhas: string[][] }
   | { kind: 'paragraph'; text: string };
 
 /** Markdown a inserir no texto para referenciar um arquivo já enviado. */
@@ -46,6 +52,8 @@ export function parseLoreContent(content: string): LoreBlock[] {
       }
       if (block.startsWith('## ')) return { kind: 'heading', text: block.slice(3) };
       if (block.startsWith('>')) return lerCitacao(block);
+      const tabela = lerTabela(block);
+      if (tabela) return tabela;
       return { kind: 'paragraph', text: block };
     })
     .filter((block): block is LoreBlock => block !== null);
@@ -153,4 +161,39 @@ function juntarTexto(segmentos: InlineSegment[]): InlineSegment[] {
     acc.push(seg);
     return acc;
   }, []);
+}
+
+/**
+ * Uma tabela em markdown, se o bloco for uma.
+ *
+ * <p>Exige a linha separadora (`|---|---|`) na segunda posição, que é o que distingue uma
+ * tabela de um parágrafo que por acaso começa com barra vertical. Sem essa exigência, uma
+ * citação de texto do jogo com uma barra no começo da linha viraria tabela de uma coluna.
+ *
+ * <p>Não suporta alinhamento por `:---:`. Alinhamento é decisão de layout e a leitura da
+ * lore tem uma coluna só; aceitar a sintaxe e ignorar o efeito seria pior que recusá-la.
+ */
+function lerTabela(bloco: string): LoreBlock | null {
+  const linhas = bloco.split('\n').map((l) => l.trim());
+  if (linhas.length < 2 || !linhas[0].startsWith('|')) return null;
+  if (!/^\|(\s*-{3,}\s*\|)+$/.test(linhas[1])) return null;
+
+  const celulas = (linha: string) =>
+    linha
+      .replace(/^\|/, '')
+      .replace(/\|$/, '')
+      .split('|')
+      .map((c) => c.trim());
+
+  const cabecalho = celulas(linhas[0]);
+  const linhasDeDados = linhas
+    .slice(2)
+    .filter((l) => l.startsWith('|'))
+    .map(celulas);
+  if (linhasDeDados.length === 0) return null;
+
+  // Cabeçalho todo em branco é o caso comum da lore: uma tabela de pares, em que a primeira
+  // linha existe só porque o markdown a exige. Devolver vazio deixa a tela não desenhá-la.
+  const temCabecalho = cabecalho.some((c) => c.length > 0);
+  return { kind: 'table', cabecalho: temCabecalho ? cabecalho : [], linhas: linhasDeDados };
 }

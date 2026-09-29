@@ -101,3 +101,42 @@ describe('parseInline', () => {
     expect(parseInline('sem nada')).toEqual([{ kind: 'texto', text: 'sem nada' }]);
   });
 });
+
+describe('parseLoreContent com tabela', () => {
+  it('le uma tabela com cabecalho', () => {
+    const blocos = parseLoreContent('| Deus | Por que trocou |\n|---|---|\n| Dragao | era o gas |');
+    expect(blocos).toEqual([
+      { kind: 'table', cabecalho: ['Deus', 'Por que trocou'], linhas: [['Dragao', 'era o gas']] },
+    ]);
+  });
+
+  /** O caso comum da lore: tabela de pares, em que o cabecalho existe so porque o markdown exige. */
+  it('cabecalho todo em branco vira cabecalho vazio', () => {
+    const blocos = parseLoreContent(
+      '| | |\n|---|---|\n| O nome | Fujitori |\n| A mascara | a cicatriz |',
+    );
+    expect(blocos).toEqual([
+      {
+        kind: 'table',
+        cabecalho: [],
+        linhas: [
+          ['O nome', 'Fujitori'],
+          ['A mascara', 'a cicatriz'],
+        ],
+      },
+    ]);
+  });
+
+  /**
+   * Sem exigir a linha separadora, texto do jogo que comece com barra vertical viraria
+   * tabela de uma coluna — e o conteudo da lore e cheio de texto colado do jogo.
+   */
+  it('sem a linha separadora continua sendo paragrafo', () => {
+    const texto = '| isto nao e tabela\n| so comeca com barra';
+    expect(parseLoreContent(texto)[0].kind).toBe('paragraph');
+  });
+
+  it('tabela sem nenhuma linha de dados continua sendo paragrafo', () => {
+    expect(parseLoreContent('| a | b |\n|---|---|')[0].kind).toBe('paragraph');
+  });
+});

@@ -611,4 +611,52 @@
 
 .comentarios-reserva {
   min-height: 240px;
+
+  // ─── Tabela ─────────────────────────────────────────────────────────────────
+
+  // A tabela pode passar da largura da coluna de leitura; a pagina nao pode. O scroll
+  // horizontal fica dentro deste container, e so dele.
+  &__tabela-rolagem {
+    overflow-x: auto;
+    margin: 6px 0;
+  }
+
+  &__tabela {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 15px;
+    line-height: 1.6;
+
+    th,
+    td {
+      text-align: left;
+      vertical-align: top;
+      padding: 10px 14px 10px 0;
+      border-bottom: 0.5px solid #2e2b26;
+    }
+
+    th {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: #8a8278;
+      font-weight: 400;
+      padding-bottom: 8px;
+    }
+
+    td {
+      color: #d8cfbc;
+    }
+
+    // A primeira coluna costuma ser o rotulo do par; ela puxa o olho e nao quebra.
+    td:first-child {
+      color: #f0e9db;
+      padding-right: 20px;
+    }
+
+    tr:last-child td {
+      border-bottom: 0;
+    }
+  }
 }
