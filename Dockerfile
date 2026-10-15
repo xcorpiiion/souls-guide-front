@@ -23,7 +23,7 @@ RUN npm run build -- --configuration=container
 # ── Stage 2: serve ──────────────────────────────────────────────────────────────
 # O nome do estágio não é enfeite: com o estágio de SSR abaixo, `docker build` sem
 # `--target` passaria a construir o último, e a imagem do front viraria o Node.
-FROM nginx:1.30-alpine AS web
+FROM nginx:1.31-alpine AS web
 
 COPY --from=builder /app/dist/soulguide/browser /usr/share/nginx/html
 COPY nginx.conf /etc/nginx/conf.d/default.conf
